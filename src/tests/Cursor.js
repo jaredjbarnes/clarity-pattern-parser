@@ -102,6 +102,19 @@ exports["Cursor: mark() and moveToMark()."] = function () {
     assert.equal(cursor.getIndex(), 0);
 };
 
+exports["Cursor: mark() on 1 and moveToMark()."] = function () {
+    const cursor = new Cursor("abc");
+    cursor.next();
+
+    const mark = cursor.mark();
+
+    cursor.next();
+    assert.equal(cursor.getIndex(), 2);
+
+    cursor.moveToMark(mark);
+    assert.equal(cursor.getIndex(), 1);
+};
+
 exports["Cursor: Bad mark, moveToMark()."] = function () {
     const cursor = new Cursor("abc");
 

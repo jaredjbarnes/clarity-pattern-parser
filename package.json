@@ -1,0 +1,19 @@
+{
+  "name": "clarity-cursor",
+  "version": "0.0.1",
+  "description": "",
+  "main": "./lib/index.js",
+  "scripts": {
+    "test": "node ./.clarity/test.js",
+    "build": "npx babel src --out-dir lib --source-maps"
+  },
+  "keywords": [],
+  "devDependencies": {
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.3.4",
+    "@babel/preset-env": "^7.3.4",
+    "babel-preset-env": "^1.5.1",
+    "fs-extra": "^7.0.1"
+  },
+  "dependencies": {}
+}

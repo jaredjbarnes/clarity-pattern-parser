@@ -1,0 +1,25 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Program",
+            "program": "${workspaceRoot}/lib/index.js",
+            "preLaunchTask": "Compile",
+            "cwd": "${workspaceRoot}",
+            "outFiles": ["${workspaceRoot}/lib/**/*.js"],
+            "sourceMaps": true
+        },
+         {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Test",
+            "program": "${workspaceRoot}/.clarity/test.js",
+            "preLaunchTask": "Compile",
+            "cwd": "${workspaceRoot}",
+            "outFiles": ["${workspaceRoot}/lib/**/*.js"],
+            "sourceMaps": true
+        }
+    ]
+}

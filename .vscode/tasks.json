@@ -1,0 +1,27 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Compile",
+            "type": "npm",
+            "script": "build"
+        },
+        { 
+            "label": "Test",
+            "dependsOn":[
+                "Compile"
+            ],
+            "command": "node",
+            "args": [
+                "${workspaceRoot}/.clarity/test.js"
+            ]
+        },
+        {
+            "label": "Build",
+            "dependsOn": [
+                "Compile",
+                "Test"
+            ]
+        }
+    ]
+}

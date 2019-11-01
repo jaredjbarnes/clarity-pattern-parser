@@ -2,9 +2,10 @@ import CompositeNode from "../ast/CompositeNode.js";
 import ParseError from "../ParseError.js";
 
 export default class Repetition {
-  constructor(name, parser) {
+  constructor(name, parser, dividerParser = null) {
     this.name = name;
     this.parser = parser.clone();
+    this.dividerParser = dividerParser;
     this.cursor = null;
     this.nodes = [];
     this.compositeNode = null;
@@ -42,7 +43,13 @@ export default class Repetition {
       this.nodes.push(node);
 
       if (!this.cursor.isAtEnd()){
-        this.tryParser();
+        if (this.dividerParser != null){
+          this.tryDividerParser();
+        }
+
+        if (!this.cursor.isAtEnd()){
+          this.tryParser();
+        }
       }
       
     } catch (error) {
@@ -50,6 +57,17 @@ export default class Repetition {
         throw new ParseError(`Expected a ${this.name}.`);
       }
 
+      this.cursor.moveToMark(mark);
+    }
+  }
+
+  tryDividerParser(){
+    const mark = this.cursor.mark();
+
+    try {
+      const node = this.dividerParser.parse(this.cursor);
+      this.nodes.push(node);
+    } catch (error) {
       this.cursor.moveToMark(mark);
     }
   }

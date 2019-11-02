@@ -37,6 +37,6 @@ export default class And {
   }
 
   clone(){
-    return new And(name, parsers);
+    return new And(this.name, this.parsers);
   }
 }

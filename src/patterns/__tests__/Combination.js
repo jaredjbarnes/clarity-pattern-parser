@@ -3,6 +3,7 @@ import Or from "../Or.js";
 import And from "../And.js";
 import Not from "../Not.js";
 import Cursor from "../../Cursor.js";
+import Repetition from "../Repetition.js";
 
 describe("Combination", () => {
     test("Whitespace.", () => {
@@ -29,14 +30,27 @@ describe("Combination", () => {
             starSlash
         ]);
 
-        const cursor = new Cursor("// Some comment is here!\n");
-        const node = singleLineComment.parse(cursor);
+        const whitespaceOptions = new Or([
+            space,
+            lineEnd,
+            tab,
+            singleLineComment,
+            multilineComment
+        ]);
 
-        const cursor1 = new Cursor(`/*
-            Multiline comment!
-            Another line!
-        */`);
+        const whitespace = new Repetition("whitespace", whitespaceOptions);
 
-        const node1 = multilineComment.parse(cursor1);
+        const cursor = new Cursor(`
+            //This is a single line comment!
+
+            /*
+                First line!
+                Second line!
+            */
+        `);
+
+        const node = whitespace.parse(cursor);
+        
+
     });
 });

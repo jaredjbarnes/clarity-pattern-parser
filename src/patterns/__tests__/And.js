@@ -16,5 +16,7 @@ describe("And", () => {
     expect(node.children[1].type).toBe("last-name");
     expect(node.children[1].value).toBe("Doe");
     expect(cursor.isAtEnd()).toBe(true);
+    expect(node.startIndex).toBe(0);
+    expect(cursor.lastIndex()).toBe(node.endIndex);
   });
 });

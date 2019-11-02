@@ -42,16 +42,13 @@ export default class Repetition {
       const node = this.parser.parse(this.cursor);
       this.nodes.push(node);
 
-      if (this.dividerParser != null){
-        this.tryDividerParser();
-      }
-
-      if (!this.cursor.isAtEnd()){
-        if (!this.cursor.isAtEnd()){
-          this.tryParser();
+      if (node.endIndex !== this.cursor.lastIndex()) {
+        if (this.dividerParser != null) {
+          this.tryDividerParser();
         }
+
+        this.tryParser();
       }
-      
     } catch (error) {
       if (this.nodes.length === 0) {
         throw new ParseError(`Expected a ${this.name}.`);
@@ -61,7 +58,7 @@ export default class Repetition {
     }
   }
 
-  tryDividerParser(){
+  tryDividerParser() {
     const mark = this.cursor.mark();
 
     try {

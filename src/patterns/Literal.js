@@ -22,6 +22,7 @@ export default class Literal {
   }
 
   parse(cursor) {
+    const startIndex = cursor.getIndex();
     const length = this.value.length;
     let match = "";
 
@@ -46,7 +47,12 @@ export default class Literal {
     }
 
     if (match === this.value) {
-      return new ValueNode(this.name, this.value);
+      return new ValueNode(
+        this.name,
+        this.value,
+        startIndex,
+        startIndex + this.value.length - 1
+      );
     } else {
       throw new ParseError(
         `Illegal character: expected '${this.value}', but found '${match}'`
@@ -54,7 +60,7 @@ export default class Literal {
     }
   }
 
-  clone(){
+  clone() {
     return new Literal(this.name, this.value);
   }
 }

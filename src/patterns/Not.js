@@ -6,6 +6,7 @@ export default class Not {
     this.name = name;
     this.parser = parser;
     this.value = "";
+    this.mark = null;
   }
 
   parse(cursor) {
@@ -16,6 +17,7 @@ export default class Not {
   reset(cursor) {
     this.cursor = cursor;
     this.value = "";
+    this.mark = this.cursor.mark();
   }
 
   tryParser() {
@@ -26,7 +28,12 @@ export default class Not {
       this.cursor.moveToMark(mark);
 
       if (this.value.length > 0) {
-        return new ValueNode(this.name, this.value);
+        return new ValueNode(
+          this.name,
+          this.value,
+          this.mark.index,
+          this.mark.index + this.value.length - 1
+        );
       } else {
         throw new ParseError(
           `Couldn't find pattern not matching '${this.parser.name}' parser.`
@@ -38,13 +45,18 @@ export default class Not {
       if (this.cursor.hasNext()) {
         this.cursor.next();
         return this.tryParser();
-      }  else {
-        return new ValueNode(this.name, this.value);
+      } else {
+        return new ValueNode(
+          this.name,
+          this.value,
+          this.mark.index,
+          this.mark.index + this.value.length - 1
+        );
       }
     }
   }
 
-  clone(){
+  clone() {
     return new Not(this.name, this.parser);
   }
 }

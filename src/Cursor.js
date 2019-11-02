@@ -4,7 +4,7 @@ export default class Cursor {
   constructor(string) {
     this.string = string;
     this.index = 0;
-
+    this.length = string.length;
     this.assertValidity();
   }
 
@@ -81,5 +81,9 @@ export default class Cursor {
 
   isAtEnd() {
     return this.index === this.string.length - 1;
+  }
+
+  lastIndex() {
+    return this.length - 1;
   }
 }

@@ -1,7 +1,7 @@
 import ParseError from "../ParseError.js";
 
-export default class Any {
-  constructor(name, values, { min, max }) {
+export default class AnyOf {
+  constructor(name, values, { min, max } = {}) {
     this.name = name;
     this.values = values;
     this.cursor = null;
@@ -34,6 +34,7 @@ export default class Any {
   }
 
   parse(cursor) {
+    const startIndex = cursor.getIndex();
     this.reset(cursor);
 
     while (this.isMatch() && this.match.length <= this.max) {
@@ -45,10 +46,13 @@ export default class Any {
       }
     }
 
-    if (this.match.length > this.min){
-        throw new ParseError(`A '${this.name}' needs to be at least ${this.min} character(s) long.`)
+    if (this.match.length > this.min) {
+      throw new ParseError(
+        `A '${this.name}' needs to be at least ${this.min} character(s) long.`
+      );
     }
 
-   return new ValueNode(this.name, this.match)
+    const endIndex = startIndex + this.match.length - 1;
+    return new ValueNode(this.name, this.match, startIndex, endIndex);
   }
 }

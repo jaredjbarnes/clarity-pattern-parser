@@ -15,6 +15,9 @@ describe("Literal", () => {
 
     expect(node.value).toBe("2");
     expect(node.type).toBe("two");
+    expect(node.startIndex).toBe(0);
+    expect(node.endIndex).toBe(0);
+    expect(cursor.lastIndex()).toBe(0);
   });
 
   test("Two characters, Exact.", () => {

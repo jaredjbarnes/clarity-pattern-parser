@@ -3,7 +3,7 @@ import CompositeNode from "../ast/CompositeNode.js";
 export default class And {
   constructor(name, parsers) {
     this.name = name;
-    this.parsers = parsers.map(parser=>parser.clone());
+    this.parsers = parsers.map(parser => parser.clone());
 
     this.assertParsers();
   }
@@ -31,12 +31,16 @@ export default class And {
       nodes.push(this.parsers[x].parse(cursor));
     }
 
-    const node = new CompositeNode(this.name);
+    const node = new CompositeNode(
+      this.name,
+      nodes[0].startIndex,
+      nodes[nodes.length - 1].endIndex
+    );
     node.children = nodes;
     return node;
   }
 
-  clone(){
-    return new And(this.name, this.parsers);
+  clone() {
+    return new And(name, parsers);
   }
 }

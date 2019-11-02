@@ -1,18 +1,16 @@
 import ValueNode from "../ast/ValueNode.js";
-import Literal from "./Literal.js";
 import ParseError from "../ParseError.js";
 
 export default class Not {
-  constructor(name, value) {
+  constructor(name, parser) {
     this.name = name;
-    this.literal = new Literal(name, value);
-    this.notMatchingValue = value;
+    this.parser = parser;
     this.value = "";
   }
 
   parse(cursor) {
     this.reset(cursor);
-    return this.tryLiteral();
+    return this.tryParser();
   }
 
   reset(cursor) {
@@ -20,18 +18,18 @@ export default class Not {
     this.value = "";
   }
 
-  tryLiteral() {
+  tryParser() {
     const mark = this.cursor.mark();
 
     try {
-      this.literal.parse(this.cursor);
+      this.parser.parse(this.cursor);
       this.cursor.moveToMark(mark);
 
       if (this.value.length > 0) {
         return new ValueNode(this.name, this.value);
       } else {
         throw new ParseError(
-          `Couldn't find pattern not matching '${this.notMatchingValue}'.`
+          `Couldn't find pattern not matching '${this.parser.name}' parser.`
         );
       }
     } catch (error) {
@@ -39,7 +37,7 @@ export default class Not {
 
       if (this.cursor.hasNext()) {
         this.cursor.next();
-        return this.tryLiteral();
+        return this.tryParser();
       }  else {
         return new ValueNode(this.name, this.value);
       }
@@ -47,6 +45,6 @@ export default class Not {
   }
 
   clone(){
-    return new Not(this.name, this.notMatchingValue);
+    return new Not(this.name, this.parser);
   }
 }

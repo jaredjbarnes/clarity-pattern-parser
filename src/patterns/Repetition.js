@@ -42,11 +42,11 @@ export default class Repetition {
       const node = this.parser.parse(this.cursor);
       this.nodes.push(node);
 
-      if (!this.cursor.isAtEnd()){
-        if (this.dividerParser != null){
-          this.tryDividerParser();
-        }
+      if (this.dividerParser != null){
+        this.tryDividerParser();
+      }
 
+      if (!this.cursor.isAtEnd()){
         if (!this.cursor.isAtEnd()){
           this.tryParser();
         }

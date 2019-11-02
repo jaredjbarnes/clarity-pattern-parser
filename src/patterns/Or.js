@@ -27,7 +27,7 @@ export default class Or {
 
   parse(cursor) {
     this.reset(cursor);
-    this.tryParser();
+    return this.tryParser();
   }
 
   reset(cursor) {
@@ -41,7 +41,7 @@ export default class Or {
     const parser = this.parsers[this.index];
 
     try {
-      return parser.parse(cursor);
+      return parser.parse(this.cursor);
     } catch (error) {
       this.errors.push(error);
 

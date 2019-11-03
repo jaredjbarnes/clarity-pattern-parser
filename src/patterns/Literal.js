@@ -2,11 +2,13 @@ import ValueNode from "../ast/ValueNode.js";
 import ParseError from "../ParseError.js";
 
 export default class Literal {
-  constructor(name, value) {
+  constructor(name, value, options) {
     this.name = name;
     this.value = value;
+    this.options = options;
 
     this.assertValidity();
+    this.recoverFromBadOptions();
   }
 
   assertValidity() {
@@ -14,6 +16,16 @@ export default class Literal {
       throw new Error(
         "Illegal Argument: Literal needs to have a value that has a length greater than 0."
       );
+    }
+  }
+
+  recoverFromBadOptions() {
+    if (this.options == null) {
+      this.options.isOptional = false;
+    } else {
+      if (typeof this.options.isOptional !== "boolean") {
+        this.options.isOptional = false;
+      }
     }
   }
 
@@ -30,11 +42,15 @@ export default class Literal {
       const character = cursor.getChar();
 
       if (character !== this.value.charAt(x)) {
-        throw new ParseError(
-          `Illegal character: expected '${this.value.charAt(
-            x
-          )}', but found '${character}'`
-        );
+        if (this.options.isOptional) {
+          return null;
+        } else {
+          throw new ParseError(
+            `Illegal character: expected '${this.value.charAt(
+              x
+            )}', but found '${character}'`
+          );
+        }
       } else {
         match += character;
       }
@@ -54,13 +70,17 @@ export default class Literal {
         startIndex + this.value.length - 1
       );
     } else {
-      throw new ParseError(
-        `Illegal character: expected '${this.value}', but found '${match}'`
-      );
+      if (this.options.isOptional) {
+        return null;
+      } else {
+        throw new ParseError(
+          `Illegal character: expected '${this.value}', but found '${match}'`
+        );
+      }
     }
   }
 
   clone() {
-    return new Literal(this.name, this.value);
+    return new Literal(this.name, this.value, this.options);
   }
 }

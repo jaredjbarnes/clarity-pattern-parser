@@ -1,13 +1,15 @@
 import CompositeNode from "../ast/CompositeNode.js";
 import ValueNode from "../ast/ValueNode.js";
+import ParseError from "../ParseError.js";
 
 export default class And {
-  constructor(name, parsers, isValue = false) {
+  constructor(name, parsers, options) {
     this.name = name;
-    this.isValue = isValue;
+    this.options = options;
     this.parsers = parsers.map(parser => parser.clone());
 
     this.assertParsers();
+    this.recoverFromBadOptions();
   }
 
   assertParsers() {
@@ -26,30 +28,65 @@ export default class And {
     }
   }
 
+  recoverFromBadOptions() {
+    if (this.options == null) {
+      this.options.isValue = false;
+      this.options.isOptional = false;
+    } else {
+      if (typeof this.options.isValue !== "boolean") {
+        this.options.isValue = false;
+      }
+
+      if (typeof this.options.isOptional !== "boolean") {
+        this.options.isOptional = false;
+      }
+    }
+  }
+
   parse(cursor) {
     const nodes = [];
+    const startingMark = cursor.mark();
 
     for (let x = 0; x < this.parsers.length; x++) {
       nodes.push(this.parsers[x].parse(cursor));
     }
 
-    // If all nodes that match are ValueNodes than we reduce them into one Value node.
-    // This is a design decision that I'm still unsure about. However, I think it may be beneificial.
-    if (this.isValue && nodes.every(node=>node instanceof ValueNode)){
-      const value = nodes.map(node=>node.value).join("");
-      return new ValueNode(this.name, value, nodes[0].startIndex, nodes[nodes.length - 1].endIndex);
+    const filteredNodes = nodes.filter(node => {
+      return node != null;
+    });
+
+    if (filteredNodes.length === 0) {
+      if (this.options.isOptional) {
+        cursor.moveToMark(startingMark);
+        return null;
+      } else {
+        throw new ParseError(`Expected a ${this.name} pattern.`);
+      }
+    }
+
+    if (
+      this.options.isValue &&
+      filteredNodes.every(node => node instanceof ValueNode)
+    ) {
+      const value = filteredNodes.map(node => node.value).join("");
+      return new ValueNode(
+        this.name,
+        value,
+        filteredNodes[0].startIndex,
+        filteredNodes[filteredNodes.length - 1].endIndex
+      );
     }
 
     const node = new CompositeNode(
       this.name,
-      nodes[0].startIndex,
-      nodes[nodes.length - 1].endIndex
+      filteredNodes[0].startIndex,
+      filteredNodes[filteredNodes.length - 1].endIndex
     );
-    node.children = nodes;
+    node.children = filteredNodes;
     return node;
   }
 
   clone() {
-    return new And(this.name, this.parsers);
+    return new And(this.name, this.parsers, this.options);
   }
 }

@@ -2,11 +2,36 @@ import ValueNode from "../ast/ValueNode.js";
 import ParseError from "../ParseError.js";
 
 export default class Not {
-  constructor(name, parser) {
+  constructor(name, parser, options) {
     this.name = name;
     this.parser = parser;
+    this.options = options;
     this.value = "";
-    this.mark = null;
+    this.startingMark = null;
+
+    this.assertParser();
+    this.recoverFromBadOptions();
+  }
+
+  assertParser() {
+    if (
+      this.parser == null ||
+      (this.parser && typeof this.parser.parse !== "function")
+    ) {
+      throw new Error(
+        "Invalid Arguments: Expected a 'parser' to have a parse function."
+      );
+    }
+  }
+
+  recoverFromBadOptions() {
+    if (this.options == null) {
+      this.options.isOptional = false;
+    } else {
+      if (typeof this.options.isOptional !== "boolean") {
+        this.options.isOptional = false;
+      }
+    }
   }
 
   parse(cursor) {
@@ -16,8 +41,8 @@ export default class Not {
 
   reset(cursor) {
     this.cursor = cursor;
+    this.startingMark = this.cursor.mark();
     this.value = "";
-    this.mark = this.cursor.mark();
   }
 
   tryParser() {
@@ -31,15 +56,19 @@ export default class Not {
         return new ValueNode(
           this.name,
           this.value,
-          this.mark.index,
-          this.mark.index + this.value.length - 1
+          this.startingMark.index,
+          this.startingMark.index + this.value.length - 1
         );
       } else {
+        if (this.options.isOptional) {
+          return null;
+        }
         throw new ParseError(
           `Couldn't find pattern not matching '${this.parser.name}' parser.`
         );
       }
     } catch (error) {
+      this.cursor.moveToMark(mark);
       this.value += this.cursor.getChar();
 
       if (this.cursor.hasNext()) {
@@ -49,14 +78,14 @@ export default class Not {
         return new ValueNode(
           this.name,
           this.value,
-          this.mark.index,
-          this.mark.index + this.value.length - 1
+          this.startingMark.index,
+          this.startingMark.index + this.value.length - 1
         );
       }
     }
   }
 
   clone() {
-    return new Not(this.name, this.parser);
+    return new Not(this.name, this.parser, this.options);
   }
 }

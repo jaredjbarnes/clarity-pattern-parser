@@ -1,18 +1,23 @@
 import ValueNode from "../ast/ValueNode.js";
 import ParseError from "../ParseError.js";
+import CompositeNode from "../ast/CompositeNode.js";
 
 export default class Any {
-  constructor(name, parsers) {
+  constructor(name, parsers, options) {
     this.name = name;
     this.parsers = parsers.map(parser => parser.clone());
+    this.options = options;
     this.cursor = null;
     this.index = 0;
     this.mark = null;
     this.errors = [];
     this.nodes = [];
+    this.filteredNodes = [];
     this.value = null;
+    this.options = options;
 
     this.assertParsers();
+    this.recoverFromBadOptions();
   }
 
   assertParsers() {
@@ -31,17 +36,27 @@ export default class Any {
     }
   }
 
+  recoverFromBadOptions() {
+    if (this.options == null) {
+      this.options.isValue = false;
+      this.options.isOptional = false;
+    } else {
+      if (typeof this.options.isValue !== "boolean") {
+        this.options.isValue = false;
+      }
+
+      if (typeof this.options.isOptional !== "boolean") {
+        this.options.isOptional = false;
+      }
+    }
+  }
+
   parse(cursor) {
     this.reset(cursor);
     this.tryParser();
     this.reduceValue();
 
-    return new ValueNode(
-      this.name,
-      this.value,
-      this.nodes[0].startIndex,
-      this.nodes[this.nodes.length-1].endIndex 
-    );
+    return this.value;
   }
 
   reset(cursor) {
@@ -49,6 +64,8 @@ export default class Any {
     this.index = 0;
     this.mark = this.cursor.mark();
     this.errors = [];
+    this.nodes = [];
+    this.filteredNodes = [];
     this.value = null;
   }
 
@@ -98,14 +115,39 @@ export default class Any {
   }
 
   reduceValue() {
-    if (this.nodes.length < 1) {
-      throw new ParseError(`Couldn't find a match for ${this.name}.`);
+    this.filteredNodes = this.nodes.filter(node => node != null);
+
+    if (this.filteredNodes.length === 0) {
+      if (this.options.isOptional) {
+        this.cursor.moveToMark(this.mark);
+        this.value = null;
+        return;
+      } else {
+        throw new ParseError(`Couldn't find a match for ${this.name}.`);
+      }
     }
 
-    this.value = this.nodes.map(node => node.value).join("");
+    if (this.options.isValue) {
+      this.value = this.filteredNodes.map(node => node.value).join("");
+
+      this.value = new ValueNode(
+        this.name,
+        this.value,
+        this.filteredNodes[0].startIndex,
+        this.filteredNodes[this.filteredNodes.length - 1].endIndex
+      );
+    } else {
+      this.value = new CompositeNode(
+        this.name,
+        this.filteredNodes[0].startIndex,
+        this.filteredNodes[this.filteredNodes.length - 1].endIndex
+      );
+
+      this.value.nodes = this.filteredNodes;
+    }
   }
 
   clone() {
-    return new Any(this.name, this.parsers);
+    return new Any(this.name, this.parsers, this.options);
   }
 }

@@ -1,12 +1,14 @@
 export default class Or {
-  constructor(parsers) {
+  constructor(parsers, options) {
     this.parsers = parsers.map(parser => parser.clone());
+    this.options = options;
     this.cursor = null;
     this.index = 0;
     this.mark = null;
     this.errors = [];
 
     this.assertParsers();
+    this.recoverFromBadOptions();
   }
 
   assertParsers() {
@@ -22,6 +24,16 @@ export default class Or {
       throw new Error(
         "Invalid Arguments: An Alternation needs at least two options."
       );
+    }
+  }
+
+  recoverFromBadOptions() {
+    if (this.options == null) {
+      this.options.isOptional = false;
+    } else {
+      if (typeof this.options.isOptional !== "boolean") {
+        this.options.isOptional = false;
+      }
     }
   }
 
@@ -51,11 +63,16 @@ export default class Or {
         return this.tryParser();
       }
 
-      this.throwError();
+      return this.throwError();
     }
   }
 
   throwError() {
+    if (this.options.isOptional) {
+      this.cursor.moveToMark(this.mark);
+      return null;
+    }
+
     const furthestError = this.errors.reduce((furthestError, error) => {
       return furthestError.index > error.index ? furthestError : error;
     });
@@ -65,7 +82,7 @@ export default class Or {
     }
   }
 
-  clone(){
+  clone() {
     return new Or(this.parsers);
   }
 }

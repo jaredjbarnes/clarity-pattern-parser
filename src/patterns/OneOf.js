@@ -2,13 +2,14 @@ import ParseError from "../ParseError.js";
 import ValueNode from "../ast/ValueNode.js";
 
 export default class OneOf {
-  constructor(name, values, { min, max } = {}) {
+  constructor(name, values, { min, max, isOptional } = {}) {
     this.name = name;
     this.values = values;
     this.cursor = null;
     this.match = "";
     this.max = typeof max === "number" ? max : Infinity;
     this.min = typeof min === "number" > 0 ? min : 0;
+    this.isOptional = typeof isOptions === "boolean" ? isOptional : false;
 
     this.assertValidity();
   }
@@ -35,6 +36,7 @@ export default class OneOf {
   }
 
   parse(cursor) {
+    const mark = cursor.mark();
     const startIndex = cursor.getIndex();
     this.reset(cursor);
 
@@ -48,6 +50,10 @@ export default class OneOf {
     }
 
     if (this.match.length < this.min) {
+      if (this.isOptional) {
+        cursor.moveToMark(mark);
+        return null;
+      }
       throw new ParseError(
         `A '${this.name}' needs to be at least ${this.min} character(s) long.`
       );
@@ -58,6 +64,10 @@ export default class OneOf {
   }
 
   clone() {
-    return new OneOf(this.name, this.values, { min: this.min, max: this.max });
+    return new OneOf(this.name, this.values, {
+      min: this.min,
+      max: this.max,
+      isOptional: this.isOptional
+    });
   }
 }

@@ -1,6 +1,6 @@
 import ParseError from "../ParseError.js";
 
-export default class AnyOf {
+export default class OneOf {
   constructor(name, values, { min, max } = {}) {
     this.name = name;
     this.values = values;
@@ -54,5 +54,9 @@ export default class AnyOf {
 
     const endIndex = startIndex + this.match.length - 1;
     return new ValueNode(this.name, this.match, startIndex, endIndex);
+  }
+
+  clone() {
+    return new OneOf(this.name, this.values, { min: this.min, max: this.max });
   }
 }

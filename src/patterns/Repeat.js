@@ -1,7 +1,7 @@
 import CompositeNode from "../ast/CompositeNode.js";
 import ParseError from "../ParseError.js";
 
-export default class Repetition {
+export default class Repeat {
   constructor(name, parser, dividerParser = null) {
     this.name = name;
     this.parser = parser.clone();
@@ -70,11 +70,11 @@ export default class Repetition {
   }
 
   createCompositeNode() {
-    this.compositeNode = new CompositeNode(this.name);
+    this.compositeNode = new CompositeNode(this.name, this.nodes[0].startIndex, this.nodes[this.nodes.length-1].endIndex);
     this.compositeNode.children = this.nodes;
   }
 
   clone() {
-    return new Repetition(this.name, this.parser);
+    return new Repeat(this.name, this.parser);
   }
 }

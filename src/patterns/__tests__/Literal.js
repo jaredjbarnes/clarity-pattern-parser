@@ -27,6 +27,9 @@ describe("Literal", () => {
 
     expect(node.value).toBe("20");
     expect(node.type).toBe("twenty");
+    expect(node.startIndex).toBe(0);
+    expect(node.endIndex).toBe(1);
+    expect(cursor.lastIndex()).toBe(1);
   });
 
   test("One character, Within.", () => {
@@ -38,7 +41,9 @@ describe("Literal", () => {
     expect(node.type).toBe("two");
     expect(cursor.getIndex()).toBe(1);
     expect(cursor.getChar()).toBe("0");
-
+    expect(node.startIndex).toBe(0);
+    expect(node.endIndex).toBe(0);
+    expect(cursor.lastIndex()).toBe(2);
   });
 
   test("Two characters, Within.", () => {
@@ -50,6 +55,8 @@ describe("Literal", () => {
     expect(node.type).toBe("twenty");
     expect(cursor.getIndex()).toBe(2);
     expect(cursor.getChar()).toBe("0");
-
+    expect(node.startIndex).toBe(0);
+    expect(node.endIndex).toBe(1);
+    expect(cursor.lastIndex()).toBe(2);
   });
 });

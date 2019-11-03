@@ -1,7 +1,7 @@
 import ValueNode from "../ast/ValueNode.js";
 import ParseError from "../ParseError.js";
 
-export default class Either {
+export default class Any {
   constructor(name, parsers) {
     this.name = name;
     this.parsers = parsers.map(parser => parser.clone());
@@ -105,6 +105,6 @@ export default class Either {
   }
 
   clone() {
-    return new Either(this.name, this.parsers);
+    return new Any(this.name, this.parsers);
   }
 }

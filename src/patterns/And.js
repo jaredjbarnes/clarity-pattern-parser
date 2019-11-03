@@ -1,8 +1,10 @@
 import CompositeNode from "../ast/CompositeNode.js";
+import ValueNode from "../ast/ValueNode.js";
 
 export default class And {
-  constructor(name, parsers) {
+  constructor(name, parsers, isValue = false) {
     this.name = name;
+    this.isValue = isValue;
     this.parsers = parsers.map(parser => parser.clone());
 
     this.assertParsers();
@@ -31,6 +33,13 @@ export default class And {
       nodes.push(this.parsers[x].parse(cursor));
     }
 
+    // If all nodes that match are ValueNodes than we reduce them into one Value node.
+    // This is a design decision that I'm still unsure about. However, I think it may be beneificial.
+    if (this.isValue && nodes.every(node=>node instanceof ValueNode)){
+      const value = nodes.map(node=>node.value).join("");
+      return new ValueNode(this.name, value, nodes[0].startIndex, nodes[nodes.length - 1].endIndex);
+    }
+
     const node = new CompositeNode(
       this.name,
       nodes[0].startIndex,
@@ -41,6 +50,6 @@ export default class And {
   }
 
   clone() {
-    return new And(name, parsers);
+    return new And(this.name, this.parsers);
   }
 }

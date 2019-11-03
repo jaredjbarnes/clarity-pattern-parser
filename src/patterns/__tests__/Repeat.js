@@ -1,12 +1,12 @@
 import Literal from "../Literal.js";
 import Cursor from "../../Cursor.js";
-import Repetition from "../Repetition.js";
+import Repeat from "../Repeat.js";
 
-describe("Repetition", () => {
+describe("Reoeat", () => {
   test("Repeat Literal twice.", () => {
     const cursor = new Cursor("JohnJohn");
     const literal = new Literal("name", "John");
-    const repetition = new Repetition("stutter", literal);
+    const repetition = new Repeat("stutter", literal);
     const node = repetition.parse(cursor);
 
     expect(node.type).toBe("stutter");
@@ -20,7 +20,7 @@ describe("Repetition", () => {
     const cursor = new Cursor("John,John");
     const name = new Literal("name", "John");
     const comma = new Literal("comma", ",");
-    const repetition = new Repetition("stutter", name, comma);
+    const repetition = new Repeat("stutter", name, comma);
     const node = repetition.parse(cursor);
 
     expect(node.type).toBe("stutter");
@@ -36,7 +36,7 @@ describe("Repetition", () => {
     const cursor = new Cursor("John,John,John");
     const name = new Literal("name", "John");
     const comma = new Literal("comma", ",");
-    const repetition = new Repetition("stutter", name, comma);
+    const repetition = new Repeat("stutter", name, comma);
     const node = repetition.parse(cursor);
 
     expect(node.type).toBe("stutter");
@@ -56,7 +56,7 @@ describe("Repetition", () => {
     const cursor = new Cursor("John,John,John,");
     const name = new Literal("name", "John");
     const comma = new Literal("comma", ",");
-    const repetition = new Repetition("stutter", name, comma);
+    const repetition = new Repeat("stutter", name, comma);
     const node = repetition.parse(cursor);
 
     expect(node.type).toBe("stutter");

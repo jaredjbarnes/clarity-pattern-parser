@@ -71,6 +71,7 @@ export default class Any {
 
       if (node.endIndex !== this.cursor.lastIndex()) {
         this.mark = this.cursor.mark();
+        this.cursor.next();
         this.tryParser();
       }
     } catch (error) {

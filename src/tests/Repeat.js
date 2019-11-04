@@ -20,7 +20,7 @@ exports["Repeat Literal twice with divider."] = () => {
   const cursor = new Cursor("John,John");
   const name = new Literal("name", "John");
   const comma = new Literal("comma", ",");
-  const repetition = new Repeat("stutter", name, comma);
+  const repetition = new Repeat("stutter", name, { dividerParser: comma });
   const node = repetition.parse(cursor);
 
   assert.equal(node.type, "stutter");
@@ -36,7 +36,7 @@ exports["Repeat Literal three with divider."] = () => {
   const cursor = new Cursor("John,John,John");
   const name = new Literal("name", "John");
   const comma = new Literal("comma", ",");
-  const repetition = new Repeat("stutter", name, comma);
+  const repetition = new Repeat("stutter", name, { dividerParser: comma });
   const node = repetition.parse(cursor);
 
   assert.equal(node.type, "stutter");
@@ -56,7 +56,7 @@ exports["Repeat Literal three with trailing divider."] = () => {
   const cursor = new Cursor("John,John,John,");
   const name = new Literal("name", "John");
   const comma = new Literal("comma", ",");
-  const repetition = new Repeat("stutter", name, comma);
+  const repetition = new Repeat("stutter", name, { dividerParser: comma });
   const node = repetition.parse(cursor);
 
   assert.equal(node.type, "stutter");

@@ -47,11 +47,21 @@ exports["One character, Within."] = () => {
 };
 
 exports["Two characters, Within."] = () => {
-  const cursor = new Cursor("1020");
-  const not = new Not("not-twenty", new Literal("twenty", "20"));
+  const cursor = new Cursor("1025");
+  const not = new Not("not-twenty", new Literal("twenty-five", "25"));
   const node = not.parse(cursor);
 
   assert.equal(node.value, "10");
+  assert.equal(node.type, "not-twenty");
+  assert.equal(cursor.getChar(), "2");
+};
+
+exports["Two characters, Within deeper."] = () => {
+  const cursor = new Cursor("102025");
+  const not = new Not("not-twenty", new Literal("twenty-five", "25"));
+  const node = not.parse(cursor);
+
+  assert.equal(node.value, "1020");
   assert.equal(node.type, "not-twenty");
   assert.equal(cursor.getChar(), "2");
 };

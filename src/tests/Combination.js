@@ -55,51 +55,7 @@ exports["Whitespace."] = () => {
   const node = whitespace.parse(cursor);
 };
 
-exports["Method Invocation."] = () => {
-  const number = new OneOf("number", "0123456789");
-  const openParen = new Literal("openParen", "(");
-  const closeParen = new Literal("closeParen", ")");
-  const letter = new OneOf(
-    "letter",
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-  );
-  const dash = new Literal("dash", "-");
-  const underscore = new Literal("underscore", "_");
-  const acceptableCharacters = new Any("letter-number-dash-underscore", [
-    letter,
-    number,
-    dash,
-    underscore
-  ]);
-
-  const identifier = new And(
-    "identifier",
-    [letter, acceptableCharacters],
-    true
-  );
-
-  const comma = new Literal("comma", ",");
-  const space = new Literal("space", " ");
-  const spaces = new Repeat("spaces", space);
-  const surroundWithSpace = new And(" , ", [spaces, comma, spaces]);
-  const beginWithSpace = new And(" ,", [spaces, comma]);
-  const endWithSpace = new And(", ", [comma, spaces]);
-
-  const divider = new Any("comma", [
-    comma,
-    surroundWithSpace,
-    beginWithSpace,
-    endWithSpace
-  ]);
-
-  const notADivider = new Not("argument", divider);
-  const args = new Repeat("arguments", notADivider, divider);
-  const methodSignature = new And("method-signature", [
-    identifier,
-    openParen,
-    closeParen
-  ]);
-
-  const cursor = new Cursor("methodName()");
-  const node = methodSignature.parse(cursor);
+exports["Optional."] = () => {
+ 
 };
+

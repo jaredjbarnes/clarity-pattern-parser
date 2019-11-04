@@ -25,7 +25,9 @@ exports["And: Twice as Value"] = () => {
   const cursor = new Cursor("JohnDoe");
   const firstName = new Literal("first-name", "John");
   const lastName = new Literal("last-name", "Doe");
-  const fullName = new And("full-name", [firstName, lastName], true);
+  const fullName = new And("full-name", [firstName, lastName], {
+    isValue: true
+  });
   const node = fullName.parse(cursor);
 
   assert.equal(node.type, "full-name");

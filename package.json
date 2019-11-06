@@ -5,7 +5,8 @@
   "main": "./lib/index.js",
   "scripts": {
     "test": "node ./.clarity/test.js",
-    "build": "npx babel src --out-dir lib --source-maps"
+    "build": "npx babel src --out-dir lib --source-maps",
+    "coverage": "nyc npm run test"
   },
   "keywords": [],
   "devDependencies": {
@@ -17,5 +18,7 @@
     "fs-extra": "^7.0.1",
     "jest": "^24.9.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "nyc": "^14.1.1"
+  }
 }

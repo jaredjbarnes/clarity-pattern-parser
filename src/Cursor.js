@@ -32,7 +32,7 @@ export default class Cursor {
     if (this.hasNext()) {
       this.index++;
     } else {
-      throw new Error("Out of Bounds Exception.");
+      throw new Error("Cursor: Out of Bounds Exception.");
     }
   }
 
@@ -40,7 +40,7 @@ export default class Cursor {
     if (this.hasPrevious()) {
       this.index--;
     } else {
-      throw new Error("Out of Bounds Exception.");
+      throw new Error("Cursor: Out of Bounds Exception.");
     }
   }
 

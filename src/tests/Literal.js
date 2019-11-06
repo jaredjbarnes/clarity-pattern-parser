@@ -2,54 +2,80 @@ import Literal from "../patterns/Literal.js";
 import Cursor from "../Cursor.js";
 import assert from "assert";
 
-exports["Literal: One character, Exact."] = () => {
-  const cursor = new Cursor("2");
-  const literal = new Literal("two", "2");
-  const node = literal.parse(cursor);
-
-  assert.equal(node.value, "2");
-  assert.equal(node.type, "two");
-  assert.equal(node.startIndex, 0);
-  assert.equal(node.endIndex, 0);
-  assert.equal(cursor.lastIndex(), 0);
+exports["Literal: Empty constructor."] = () => {
+  assert.throws(() => {
+    new Literal();
+  });
 };
 
-exports["Literal: Two characters, Exact."] = () => {
-  const cursor = new Cursor("20");
-  const literal = new Literal("twenty", "20");
-  const node = literal.parse(cursor);
-
-  assert.equal(node.value, "20");
-  assert.equal(node.type, "twenty");
-  assert.equal(node.startIndex, 0);
-  assert.equal(node.endIndex, 1);
-  assert.equal(cursor.lastIndex(), 1);
+exports["Literal: Undefined literal."] = () => {
+  assert.throws(() => {
+    new Literal("literal");
+  });
 };
 
-exports["Literal: One character, Within."] = () => {
-  const cursor = new Cursor("200");
-  const literal = new Literal("two", "2");
-  const node = literal.parse(cursor);
-
-  assert.equal(node.value, "2");
-  assert.equal(node.type, "two");
-  assert.equal(cursor.getIndex(), 1);
-  assert.equal(cursor.getChar(), "0");
-  assert.equal(node.startIndex, 0);
-  assert.equal(node.endIndex, 0);
-  assert.equal(cursor.lastIndex(), 2);
+exports["Literal: Null literal."] = () => {
+  assert.throws(() => {
+    new Literal("literal", null);
+  });
 };
 
-exports["Literal: Two characters, Within."] = () => {
-  const cursor = new Cursor("200");
-  const literal = new Literal("twenty", "20");
-  const node = literal.parse(cursor);
+exports["Literal: Empty literal."] = () => {
+  assert.throws(() => {
+    new Literal("literal", "");
+  });
+};
 
-  assert.equal(node.value, "20");
-  assert.equal(node.type, "twenty");
+exports["Literal: Match."] = () => {
+  const variable = new Literal("variable", "var");
+  const cursor = new Cursor("var foo = 'Hello World';");
+  const node = variable.parse(cursor);
+
+  assert.equal(node.type, "variable");
+  assert.equal(node.value, "var");
+  assert.equal(cursor.getIndex(), 3);
+  assert.equal(cursor.getChar(), " ");
+};
+
+exports["Literal: Match at end."] = () => {
+  const variable = new Literal("variable", "var");
+  const cursor = new Cursor("var");
+  const node = variable.parse(cursor);
+
+  assert.equal(node.type, "variable");
+  assert.equal(node.value, "var");
   assert.equal(cursor.getIndex(), 2);
-  assert.equal(cursor.getChar(), "0");
-  assert.equal(node.startIndex, 0);
-  assert.equal(node.endIndex, 1);
-  assert.equal(cursor.lastIndex(), 2);
+  assert.equal(cursor.getChar(), "r");
+  assert.equal(cursor.isAtEnd(), true);
+};
+
+exports["Literal: No match."] = () => {
+  const variable = new Literal("variable", "var");
+  const cursor = new Cursor("vax");
+
+  assert.throws(() => {
+    variable.parse(cursor);
+  });
+
+  assert.equal(cursor.getIndex(), 2);
+  assert.equal(cursor.getChar(), "x");
+};
+
+exports["Literal: Bad cursor."] = () => {
+  const variable = new Literal("variable", "var");
+
+  assert.throws(() => {
+    variable.parse();
+  });
+
+};
+
+exports["Literal: Pattern methods."] = () => {
+  const variable = new Literal("variable", "var");
+  const clone = variable.clone();
+
+  assert.equal(variable.getName(), clone.getName());
+  assert.equal(variable.getType(), clone.getType());
+  assert.equal(variable.getValue(), clone.getValue());
+  assert.equal(variable.getPatterns(), clone.getPatterns());
 };

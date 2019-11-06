@@ -1,6 +1,6 @@
-import OrValue from "../patterns/OrValue.js";
-import AnyOfThese from "../patterns/AnyOfThese.js";
-import Literal from "../patterns/Literal.js";
+import OrValue from "../patterns/value/OrValue.js";
+import AnyOfThese from "../patterns/value/AnyOfThese.js";
+import Literal from "../patterns/value/Literal.js";
 import Cursor from "../Cursor.js";
 import assert from "assert";
 

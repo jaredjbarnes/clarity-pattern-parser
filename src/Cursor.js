@@ -75,6 +75,12 @@ export default class Cursor {
     return this.index;
   }
 
+  setIndex(index) {
+    if (typeof index === "number") {
+      this.index = index;
+    }
+  }
+
   isAtBeginning() {
     return this.index === 0;
   }

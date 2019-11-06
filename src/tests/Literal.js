@@ -1,4 +1,4 @@
-import Literal from "../patterns/Literal.js";
+import Literal from "../patterns/value/Literal.js";
 import Cursor from "../Cursor.js";
 import assert from "assert";
 

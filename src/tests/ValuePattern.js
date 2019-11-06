@@ -1,8 +1,8 @@
-import ValuePattern from "../patterns/ValuePattern.js";
+import ValuePattern from "../patterns/value/ValuePattern.js";
 import assert from "assert";
 
 exports["ValuePattern: getType."] = () => {
-  const valuePattern = new ValuePattern();
+  const valuePattern = new ValuePattern("name", "value");
   assert.equal(valuePattern.getType(), "value");
 };
 

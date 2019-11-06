@@ -1,4 +1,4 @@
-import AnyOfThese from "../patterns/AnyOfThese.js";
+import AnyOfThese from "../patterns/value/AnyOfThese.js";
 import Cursor from "../Cursor.js";
 import assert from "assert";
 

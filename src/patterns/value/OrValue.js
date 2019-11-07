@@ -37,24 +37,22 @@ export default class OrValue extends ValuePatterns {
   }
 
   tryPattern() {
-    const pattern = this.patterns[this.index];
+    while (true) {
+      const pattern = this.patterns[this.index];
 
-    try {
-      this.node = pattern.parse(this.cursor);
-    } catch (error) {
-      this.processError(error);
-    }
-  }
+      try {
+        this.node = pattern.parse(this.cursor);
+        break;
+      } catch (error) {
+        this.errors.push(error);
 
-  processError(error) {
-    this.errors.push(error);
-
-    if (this.index + 1 < this.patterns.length) {
-      this.index++;
-      this.cursor.moveToMark(this.mark);
-      this.tryPattern();
-    } else {
-      this.throwError();
+        if (this.index + 1 < this.patterns.length) {
+          this.index++;
+          this.cursor.moveToMark(this.mark);
+        } else {
+          this.throwError();
+        }
+      }
     }
   }
 

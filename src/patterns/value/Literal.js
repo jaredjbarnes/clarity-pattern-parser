@@ -39,7 +39,7 @@ export default class Literal extends ValuePattern {
   parse(cursor) {
     this.reset(cursor);
     this.assertCursor();
-    this.tryParse();
+    this.tryPattern();
 
     return this.node;
   }
@@ -64,7 +64,7 @@ export default class Literal extends ValuePattern {
     }
   }
 
-  tryParse() {
+  tryPattern() {
     if (this.doesCharacterMatch()) {
       this.processCharacterMatch();
     } else {
@@ -90,7 +90,7 @@ export default class Literal extends ValuePattern {
       this.incrementIndex();
     } else {
       this.incrementIndex();
-      this.tryParse();
+      this.tryPattern();
     }
   }
 

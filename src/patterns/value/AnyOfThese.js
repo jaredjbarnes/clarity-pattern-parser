@@ -38,7 +38,7 @@ export default class AnyOfThese extends ValuePattern {
   parse(cursor) {
     this.reset(cursor);
     this.assertCursor();
-    this.tryParse();
+    this.tryPattern();
     return this.node;
   }
 
@@ -60,7 +60,7 @@ export default class AnyOfThese extends ValuePattern {
     this.node = null;
   }
 
-  tryParse() {
+  tryPattern() {
     if (this.isMatch()) {
       const value = this.cursor.getChar();
       const index = this.mark.index;

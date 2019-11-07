@@ -35,17 +35,19 @@ export default class AndValue extends ValuePatterns {
   }
 
   tryPattern() {
-    const pattern = this.patterns[this.index];
-    this.nodes.push(pattern.parse(this.cursor));
+    while (true) {
+      const pattern = this.patterns[this.index];
+      this.nodes.push(pattern.parse(this.cursor));
 
-    if (this.index + 1 < this.patterns.length) {
-      const lastNode = this.nodes[this.nodes.length - 1];
+      if (this.index + 1 < this.patterns.length) {
+        const lastNode = this.nodes[this.nodes.length - 1];
 
-      this.cursor.setIndex(lastNode.endIndex + 1);
-      this.index++;
-      this.tryPattern();
-    } else {
-      this.processValue();
+        this.cursor.setIndex(lastNode.endIndex + 1);
+        this.index++;
+      } else {
+        this.processValue();
+        break;
+      }
     }
   }
 

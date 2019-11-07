@@ -2,6 +2,7 @@ import ValuePattern from "./ValuePattern.js";
 
 export default class OptionalValue extends ValuePattern {
   constructor(pattern) {
+    super();
     this.pattern = pattern;
     this.assertArguments();
   }

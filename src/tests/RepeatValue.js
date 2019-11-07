@@ -1,5 +1,6 @@
 import RepeatValue from "../patterns/value/RepeatValue.js";
 import Literal from "../patterns/value/Literal.js";
+import OptionalValue from "../patterns/value/OptionalValue.js";
 import assert from "assert";
 import Cursor from "../Cursor.js";
 
@@ -91,4 +92,12 @@ exports["RepeatValue: Clone."] = () => {
 
   assert.equal(johns.getType(), clone.getType());
   assert.equal(johns.getName(), clone.getName());
+};
+
+exports["RepeatValue: Try Optional."] = () => {
+  const john = new Literal("john", "John");
+
+  assert.throws(() => {
+    new RepeatValue("johns", new OptionalValue(john));
+  });
 };

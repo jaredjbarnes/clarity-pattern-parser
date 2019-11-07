@@ -56,7 +56,11 @@ export default class AndValue extends ValuePatterns {
     const startIndex = this.mark.index;
     const endIndex = lastNode.endIndex;
 
-    const value = this.nodes.map(node => node.value).join("");
+    const value = this.nodes
+      .filter(node => node != null)
+      .map(node => node.value)
+      .join("");
+      
     this.node = new ValueNode(this.name, value, startIndex, endIndex);
   }
 

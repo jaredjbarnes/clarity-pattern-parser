@@ -1,7 +1,6 @@
 import ValuePatterns from "./ValuePatterns.js";
 import ValueNode from "../../ast/ValueNode.js";
 import Cursor from "../../Cursor.js";
-import ParseError from "../ParseError.js";
 
 export default class OrValue extends ValuePatterns {
   constructor(name, patterns) {
@@ -42,6 +41,10 @@ export default class OrValue extends ValuePatterns {
 
       try {
         this.node = pattern.parse(this.cursor);
+
+        if (this.node == null) {
+          throw new ParserError("Found optional pattern.");
+        }
         break;
       } catch (error) {
         this.errors.push(error);

@@ -1,6 +1,7 @@
 import ValuePattern from "./ValuePattern.js";
 import ValueNode from "../../ast/ValueNode";
 import ParseError from "../ParseError.js";
+import OptionalValue from "./OptionalValue.js";
 
 export default class RepeatValue extends ValuePattern {
   constructor(name, pattern) {
@@ -18,6 +19,10 @@ export default class RepeatValue extends ValuePattern {
       throw new Error(
         "Invalid Arguments: Expected the pattern to be a ValuePattern."
       );
+    }
+
+    if (this.pattern instanceof OptionalValue){
+      throw new Error("Invalid Arguments: The pattern cannot be a optional pattern.");
     }
 
     if (typeof this.name !== "string") {

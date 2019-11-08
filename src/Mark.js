@@ -1,6 +1,5 @@
 export default class Mark {
-    constructor(name, cursor, index){
-        this.name = name;
+    constructor(cursor, index){
         this.cursor = cursor;
         this.index = index;
     }

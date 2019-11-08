@@ -1,5 +1,6 @@
 import CompositePatterns from "./CompositePatterns.js";
 import CompositeNode from "../../ast/CompositeNode.js";
+import StackInformation from "../StackInformation.js";
 
 export default class AndComposite extends CompositePatterns {
   reset(cursor) {
@@ -27,7 +28,7 @@ export default class AndComposite extends CompositePatterns {
       try {
         this.nodes.push(this.patterns[this.index].parse(this.cursor));
       } catch (error) {
-        error.patternStack.push(this);
+        error.stack.push(new StackInformation(this.mark, this));
         throw error;
       }
 

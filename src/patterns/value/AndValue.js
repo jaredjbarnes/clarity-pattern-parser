@@ -1,6 +1,7 @@
 import ValuePatterns from "./ValuePatterns";
 import ValueNode from "../../ast/ValueNode";
 import Cursor from "../../Cursor.js";
+import StackInformation from "../StackInformation";
 
 export default class AndValue extends ValuePatterns {
   constructor(name, patterns) {
@@ -41,7 +42,7 @@ export default class AndValue extends ValuePatterns {
       try {
         this.nodes.push(pattern.parse(this.cursor));
       } catch (error) {
-        error.patternStack.push(this);
+        error.stack.push(new StackInformation(this.mark, this));
         throw error;
       }
 

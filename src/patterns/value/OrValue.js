@@ -74,7 +74,7 @@ export default class OrValue extends ValuePatterns {
       }
     });
 
-    error.patternStack.push(this);
+    error.stack.push(this.mark, this);
 
     throw error;
   }

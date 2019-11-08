@@ -44,8 +44,8 @@ export default class Cursor {
     }
   }
 
-  mark(name) {
-    return new Mark(name, this, this.index);
+  mark() {
+    return new Mark(this, this.index);
   }
 
   moveToMark(mark) {

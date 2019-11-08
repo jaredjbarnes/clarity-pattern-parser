@@ -48,7 +48,7 @@ const predicate = new AndComposite("predicate", [
     value
 ]);
 
-const match = new Literal("match", "Match records when");
+const match = new Literal("match", "Match records where");
 
 const filter = new AndComposite("filter", [
     match,

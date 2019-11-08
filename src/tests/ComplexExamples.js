@@ -51,6 +51,13 @@ exports["Complex Examples: number"] = () => {
 };
 
 exports["Complex Examples: Natural Language."] = () => {
-    const cursor = new Cursor("Match records when firstName is 'John' and lastName is 'Barnes'.");
-    const node = filter.parse(cursor);
+    const validCursor = new Cursor("Match records when firstName is 'John' and lastName is 'Barnes'.");
+    const invalidCursor = new Cursor("Match records when firstName ");
+    const node = filter.parse(validCursor);
+
+    try{
+        filter.parse(invalidCursor);
+    } catch(error){
+        debugger;
+    }
 };

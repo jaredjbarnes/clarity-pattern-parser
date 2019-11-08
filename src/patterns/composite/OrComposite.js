@@ -37,6 +37,7 @@ export default class OrComposite extends CompositePatterns {
           this.cursor.moveToMark(mark);
           this.index++;
         } else {
+          error.patternStack.push(this);
           throw error;
         }
       }

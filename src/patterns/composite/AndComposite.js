@@ -23,7 +23,13 @@ export default class AndComposite extends CompositePatterns {
 
   tryPattern() {
     while (true) {
-      this.nodes.push(this.patterns[this.index].parse(this.cursor));
+
+      try {
+        this.nodes.push(this.patterns[this.index].parse(this.cursor));
+      } catch (error) {
+        error.patternStack.push(this);
+        throw error;
+      }
 
       if (this.index + 1 < this.patterns.length) {
         this.index++;

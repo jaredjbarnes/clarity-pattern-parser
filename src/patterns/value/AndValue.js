@@ -37,7 +37,13 @@ export default class AndValue extends ValuePatterns {
   tryPattern() {
     while (true) {
       const pattern = this.patterns[this.index];
-      this.nodes.push(pattern.parse(this.cursor));
+
+      try {
+        this.nodes.push(pattern.parse(this.cursor));
+      } catch (error) {
+        error.patternStack.push(this);
+        throw error;
+      }
 
       if (this.index + 1 < this.patterns.length) {
         const lastNode = this.nodes[this.nodes.length - 1];
@@ -60,7 +66,7 @@ export default class AndValue extends ValuePatterns {
       .filter(node => node != null)
       .map(node => node.value)
       .join("");
-      
+
     this.node = new ValueNode(this.name, value, startIndex, endIndex);
   }
 

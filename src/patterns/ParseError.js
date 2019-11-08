@@ -4,5 +4,6 @@ export default class ParseError extends Error {
         this.name = 'ParseError';
         this.index = index;
         this.pattern = pattern;
+        this.patternStack = [];
     }
 }

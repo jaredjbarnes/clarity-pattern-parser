@@ -40,11 +40,10 @@ exports["OptionalValue: No Match pattern."] = () => {
     assert.equal(node, null);
   };
 
-  exports["OptionalValue: getName, getType, getPatterns."] = () => {
+  exports["OptionalValue: getName, getType"] = () => {
     const john = new Literal("john", "John");
     const optionalValue = new OptionalValue(john);
   
     assert.equal(optionalValue.getName(), john.getName());
-    assert.equal(optionalValue.getType(), john.getType);
-    assert.equal(optionalValue.Patterns(), john.getPatterns());
+    assert.equal(optionalValue.getType(), john.getType());
   };

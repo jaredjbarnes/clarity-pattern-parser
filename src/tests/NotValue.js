@@ -1,4 +1,5 @@
 import NotValue from "../patterns/value/NotValue.js";
+import OrValue from "../patterns/value/OrValue.js";
 import Literal from "../patterns/value/Literal.js";
 import assert from "assert";
 import Cursor from "../Cursor.js";
@@ -57,35 +58,10 @@ exports["NotValue: Success"] = () => {
   const node = notJohn.parse(cursor);
 
   assert.equal(node.type, "not-john");
-  assert.equal(node.value, "Jane");
+  assert.equal(node.value, "J");
   assert.equal(node.startIndex, 0);
-  assert.equal(node.endIndex, 3);
-};
-
-exports["NotValue: Success with a terminating match."] = () => {
-  const john = new Literal("john", "John");
-  const notJohn = new NotValue("not-john", john);
-  const cursor = new Cursor("JaneJohn");
-  const node = notJohn.parse(cursor);
-
-  assert.equal(node.type, "not-john");
-  assert.equal(node.value, "Jane");
-  assert.equal(node.startIndex, 0);
-  assert.equal(node.endIndex, 3);
-  assert.equal(cursor.getIndex(), 4);
-};
-
-exports["NotValue: Success with an almost terminating match."] = () => {
-  const john = new Literal("john", "John");
-  const notJohn = new NotValue("not-john", john);
-  const cursor = new Cursor("JaneJoh");
-  const node = notJohn.parse(cursor);
-
-  assert.equal(node.type, "not-john");
-  assert.equal(node.value, "JaneJoh");
-  assert.equal(node.startIndex, 0);
-  assert.equal(node.endIndex, 6);
-  assert.equal(cursor.getIndex(), 6);
+  assert.equal(node.endIndex, 0);
+  assert.equal(cursor.getIndex(), 1);
 };
 
 exports["NotValue: Bad cursor."] = () => {

@@ -63,7 +63,7 @@ export default class AnyOfThese extends ValuePattern {
   tryPattern() {
     if (this.isMatch()) {
       const value = this.cursor.getChar();
-      const index = this.mark.index;
+      const index = this.cursor.getIndex();
 
       this.node = new ValueNode(this.name, value, index, index);
       this.incrementCursor();

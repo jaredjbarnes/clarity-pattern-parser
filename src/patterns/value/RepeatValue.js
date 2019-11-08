@@ -21,8 +21,10 @@ export default class RepeatValue extends ValuePattern {
       );
     }
 
-    if (this.pattern instanceof OptionalValue){
-      throw new Error("Invalid Arguments: The pattern cannot be a optional pattern.");
+    if (this.pattern instanceof OptionalValue) {
+      throw new Error(
+        "Invalid Arguments: The pattern cannot be a optional pattern."
+      );
     }
 
     if (typeof this.name !== "string") {
@@ -53,7 +55,13 @@ export default class RepeatValue extends ValuePattern {
       const mark = this.cursor.mark();
 
       try {
-        this.nodes.push(this.pattern.parse(this.cursor));
+        const node = this.pattern.parse(this.cursor);
+        this.nodes.push(node);
+
+        if (node.endIndex === this.cursor.lastIndex()){
+          this.processMatch();
+          break;
+        }
       } catch (error) {
         this.processMatch();
         this.cursor.moveToMark(mark);
@@ -64,7 +72,11 @@ export default class RepeatValue extends ValuePattern {
 
   processMatch() {
     if (this.nodes.length === 0) {
-      throw new ParseError(``);
+      throw new ParseError(
+        `Did not find a repeating match of ${this.pattern.getName()}.`,
+        this.mark.index,
+        this
+      );
     } else {
       const value = this.nodes.map(node => node.value).join("");
 

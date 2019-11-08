@@ -58,9 +58,8 @@ export default class NotValue extends ValuePattern {
 
         if (this.cursor.hasNext()) {
           this.cursor.next();
-        } else {
-          break;
         }
+        break;
       }
     }
 
@@ -69,13 +68,17 @@ export default class NotValue extends ValuePattern {
 
   processMatch() {
     if (this.match.length === 0) {
-      throw new ParseError(``);
+      throw new ParseError(
+        `Didn't find any characters the didn't match the ${this.pattern.getName()} pattern.`,
+        this.mark.index,
+        this
+      );
     } else {
       this.node = new ValueNode(
         this.name,
         this.match,
         this.mark.index,
-        this.match.length - 1
+        this.mark.index
       );
     }
   }

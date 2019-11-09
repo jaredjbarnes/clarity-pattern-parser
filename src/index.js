@@ -1,27 +1,49 @@
-import Cursor from "./Cursor.js";
 import Mark from "./Mark.js";
-import ParseError from "./ParseError.js";
-import ValueNode from "./ast/ValueNode.js";
-import CompositeNode from "./ast/CompositeNode.js";
 import Node from "./ast/Node.js";
-import And from "./patterns/And.js";
-import Any from "./patterns/Any.js";
-import Literal from "./patterns/Literal.js";
-import Not from "./patterns/Not.js";
-import Or from "./patterns/Or.js";
-import Repetition from "./patterns/Repetition.js";
+import CompositeNode from "./ast/CompositeNode.js";
+import ValueNode from "./ast/ValueNode.js";
+import Cursor from "./Cursor.js";
+import AndValue from "./patterns/value/AndValue.js";
+import AnyOfThese from "./patterns/value/AnyOfThese.js";
+import Literal from "./patterns/value/Literal.js";
+import NotValue from "./patterns/value/NotValue.js";
+import OptionalValue from "./patterns/value/OptionalValue.js";
+import OrValue from "./patterns/value/OrValue.js";
+import RepeatValue from "./patterns/value/RepeatValue.js";
+import ValuePattern from "./patterns/value/ValuePattern.js";
+import ValuePatterns from "./patterns/value/ValuePatterns.js";
+import AndComposite from "./patterns/composite/AndComposite.js";
+import CompositePattern from "./patterns/composite/CompositePattern.js";
+import CompositePatterns from "./patterns/composite/CompositePatterns.js";
+import OptionalComposite from "./patterns/composite/OptionalComposite.js";
+import OrComposite from "./patterns/composite/OrComposite.js";
+import RepeatComposite from "./patterns/composite/RepeatComposite.js";
+import ParseError from "./patterns/ParseError.js";
+import Pattern from "./patterns/Pattern.js";
+import StackInformation from "./patterns/StackInformation.js";
 
 export {
-    Cursor,
-    Mark,
-    ParseError,
-    ValueNode,
-    CompositeNode,
-    Node,
-    And,
-    Any,
-    Literal,
-    Not,
-    Or,
-    Repetition
-}
+  Mark,
+  Node,
+  CompositeNode,
+  ValueNode,
+  Cursor,
+  AndValue,
+  AnyOfThese,
+  Literal,
+  NotValue,
+  OptionalValue,
+  OrValue,
+  RepeatValue,
+  ValuePattern,
+  ValuePatterns,
+  AndComposite,
+  CompositePattern,
+  CompositePatterns,
+  OptionalComposite,
+  OrComposite,
+  RepeatComposite,
+  ParseError,
+  Pattern,
+  StackInformation
+};

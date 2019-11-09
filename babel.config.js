@@ -1,13 +1,13 @@
-const presets = [
+const config = {
+  presets: [
     [
-      "@babel/env",
+      "@babel/preset-env",
       {
-        targets: {
-          node: "8"
-        },
-        useBuiltIns: "usage",
-      },
-    ],
-  ];
-  
-  module.exports = { presets };
+        useBuiltIns: "entry",
+        targets: "> 0.25%, not dead"
+      }
+    ]
+  ]
+};
+
+module.exports = config;

@@ -1,9 +1,9 @@
-import CompositePatterns from "./CompositePatterns.js";
+import CompositePattern from "./CompositePattern.js";
 import CompositeNode from "../../ast/CompositeNode.js";
 import StackInformation from "../StackInformation.js";
 
-export default class OrComposite extends CompositePatterns {
-  reset(cursor) {
+export default class OrComposite extends CompositePattern {
+  _reset(cursor) {
     this.cursor = null;
     this.index = 0;
     this.nodes = [];
@@ -16,18 +16,18 @@ export default class OrComposite extends CompositePatterns {
   }
 
   parse(cursor) {
-    this.reset(cursor);
-    this.tryPattern();
+    this._reset(cursor);
+    this._tryPattern();
 
     return this.node;
   }
 
-  tryPattern() {
+  _tryPattern() {
     while (true) {
       const mark = this.cursor.mark();
 
       try {
-        const result = this.patterns[this.index].parse(this.cursor);
+        const result = this._children[this.index].parse(this.cursor);
 
         this.node = new CompositeNode(
           this.name,
@@ -38,7 +38,7 @@ export default class OrComposite extends CompositePatterns {
 
         break;
       } catch (error) {
-        if (this.index + 1 < this.patterns.length) {
+        if (this.index + 1 < this._children.length) {
           this.cursor.moveToMark(mark);
           this.index++;
         } else {
@@ -50,6 +50,6 @@ export default class OrComposite extends CompositePatterns {
   }
 
   clone() {
-    return new OrComposite(this.name, this.patterns);
+    return new OrComposite(this.name, this._children);
   }
 }

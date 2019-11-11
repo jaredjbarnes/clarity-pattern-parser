@@ -11,10 +11,8 @@ import OptionalValue from "./patterns/value/OptionalValue.js";
 import OrValue from "./patterns/value/OrValue.js";
 import RepeatValue from "./patterns/value/RepeatValue.js";
 import ValuePattern from "./patterns/value/ValuePattern.js";
-import ValuePatterns from "./patterns/value/ValuePatterns.js";
 import AndComposite from "./patterns/composite/AndComposite.js";
 import CompositePattern from "./patterns/composite/CompositePattern.js";
-import CompositePatterns from "./patterns/composite/CompositePatterns.js";
 import OptionalComposite from "./patterns/composite/OptionalComposite.js";
 import OrComposite from "./patterns/composite/OrComposite.js";
 import RepeatComposite from "./patterns/composite/RepeatComposite.js";
@@ -36,10 +34,8 @@ export {
   OrValue,
   RepeatValue,
   ValuePattern,
-  ValuePatterns,
   AndComposite,
   CompositePattern,
-  CompositePatterns,
   OptionalComposite,
   OrComposite,
   RepeatComposite,

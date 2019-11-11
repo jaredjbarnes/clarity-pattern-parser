@@ -4,24 +4,18 @@ import ValueNode from "../../ast/ValueNode.js";
 import ValuePattern from "./ValuePattern.js";
 
 export default class Literal extends ValuePattern {
-  constructor(name, literalString) {
-    super();
+  constructor(name, literal) {
+    super(name);
+    this.literal = literal;
 
-    this.name = name;
-    this.literal = literalString;
-
-    this.reset(null);
-    this.assertArguments();
+    this._reset(null);
+    this._assertArguments();
   }
 
-  assertArguments() {
-    if (typeof this.name !== "string") {
-      throw new Error("Invalid Arguments: The name needs to be a string.");
-    }
-
+  _assertArguments() {
     if (typeof this.literal !== "string") {
       throw new Error(
-        "Invalid Arguments: The literalString argument needs to be a string of characters."
+        "Invalid Arguments: The literal argument needs to be a string of characters."
       );
     }
 
@@ -32,19 +26,15 @@ export default class Literal extends ValuePattern {
     }
   }
 
-  getName() {
-    return this.name;
-  }
-
   parse(cursor) {
-    this.reset(cursor);
-    this.assertCursor();
-    this.tryPattern();
+    this._reset(cursor);
+    this._assertCursor();
+    this._tryPattern();
 
     return this.node;
   }
 
-  reset(cursor) {
+  _reset(cursor) {
     if (cursor != null) {
       this.cursor = cursor;
       this.mark = this.cursor.mark();
@@ -58,28 +48,28 @@ export default class Literal extends ValuePattern {
     this.node = null;
   }
 
-  assertCursor() {
+  _assertCursor() {
     if (!(this.cursor instanceof Cursor)) {
       throw new Error("Invalid Arguments: Expected a cursor.");
     }
   }
 
-  tryPattern() {
-    if (this.doesCharacterMatch()) {
-      this.processCharacterMatch();
+  _tryPattern() {
+    if (this._doesCharacterMatch()) {
+      this._processCharacterMatch();
     } else {
-      this.processError();
+      this._processError();
     }
   }
 
-  doesCharacterMatch() {
+  _doesCharacterMatch() {
     return this.literal.charAt(this.index) === this.cursor.getChar();
   }
 
-  processCharacterMatch() {
-    this.saveMatch();
+  _processCharacterMatch() {
+    this._saveMatch();
 
-    if (this.isComplete()) {
+    if (this._isComplete()) {
       this.node = new ValueNode(
         this.name,
         this.literal,
@@ -87,29 +77,29 @@ export default class Literal extends ValuePattern {
         this.cursor.getIndex()
       );
 
-      this.incrementIndex();
+      this._incrementIndex();
     } else {
-      this.incrementIndex();
-      this.tryPattern();
+      this._incrementIndex();
+      this._tryPattern();
     }
   }
 
-  saveMatch() {
+  _saveMatch() {
     this.match += this.cursor.getChar();
   }
 
-  isComplete() {
+  _isComplete() {
     return this.match === this.literal;
   }
 
-  incrementIndex() {
+  _incrementIndex() {
     if (this.cursor.hasNext()) {
       this.cursor.next();
       this.index++;
     }
   }
 
-  processError() {
+  _processError() {
     const message = `ParseError: Expected '${this.literal.charAt(
       this.index
     )}' but found '${this.cursor.getChar()}' while parsing for '${this.name}'.`;
@@ -121,7 +111,4 @@ export default class Literal extends ValuePattern {
     return new Literal(this.name, this.literal);
   }
 
-  getValue() {
-    return this.literal;
-  }
 }

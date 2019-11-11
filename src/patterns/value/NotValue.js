@@ -4,17 +4,13 @@ import ParseError from "../ParseError.js";
 
 export default class NotValue extends ValuePattern {
   constructor(name, pattern) {
-    super();
-    this.name = name;
-    this.pattern = pattern.clone();
-    this.patterns = [pattern];
-
-    this.assertArguments();
-    this.reset();
+    super(name, [pattern]);
+    this._assertArguments();
+    this._reset();
   }
 
-  assertArguments() {
-    if (!(this.pattern instanceof ValuePattern)) {
+  _assertArguments() {
+    if (!(this.children[0] instanceof ValuePattern)) {
       throw new Error(
         "Invalid Arguments: Expected the pattern to be a ValuePattern."
       );
@@ -25,7 +21,7 @@ export default class NotValue extends ValuePattern {
     }
   }
 
-  reset(cursor) {
+  _reset(cursor) {
     this.cursor = null;
     this.mark = null;
     this.match = "";
@@ -38,18 +34,18 @@ export default class NotValue extends ValuePattern {
   }
 
   parse(cursor) {
-    this.reset(cursor);
-    this.tryPattern();
+    this._reset(cursor);
+    this._tryPattern();
 
     return this.node;
   }
 
-  tryPattern() {
+  _tryPattern() {
     while (true) {
       const mark = this.cursor.mark();
 
       try {
-        this.pattern.parse(this.cursor);
+        this.children[0].parse(this.cursor);
         this.cursor.moveToMark(mark);
         break;
       } catch (error) {
@@ -63,13 +59,13 @@ export default class NotValue extends ValuePattern {
       }
     }
 
-    this.processMatch();
+    this._processMatch();
   }
 
-  processMatch() {
+  _processMatch() {
     if (this.match.length === 0) {
       throw new ParseError(
-        `Didn't find any characters the didn't match the ${this.pattern.getName()} pattern.`,
+        `Didn't find any characters the didn't match the ${this.children[0].name} pattern.`,
         this.mark.index,
         this
       );
@@ -83,19 +79,7 @@ export default class NotValue extends ValuePattern {
     }
   }
 
-  getName() {
-    return this.name;
-  }
-
-  getPatterns() {
-    return this.patterns;
-  }
-
-  getValue() {
-    return null;
-  }
-
   clone() {
-    return new NotValue(this.name, this.pattern);
+    return new NotValue(this.name, this.children[0]);
   }
 }

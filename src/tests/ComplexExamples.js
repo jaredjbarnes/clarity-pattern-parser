@@ -51,13 +51,19 @@ exports["Complex Examples: number"] = () => {
 };
 
 exports["Complex Examples: Natural Language."] = () => {
-    const validCursor = new Cursor("Match records where firstName is 'John' and lastName is 'Barnes'.");
-    const invalidCursor = new Cursor("Match records where firstName ");
-    const node = filter.parse(validCursor);
+  const validCursor = new Cursor(
+    "Match records where firstName is 'John' and lastName is 'Barnes'."
+  );
+  const invalidCursor = new Cursor("Match records where firstName ");
+  const node = filter.parse(validCursor);
 
-    try{
-        filter.parse(invalidCursor);
-    } catch(error){
-        debugger;
-    }
+  try {
+    filter.parse(invalidCursor);
+  } catch (error) {
+    debugger;
+  }
+};
+
+exports["Complex Examples: cssMethod"] = () => {
+  const cursor = new Cursor("linear-gradient(to left, #333, #333 50%, #eee 75%, #333 75%);")
 };

@@ -2,34 +2,21 @@ import ValuePattern from "./ValuePattern.js";
 
 export default class OptionalValue extends ValuePattern {
   constructor(pattern) {
-    super();
-    this.pattern = pattern;
-    this.assertArguments();
+    super("optional-value", [pattern]);
+    this._assertArguments();
   }
 
-  assertArguments() {
-    if (!(this.pattern instanceof ValuePattern)) {
+  _assertArguments() {
+    if (!(this.children[0] instanceof ValuePattern)) {
       throw new Error("Invalid Arguments: Expected a ValuePattern.");
     }
-  }
-
-  getName() {
-    return this.pattern.getName();
-  }
-
-  getType(){
-    return this.pattern.getType();
-  }
-  
-  getPatterns() {
-    return this.pattern.getPatterns();
   }
 
   parse(cursor) {
     const mark = cursor.mark();
 
     try {
-      return this.pattern.parse(cursor);
+      return this.children[0].parse(cursor);
     } catch (error) {
       cursor.moveToMark(mark);
       return null;
@@ -37,6 +24,6 @@ export default class OptionalValue extends ValuePattern {
   }
 
   clone() {
-    return new OptionalValue(this.pattern);
+    return new OptionalValue(this.children[0]);
   }
 }

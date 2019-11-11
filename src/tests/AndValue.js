@@ -75,11 +75,10 @@ exports["AndValue: Clone."] = () => {
   const fullName = new AndValue("full-name", [firstName, lastName]);
   const clone = fullName.clone();
 
-  const fullNamePatterns = fullName.getPatterns();
-  const clonePatterns = clone.getPatterns();
+  const fullNamePatterns = fullName.children;
+  const _cloneChildren = clone.children;
 
-  assert.notEqual(fullNamePatterns[0], clonePatterns[0]);
-  assert.notEqual(fullNamePatterns[1], clonePatterns[1]);
-  assert.equal(fullName.getName(), clone.getName());
-  assert.equal(fullName.getValue(), clone.getValue());
+  assert.notEqual(fullNamePatterns[0], _cloneChildren[0]);
+  assert.notEqual(fullNamePatterns[1], _cloneChildren[1]);
+  assert.equal(fullName.name, clone.name);
 };

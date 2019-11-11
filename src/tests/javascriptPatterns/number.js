@@ -1,6 +1,4 @@
-import OrComposite from "../../patterns/composite/OrComposite.js";
 import Literal from "../../patterns/value/Literal.js";
-import NotValue from "../../patterns/value/NotValue.js";
 import OrValue from "../../patterns/value/OrValue.js";
 import RepeatValue from "../../patterns/value/RepeatValue.js";
 import AndValue from "../../patterns/value/AndValue.js";

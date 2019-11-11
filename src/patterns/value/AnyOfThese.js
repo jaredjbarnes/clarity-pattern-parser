@@ -5,19 +5,14 @@ import Cursor from "../../Cursor.js";
 
 export default class AnyOfThese extends ValuePattern {
   constructor(name, characters) {
-    super();
-    this.name = name;
+    super(name);
     this.characters = characters;
 
-    this.reset();
-    this.assertArguments();
+    this._reset();
+    this._assertArguments();
   }
 
-  assertArguments() {
-    if (typeof this.name !== "string") {
-      throw new Error("Invalid Arguments: The name needs to be a string.");
-    }
-
+  _assertArguments() {
     if (typeof this.characters !== "string") {
       throw new Error(
         "Invalid Arguments: The characters argument needs to be a string of characters."
@@ -31,24 +26,20 @@ export default class AnyOfThese extends ValuePattern {
     }
   }
 
-  getName() {
-    return this.name;
-  }
-
   parse(cursor) {
-    this.reset(cursor);
-    this.assertCursor();
-    this.tryPattern();
+    this._reset(cursor);
+    this._assertCursor();
+    this._tryPattern();
     return this.node;
   }
 
-  assertCursor() {
+  _assertCursor() {
     if (!(this.cursor instanceof Cursor)) {
       throw new Error("Invalid Arguments: Expected a cursor.");
     }
   }
 
-  reset(cursor) {
+  _reset(cursor) {
     if (cursor == null) {
       this.cursor = null;
       this.mark = null;
@@ -60,23 +51,23 @@ export default class AnyOfThese extends ValuePattern {
     this.node = null;
   }
 
-  tryPattern() {
-    if (this.isMatch()) {
+  _tryPattern() {
+    if (this._isMatch()) {
       const value = this.cursor.getChar();
       const index = this.cursor.getIndex();
 
       this.node = new ValueNode(this.name, value, index, index);
       this.incrementCursor();
     } else {
-      this.processError();
+      this._processError();
     }
   }
 
-  isMatch() {
+  _isMatch() {
     return this.characters.indexOf(this.cursor.getChar()) > -1;
   }
 
-  processError() {
+  _processError() {
     const message = `ParseError: Expected one of these characters, '${
       this.characters
     }' but found '${this.cursor.getChar()}' while parsing for '${this.name}'.`;
@@ -94,7 +85,4 @@ export default class AnyOfThese extends ValuePattern {
     return new AnyOfThese(this.name, this.characters);
   }
 
-  getValue() {
-    return this.characters;
-  }
 }

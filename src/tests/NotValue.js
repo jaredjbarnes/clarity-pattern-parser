@@ -44,12 +44,6 @@ exports["NotValue: No Match"] = () => {
   });
 };
 
-exports["NotValue: GetValue"] = () => {
-  const john = new Literal("john", "John");
-  const notJohn = new NotValue("not-john", john);
-
-  assert.equal(notJohn.getValue(), null);
-};
 
 exports["NotValue: Success"] = () => {
   const john = new Literal("john", "John");
@@ -78,6 +72,5 @@ exports["NotValue: Clone."] = () => {
   const notJohn = new NotValue("not-john", john);
   const clone = notJohn.clone();
 
-  assert.equal(notJohn.getType(), clone.getType());
-  assert.equal(notJohn.getName(), clone.getName());
+  assert.equal(notJohn.name, clone.name);
 };

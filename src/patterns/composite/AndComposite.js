@@ -1,9 +1,9 @@
-import CompositePatterns from "./CompositePatterns.js";
+import CompositePattern from "./CompositePattern.js";
 import CompositeNode from "../../ast/CompositeNode.js";
 import StackInformation from "../StackInformation.js";
 
-export default class AndComposite extends CompositePatterns {
-  reset(cursor) {
+export default class AndComposite extends CompositePattern {
+  _reset(cursor) {
     this.cursor = null;
     this.index = 0;
     this.nodes = [];
@@ -16,33 +16,33 @@ export default class AndComposite extends CompositePatterns {
   }
 
   parse(cursor) {
-    this.reset(cursor);
-    this.tryPattern();
+    this._reset(cursor);
+    this._tryPattern();
 
     return this.node;
   }
 
-  tryPattern() {
+  _tryPattern() {
     while (true) {
 
       try {
-        this.nodes.push(this.patterns[this.index].parse(this.cursor));
+        this.nodes.push(this._children[this.index].parse(this.cursor));
       } catch (error) {
         error.stack.push(new StackInformation(this.mark, this));
         throw error;
       }
 
-      if (this.index + 1 < this.patterns.length) {
+      if (this.index + 1 < this._children.length) {
         this.index++;
       } else {
         break;
       }
     }
 
-    this.processValue();
+    this._processValue();
   }
 
-  processValue() {
+  _processValue() {
     this.nodes = this.nodes.filter(node => node != null);
     this.node = new CompositeNode(
       this.name,
@@ -53,6 +53,6 @@ export default class AndComposite extends CompositePatterns {
   }
 
   clone() {
-    return new AndComposite(this.name, this.patterns);
+    return new AndComposite(this.name, this._children);
   }
 }

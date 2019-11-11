@@ -5,34 +5,21 @@ import OptionalValue from "./OptionalValue.js";
 
 export default class RepeatValue extends ValuePattern {
   constructor(name, pattern) {
-    super();
-    this.name = name;
-    this.pattern = pattern.clone();
-    this.patterns = [pattern];
+    super(name, [pattern]);
 
-    this.assertArguments();
-    this.reset();
+    this._assertArguments();
+    this._reset();
   }
 
-  assertArguments() {
-    if (!(this.pattern instanceof ValuePattern)) {
-      throw new Error(
-        "Invalid Arguments: Expected the pattern to be a ValuePattern."
-      );
-    }
-
-    if (this.pattern instanceof OptionalValue) {
+  _assertArguments() {
+    if (this.children[0] instanceof OptionalValue) {
       throw new Error(
         "Invalid Arguments: The pattern cannot be a optional pattern."
       );
     }
-
-    if (typeof this.name !== "string") {
-      throw new Error("Invalid Arguments: Expected name to be a string.");
-    }
   }
 
-  reset(cursor) {
+  _reset(cursor) {
     this.cursor = null;
     this.mark = null;
     this.nodes = [];
@@ -44,36 +31,36 @@ export default class RepeatValue extends ValuePattern {
   }
 
   parse(cursor) {
-    this.reset(cursor);
-    this.tryPattern();
+    this._reset(cursor);
+    this._tryPattern();
 
     return this.node;
   }
 
-  tryPattern() {
+  _tryPattern() {
     while (true) {
       const mark = this.cursor.mark();
 
       try {
-        const node = this.pattern.parse(this.cursor);
+        const node = this.children[0].parse(this.cursor);
         this.nodes.push(node);
 
         if (node.endIndex === this.cursor.lastIndex()){
-          this.processMatch();
+          this._processMatch();
           break;
         }
       } catch (error) {
-        this.processMatch();
+        this._processMatch();
         this.cursor.moveToMark(mark);
         break;
       }
     }
   }
 
-  processMatch() {
+  _processMatch() {
     if (this.nodes.length === 0) {
       throw new ParseError(
-        `Did not find a repeating match of ${this.pattern.getName()}.`,
+        `Did not find a repeating match of ${this.children[0].name}.`,
         this.mark.index,
         this
       );
@@ -89,19 +76,7 @@ export default class RepeatValue extends ValuePattern {
     }
   }
 
-  getName() {
-    return this.name;
-  }
-
-  getPatterns() {
-    return this.patterns;
-  }
-
-  getValue() {
-    return null;
-  }
-
   clone() {
-    return new RepeatValue(this.name, this.pattern);
+    return new RepeatValue(this.name, this.children[0]);
   }
 }

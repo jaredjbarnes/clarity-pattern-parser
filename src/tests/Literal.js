@@ -67,15 +67,12 @@ exports["Literal: Bad cursor."] = () => {
   assert.throws(() => {
     variable.parse();
   });
-
 };
 
 exports["Literal: Pattern methods."] = () => {
   const variable = new Literal("variable", "var");
   const clone = variable.clone();
 
-  assert.equal(variable.getName(), clone.getName());
-  assert.equal(variable.getType(), clone.getType());
-  assert.equal(variable.getValue(), clone.getValue());
-  assert.equal(variable.getPatterns(), clone.getPatterns());
+  assert.equal(variable.name, clone.name);
+  assert.equal(variable.children.length, clone.children.length);
 };

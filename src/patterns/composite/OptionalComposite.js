@@ -1,36 +1,23 @@
 import CompositePattern from "./CompositePattern.js";
-import Pattern from "../Pattern.js";
 
-export default class OptionalComposite extends Pattern {
+export default class OptionalComposite extends CompositePattern {
   constructor(pattern) {
-    super();
-    this.pattern = pattern;
-    this.assertArguments();
+    super("optional-composite", [pattern]);
+    
+    this._assertArguments();
   }
 
-  assertArguments() {
-    if (!(this.pattern instanceof CompositePattern)) {
+  _assertArguments() {
+    if (!(this.children[0] instanceof CompositePattern)) {
       throw new Error("Invalid Arguments: Expected a CompositePattern.");
     }
-  }
-
-  getType() {
-    return this.pattern.getType();
-  }
-
-  getName() {
-    return this.pattern.getName();
-  }
-
-  getPatterns() {
-    return this.pattern.getPatterns();
   }
 
   parse(cursor) {
     const mark = cursor.mark();
 
     try {
-      return this.pattern.parse(cursor);
+      return this.children[0].parse(cursor);
     } catch (error) {
       cursor.moveToMark(mark);
       return null;
@@ -38,6 +25,6 @@ export default class OptionalComposite extends Pattern {
   }
 
   clone() {
-    return new OptionalComposite(this.pattern);
+    return new OptionalComposite(this.children[0]);
   }
 }

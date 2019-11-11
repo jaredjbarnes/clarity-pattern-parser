@@ -1,14 +1,22 @@
-import ValuePatterns from "./ValuePatterns.js";
+import ValuePattern from "./ValuePattern.js";
 import ValueNode from "../../ast/ValueNode.js";
 import Cursor from "../../Cursor.js";
 
-export default class OrValue extends ValuePatterns {
+export default class OrValue extends ValuePattern {
   constructor(name, patterns) {
     super(name, patterns);
-    this.reset();
+    this._assertArguments();
   }
 
-  reset(cursor) {
+  _assertArguments() {
+    if (this._children.length < 2) {
+      throw new Error(
+        "Invalid Argument: OrValue needs to have more than one value pattern."
+      );
+    }
+  }
+
+  _reset(cursor) {
     this.cursor = null;
     this.mark = null;
     this.index = 0;
@@ -22,25 +30,25 @@ export default class OrValue extends ValuePatterns {
   }
 
   parse(cursor) {
-    this.reset(cursor);
-    this.assertCursor();
-    this.tryPattern();
+    this._reset(cursor);
+    this._assertCursor();
+    this._tryPattern();
 
     return this.node;
   }
 
-  assertCursor() {
+  _assertCursor() {
     if (!(this.cursor instanceof Cursor)) {
       throw new Error("Invalid Arguments: Expected a cursor.");
     }
   }
 
-  tryPattern() {
+  _tryPattern() {
     while (true) {
-      const pattern = this.patterns[this.index];
+      const pattern = this._children[this.index];
 
       try {
-        const node  = pattern.parse(this.cursor);
+        const node = pattern.parse(this.cursor);
 
         if (node == null) {
           throw new ParserError(
@@ -50,12 +58,17 @@ export default class OrValue extends ValuePatterns {
           );
         }
 
-        this.node = new ValueNode(this.name, node.value, node.startIndex, node.endIndex);
+        this.node = new ValueNode(
+          this.name,
+          node.value,
+          node.startIndex,
+          node.endIndex
+        );
         break;
       } catch (error) {
         this.errors.push(error);
 
-        if (this.index + 1 < this.patterns.length) {
+        if (this.index + 1 < this._children.length) {
           this.index++;
           this.cursor.moveToMark(this.mark);
         } else {
@@ -80,6 +93,6 @@ export default class OrValue extends ValuePatterns {
   }
 
   clone() {
-    return new OrValue(this.name, this.patterns);
+    return new OrValue(this.name, this._children);
   }
 }

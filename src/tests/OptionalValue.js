@@ -32,18 +32,17 @@ exports["OptionalValue: Match pattern."] = () => {
 };
 
 exports["OptionalValue: No Match pattern."] = () => {
-    const john = new Literal("john", "John");
-    const optionalValue = new OptionalValue(john);
-    const cursor = new Cursor("Jane");
-    const node = optionalValue.parse(cursor);
-  
-    assert.equal(node, null);
-  };
+  const john = new Literal("john", "John");
+  const optionalValue = new OptionalValue(john);
+  const cursor = new Cursor("Jane");
+  const node = optionalValue.parse(cursor);
 
-  exports["OptionalValue: getName, getType"] = () => {
-    const john = new Literal("john", "John");
-    const optionalValue = new OptionalValue(john);
-  
-    assert.equal(optionalValue.getName(), john.getName());
-    assert.equal(optionalValue.getType(), john.getType());
-  };
+  assert.equal(node, null);
+};
+
+exports["OptionalValue: Name"] = () => {
+  const john = new Literal("john", "John");
+  const optionalValue = new OptionalValue(john);
+
+  assert.equal(optionalValue.name, "optional-value");
+};

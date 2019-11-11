@@ -88,9 +88,7 @@ exports["AnyOfThese: Bad cursor."] = () => {
 exports["AnyOfThese: Pattern Methods."] = () => {
   const letterA = new AnyOfThese("letter-a", "Aa");
   
-  assert.equal(letterA.getName(), "letter-a");
-  assert.equal(letterA.getType(), "value");
-  assert.equal(letterA.getValue(), "Aa");
-  assert.equal(letterA.getPatterns(), null);
+  assert.equal(letterA.name, "letter-a");
+  assert.equal(letterA.children.length, 0);
 
 };

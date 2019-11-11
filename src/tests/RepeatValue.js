@@ -44,13 +44,6 @@ exports["RepeatValue: No Match"] = () => {
   });
 };
 
-exports["RepeatValue: GetValue"] = () => {
-  const john = new Literal("john", "John");
-  const johns = new RepeatValue("johns", john);
-
-  assert.equal(johns.getValue(), null);
-};
-
 exports["RepeatValue: Success, one John"] = () => {
   const john = new Literal("john", "John");
   const johns = new RepeatValue("johns", john);
@@ -90,8 +83,7 @@ exports["RepeatValue: Clone."] = () => {
   const johns = new RepeatValue("johns", john);
   const clone = johns.clone();
 
-  assert.equal(johns.getType(), clone.getType());
-  assert.equal(johns.getName(), clone.getName());
+  assert.equal(johns.name, clone.name);
 };
 
 exports["RepeatValue: Try Optional."] = () => {

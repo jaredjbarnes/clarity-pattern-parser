@@ -1,19 +1,21 @@
 import ValuePattern from "../patterns/value/ValuePattern.js";
 import assert from "assert";
 
-exports["ValuePattern: getType."] = () => {
-  const valuePattern = new ValuePattern("name", "value");
-  assert.equal(valuePattern.getType(), "value");
+exports["ValuePattern: Default state no children."] = () => {
+  const valuePattern = new ValuePattern("value-pattern");
+
+  assert.equal(valuePattern.children.length, 0);
+  assert.equal(valuePattern.name, "value-pattern");
 };
 
-exports["ValuePattern: getPatterns."] = () => {
-  const valuePattern = new ValuePattern();
-  assert.equal(valuePattern.getPatterns(), null);
-};
+exports["ValuePattern: Clone and parse."] = () => {
+  const valuePattern = new ValuePattern("value-pattern");
 
-exports["ValuePattern: getValue."] = () => {
-  const valuePattern = new ValuePattern();
   assert.throws(() => {
-   valuePattern.getValue();
+    valuePattern.clone();
+  });
+
+  assert.throws(() => {
+    valuePattern.parse();
   });
 };

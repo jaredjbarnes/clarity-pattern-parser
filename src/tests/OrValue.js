@@ -100,10 +100,8 @@ exports["OrValue: Clone."] = () => {
 
   const clone = alphaNumeric.clone();
 
-  assert.equal(alphaNumeric.getType(), clone.getType());
-  assert.equal(alphaNumeric.getValue(), clone.getValue());
-  assert.equal(alphaNumeric.getPatterns().length, clone.getPatterns().length);
-  assert.equal(alphaNumeric.getName(), clone.getName());
+  assert.equal(alphaNumeric.children.length, clone.children.length);
+  assert.equal(alphaNumeric.name, clone.name);
 };
 
 exports["OrValue: Invalid patterns."] = () => {

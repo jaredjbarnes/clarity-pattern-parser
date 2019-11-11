@@ -1,15 +1,23 @@
-import ValuePatterns from "./ValuePatterns";
+import ValuePattern from "./ValuePattern";
 import ValueNode from "../../ast/ValueNode";
 import Cursor from "../../Cursor.js";
 import StackInformation from "../StackInformation";
 
-export default class AndValue extends ValuePatterns {
+export default class AndValue extends ValuePattern {
   constructor(name, patterns) {
     super(name, patterns);
-    this.reset();
+    this._assertArguments();
   }
 
-  reset(cursor) {
+  _assertArguments() {
+    if (this._children.length < 2) {
+      throw new Error(
+        "Invalid Argument: AndValue needs to have more than one value pattern."
+      );
+    }
+  }
+
+  _reset(cursor) {
     this.cursor = null;
     this.index = 0;
     this.nodes = [];
@@ -22,22 +30,22 @@ export default class AndValue extends ValuePatterns {
   }
 
   parse(cursor) {
-    this.reset(cursor);
-    this.assertCursor();
-    this.tryPattern();
+    this._reset(cursor);
+    this._assertCursor();
+    this._tryPattern();
 
     return this.node;
   }
 
-  assertCursor() {
+  _assertCursor() {
     if (!(this.cursor instanceof Cursor)) {
       throw new Error("Invalid Arguments: Expected a cursor.");
     }
   }
 
-  tryPattern() {
+  _tryPattern() {
     while (true) {
-      const pattern = this.patterns[this.index];
+      const pattern = this._children[this.index];
 
       try {
         this.nodes.push(pattern.parse(this.cursor));
@@ -46,19 +54,19 @@ export default class AndValue extends ValuePatterns {
         throw error;
       }
 
-      if (this.index + 1 < this.patterns.length) {
+      if (this.index + 1 < this._children.length) {
         const lastNode = this.nodes[this.nodes.length - 1];
 
         this.cursor.setIndex(lastNode.endIndex + 1);
         this.index++;
       } else {
-        this.processValue();
+        this._processValue();
         break;
       }
     }
   }
 
-  processValue() {
+  _processValue() {
     const lastNode = this.nodes[this.nodes.length - 1];
     const startIndex = this.mark.index;
     const endIndex = lastNode.endIndex;
@@ -72,6 +80,6 @@ export default class AndValue extends ValuePatterns {
   }
 
   clone() {
-    return new AndValue(this.name, this.patterns);
+    return new AndValue(this.name, this._children);
   }
 }

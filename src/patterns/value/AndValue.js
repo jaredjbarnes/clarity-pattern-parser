@@ -1,7 +1,9 @@
-import ValuePattern from "./ValuePattern";
-import ValueNode from "../../ast/ValueNode";
+import ValuePattern from "./ValuePattern.js";
+import ValueNode from "../../ast/ValueNode.js";
 import Cursor from "../../Cursor.js";
-import StackInformation from "../StackInformation";
+import ParseError from "../../patterns/ParseError.js";
+import StackInformation from "../StackInformation.js";
+import OptionalValue from "./OptionalValue.js";
 
 export default class AndValue extends ValuePattern {
   constructor(name, patterns) {
@@ -32,7 +34,7 @@ export default class AndValue extends ValuePattern {
   parse(cursor) {
     this._reset(cursor);
     this._assertCursor();
-    this._tryPattern();
+    this._tryPatterns();
 
     return this.node;
   }
@@ -43,7 +45,7 @@ export default class AndValue extends ValuePattern {
     }
   }
 
-  _tryPattern() {
+  _tryPatterns() {
     while (true) {
       const pattern = this._children[this.index];
 
@@ -54,29 +56,62 @@ export default class AndValue extends ValuePattern {
         throw error;
       }
 
-      if (this.index + 1 < this._children.length) {
-        const lastNode = this.nodes[this.nodes.length - 1];
-
-        this.cursor.setIndex(lastNode.endIndex + 1);
-        this.index++;
-      } else {
+      if (!this._next()) {
         this._processValue();
         break;
       }
     }
   }
 
+  _next() {
+    if (this._hasMorePatterns()) {
+      if (this.cursor.hasNext()) {
+        // If the last result was a failed optional, then don't increment the cursor.
+        if (this.nodes[this.nodes.length - 1] != null) {
+          this.cursor.next();
+        }
+
+        this.index++;
+        return true;
+      } else if (this.nodes[this.nodes.length - 1] == null) {
+        this.index++;
+        return true;
+      }
+
+      this._assertRestOfPatternsAreOptional();
+      return false;
+    } else {
+      return false;
+    }
+  }
+
+  _hasMorePatterns() {
+    return this.index + 1 < this._children.length;
+  }
+
+  _assertRestOfPatternsAreOptional() {
+    const areTheRestOptional = this.children.every((pattern, index) => {
+      return index <= this.index || pattern instanceof OptionalValue;
+    });
+
+    if (!areTheRestOptional) {
+      throw new ParseError(
+        `Could not match ${this.name} before string ran out.`
+      );
+    }
+  }
+
   _processValue() {
+    this.nodes = this.nodes.filter(node => node != null);
+
     const lastNode = this.nodes[this.nodes.length - 1];
     const startIndex = this.mark.index;
     const endIndex = lastNode.endIndex;
-
-    const value = this.nodes
-      .filter(node => node != null)
-      .map(node => node.value)
-      .join("");
+    const value = this.nodes.map(node => node.value).join("");
 
     this.node = new ValueNode(this.name, value, startIndex, endIndex);
+
+    this.cursor.setIndex(this.node.endIndex);
   }
 
   clone() {

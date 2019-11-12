@@ -1,5 +1,5 @@
-import ValuePattern from "./ValuePattern";
-import ValueNode from "../../ast/ValueNode";
+import ValuePattern from "./ValuePattern.js";
+import ValueNode from "../../ast/ValueNode.js";
 import ParseError from "../ParseError.js";
 
 export default class NotValue extends ValuePattern {
@@ -51,10 +51,6 @@ export default class NotValue extends ValuePattern {
       } catch (error) {
         this.cursor.moveToMark(mark);
         this.match += this.cursor.getChar();
-
-        if (this.cursor.hasNext()) {
-          this.cursor.next();
-        }
         break;
       }
     }
@@ -76,6 +72,8 @@ export default class NotValue extends ValuePattern {
         this.mark.index,
         this.mark.index
       );
+
+      this.cursor.setIndex(this.node.endIndex);
     }
   }
 

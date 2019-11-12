@@ -50,7 +50,7 @@ exports["RepeatValue: Success, one John"] = () => {
   const cursor = new Cursor("John");
   const node = johns.parse(cursor);
 
-  assert.equal(node.type, "johns");
+  assert.equal(node.name, "johns");
   assert.equal(node.value, "John");
   assert.equal(node.startIndex, 0);
   assert.equal(node.endIndex, 3);
@@ -62,11 +62,11 @@ exports["RepeatValue: Success with a terminating match."] = () => {
   const cursor = new Cursor("JohnJohnJane");
   const node = johns.parse(cursor);
 
-  assert.equal(node.type, "johns");
+  assert.equal(node.name, "johns");
   assert.equal(node.value, "JohnJohn");
   assert.equal(node.startIndex, 0);
   assert.equal(node.endIndex, 7);
-  assert.equal(cursor.getIndex(), 8);
+  assert.equal(cursor.getIndex(), 7);
 };
 
 exports["RepeatValue: Bad cursor."] = () => {
@@ -92,4 +92,16 @@ exports["RepeatValue: Try Optional."] = () => {
   assert.throws(() => {
     new RepeatValue("johns", new OptionalValue(john));
   });
+};
+
+exports["RepeatValue: With divider."] = () => {
+  const cursor = new Cursor("John,John");
+  const john = new Literal("john", "John");
+  const divider = new Literal("divider", ",");
+
+  const node = new RepeatValue("johns", john, divider).parse(cursor);
+
+  assert.equal(node.name, "johns");
+  assert.equal(node.value, "John,John");
+
 };

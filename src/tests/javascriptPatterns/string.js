@@ -1,11 +1,8 @@
-import OrComposite from "../../patterns/composite/OrComposite.js";
 import Literal from "../../patterns/value/Literal.js";
 import NotValue from "../../patterns/value/NotValue.js";
 import OrValue from "../../patterns/value/OrValue.js";
 import RepeatValue from "../../patterns/value/RepeatValue.js";
 import AndValue from "../../patterns/value/AndValue.js";
-import AnyOfThese from "../../patterns/value/AnyofThese.js";
-import OptionalValue from "../../patterns/value/OptionalValue.js";
 
 const singleQuote = new Literal("single-quote", "'");
 const doubleQuote = new Literal("double-quote", '"');
@@ -17,11 +14,11 @@ const singleQuoteOrBackslash = new OrValue("single-quote-or-backslash", [
 ]);
 
 const doubleQuoteOrBackslash = new OrValue("single-quote-or-backslash", [
-  singleQuote,
+  doubleQuote,
   backslash
 ]);
 
-const unescapedSinlgeCharacter = new NotValue(
+const unescapedSingleCharacter = new NotValue(
   "unescaped-single-character",
   singleQuoteOrBackslash
 );
@@ -49,7 +46,7 @@ const singleQuoteCharacter = new OrValue("character", [
   escapedNewLine,
   escapedCarriageReturn,
   escapedTab,
-  unescapedSinlgeCharacter
+  unescapedSingleCharacter
 ]);
 
 const doubleQuoteCharacter = new OrValue("character", [

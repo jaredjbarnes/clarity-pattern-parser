@@ -1,13 +1,31 @@
 import CompositePattern from "./CompositePattern.js";
 import CompositeNode from "../../ast/CompositeNode.js";
+import ParseError from "../ParseError.js";
 import OptionalComposite from "./OptionalComposite.js";
 
 export default class RepeatComposite extends CompositePattern {
+  constructor(name, pattern, divider) {
+    super(name, divider != null ? [pattern, divider] : [pattern]);
+
+    this._pattern = this.children[0];
+    this._divider = this.children[1];
+
+    this._assertArguments();
+    this._reset();
+  }
+
+  _assertArguments() {
+    if (this._pattern instanceof OptionalComposite) {
+      throw new Error(
+        "Invalid Arguments: The pattern cannot be a optional pattern."
+      );
+    }
+  }
+
   _reset(cursor) {
     this.cursor = null;
-    this.index = 0;
+    this.mark = null;
     this.nodes = [];
-    this.node = null;
 
     if (cursor != null) {
       this.cursor = cursor;
@@ -25,30 +43,47 @@ export default class RepeatComposite extends CompositePattern {
   _tryPattern() {
     while (true) {
       try {
-        this.nodes.push(this.pattern.parse(this.cursor));
+        this.nodes.push(this._pattern.parse(this.cursor));
+        this.cursor.next();
+
+        if (this._divider != null) {
+          const mark = this.cursor.mark();
+          try{
+            this.nodes.push(this._divider.parse(this.cursor));
+            this.cursor.next();
+          } catch(error){
+            this.cursor.moveToMark(mark);
+            this._processMatch();
+            break;
+          }
+        }
       } catch (error) {
+        this._processMatch();
         break;
       }
     }
-
-    this._processValue();
   }
 
-  _processValue() {
+  _processMatch() {
     if (this.nodes.length === 0) {
-      throw new ParseError(`Couldn't find the ${this.pattern.name} pattern.`, this.mark.index, this);
-    }
+      throw new ParseError(
+        `Did not find a repeating match of ${this.name}.`,
+        this.mark.index,
+        this
+      );
+    } else {
+      this.node = new CompositeNode(
+        this.name,
+        this.nodes[0].startIndex,
+        this.nodes[this.nodes.length - 1].endIndex
+      );
 
-    this.nodes = this.nodes.filter(node => node != null);
-    this.node = new CompositeNode(
-      this.name,
-      this.nodes[0].startIndex,
-      this.nodes[this.nodes.length - 1].endIndex
-    );
-    this.node.children = this.nodes;
+      this.node.children = this.nodes;
+      this.cursor.setIndex(this.node.endIndex);
+    }
   }
 
   clone() {
-    return new RepeatComposite(this.name, this._children);
+    return new RepeatComposite(this.name, this._pattern, this._divider);
   }
 }

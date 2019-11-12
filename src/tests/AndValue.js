@@ -40,7 +40,7 @@ exports["AndValue: Success"] = () => {
   const cursor = new Cursor("JohnDoe");
   const node = fullName.parse(cursor);
 
-  assert.equal(node.type, "full-name");
+  assert.equal(node.name, "full-name");
   assert.equal(node.value, "JohnDoe");
   assert.equal(node.startIndex, 0);
   assert.equal(node.endIndex, 6);
@@ -53,7 +53,7 @@ exports["AndValue: Success with more to parse"] = () => {
   const cursor = new Cursor("JohnDoe JaneDoe");
   const node = fullName.parse(cursor);
 
-  assert.equal(node.type, "full-name");
+  assert.equal(node.name, "full-name");
   assert.equal(node.value, "JohnDoe");
   assert.equal(node.startIndex, 0);
   assert.equal(node.endIndex, 6);

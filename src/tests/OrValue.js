@@ -48,10 +48,10 @@ exports["OrValue: Name and patterns."] = () => {
   const letterNode = alphaNumeric.parse(letterCursor);
   const numberNode = alphaNumeric.parse(numberCursor);
 
-  assert.equal(letterNode.type, "alpha-numeric");
+  assert.equal(letterNode.name, "alpha-numeric");
   assert.equal(letterNode.value, "a");
 
-  assert.equal(numberNode.type, "alpha-numeric");
+  assert.equal(numberNode.name, "alpha-numeric");
   assert.equal(numberNode.value, "1");
 };
 
@@ -69,10 +69,10 @@ exports["OrValue: Optional Pattern as one of the patterns."] = () => {
   const letterNode = alphaNumeric.parse(letterCursor);
   const numberNode = alphaNumeric.parse(numberCursor);
 
-  assert.equal(letterNode.type, "alpha-numeric");
+  assert.equal(letterNode.name, "alpha-numeric");
   assert.equal(letterNode.value, "a");
 
-  assert.equal(numberNode.type, "alpha-numeric");
+  assert.equal(numberNode.name, "alpha-numeric");
   assert.equal(numberNode.value, "1");
 };
 
@@ -147,6 +147,6 @@ exports["OrValue: Last pattern matches."] = () => {
 
   const node = orValue.parse(cursor);
 
-  assert.equal(node.type, "test");
+  assert.equal(node.name, "test");
   assert.equal(node.value, "Bang");
 };

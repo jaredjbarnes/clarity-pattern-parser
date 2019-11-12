@@ -77,6 +77,10 @@ export default class Cursor {
 
   setIndex(index) {
     if (typeof index === "number") {
+      if (index < 0 || index > this.lastIndex()) {
+        throw new Error("Cursor: Out of Bounds Exception.");
+      }
+
       this.index = index;
     }
   }

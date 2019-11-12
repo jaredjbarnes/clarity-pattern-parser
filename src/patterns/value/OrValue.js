@@ -1,6 +1,8 @@
 import ValuePattern from "./ValuePattern.js";
 import ValueNode from "../../ast/ValueNode.js";
 import Cursor from "../../Cursor.js";
+import StackInformation from "../StackInformation.js";
+import OptionalValue from "./OptionalValue.js";
 
 export default class OrValue extends ValuePattern {
   constructor(name, patterns) {
@@ -13,6 +15,12 @@ export default class OrValue extends ValuePattern {
       throw new Error(
         "Invalid Argument: OrValue needs to have more than one value pattern."
       );
+    }
+
+    const hasOptionalChildren = this._children.some(pattern=>pattern instanceof OptionalValue);
+
+    if (hasOptionalChildren){
+      throw new Error("OrValues cannot have optional values.");
     }
   }
 
@@ -50,20 +58,14 @@ export default class OrValue extends ValuePattern {
       try {
         const node = pattern.parse(this.cursor);
 
-        if (node == null) {
-          throw new ParserError(
-            "Optional pattern did not match.",
-            this.mark.index,
-            this
-          );
-        }
-
         this.node = new ValueNode(
           this.name,
           node.value,
           node.startIndex,
           node.endIndex
         );
+
+        this.cursor.setIndex(this.node.endIndex);
         break;
       } catch (error) {
         this.errors.push(error);
@@ -87,7 +89,7 @@ export default class OrValue extends ValuePattern {
       }
     });
 
-    error.stack.push(this.mark, this);
+    error.stack.push(new StackInformation(this.mark, this));
 
     throw error;
   }

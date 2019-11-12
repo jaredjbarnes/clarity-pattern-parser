@@ -27,7 +27,7 @@ exports["OptionalValue: Match pattern."] = () => {
   const cursor = new Cursor("John");
   const node = optionalValue.parse(cursor);
 
-  assert.equal(node.type, "john");
+  assert.equal(node.name, "john");
   assert.equal(node.value, "John");
 };
 

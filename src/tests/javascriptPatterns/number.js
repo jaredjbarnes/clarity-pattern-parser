@@ -17,7 +17,7 @@ const digitSequence = new RepeatValue("digit-sequence", digit);
 
 const validDigitSequence = new AndValue("non-zero-start", [
   nonZeroDigit,
-  digitSequence
+  new OptionalValue(digitSequence)
 ]);
 
 const plusOrMinus = new OrValue("plus-or-minus", [plus, minus]);

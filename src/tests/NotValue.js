@@ -51,11 +51,11 @@ exports["NotValue: Success"] = () => {
   const cursor = new Cursor("Jane");
   const node = notJohn.parse(cursor);
 
-  assert.equal(node.type, "not-john");
+  assert.equal(node.name, "not-john");
   assert.equal(node.value, "J");
   assert.equal(node.startIndex, 0);
   assert.equal(node.endIndex, 0);
-  assert.equal(cursor.getIndex(), 1);
+  assert.equal(cursor.getIndex(), 0);
 };
 
 exports["NotValue: Bad cursor."] = () => {

@@ -25,7 +25,7 @@ exports["AnyOfThese: Single character."] = () => {
   const cursor = new Cursor("a");
   const node = lowerCaseA.parse(cursor);
 
-  assert.equal(node.type, "lower-case-a");
+  assert.equal(node.name, "lower-case-a");
   assert.equal(node.value, "a");
   assert.equal(node.startIndex, 0);
   assert.equal(node.endIndex, 0);
@@ -40,12 +40,12 @@ exports["AnyOfThese: Uppercase A and lowercase A."] = () => {
   const lowerCaseNode = letterA.parse(lowerCaseCursor);
   const upperCaseNode = letterA.parse(upperCaseCursor);
 
-  assert.equal(lowerCaseNode.type, "letter-a");
+  assert.equal(lowerCaseNode.name, "letter-a");
   assert.equal(lowerCaseNode.value, "a");
   assert.equal(lowerCaseNode.startIndex, 0);
   assert.equal(lowerCaseNode.endIndex, 0);
 
-  assert.equal(upperCaseNode.type, "letter-a");
+  assert.equal(upperCaseNode.name, "letter-a");
   assert.equal(upperCaseNode.value, "A");
   assert.equal(upperCaseNode.startIndex, 0);
   assert.equal(upperCaseNode.endIndex, 0);
@@ -62,10 +62,10 @@ exports["AnyOfThese: Match with long cursor."] = () => {
   const cursor = new Cursor("a12345");
   const node = letterA.parse(cursor);
 
-  assert.equal(node.type, "letter-a");
+  assert.equal(node.name, "letter-a");
   assert.equal(node.value, "a");
-  assert.equal(cursor.getChar(), "1");
-  assert.equal(cursor.getIndex(), 1);
+  assert.equal(cursor.getChar(), "a");
+  assert.equal(cursor.getIndex(), 0);
 };
 
 exports["AnyOfThese: No match."] = () => {

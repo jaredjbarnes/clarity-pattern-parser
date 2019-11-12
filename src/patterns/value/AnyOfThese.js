@@ -57,7 +57,6 @@ export default class AnyOfThese extends ValuePattern {
       const index = this.cursor.getIndex();
 
       this.node = new ValueNode(this.name, value, index, index);
-      this.incrementCursor();
     } else {
       this._processError();
     }
@@ -75,14 +74,7 @@ export default class AnyOfThese extends ValuePattern {
     throw new ParseError(message, this.cursor.getIndex(), this);
   }
 
-  incrementCursor() {
-    if (this.cursor.hasNext()) {
-      this.cursor.next();
-    }
-  }
-
   clone() {
     return new AnyOfThese(this.name, this.characters);
   }
-
 }

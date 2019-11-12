@@ -31,10 +31,10 @@ exports["Literal: Match."] = () => {
   const cursor = new Cursor("var foo = 'Hello World';");
   const node = variable.parse(cursor);
 
-  assert.equal(node.type, "variable");
+  assert.equal(node.name, "variable");
   assert.equal(node.value, "var");
-  assert.equal(cursor.getIndex(), 3);
-  assert.equal(cursor.getChar(), " ");
+  assert.equal(cursor.getIndex(), 2);
+  assert.equal(cursor.getChar(), "r");
 };
 
 exports["Literal: Match at end."] = () => {
@@ -42,7 +42,7 @@ exports["Literal: Match at end."] = () => {
   const cursor = new Cursor("var");
   const node = variable.parse(cursor);
 
-  assert.equal(node.type, "variable");
+  assert.equal(node.name, "variable");
   assert.equal(node.value, "var");
   assert.equal(cursor.getIndex(), 2);
   assert.equal(cursor.getChar(), "r");
@@ -57,8 +57,8 @@ exports["Literal: No match."] = () => {
     variable.parse(cursor);
   });
 
-  assert.equal(cursor.getIndex(), 2);
-  assert.equal(cursor.getChar(), "x");
+  assert.equal(cursor.getIndex(), 0);
+  assert.equal(cursor.getChar(), "v");
 };
 
 exports["Literal: Bad cursor."] = () => {

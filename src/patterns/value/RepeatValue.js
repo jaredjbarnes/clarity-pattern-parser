@@ -1,18 +1,21 @@
 import ValuePattern from "./ValuePattern.js";
-import ValueNode from "../../ast/ValueNode";
+import ValueNode from "../../ast/ValueNode.js";
 import ParseError from "../ParseError.js";
 import OptionalValue from "./OptionalValue.js";
 
 export default class RepeatValue extends ValuePattern {
-  constructor(name, pattern) {
-    super(name, [pattern]);
+  constructor(name, pattern, divider) {
+    super(name, divider != null ? [pattern, divider] : [pattern]);
+
+    this._pattern = this.children[0];
+    this._divider = this.children[1];
 
     this._assertArguments();
     this._reset();
   }
 
   _assertArguments() {
-    if (this.children[0] instanceof OptionalValue) {
+    if (this._pattern instanceof OptionalValue) {
       throw new Error(
         "Invalid Arguments: The pattern cannot be a optional pattern."
       );
@@ -39,19 +42,34 @@ export default class RepeatValue extends ValuePattern {
 
   _tryPattern() {
     while (true) {
-      const mark = this.cursor.mark();
+      let mark = this.cursor.mark();
 
       try {
-        const node = this.children[0].parse(this.cursor);
+        const node = this._pattern.parse(this.cursor);
         this.nodes.push(node);
 
-        if (node.endIndex === this.cursor.lastIndex()){
+        if (node.endIndex === this.cursor.lastIndex()) {
           this._processMatch();
           break;
         }
+
+        mark = this.cursor.mark();
+
+        this.cursor.next();
+
+        if (this._divider != null) {
+          const mark = this.cursor.mark();
+          try {
+            this.nodes.push(this._divider.parse(this.cursor));
+            this.cursor.next();
+          } catch (error) {
+            this.cursor.moveToMark(mark);
+            this._processMatch();
+            break;
+          }
+        }
       } catch (error) {
         this._processMatch();
-        this.cursor.moveToMark(mark);
         break;
       }
     }
@@ -60,7 +78,7 @@ export default class RepeatValue extends ValuePattern {
   _processMatch() {
     if (this.nodes.length === 0) {
       throw new ParseError(
-        `Did not find a repeating match of ${this.children[0].name}.`,
+        `Did not find a repeating match of ${this.name}.`,
         this.mark.index,
         this
       );
@@ -73,10 +91,12 @@ export default class RepeatValue extends ValuePattern {
         this.nodes[0].startIndex,
         this.nodes[this.nodes.length - 1].endIndex
       );
+
+      this.cursor.setIndex(this.node.endIndex);
     }
   }
 
   clone() {
-    return new RepeatValue(this.name, this.children[0]);
+    return new RepeatValue(this.name, this._pattern, this._divider);
   }
 }

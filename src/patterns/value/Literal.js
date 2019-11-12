@@ -7,8 +7,6 @@ export default class Literal extends ValuePattern {
   constructor(name, literal) {
     super(name);
     this.literal = literal;
-
-    this._reset(null);
     this._assertArguments();
   }
 
@@ -38,13 +36,16 @@ export default class Literal extends ValuePattern {
     if (cursor != null) {
       this.cursor = cursor;
       this.mark = this.cursor.mark();
+      this.substring = this.cursor.string.substring(
+        this.mark.index,
+        this.mark.index + this.literal.length
+      );
     } else {
       this.cursor = null;
       this.mark = null;
+      this.substring = null;
     }
 
-    this.index = 0;
-    this.match = "";
     this.node = null;
   }
 
@@ -55,47 +56,10 @@ export default class Literal extends ValuePattern {
   }
 
   _tryPattern() {
-    if (this._doesCharacterMatch()) {
-      this._processCharacterMatch();
+    if (this.substring === this.literal) {
+      this._processMatch();
     } else {
       this._processError();
-    }
-  }
-
-  _doesCharacterMatch() {
-    return this.literal.charAt(this.index) === this.cursor.getChar();
-  }
-
-  _processCharacterMatch() {
-    this._saveMatch();
-
-    if (this._isComplete()) {
-      this.node = new ValueNode(
-        this.name,
-        this.literal,
-        this.mark.index,
-        this.cursor.getIndex()
-      );
-
-      this._incrementIndex();
-    } else {
-      this._incrementIndex();
-      this._tryPattern();
-    }
-  }
-
-  _saveMatch() {
-    this.match += this.cursor.getChar();
-  }
-
-  _isComplete() {
-    return this.match === this.literal;
-  }
-
-  _incrementIndex() {
-    if (this.cursor.hasNext()) {
-      this.cursor.next();
-      this.index++;
     }
   }
 
@@ -107,8 +71,18 @@ export default class Literal extends ValuePattern {
     throw new ParseError(message, this.cursor.getIndex(), this);
   }
 
+  _processMatch() {
+    this.node = new ValueNode(
+      this.name,
+      this.substring,
+      this.mark.index,
+      this.mark.index + this.literal.length - 1
+    );
+
+    this.cursor.setIndex(this.node.endIndex);
+  }
+
   clone() {
     return new Literal(this.name, this.literal);
   }
-
 }

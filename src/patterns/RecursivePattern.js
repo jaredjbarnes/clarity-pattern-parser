@@ -31,8 +31,10 @@ export default class RecursivePattern extends Pattern {
         `Couldn't find parent pattern to recursively parse, with the name ${this.name}.`
       );
     }
+    const clonedPattern = pattern.clone();
+    clonedPattern.parent = this;
 
-    return pattern.clone().parse(cursor);
+    return clonedPattern.parse(cursor);
   }
 
   clone(){

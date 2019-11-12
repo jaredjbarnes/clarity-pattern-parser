@@ -16,8 +16,10 @@ import number from "./javascriptPatterns/number";
 import boolean from "./javascriptPatterns/boolean";
 
 exports["RecursivePattern: JSON"] = () => {
-  const openBracket = new Literal("{", "{");
-  const closeBracket = new Literal("}", "}");
+  const openCurlyBracket = new Literal("open-curly-bracket", "{");
+  const closeCurlyBracket = new Literal("close-curly-bracket", "}");
+  const openSquareBracket = new Literal("open-square-bracket", "[");
+  const closeSquareBracket = new Literal("close-square-bracket", "]");
   const colon = new Literal(":", ":");
   const space = new Literal("space", " ");
   const spaces = new RepeatValue("spaces", space);
@@ -31,12 +33,28 @@ exports["RecursivePattern: JSON"] = () => {
     optionalSpaces
   ]);
 
+  const arrayValues = new RepeatComposite(
+    "values",
+    new RecursivePattern("value"),
+    divider
+  );
+  const optionalArrayValues = new OptionalComposite(arrayValues);
+
+  const array = new AndComposite("array-literal", [
+    openSquareBracket,
+    optionalSpaces,
+    optionalArrayValues,
+    optionalSpaces,
+    closeSquareBracket
+  ]);
+
   const value = new OrComposite("value", [
     number,
     string,
     boolean,
     nullLiteral,
-    new RecursivePattern("json")
+    array,
+    new RecursivePattern("object-literal")
   ]);
 
   const keyValue = new AndComposite("key-value", [
@@ -50,24 +68,32 @@ exports["RecursivePattern: JSON"] = () => {
   const keyValues = new RepeatComposite("key-values", keyValue, divider);
   const optionalKeyValues = new OptionalComposite(keyValues);
 
-  const jsonPattern = new AndComposite("json", [
-    openBracket,
+  const jsonPattern = new AndComposite("object-literal", [
+    optionalSpaces,
+    openCurlyBracket,
     optionalSpaces,
     optionalKeyValues,
     optionalSpaces,
-    closeBracket
+    closeCurlyBracket,
+    optionalSpaces
   ]);
 
   const json = JSON.stringify({
     string: "This is a string.",
     number: 1,
     boolean: true,
-    null: null,
     json: {
       string: "This is a nested string."
-    }
+    },
+    null: null,
+    array: [1, "Blah", { prop1: true }]
   });
 
   const cursor = new Cursor(json);
-  const node = jsonPattern.parse(cursor);
+  try {
+    const node = jsonPattern.parse(cursor);
+    debugger;
+  } catch (error) {
+    debugger;
+  }
 };

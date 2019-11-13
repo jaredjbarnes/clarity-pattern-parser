@@ -26,7 +26,7 @@ If a child parser throws, the parent parser is responsible to recover from the e
 
 const letter = new AnyOfThese("letter", "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 const digit = new AnyOfThese("digit", "0987654321");
-const alphaNumericCharacter = new OrValue("alpha-numeric-character", [letter, digit]);
+const alphaNumericCharacter = new OrValue([letter, digit]);
 const alphaNumeric = new RepeatValue("alpha-numeric", alphaNumericCharacter);
 const identifier = new AndValue("identifier", [letter, new Optional(alphaNumeric)]);
 

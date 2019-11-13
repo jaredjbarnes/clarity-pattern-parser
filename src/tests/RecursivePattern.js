@@ -35,12 +35,12 @@ exports["RecursivePattern: JSON"] = () => {
 
   const arrayValues = new RepeatComposite(
     "values",
-    new RecursivePattern("value"),
+    new RecursivePattern("literals"),
     divider
   );
   const optionalArrayValues = new OptionalComposite(arrayValues);
 
-  const array = new AndComposite("array-literal", [
+  const arrayLiteral = new AndComposite("array-literal", [
     openSquareBracket,
     optionalSpaces,
     optionalArrayValues,
@@ -48,34 +48,32 @@ exports["RecursivePattern: JSON"] = () => {
     closeSquareBracket
   ]);
 
-  const value = new OrComposite("value", [
-    number,
-    string,
-    boolean,
-    nullLiteral,
-    array,
-    new RecursivePattern("object-literal")
-  ]);
-
   const keyValue = new AndComposite("key-value", [
     string,
     optionalSpaces,
     colon,
     optionalSpaces,
-    value
+    new RecursivePattern("literals")
   ]);
 
   const keyValues = new RepeatComposite("key-values", keyValue, divider);
   const optionalKeyValues = new OptionalComposite(keyValues);
 
-  const jsonPattern = new AndComposite("object-literal", [
-    optionalSpaces,
+  const objectLiteral = new AndComposite("object-literal", [
     openCurlyBracket,
     optionalSpaces,
     optionalKeyValues,
     optionalSpaces,
-    closeCurlyBracket,
-    optionalSpaces
+    closeCurlyBracket
+  ]);
+
+  const literals = new OrComposite("literals", [
+    number,
+    string,
+    boolean,
+    nullLiteral,
+    objectLiteral,
+    arrayLiteral
   ]);
 
   const json = JSON.stringify({
@@ -90,10 +88,11 @@ exports["RecursivePattern: JSON"] = () => {
   });
 
   const cursor = new Cursor(json);
-  try {
-    const node = jsonPattern.parse(cursor);
-    debugger;
-  } catch (error) {
-    debugger;
-  }
+  const cursor2 = new Cursor(JSON.stringify([{ foo: "bar" }]));
+
+  const object = literals.parse(cursor);
+  const array = literals.parse(cursor2);
+
+  assert.equal(object.name, "object-literal");
+  assert.equal(array.name, "array-literal");
 };

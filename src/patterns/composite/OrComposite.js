@@ -60,16 +60,7 @@ export default class OrComposite extends CompositePattern {
       const pattern = this._children[this.index];
 
       try {
-        const node = pattern.parse(this.cursor);
-
-        this.node = new CompositeNode(
-          this.name,
-          node.startIndex,
-          node.endIndex
-        );
-
-        this.node.children = [node];
-
+        this.node = pattern.parse(this.cursor);
         this.cursor.setIndex(this.node.endIndex);
         break;
       } catch (error) {

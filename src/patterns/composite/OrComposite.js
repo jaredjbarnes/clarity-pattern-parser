@@ -90,7 +90,10 @@ export default class OrComposite extends CompositePattern {
     throw error;
   }
 
-  clone() {
-    return new OrComposite(this.name, this._children);
+  clone(name) {
+    if (typeof name !== "string") {
+      name = this.name;
+    }
+    return new OrComposite(name, this._children);
   }
 }

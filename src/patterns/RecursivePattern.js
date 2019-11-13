@@ -37,7 +37,10 @@ export default class RecursivePattern extends Pattern {
     return clonedPattern.parse(cursor);
   }
 
-  clone(){
-      return new RecursivePattern(this.name);
+  clone(name) {
+    if (typeof name !== "string") {
+      name = this.name;
+    }
+    return new RecursivePattern(name);
   }
 }

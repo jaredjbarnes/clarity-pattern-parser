@@ -82,7 +82,10 @@ export default class Literal extends ValuePattern {
     this.cursor.setIndex(this.node.endIndex);
   }
 
-  clone() {
-    return new Literal(this.name, this.literal);
+  clone(name) {
+    if (typeof name !== "string") {
+      name = this.name;
+    }
+    return new Literal(name, this.literal);
   }
 }

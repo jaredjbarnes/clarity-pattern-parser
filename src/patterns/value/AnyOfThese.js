@@ -74,7 +74,10 @@ export default class AnyOfThese extends ValuePattern {
     throw new ParseError(message, this.cursor.getIndex(), this);
   }
 
-  clone() {
-    return new AnyOfThese(this.name, this.characters);
+  clone(name) {
+    if (typeof name !== "string") {
+      name = this.name;
+    }
+    return new AnyOfThese(name, this.characters);
   }
 }

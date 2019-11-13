@@ -17,9 +17,11 @@ export default class OrValue extends ValuePattern {
       );
     }
 
-    const hasOptionalChildren = this._children.some(pattern=>pattern instanceof OptionalValue);
+    const hasOptionalChildren = this._children.some(
+      pattern => pattern instanceof OptionalValue
+    );
 
-    if (hasOptionalChildren){
+    if (hasOptionalChildren) {
       throw new Error("OrValues cannot have optional values.");
     }
   }
@@ -94,7 +96,10 @@ export default class OrValue extends ValuePattern {
     throw error;
   }
 
-  clone() {
-    return new OrValue(this.name, this._children);
+  clone(name) {
+    if (typeof name !== "string") {
+      name = this.name;
+    }
+    return new OrValue(name, this._children);
   }
 }

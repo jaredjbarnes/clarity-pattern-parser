@@ -96,7 +96,10 @@ export default class RepeatValue extends ValuePattern {
     }
   }
 
-  clone() {
-    return new RepeatValue(this.name, this._pattern, this._divider);
+  clone(name) {
+    if (typeof name !== "string") {
+      name = this.name;
+    }
+    return new RepeatValue(name, this._pattern, this._divider);
   }
 }

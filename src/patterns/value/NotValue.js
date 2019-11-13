@@ -77,7 +77,10 @@ export default class NotValue extends ValuePattern {
     }
   }
 
-  clone() {
-    return new NotValue(this.name, this.children[0]);
+  clone(name) {
+    if (typeof name !== "string") {
+      name = this.name;
+    }
+    return new NotValue(name, this.children[0]);
   }
 }

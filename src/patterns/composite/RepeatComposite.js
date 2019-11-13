@@ -83,7 +83,10 @@ export default class RepeatComposite extends CompositePattern {
     }
   }
 
-  clone() {
-    return new RepeatComposite(this.name, this._pattern, this._divider);
+  clone(name) {
+    if (typeof name !== "string") {
+      name = this.name;
+    }
+    return new RepeatComposite(name, this._pattern, this._divider);
   }
 }

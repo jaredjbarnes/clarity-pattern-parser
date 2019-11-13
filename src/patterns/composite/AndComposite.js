@@ -74,7 +74,7 @@ export default class AndComposite extends CompositePattern {
 
         this.index++;
         return true;
-      } else if (this.nodes[this.nodes.length - 1] == null){
+      } else if (this.nodes[this.nodes.length - 1] == null) {
         this.index++;
         return true;
       }
@@ -115,11 +115,14 @@ export default class AndComposite extends CompositePattern {
 
     this.node = new CompositeNode(this.name, startIndex, endIndex);
     this.node.children = this.nodes;
-    
+
     this.cursor.setIndex(this.node.endIndex);
   }
 
-  clone() {
-    return new AndComposite(this.name, this._children);
+  clone(name) {
+    if (typeof name !== "string") {
+      name = this.name;
+    }
+    return new AndComposite(name, this._children);
   }
 }

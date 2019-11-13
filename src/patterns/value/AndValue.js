@@ -114,7 +114,10 @@ export default class AndValue extends ValuePattern {
     this.cursor.setIndex(this.node.endIndex);
   }
 
-  clone() {
-    return new AndValue(this.name, this._children);
+  clone(name) {
+    if (typeof name !== "string") {
+      name = this.name;
+    }
+    return new AndValue(name, this._children);
   }
 }

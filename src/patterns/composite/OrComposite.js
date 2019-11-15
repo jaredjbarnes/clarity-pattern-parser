@@ -1,5 +1,4 @@
 import CompositePattern from "./CompositePattern.js";
-import CompositeNode from "../../ast/CompositeNode.js";
 import Cursor from "../../Cursor.js";
 import StackInformation from "../StackInformation.js";
 import OptionalValue from "../value/OptionalValue.js";

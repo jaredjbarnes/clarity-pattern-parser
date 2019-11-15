@@ -1,4 +1,4 @@
-import Mark from "./Mark";
+import Mark from "./Mark.js";
 
 export default class Cursor {
   constructor(string) {

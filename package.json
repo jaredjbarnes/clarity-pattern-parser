@@ -3,7 +3,7 @@
   "type": "module",
   "version": "1.0.3",
   "description": "",
-  "main": "./dist/main.js",
+  "main": "./lib/index.js",
   "scripts": {
     "test": "node ./.clarity/test.js",
     "build": "npx babel src --out-dir lib --source-maps && npx webpack --mode=none --config webpack.config.js",

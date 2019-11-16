@@ -1,6 +1,8 @@
 var path = require("path");
 
-var distribution = {
+var path = require('path');
+
+module.exports = {
     entry: [
         "./src/index.js"
     ],

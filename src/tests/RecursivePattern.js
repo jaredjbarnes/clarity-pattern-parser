@@ -11,9 +11,9 @@ import {
   Cursor,
   AndValue
 } from "../index.js";
-import string from "./javascriptPatterns/string";
-import number from "./javascriptPatterns/number";
-import boolean from "./javascriptPatterns/boolean";
+import string from "./javascriptPatterns/string.js";
+import number from "./javascriptPatterns/number.js";
+import boolean from "./javascriptPatterns/boolean.js";
 
 exports["RecursivePattern: JSON"] = () => {
   const openCurlyBracket = new Literal("open-curly-bracket", "{");

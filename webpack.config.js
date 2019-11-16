@@ -2,7 +2,7 @@ var path = require("path");
 
 var distribution = {
     entry: [
-        "./lib/index.js"
+        "./src/index.js"
     ],
     output: {
         filename: 'main.js',

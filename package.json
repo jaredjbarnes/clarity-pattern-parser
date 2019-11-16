@@ -1,11 +1,12 @@
 {
   "name": "clarity-pattern-parser",
+  "type": "module",
   "version": "1.0.2",
   "description": "",
   "main": "./dist/main.js",
   "scripts": {
     "test": "node ./.clarity/test.js",
-    "build": "npx babel src --out-dir lib --source-maps",
+    "build": "npx babel src --out-dir lib --source-maps && npx webpack --mode=none --config webpack.config.js",
     "coverage": "nyc npm run test"
   },
   "keywords": [],
@@ -17,5 +18,6 @@
     "nyc": "^14.1.1",
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.10"
-  }
+  },
+  "dependencies": {}
 }

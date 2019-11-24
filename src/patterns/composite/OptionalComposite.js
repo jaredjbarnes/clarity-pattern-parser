@@ -15,7 +15,8 @@ export default class OptionalComposite extends CompositePattern {
 
   parse(cursor) {
     const mark = cursor.mark();
-
+    this.mark = mark;
+    
     try {
       return this.children[0].parse(cursor);
     } catch (error) {
@@ -26,5 +27,9 @@ export default class OptionalComposite extends CompositePattern {
 
   clone() {
     return new OptionalComposite(this.children[0]);
+  }
+
+  getCurrentMark(){
+    return this.mark;
   }
 }

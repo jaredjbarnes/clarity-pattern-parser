@@ -102,4 +102,8 @@ export default class OrValue extends ValuePattern {
     }
     return new OrValue(name, this._children);
   }
+
+  getCurrentMark(){
+    return this.mark;
+  }
 }

@@ -48,4 +48,8 @@ export default class ValuePattern extends Pattern {
   clone() {
     throw new Error("Not Yet Implemented");
   }
+
+  getCurrentMark(){
+    throw new Error("Not Yet Implemented");
+  }
 }

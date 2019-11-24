@@ -26,4 +26,8 @@ export default class OptionalValue extends ValuePattern {
   clone() {
     return new OptionalValue(this.children[0]);
   }
+
+  getCurrentMark(){
+    return this.mark;
+  }
 }

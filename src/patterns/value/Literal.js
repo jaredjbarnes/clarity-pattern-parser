@@ -88,4 +88,8 @@ export default class Literal extends ValuePattern {
     }
     return new Literal(name, this.literal);
   }
+
+  getCurrentMark(){
+    return this.mark;
+  }
 }

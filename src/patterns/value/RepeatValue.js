@@ -102,4 +102,8 @@ export default class RepeatValue extends ValuePattern {
     }
     return new RepeatValue(name, this._pattern, this._divider);
   }
+
+  getCurrentMark(){
+    return this.mark;
+  }
 }

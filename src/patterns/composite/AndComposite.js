@@ -125,4 +125,8 @@ export default class AndComposite extends CompositePattern {
     }
     return new AndComposite(name, this._children);
   }
+
+  getCurrentMark(){
+    return this.mark;
+  }
 }

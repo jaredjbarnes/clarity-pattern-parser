@@ -19,20 +19,25 @@ export default class AndValue extends ValuePattern {
     }
   }
 
-  _reset(cursor) {
+  _reset(cursor, parseError) {
     this.cursor = null;
     this.index = 0;
     this.nodes = [];
     this.node = null;
+    this.parseError = parseError;
 
     if (cursor != null) {
       this.cursor = cursor;
       this.mark = this.cursor.mark();
     }
+
+    if (parseError == null) {
+      this.parseError = new ParseError();
+    }
   }
 
-  parse(cursor) {
-    this._reset(cursor);
+  parse(cursor, parseError) {
+    this._reset(cursor, parseError);
     this._assertCursor();
     this._tryPatterns();
 
@@ -50,7 +55,7 @@ export default class AndValue extends ValuePattern {
       const pattern = this._children[this.index];
 
       try {
-        this.nodes.push(pattern.parse(this.cursor));
+        this.nodes.push(pattern.parse(this.cursor, this.parseError));
       } catch (error) {
         error.stack.push(new StackInformation(this.mark, this));
         throw error;
@@ -95,9 +100,11 @@ export default class AndValue extends ValuePattern {
     });
 
     if (!areTheRestOptional) {
-      throw new ParseError(
-        `Could not match ${this.name} before string ran out.`
-      );
+      this.parseError.message = `Could not match ${this.name} before string ran out.`;
+      this.parseError.index = this.index;
+      this.parseError.pattern = this;
+
+      throw this.parseError;
     }
   }
 
@@ -121,7 +128,7 @@ export default class AndValue extends ValuePattern {
     return new AndValue(name, this._children);
   }
 
-  getCurrentMark(){
+  getCurrentMark() {
     return this.mark;
   }
 }

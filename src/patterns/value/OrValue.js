@@ -3,6 +3,7 @@ import ValueNode from "../../ast/ValueNode.js";
 import Cursor from "../../Cursor.js";
 import StackInformation from "../StackInformation.js";
 import OptionalValue from "./OptionalValue.js";
+import ParseError from "../ParseError.js";
 
 export default class OrValue extends ValuePattern {
   constructor(name, patterns) {
@@ -26,21 +27,26 @@ export default class OrValue extends ValuePattern {
     }
   }
 
-  _reset(cursor) {
+  _reset(cursor, parseError) {
     this.cursor = null;
     this.mark = null;
     this.index = 0;
     this.errors = [];
     this.node = null;
+    this.parseError = parseError;
 
     if (cursor != null) {
       this.cursor = cursor;
       this.mark = cursor.mark();
     }
+
+    if (parseError == null){
+      this.parseError = new ParseError();
+    }
   }
 
-  parse(cursor) {
-    this._reset(cursor);
+  parse(cursor, parseError) {
+    this._reset(cursor, parseError);
     this._assertCursor();
     this._tryPattern();
 
@@ -58,7 +64,7 @@ export default class OrValue extends ValuePattern {
       const pattern = this._children[this.index];
 
       try {
-        const node = pattern.parse(this.cursor);
+        const node = pattern.parse(this.cursor, this.parseError);
 
         this.node = new ValueNode(
           this.name,

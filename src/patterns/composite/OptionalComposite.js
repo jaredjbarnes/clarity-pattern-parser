@@ -13,12 +13,12 @@ export default class OptionalComposite extends CompositePattern {
     }
   }
 
-  parse(cursor) {
+  parse(cursor, parseError) {
     const mark = cursor.mark();
     this.mark = mark;
     
     try {
-      return this.children[0].parse(cursor);
+      return this.children[0].parse(cursor, parseError);
     } catch (error) {
       cursor.moveToMark(mark);
       return null;

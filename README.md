@@ -91,3 +91,5 @@ assert.equal(node.children[2].value, "\n");
 
 ```
 
+## Notes
+Maybe put the parseError management within the cursor.

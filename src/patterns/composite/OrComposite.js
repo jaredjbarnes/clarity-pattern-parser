@@ -3,6 +3,7 @@ import Cursor from "../../Cursor.js";
 import StackInformation from "../StackInformation.js";
 import OptionalValue from "../value/OptionalValue.js";
 import OptionalComposite from "./OptionalComposite.js";
+import ParseError from "../ParseError.js";
 
 export default class OrComposite extends CompositePattern {
   constructor(name, patterns) {
@@ -27,21 +28,26 @@ export default class OrComposite extends CompositePattern {
     }
   }
 
-  _reset(cursor) {
+  _reset(cursor, parseError) {
     this.cursor = null;
     this.mark = null;
     this.index = 0;
     this.errors = [];
     this.node = null;
+    this.parseError = parseError;
 
     if (cursor != null) {
       this.cursor = cursor;
       this.mark = cursor.mark();
     }
+
+    if (parseError == null) {
+      this.parseError = new ParseError();
+    }
   }
 
-  parse(cursor) {
-    this._reset(cursor);
+  parse(cursor, parseError) {
+    this._reset(cursor, parseError);
     this._assertCursor();
     this._tryPattern();
 
@@ -59,7 +65,7 @@ export default class OrComposite extends CompositePattern {
       const pattern = this._children[this.index];
 
       try {
-        this.node = pattern.parse(this.cursor);
+        this.node = pattern.parse(this.cursor, this.parseError);
         this.cursor.setIndex(this.node.endIndex);
         break;
       } catch (error) {
@@ -96,7 +102,7 @@ export default class OrComposite extends CompositePattern {
     return new OrComposite(name, this._children);
   }
 
-  getCurrentMark(){
+  getCurrentMark() {
     return this.mark;
   }
 }

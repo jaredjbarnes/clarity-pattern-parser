@@ -21,20 +21,25 @@ export default class NotValue extends ValuePattern {
     }
   }
 
-  _reset(cursor) {
+  _reset(cursor, parseError) {
     this.cursor = null;
     this.mark = null;
     this.match = "";
     this.node = null;
+    this.parseError = parseError;
 
     if (cursor != null) {
       this.cursor = cursor;
       this.mark = this.cursor.mark();
     }
+
+    if (parseError == null) {
+      this.parseError = new ParseError();
+    }
   }
 
-  parse(cursor) {
-    this._reset(cursor);
+  parse(cursor, parseError) {
+    this._reset(cursor, parseError);
     this._tryPattern();
 
     return this.node;
@@ -45,7 +50,7 @@ export default class NotValue extends ValuePattern {
       const mark = this.cursor.mark();
 
       try {
-        this.children[0].parse(this.cursor);
+        this.children[0].parse(this.cursor, this.parseError);
         this.cursor.moveToMark(mark);
         break;
       } catch (error) {
@@ -60,11 +65,11 @@ export default class NotValue extends ValuePattern {
 
   _processMatch() {
     if (this.match.length === 0) {
-      throw new ParseError(
-        `Didn't find any characters the didn't match the ${this.children[0].name} pattern.`,
-        this.mark.index,
-        this
-      );
+      this.parserError.message = `Didn't find any characters the didn't match the ${this.children[0].name} pattern.`;
+      this.parseError.index = this.mark.index;
+      this.parserError.pattern = this;
+
+      throw this.parseError;
     } else {
       this.node = new ValueNode(
         this.name,
@@ -84,7 +89,7 @@ export default class NotValue extends ValuePattern {
     return new NotValue(name, this.children[0]);
   }
 
-  getCurrentMark(){
+  getCurrentMark() {
     return this.mark;
   }
 }

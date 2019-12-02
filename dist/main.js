@@ -436,20 +436,25 @@ class AndValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
     }
   }
 
-  _reset(cursor) {
+  _reset(cursor, parseError) {
     this.cursor = null;
     this.index = 0;
     this.nodes = [];
     this.node = null;
+    this.parseError = parseError;
 
     if (cursor != null) {
       this.cursor = cursor;
       this.mark = this.cursor.mark();
     }
+
+    if (parseError == null) {
+      this.parseError = new _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_3__["default"]();
+    }
   }
 
-  parse(cursor) {
-    this._reset(cursor);
+  parse(cursor, parseError) {
+    this._reset(cursor, parseError);
     this._assertCursor();
     this._tryPatterns();
 
@@ -467,7 +472,7 @@ class AndValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
       const pattern = this._children[this.index];
 
       try {
-        this.nodes.push(pattern.parse(this.cursor));
+        this.nodes.push(pattern.parse(this.cursor, this.parseError));
       } catch (error) {
         error.stack.push(new _StackInformation_js__WEBPACK_IMPORTED_MODULE_4__["default"](this.mark, this));
         throw error;
@@ -512,9 +517,11 @@ class AndValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
     });
 
     if (!areTheRestOptional) {
-      throw new _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_3__["default"](
-        `Could not match ${this.name} before string ran out.`
-      );
+      this.parseError.message = `Could not match ${this.name} before string ran out.`;
+      this.parseError.index = this.index;
+      this.parseError.pattern = this;
+
+      throw this.parseError;
     }
   }
 
@@ -538,7 +545,7 @@ class AndValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
     return new AndValue(name, this._children);
   }
 
-  getCurrentMark(){
+  getCurrentMark() {
     return this.mark;
   }
 }
@@ -752,11 +759,11 @@ class OptionalValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["defau
     }
   }
 
-  parse(cursor) {
+  parse(cursor, parseError) {
     const mark = cursor.mark();
 
     try {
-      return this.children[0].parse(cursor);
+      return this.children[0].parse(cursor, parseError);
     } catch (error) {
       cursor.moveToMark(mark);
       return null;
@@ -794,7 +801,6 @@ class AnyOfThese extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"
     super(name);
     this.characters = characters;
 
-    this._reset();
     this._assertArguments();
   }
 
@@ -812,8 +818,8 @@ class AnyOfThese extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"
     }
   }
 
-  parse(cursor) {
-    this._reset(cursor);
+  parse(cursor, parseError) {
+    this._reset(cursor, parseError);
     this._assertCursor();
     this._tryPattern();
     return this.node;
@@ -825,7 +831,7 @@ class AnyOfThese extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"
     }
   }
 
-  _reset(cursor) {
+  _reset(cursor, parseError) {
     if (cursor == null) {
       this.cursor = null;
       this.mark = null;
@@ -835,6 +841,11 @@ class AnyOfThese extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"
     }
 
     this.node = null;
+    this.parseError = parseError;
+
+    if (parseError == null){
+      this.parseError = new _ParseError_js__WEBPACK_IMPORTED_MODULE_1__["default"]();
+    }
   }
 
   _tryPattern() {
@@ -857,7 +868,11 @@ class AnyOfThese extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"
       this.characters
     }' but found '${this.cursor.getChar()}' while parsing for '${this.name}'.`;
 
-    throw new _ParseError_js__WEBPACK_IMPORTED_MODULE_1__["default"](message, this.cursor.getIndex(), this);
+    this.parseError.message = message;
+    this.parseError.index = this.cursor.getIndex();
+    this.parseError.pattern = this;
+
+    throw this.parseError;
   }
 
   clone(name) {
@@ -910,15 +925,15 @@ class Literal extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__["default"] {
     }
   }
 
-  parse(cursor) {
-    this._reset(cursor);
+  parse(cursor, parseError) {
+    this._reset(cursor, parseError);
     this._assertCursor();
     this._tryPattern();
 
     return this.node;
   }
 
-  _reset(cursor) {
+  _reset(cursor, parseError) {
     if (cursor != null) {
       this.cursor = cursor;
       this.mark = this.cursor.mark();
@@ -932,7 +947,12 @@ class Literal extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__["default"] {
       this.substring = null;
     }
 
+    this.parseError = parseError;
     this.node = null;
+
+    if (parseError == null){
+      this.parseError = new _ParseError_js__WEBPACK_IMPORTED_MODULE_0__["default"]();
+    }
   }
 
   _assertCursor() {
@@ -954,7 +974,11 @@ class Literal extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__["default"] {
       this.index
     )}' but found '${this.cursor.getChar()}' while parsing for '${this.name}'.`;
 
-    throw new _ParseError_js__WEBPACK_IMPORTED_MODULE_0__["default"](message, this.cursor.getIndex(), this);
+    this.parseError.message = message;
+    this.parseError.index = this.cursor.getIndex();
+    this.parseError.pattern = this;
+
+    throw this.parseError;
   }
 
   _processMatch() {
@@ -1014,20 +1038,25 @@ class NotValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
     }
   }
 
-  _reset(cursor) {
+  _reset(cursor, parseError) {
     this.cursor = null;
     this.mark = null;
     this.match = "";
     this.node = null;
+    this.parseError = parseError;
 
     if (cursor != null) {
       this.cursor = cursor;
       this.mark = this.cursor.mark();
     }
+
+    if (parseError == null) {
+      this.parseError = new _ParseError_js__WEBPACK_IMPORTED_MODULE_2__["default"]();
+    }
   }
 
-  parse(cursor) {
-    this._reset(cursor);
+  parse(cursor, parseError) {
+    this._reset(cursor, parseError);
     this._tryPattern();
 
     return this.node;
@@ -1038,7 +1067,7 @@ class NotValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
       const mark = this.cursor.mark();
 
       try {
-        this.children[0].parse(this.cursor);
+        this.children[0].parse(this.cursor, this.parseError);
         this.cursor.moveToMark(mark);
         break;
       } catch (error) {
@@ -1053,11 +1082,11 @@ class NotValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
 
   _processMatch() {
     if (this.match.length === 0) {
-      throw new _ParseError_js__WEBPACK_IMPORTED_MODULE_2__["default"](
-        `Didn't find any characters the didn't match the ${this.children[0].name} pattern.`,
-        this.mark.index,
-        this
-      );
+      this.parserError.message = `Didn't find any characters the didn't match the ${this.children[0].name} pattern.`;
+      this.parseError.index = this.mark.index;
+      this.parserError.pattern = this;
+
+      throw this.parseError;
     } else {
       this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](
         this.name,
@@ -1077,7 +1106,7 @@ class NotValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
     return new NotValue(name, this.children[0]);
   }
 
-  getCurrentMark(){
+  getCurrentMark() {
     return this.mark;
   }
 }
@@ -1095,6 +1124,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Cursor_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6);
 /* harmony import */ var _StackInformation_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(11);
 /* harmony import */ var _OptionalValue_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(12);
+/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(10);
+
 
 
 
@@ -1123,21 +1154,26 @@ class OrValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
     }
   }
 
-  _reset(cursor) {
+  _reset(cursor, parseError) {
     this.cursor = null;
     this.mark = null;
     this.index = 0;
     this.errors = [];
     this.node = null;
+    this.parseError = parseError;
 
     if (cursor != null) {
       this.cursor = cursor;
       this.mark = cursor.mark();
     }
+
+    if (parseError == null){
+      this.parseError = new _ParseError_js__WEBPACK_IMPORTED_MODULE_5__["default"]();
+    }
   }
 
-  parse(cursor) {
-    this._reset(cursor);
+  parse(cursor, parseError) {
+    this._reset(cursor, parseError);
     this._assertCursor();
     this._tryPattern();
 
@@ -1155,7 +1191,7 @@ class OrValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
       const pattern = this._children[this.index];
 
       try {
-        const node = pattern.parse(this.cursor);
+        const node = pattern.parse(this.cursor, this.parseError);
 
         this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](
           this.name,
@@ -1241,19 +1277,24 @@ class RepeatValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default
     }
   }
 
-  _reset(cursor) {
+  _reset(cursor, parseError) {
     this.cursor = null;
     this.mark = null;
     this.nodes = [];
+    this.parseError = parseError;
 
     if (cursor != null) {
       this.cursor = cursor;
       this.mark = this.cursor.mark();
     }
+
+    if (parseError == null) {
+      this.parseError = new _ParseError_js__WEBPACK_IMPORTED_MODULE_2__["default"]();
+    }
   }
 
-  parse(cursor) {
-    this._reset(cursor);
+  parse(cursor, parseError) {
+    this._reset(cursor, parseError);
     this._tryPattern();
 
     return this.node;
@@ -1264,7 +1305,7 @@ class RepeatValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default
       let mark = this.cursor.mark();
 
       try {
-        const node = this._pattern.parse(this.cursor);
+        const node = this._pattern.parse(this.cursor, this.parseError);
         this.nodes.push(node);
 
         if (node.endIndex === this.cursor.lastIndex()) {
@@ -1279,7 +1320,7 @@ class RepeatValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default
         if (this._divider != null) {
           const mark = this.cursor.mark();
           try {
-            this.nodes.push(this._divider.parse(this.cursor));
+            this.nodes.push(this._divider.parse(this.cursor, this.parseError));
             this.cursor.next();
           } catch (error) {
             this.cursor.moveToMark(mark);
@@ -1296,11 +1337,11 @@ class RepeatValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default
 
   _processMatch() {
     if (this.nodes.length === 0) {
-      throw new _ParseError_js__WEBPACK_IMPORTED_MODULE_2__["default"](
-        `Did not find a repeating match of ${this.name}.`,
-        this.mark.index,
-        this
-      );
+      this.parseError.message= `Did not find a repeating match of ${this.name}.`;
+      this.parseError.index = this.mark.index;
+      this.parseError.pattern = this;
+
+      throw this.parseError;
     } else {
       const value = this.nodes.map(node => node.value).join("");
 
@@ -1322,7 +1363,7 @@ class RepeatValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default
     return new RepeatValue(name, this._pattern, this._divider);
   }
 
-  getCurrentMark(){
+  getCurrentMark() {
     return this.mark;
   }
 }
@@ -1364,20 +1405,25 @@ class AndComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["de
     }
   }
 
-  _reset(cursor) {
+  _reset(cursor, parseError) {
     this.cursor = null;
     this.index = 0;
     this.nodes = [];
     this.node = null;
+    this.parseError = parseError;
 
     if (cursor != null) {
       this.cursor = cursor;
       this.mark = this.cursor.mark();
     }
+
+    if (parseError == null){
+      this.parseError = new _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_3__["default"]();
+    }
   }
 
-  parse(cursor) {
-    this._reset(cursor);
+  parse(cursor, parseError) {
+    this._reset(cursor, parseError);
     this._assertCursor();
     this._tryPatterns();
 
@@ -1395,7 +1441,7 @@ class AndComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["de
       const pattern = this._children[this.index];
 
       try {
-        this.nodes.push(pattern.parse(this.cursor));
+        this.nodes.push(pattern.parse(this.cursor, this.parseError));
       } catch (error) {
         error.stack.push(new _StackInformation_js__WEBPACK_IMPORTED_MODULE_4__["default"](this.mark, this));
         throw error;
@@ -1567,12 +1613,12 @@ class OptionalComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0_
     }
   }
 
-  parse(cursor) {
+  parse(cursor, parseError) {
     const mark = cursor.mark();
     this.mark = mark;
     
     try {
-      return this.children[0].parse(cursor);
+      return this.children[0].parse(cursor, parseError);
     } catch (error) {
       cursor.moveToMark(mark);
       return null;
@@ -1601,6 +1647,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _StackInformation_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(11);
 /* harmony import */ var _value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(12);
 /* harmony import */ var _OptionalComposite_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(20);
+/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(10);
+
 
 
 
@@ -1630,21 +1678,26 @@ class OrComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["def
     }
   }
 
-  _reset(cursor) {
+  _reset(cursor, parseError) {
     this.cursor = null;
     this.mark = null;
     this.index = 0;
     this.errors = [];
     this.node = null;
+    this.parseError = parseError;
 
     if (cursor != null) {
       this.cursor = cursor;
       this.mark = cursor.mark();
     }
+
+    if (parseError == null) {
+      this.parseError = new _ParseError_js__WEBPACK_IMPORTED_MODULE_5__["default"]();
+    }
   }
 
-  parse(cursor) {
-    this._reset(cursor);
+  parse(cursor, parseError) {
+    this._reset(cursor, parseError);
     this._assertCursor();
     this._tryPattern();
 
@@ -1662,7 +1715,7 @@ class OrComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["def
       const pattern = this._children[this.index];
 
       try {
-        this.node = pattern.parse(this.cursor);
+        this.node = pattern.parse(this.cursor, this.parseError);
         this.cursor.setIndex(this.node.endIndex);
         break;
       } catch (error) {
@@ -1699,7 +1752,7 @@ class OrComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["def
     return new OrComposite(name, this._children);
   }
 
-  getCurrentMark(){
+  getCurrentMark() {
     return this.mark;
   }
 }
@@ -1729,7 +1782,6 @@ class RepeatComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__[
     this._divider = this.children[1];
 
     this._assertArguments();
-    this._reset();
   }
 
   _assertArguments() {
@@ -1740,19 +1792,24 @@ class RepeatComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__[
     }
   }
 
-  _reset(cursor) {
+  _reset(cursor, parseError) {
     this.cursor = null;
     this.mark = null;
     this.nodes = [];
+    this.parseError = parseError;
 
     if (cursor != null) {
       this.cursor = cursor;
       this.mark = this.cursor.mark();
     }
+
+    if (parseError == null) {
+      this.parseError = new _ParseError_js__WEBPACK_IMPORTED_MODULE_2__["default"]();
+    }
   }
 
-  parse(cursor) {
-    this._reset(cursor);
+  parse(cursor, parseError) {
+    this._reset(cursor, parseError);
     this._tryPattern();
 
     return this.node;
@@ -1761,15 +1818,15 @@ class RepeatComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__[
   _tryPattern() {
     while (true) {
       try {
-        this.nodes.push(this._pattern.parse(this.cursor));
+        this.nodes.push(this._pattern.parse(this.cursor, this.parseError));
         this.cursor.next();
 
         if (this._divider != null) {
           const mark = this.cursor.mark();
-          try{
+          try {
             this.nodes.push(this._divider.parse(this.cursor));
             this.cursor.next();
-          } catch(error){
+          } catch (error) {
             this.cursor.moveToMark(mark);
             this._processMatch();
             break;
@@ -1808,7 +1865,7 @@ class RepeatComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__[
     return new RepeatComposite(name, this._pattern, this._divider);
   }
 
-  getCurrentMark(){
+  getCurrentMark() {
     return this.mark;
   }
 }
@@ -1848,7 +1905,7 @@ class RecursivePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default
     }
   }
 
-  parse(cursor) {
+  parse(cursor, parseError) {
     const pattern = this.getPattern();
 
     if (pattern == null) {
@@ -1859,7 +1916,7 @@ class RecursivePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default
     this.pattern = pattern.clone();
     this.pattern.parent = this;
 
-    return this.pattern.parse(cursor);
+    return this.pattern.parse(cursor, parseError);
   }
 
   clone(name) {

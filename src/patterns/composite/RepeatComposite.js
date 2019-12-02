@@ -11,7 +11,6 @@ export default class RepeatComposite extends CompositePattern {
     this._divider = this.children[1];
 
     this._assertArguments();
-    this._reset();
   }
 
   _assertArguments() {
@@ -22,19 +21,24 @@ export default class RepeatComposite extends CompositePattern {
     }
   }
 
-  _reset(cursor) {
+  _reset(cursor, parseError) {
     this.cursor = null;
     this.mark = null;
     this.nodes = [];
+    this.parseError = parseError;
 
     if (cursor != null) {
       this.cursor = cursor;
       this.mark = this.cursor.mark();
     }
+
+    if (parseError == null) {
+      this.parseError = new ParseError();
+    }
   }
 
-  parse(cursor) {
-    this._reset(cursor);
+  parse(cursor, parseError) {
+    this._reset(cursor, parseError);
     this._tryPattern();
 
     return this.node;
@@ -43,15 +47,15 @@ export default class RepeatComposite extends CompositePattern {
   _tryPattern() {
     while (true) {
       try {
-        this.nodes.push(this._pattern.parse(this.cursor));
+        this.nodes.push(this._pattern.parse(this.cursor, this.parseError));
         this.cursor.next();
 
         if (this._divider != null) {
           const mark = this.cursor.mark();
-          try{
+          try {
             this.nodes.push(this._divider.parse(this.cursor));
             this.cursor.next();
-          } catch(error){
+          } catch (error) {
             this.cursor.moveToMark(mark);
             this._processMatch();
             break;
@@ -90,7 +94,7 @@ export default class RepeatComposite extends CompositePattern {
     return new RepeatComposite(name, this._pattern, this._divider);
   }
 
-  getCurrentMark(){
+  getCurrentMark() {
     return this.mark;
   }
 }

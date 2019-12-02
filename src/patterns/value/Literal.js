@@ -24,15 +24,15 @@ export default class Literal extends ValuePattern {
     }
   }
 
-  parse(cursor) {
-    this._reset(cursor);
+  parse(cursor, parseError) {
+    this._reset(cursor, parseError);
     this._assertCursor();
     this._tryPattern();
 
     return this.node;
   }
 
-  _reset(cursor) {
+  _reset(cursor, parseError) {
     if (cursor != null) {
       this.cursor = cursor;
       this.mark = this.cursor.mark();
@@ -46,7 +46,12 @@ export default class Literal extends ValuePattern {
       this.substring = null;
     }
 
+    this.parseError = parseError;
     this.node = null;
+
+    if (parseError == null){
+      this.parseError = new ParseError();
+    }
   }
 
   _assertCursor() {
@@ -68,7 +73,11 @@ export default class Literal extends ValuePattern {
       this.index
     )}' but found '${this.cursor.getChar()}' while parsing for '${this.name}'.`;
 
-    throw new ParseError(message, this.cursor.getIndex(), this);
+    this.parseError.message = message;
+    this.parseError.index = this.cursor.getIndex();
+    this.parseError.pattern = this;
+
+    throw this.parseError;
   }
 
   _processMatch() {

@@ -20,20 +20,25 @@ export default class AndComposite extends CompositePattern {
     }
   }
 
-  _reset(cursor) {
+  _reset(cursor, parseError) {
     this.cursor = null;
     this.index = 0;
     this.nodes = [];
     this.node = null;
+    this.parseError = parseError;
 
     if (cursor != null) {
       this.cursor = cursor;
       this.mark = this.cursor.mark();
     }
+
+    if (parseError == null){
+      this.parseError = new ParseError();
+    }
   }
 
-  parse(cursor) {
-    this._reset(cursor);
+  parse(cursor, parseError) {
+    this._reset(cursor, parseError);
     this._assertCursor();
     this._tryPatterns();
 
@@ -51,7 +56,7 @@ export default class AndComposite extends CompositePattern {
       const pattern = this._children[this.index];
 
       try {
-        this.nodes.push(pattern.parse(this.cursor));
+        this.nodes.push(pattern.parse(this.cursor, this.parseError));
       } catch (error) {
         error.stack.push(new StackInformation(this.mark, this));
         throw error;

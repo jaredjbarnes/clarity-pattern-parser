@@ -22,19 +22,24 @@ export default class RepeatValue extends ValuePattern {
     }
   }
 
-  _reset(cursor) {
+  _reset(cursor, parseError) {
     this.cursor = null;
     this.mark = null;
     this.nodes = [];
+    this.parseError = parseError;
 
     if (cursor != null) {
       this.cursor = cursor;
       this.mark = this.cursor.mark();
     }
+
+    if (parseError == null) {
+      this.parseError = new ParseError();
+    }
   }
 
-  parse(cursor) {
-    this._reset(cursor);
+  parse(cursor, parseError) {
+    this._reset(cursor, parseError);
     this._tryPattern();
 
     return this.node;
@@ -45,7 +50,7 @@ export default class RepeatValue extends ValuePattern {
       let mark = this.cursor.mark();
 
       try {
-        const node = this._pattern.parse(this.cursor);
+        const node = this._pattern.parse(this.cursor, this.parseError);
         this.nodes.push(node);
 
         if (node.endIndex === this.cursor.lastIndex()) {
@@ -60,7 +65,7 @@ export default class RepeatValue extends ValuePattern {
         if (this._divider != null) {
           const mark = this.cursor.mark();
           try {
-            this.nodes.push(this._divider.parse(this.cursor));
+            this.nodes.push(this._divider.parse(this.cursor, this.parseError));
             this.cursor.next();
           } catch (error) {
             this.cursor.moveToMark(mark);
@@ -77,11 +82,11 @@ export default class RepeatValue extends ValuePattern {
 
   _processMatch() {
     if (this.nodes.length === 0) {
-      throw new ParseError(
-        `Did not find a repeating match of ${this.name}.`,
-        this.mark.index,
-        this
-      );
+      this.parseError.message= `Did not find a repeating match of ${this.name}.`;
+      this.parseError.index = this.mark.index;
+      this.parseError.pattern = this;
+
+      throw this.parseError;
     } else {
       const value = this.nodes.map(node => node.value).join("");
 
@@ -103,7 +108,7 @@ export default class RepeatValue extends ValuePattern {
     return new RepeatValue(name, this._pattern, this._divider);
   }
 
-  getCurrentMark(){
+  getCurrentMark() {
     return this.mark;
   }
 }

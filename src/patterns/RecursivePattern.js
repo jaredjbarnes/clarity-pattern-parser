@@ -23,7 +23,7 @@ export default class RecursivePattern extends Pattern {
     }
   }
 
-  parse(cursor) {
+  parse(cursor, parseError) {
     const pattern = this.getPattern();
 
     if (pattern == null) {
@@ -34,7 +34,7 @@ export default class RecursivePattern extends Pattern {
     this.pattern = pattern.clone();
     this.pattern.parent = this;
 
-    return this.pattern.parse(cursor);
+    return this.pattern.parse(cursor, parseError);
   }
 
   clone(name) {

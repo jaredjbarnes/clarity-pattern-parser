@@ -1,6 +1,6 @@
-export default class ParseError extends Error {
+export default class ParseError {
     constructor(message, index, pattern){
-        super(message);
+        this.message = message;
         this.name = 'ParseError';
         this.index = index;
         this.pattern = pattern;

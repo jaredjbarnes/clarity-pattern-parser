@@ -705,9 +705,9 @@ class Pattern {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ParseError; });
-class ParseError extends Error {
+class ParseError {
     constructor(message, index, pattern){
-        super(message);
+        this.message = message;
         this.name = 'ParseError';
         this.index = index;
         this.pattern = pattern;

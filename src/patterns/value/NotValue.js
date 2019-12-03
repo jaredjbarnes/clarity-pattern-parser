@@ -6,7 +6,6 @@ export default class NotValue extends ValuePattern {
   constructor(name, pattern) {
     super(name, [pattern]);
     this._assertArguments();
-    this._reset();
   }
 
   _assertArguments() {
@@ -21,25 +20,15 @@ export default class NotValue extends ValuePattern {
     }
   }
 
-  _reset(cursor, parseError) {
-    this.cursor = null;
-    this.mark = null;
+  _reset(cursor) {
     this.match = "";
     this.node = null;
-    this.parseError = parseError;
-
-    if (cursor != null) {
-      this.cursor = cursor;
-      this.mark = this.cursor.mark();
-    }
-
-    if (parseError == null) {
-      this.parseError = new ParseError();
-    }
+    this.cursor = cursor;
+    this.mark = this.cursor.mark();
   }
 
-  parse(cursor, parseError) {
-    this._reset(cursor, parseError);
+  parse(cursor) {
+    this._reset(cursor);
     this._tryPattern();
 
     return this.node;
@@ -48,14 +37,15 @@ export default class NotValue extends ValuePattern {
   _tryPattern() {
     while (true) {
       const mark = this.cursor.mark();
+      this.children[0].parse(this.cursor);
 
-      try {
-        this.children[0].parse(this.cursor, this.parseError);
-        this.cursor.moveToMark(mark);
-        break;
-      } catch (error) {
+      if (this.cursor.hasUnresolvedError()) {
+        this.cursor.resolveError();
         this.cursor.moveToMark(mark);
         this.match += this.cursor.getChar();
+        break;
+      } else {
+        this.cursor.moveToMark(mark);
         break;
       }
     }
@@ -65,11 +55,12 @@ export default class NotValue extends ValuePattern {
 
   _processMatch() {
     if (this.match.length === 0) {
-      this.parserError.message = `Didn't find any characters the didn't match the ${this.children[0].name} pattern.`;
-      this.parseError.index = this.mark.index;
-      this.parserError.pattern = this;
-
-      throw this.parseError;
+      const parseError = new ParseError(
+        `Didn't find any characters that didn't match the ${this.children[0].name} pattern.`,
+        this.mark.index,
+        this
+      );
+      this.cursor.throwError(parseError);
     } else {
       this.node = new ValueNode(
         this.name,

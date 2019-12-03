@@ -28,26 +28,20 @@ export default class OrComposite extends CompositePattern {
     }
   }
 
-  _reset(cursor, parseError) {
+  _reset(cursor) {
     this.cursor = null;
     this.mark = null;
     this.index = 0;
-    this.errors = [];
     this.node = null;
-    this.parseError = parseError;
 
     if (cursor != null) {
       this.cursor = cursor;
       this.mark = cursor.mark();
     }
-
-    if (parseError == null) {
-      this.parseError = new ParseError();
-    }
   }
 
-  parse(cursor, parseError) {
-    this._reset(cursor, parseError);
+  parse(cursor) {
+    this._reset(cursor);
     this._assertCursor();
     this._tryPattern();
 
@@ -64,35 +58,24 @@ export default class OrComposite extends CompositePattern {
     while (true) {
       const pattern = this._children[this.index];
 
-      try {
-        this.node = pattern.parse(this.cursor, this.parseError);
-        this.cursor.setIndex(this.node.endIndex);
-        break;
-      } catch (error) {
-        this.errors.push(error);
+      this.node = pattern.parse(this.cursor);
+
+      if (this.cursor.hasUnresolvedError()) {
 
         if (this.index + 1 < this._children.length) {
+          this.cursor.resolveError();
           this.index++;
           this.cursor.moveToMark(this.mark);
         } else {
-          this.throwError();
+          this.node = null;
+          break;
         }
+
+      } else {
+        this.cursor.setIndex(this.node.endIndex);
+        break;
       }
     }
-  }
-
-  throwError() {
-    const error = this.errors.reduce((furthestError, nextError) => {
-      if (furthestError.index > nextError.index) {
-        return furthestError;
-      } else {
-        return nextError;
-      }
-    });
-
-    error.stack.push(new StackInformation(this.mark, this));
-
-    throw error;
   }
 
   clone(name) {

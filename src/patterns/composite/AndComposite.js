@@ -20,25 +20,16 @@ export default class AndComposite extends CompositePattern {
     }
   }
 
-  _reset(cursor, parseError) {
-    this.cursor = null;
+  _reset(cursor) {
     this.index = 0;
     this.nodes = [];
     this.node = null;
-    this.parseError = parseError;
-
-    if (cursor != null) {
-      this.cursor = cursor;
-      this.mark = this.cursor.mark();
-    }
-
-    if (parseError == null){
-      this.parseError = new ParseError();
-    }
+    this.cursor = cursor;
+    this.mark = this.cursor.mark();
   }
 
-  parse(cursor, parseError) {
-    this._reset(cursor, parseError);
+  parse(cursor) {
+    this._reset(cursor);
     this._assertCursor();
     this._tryPatterns();
 
@@ -54,12 +45,13 @@ export default class AndComposite extends CompositePattern {
   _tryPatterns() {
     while (true) {
       const pattern = this._children[this.index];
+      const node = pattern.parse(this.cursor);
 
-      try {
-        this.nodes.push(pattern.parse(this.cursor, this.parseError));
-      } catch (error) {
-        error.stack.push(new StackInformation(this.mark, this));
-        throw error;
+      if (this.cursor.hasUnresolvedError()) {
+        this.cursor.moveToMark(this.mark);
+        break;
+      } else {
+        this.nodes.push(node);
       }
 
       if (!this._next()) {
@@ -105,23 +97,30 @@ export default class AndComposite extends CompositePattern {
     });
 
     if (!areTheRestOptional) {
-      throw new ParseError(
-        `Could not match ${this.name} before string ran out.`
+      const parseError = new ParseError(
+        `Could not match ${this.name} before string ran out.`,
+        this.index,
+        this
       );
+      this.cursor.throwError(parseError);
     }
   }
 
   _processValue() {
-    this.nodes = this.nodes.filter(node => node != null);
+    if (!this.cursor.hasUnresolvedError()) {
+      this.nodes = this.nodes.filter(node => node != null);
 
-    const lastNode = this.nodes[this.nodes.length - 1];
-    const startIndex = this.mark.index;
-    const endIndex = lastNode.endIndex;
+      const lastNode = this.nodes[this.nodes.length - 1];
+      const startIndex = this.mark.index;
+      const endIndex = lastNode.endIndex;
 
-    this.node = new CompositeNode(this.name, startIndex, endIndex);
-    this.node.children = this.nodes;
+      this.node = new CompositeNode(this.name, startIndex, endIndex);
+      this.node.children = this.nodes;
 
-    this.cursor.setIndex(this.node.endIndex);
+      this.cursor.setIndex(this.node.endIndex);
+    } else {
+      this.node = null;
+    }
   }
 
   clone(name) {
@@ -131,7 +130,7 @@ export default class AndComposite extends CompositePattern {
     return new AndComposite(name, this._children);
   }
 
-  getCurrentMark(){
+  getCurrentMark() {
     return this.mark;
   }
 }

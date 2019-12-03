@@ -84,13 +84,14 @@ exports["OrValue: Fail."] = () => {
   const letterCursor = new Cursor("d");
   const numberCursor = new Cursor("4");
 
-  assert.throws(() => {
-    const letterNode = alphaNumeric.parse(letterCursor);
-  });
+  const letterNode = alphaNumeric.parse(letterCursor);
+  const numberNode = alphaNumeric.parse(numberCursor);
 
-  assert.throws(() => {
-    const numberNode = alphaNumeric.parse(numberCursor);
-  });
+  assert.equal(letterCursor.getIndex(), 0);
+  assert.equal(letterCursor.hasUnresolvedError(), true);
+
+  assert.equal(numberCursor.getIndex(), 0);
+  assert.equal(numberCursor.hasUnresolvedError(), true);
 };
 
 exports["OrValue: Clone."] = () => {
@@ -134,9 +135,10 @@ exports["OrValue: Furthest Parse Error."] = () => {
   const orValue = new OrValue("test", [longer, bang]);
   const cursor = new Cursor("Longed");
 
-  assert.throws(() => {
-    orValue.parse(cursor);
-  });
+  orValue.parse(cursor);
+
+  assert.equal(cursor.getIndex(), 0);
+  assert.equal(cursor.hasUnresolvedError(), true);
 };
 
 exports["OrValue: Last pattern matches."] = () => {

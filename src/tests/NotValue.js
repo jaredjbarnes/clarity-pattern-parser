@@ -39,11 +39,10 @@ exports["NotValue: No Match"] = () => {
   const notJohn = new NotValue("not-john", john);
   const cursor = new Cursor("John");
 
-  assert.throws(() => {
-    notJohn.parse(cursor);
-  });
+  notJohn.parse(cursor);
+  assert.equal(cursor.hasUnresolvedError(), true);
+  assert.equal(cursor.parseError.message, "Didn't find any characters that didn't match the john pattern.");
 };
-
 
 exports["NotValue: Success"] = () => {
   const john = new Literal("john", "John");
@@ -56,15 +55,6 @@ exports["NotValue: Success"] = () => {
   assert.equal(node.startIndex, 0);
   assert.equal(node.endIndex, 0);
   assert.equal(cursor.getIndex(), 0);
-};
-
-exports["NotValue: Bad cursor."] = () => {
-  const john = new Literal("john", "John");
-  const notJohn = new NotValue("not-john", john);
-
-  assert.throws(() => {
-    notJohn.parse(cursor);
-  });
 };
 
 exports["NotValue: Clone."] = () => {

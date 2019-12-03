@@ -1,9 +1,7 @@
 import ValuePattern from "./ValuePattern.js";
 import ValueNode from "../../ast/ValueNode.js";
 import Cursor from "../../Cursor.js";
-import StackInformation from "../StackInformation.js";
 import OptionalValue from "./OptionalValue.js";
-import ParseError from "../ParseError.js";
 
 export default class OrValue extends ValuePattern {
   constructor(name, patterns) {
@@ -27,26 +25,16 @@ export default class OrValue extends ValuePattern {
     }
   }
 
-  _reset(cursor, parseError) {
-    this.cursor = null;
-    this.mark = null;
+  _reset(cursor) {
     this.index = 0;
     this.errors = [];
     this.node = null;
-    this.parseError = parseError;
-
-    if (cursor != null) {
-      this.cursor = cursor;
-      this.mark = cursor.mark();
-    }
-
-    if (parseError == null){
-      this.parseError = new ParseError();
-    }
+    this.cursor = cursor;
+    this.mark = cursor.mark();
   }
 
-  parse(cursor, parseError) {
-    this._reset(cursor, parseError);
+  parse(cursor) {
+    this._reset(cursor);
     this._assertCursor();
     this._tryPattern();
 
@@ -62,10 +50,20 @@ export default class OrValue extends ValuePattern {
   _tryPattern() {
     while (true) {
       const pattern = this._children[this.index];
+      const node = pattern.parse(this.cursor, this.parseError);
 
-      try {
-        const node = pattern.parse(this.cursor, this.parseError);
+      if (this.cursor.hasUnresolvedError()) {
 
+        if (this.index + 1 < this._children.length) {
+          this.cursor.resolveError();
+          this.index++;
+          this.cursor.moveToMark(this.mark);
+        } else {
+          this.node = null;
+          break;
+        }
+
+      } else {
         this.node = new ValueNode(
           this.name,
           node.value,
@@ -75,31 +73,8 @@ export default class OrValue extends ValuePattern {
 
         this.cursor.setIndex(this.node.endIndex);
         break;
-      } catch (error) {
-        this.errors.push(error);
-
-        if (this.index + 1 < this._children.length) {
-          this.index++;
-          this.cursor.moveToMark(this.mark);
-        } else {
-          this.throwError();
-        }
       }
     }
-  }
-
-  throwError() {
-    const error = this.errors.reduce((furthestError, nextError) => {
-      if (furthestError.index > nextError.index) {
-        return furthestError;
-      } else {
-        return nextError;
-      }
-    });
-
-    error.stack.push(new StackInformation(this.mark, this));
-
-    throw error;
   }
 
   clone(name) {
@@ -109,7 +84,7 @@ export default class OrValue extends ValuePattern {
     return new OrValue(name, this._children);
   }
 
-  getCurrentMark(){
+  getCurrentMark() {
     return this.mark;
   }
 }

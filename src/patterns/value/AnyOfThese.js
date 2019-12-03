@@ -7,7 +7,6 @@ export default class AnyOfThese extends ValuePattern {
   constructor(name, characters) {
     super(name);
     this.characters = characters;
-
     this._assertArguments();
   }
 
@@ -25,8 +24,8 @@ export default class AnyOfThese extends ValuePattern {
     }
   }
 
-  parse(cursor, parseError) {
-    this._reset(cursor, parseError);
+  parse(cursor) {
+    this._reset(cursor);
     this._assertCursor();
     this._tryPattern();
     return this.node;
@@ -38,21 +37,10 @@ export default class AnyOfThese extends ValuePattern {
     }
   }
 
-  _reset(cursor, parseError) {
-    if (cursor == null) {
-      this.cursor = null;
-      this.mark = null;
-    } else {
-      this.cursor = cursor;
-      this.mark = this.cursor.mark();
-    }
-
+  _reset(cursor) {
+    this.cursor = cursor;
+    this.mark = this.cursor.mark();
     this.node = null;
-    this.parseError = parseError;
-
-    if (parseError == null){
-      this.parseError = new ParseError();
-    }
   }
 
   _tryPattern() {
@@ -75,11 +63,8 @@ export default class AnyOfThese extends ValuePattern {
       this.characters
     }' but found '${this.cursor.getChar()}' while parsing for '${this.name}'.`;
 
-    this.parseError.message = message;
-    this.parseError.index = this.cursor.getIndex();
-    this.parseError.pattern = this;
-
-    throw this.parseError;
+    const parseError = new ParseError(message, this.cursor.getIndex(), this);
+    this.cursor.throwError(parseError);
   }
 
   clone(name) {
@@ -89,7 +74,7 @@ export default class AnyOfThese extends ValuePattern {
     return new AnyOfThese(name, this.characters);
   }
 
-  getCurrentMark(){
+  getCurrentMark() {
     return this.mark;
   }
 }

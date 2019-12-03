@@ -24,34 +24,22 @@ export default class Literal extends ValuePattern {
     }
   }
 
-  parse(cursor, parseError) {
-    this._reset(cursor, parseError);
+  parse(cursor) {
+    this._reset(cursor);
     this._assertCursor();
     this._tryPattern();
 
     return this.node;
   }
 
-  _reset(cursor, parseError) {
-    if (cursor != null) {
-      this.cursor = cursor;
-      this.mark = this.cursor.mark();
-      this.substring = this.cursor.string.substring(
-        this.mark.index,
-        this.mark.index + this.literal.length
-      );
-    } else {
-      this.cursor = null;
-      this.mark = null;
-      this.substring = null;
-    }
-
-    this.parseError = parseError;
+  _reset(cursor) {
+    this.cursor = cursor;
+    this.mark = this.cursor.mark();
+    this.substring = this.cursor.string.substring(
+      this.mark.index,
+      this.mark.index + this.literal.length
+    );
     this.node = null;
-
-    if (parseError == null){
-      this.parseError = new ParseError();
-    }
   }
 
   _assertCursor() {
@@ -69,15 +57,12 @@ export default class Literal extends ValuePattern {
   }
 
   _processError() {
-    const message = `ParseError: Expected '${this.literal.charAt(
-      this.index
-    )}' but found '${this.cursor.getChar()}' while parsing for '${this.name}'.`;
+    const message = `ParseError: Expected '${
+      this.literal
+    }' but found '${this.substring}'.`;
 
-    this.parseError.message = message;
-    this.parseError.index = this.cursor.getIndex();
-    this.parseError.pattern = this;
-
-    throw this.parseError;
+    const parseError = new ParseError(message, this.cursor.getIndex(), this);
+    this.cursor.throwError(parseError);
   }
 
   _processMatch() {
@@ -98,7 +83,7 @@ export default class Literal extends ValuePattern {
     return new Literal(name, this.literal);
   }
 
-  getCurrentMark(){
+  getCurrentMark() {
     return this.mark;
   }
 }

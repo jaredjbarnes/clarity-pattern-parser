@@ -22,9 +22,8 @@ exports["Complex Examples: name"] = () => {
   assert.equal(validNode.name, "name");
   assert.equal(validNode.value, "firstName1_2");
 
-  assert.throws(() => {
-    name.parse(invalidName);
-  });
+  name.parse(invalidName);
+  assert.equal(invalidName.hasUnresolvedError(), true);
 };
 
 exports["Complex Examples: number"] = () => {
@@ -51,9 +50,8 @@ exports["Complex Examples: number"] = () => {
   assert.equal(singleNumberNode.name, "number");
   assert.equal(singleNumberNode.value, "1");
 
-  assert.throws(() => {
-    name.parse(invalidNumber);
-  });
+  name.parse(invalidNumber);
+  assert.equal(invalidNumber.hasUnresolvedError(), true);
 };
 
 exports["Complex Examples: string"] = () => {

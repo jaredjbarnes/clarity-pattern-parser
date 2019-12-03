@@ -71,10 +71,9 @@ exports["AnyOfThese: Match with long cursor."] = () => {
 exports["AnyOfThese: No match."] = () => {
   const letterA = new AnyOfThese("letter-a", "Aa");
   const cursor = new Cursor("12345");
+  const node = letterA.parse(cursor);
 
-  assert.throws(() => {
-    const node = letterA.parse(cursor);
-  });
+  assert.equal(node, null);
 };
 
 exports["AnyOfThese: Bad cursor."] = () => {
@@ -87,8 +86,7 @@ exports["AnyOfThese: Bad cursor."] = () => {
 
 exports["AnyOfThese: Pattern Methods."] = () => {
   const letterA = new AnyOfThese("letter-a", "Aa");
-  
+
   assert.equal(letterA.name, "letter-a");
   assert.equal(letterA.children.length, 0);
-
 };

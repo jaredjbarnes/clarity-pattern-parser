@@ -12,14 +12,17 @@ export default class OptionalValue extends ValuePattern {
     }
   }
 
-  parse(cursor, parseError) {
+  parse(cursor) {
     const mark = cursor.mark();
 
-    try {
-      return this.children[0].parse(cursor, parseError);
-    } catch (error) {
+    const node = this.children[0].parse(cursor);
+
+    if (cursor.hasUnresolvedError()) {
+      cursor.resolveError();
       cursor.moveToMark(mark);
       return null;
+    } else {
+      return node;
     }
   }
 
@@ -27,7 +30,7 @@ export default class OptionalValue extends ValuePattern {
     return new OptionalValue(this.children[0]);
   }
 
-  getCurrentMark(){
+  getCurrentMark() {
     return this.mark;
   }
 }

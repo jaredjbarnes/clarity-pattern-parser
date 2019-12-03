@@ -53,10 +53,9 @@ exports["Literal: No match."] = () => {
   const variable = new Literal("variable", "var");
   const cursor = new Cursor("vax");
 
-  assert.throws(() => {
-    variable.parse(cursor);
-  });
+  variable.parse(cursor);
 
+  assert.equal(cursor.hasUnresolvedError(), true);
   assert.equal(cursor.getIndex(), 0);
   assert.equal(cursor.getChar(), "v");
 };

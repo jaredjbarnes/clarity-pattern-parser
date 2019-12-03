@@ -125,31 +125,31 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _patterns_value_AndValue_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(7);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "AndValue", function() { return _patterns_value_AndValue_js__WEBPACK_IMPORTED_MODULE_5__["default"]; });
 
-/* harmony import */ var _patterns_value_AnyOfThese_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(13);
+/* harmony import */ var _patterns_value_AnyOfThese_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(12);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "AnyOfThese", function() { return _patterns_value_AnyOfThese_js__WEBPACK_IMPORTED_MODULE_6__["default"]; });
 
-/* harmony import */ var _patterns_value_Literal_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(14);
+/* harmony import */ var _patterns_value_Literal_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(13);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Literal", function() { return _patterns_value_Literal_js__WEBPACK_IMPORTED_MODULE_7__["default"]; });
 
-/* harmony import */ var _patterns_value_NotValue_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(15);
+/* harmony import */ var _patterns_value_NotValue_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(14);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "NotValue", function() { return _patterns_value_NotValue_js__WEBPACK_IMPORTED_MODULE_8__["default"]; });
 
-/* harmony import */ var _patterns_value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(12);
+/* harmony import */ var _patterns_value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(11);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "OptionalValue", function() { return _patterns_value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_9__["default"]; });
 
-/* harmony import */ var _patterns_value_OrValue_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(16);
+/* harmony import */ var _patterns_value_OrValue_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(15);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "OrValue", function() { return _patterns_value_OrValue_js__WEBPACK_IMPORTED_MODULE_10__["default"]; });
 
-/* harmony import */ var _patterns_value_RepeatValue_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(17);
+/* harmony import */ var _patterns_value_RepeatValue_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(16);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "RepeatValue", function() { return _patterns_value_RepeatValue_js__WEBPACK_IMPORTED_MODULE_11__["default"]; });
 
 /* harmony import */ var _patterns_value_ValuePattern_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(8);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ValuePattern", function() { return _patterns_value_ValuePattern_js__WEBPACK_IMPORTED_MODULE_12__["default"]; });
 
-/* harmony import */ var _patterns_composite_AndComposite_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(18);
+/* harmony import */ var _patterns_composite_AndComposite_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(17);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "AndComposite", function() { return _patterns_composite_AndComposite_js__WEBPACK_IMPORTED_MODULE_13__["default"]; });
 
-/* harmony import */ var _patterns_composite_CompositePattern_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(19);
+/* harmony import */ var _patterns_composite_CompositePattern_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(18);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "CompositePattern", function() { return _patterns_composite_CompositePattern_js__WEBPACK_IMPORTED_MODULE_14__["default"]; });
 
 /* harmony import */ var _patterns_composite_OptionalComposite_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(20);
@@ -167,7 +167,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _patterns_Pattern_js__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(9);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Pattern", function() { return _patterns_Pattern_js__WEBPACK_IMPORTED_MODULE_19__["default"]; });
 
-/* harmony import */ var _patterns_StackInformation_js__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(11);
+/* harmony import */ var _patterns_StackInformation_js__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(19);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "StackInformation", function() { return _patterns_StackInformation_js__WEBPACK_IMPORTED_MODULE_20__["default"]; });
 
 /* harmony import */ var _patterns_RecursivePattern_js__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(23);
@@ -304,11 +304,30 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class Cursor {
-  constructor(string) {
+  constructor(string, { verbose } = {}) {
     this.string = string;
     this.index = 0;
     this.length = string.length;
+    this.parseError = null;
+    this.verbose = typeof verbose === "boolean" ? verbose : false;
+    this.isInErrorState = false;
     this.assertValidity();
+  }
+
+  throwError(parseError) {
+    this.isInErrorState = true;
+
+    if (this.parseError == null || parseError.index >= this.parseError.index){
+      this.parseError = parseError;
+    }
+  }
+
+  resolveError() {
+    this.isInErrorState = false;
+  }
+
+  hasUnresolvedError() {
+    return this.isInErrorState;
   }
 
   assertValidity() {
@@ -413,9 +432,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5);
 /* harmony import */ var _Cursor_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6);
 /* harmony import */ var _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(10);
-/* harmony import */ var _StackInformation_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(11);
-/* harmony import */ var _OptionalValue_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(12);
-
+/* harmony import */ var _OptionalValue_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(11);
 
 
 
@@ -436,25 +453,16 @@ class AndValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
     }
   }
 
-  _reset(cursor, parseError) {
-    this.cursor = null;
+  _reset(cursor) {
     this.index = 0;
     this.nodes = [];
     this.node = null;
-    this.parseError = parseError;
-
-    if (cursor != null) {
-      this.cursor = cursor;
-      this.mark = this.cursor.mark();
-    }
-
-    if (parseError == null) {
-      this.parseError = new _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_3__["default"]();
-    }
+    this.cursor = cursor;
+    this.mark = this.cursor.mark();
   }
 
-  parse(cursor, parseError) {
-    this._reset(cursor, parseError);
+  parse(cursor) {
+    this._reset(cursor);
     this._assertCursor();
     this._tryPatterns();
 
@@ -470,12 +478,12 @@ class AndValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
   _tryPatterns() {
     while (true) {
       const pattern = this._children[this.index];
+      const node = pattern.parse(this.cursor);
 
-      try {
-        this.nodes.push(pattern.parse(this.cursor, this.parseError));
-      } catch (error) {
-        error.stack.push(new _StackInformation_js__WEBPACK_IMPORTED_MODULE_4__["default"](this.mark, this));
-        throw error;
+      if (this.cursor.hasUnresolvedError()) {
+        break;
+      } else {
+        this.nodes.push(node);
       }
 
       if (!this._next()) {
@@ -513,29 +521,35 @@ class AndValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
 
   _assertRestOfPatternsAreOptional() {
     const areTheRestOptional = this.children.every((pattern, index) => {
-      return index <= this.index || pattern instanceof _OptionalValue_js__WEBPACK_IMPORTED_MODULE_5__["default"];
+      return index <= this.index || pattern instanceof _OptionalValue_js__WEBPACK_IMPORTED_MODULE_4__["default"];
     });
 
     if (!areTheRestOptional) {
-      this.parseError.message = `Could not match ${this.name} before string ran out.`;
-      this.parseError.index = this.index;
-      this.parseError.pattern = this;
+      const parseError = new _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_3__["default"](
+        `Could not match ${this.name} before string ran out.`,
+        this.index,
+        this
+      );
 
-      throw this.parseError;
+      this.cursor.throwError(parseError);
     }
   }
 
   _processValue() {
-    this.nodes = this.nodes.filter(node => node != null);
+    if (this.cursor.hasUnresolvedError()) {
+      this.node = null;
+    } else {
+      this.nodes = this.nodes.filter(node => node != null);
 
-    const lastNode = this.nodes[this.nodes.length - 1];
-    const startIndex = this.mark.index;
-    const endIndex = lastNode.endIndex;
-    const value = this.nodes.map(node => node.value).join("");
+      const lastNode = this.nodes[this.nodes.length - 1];
+      const startIndex = this.mark.index;
+      const endIndex = lastNode.endIndex;
+      const value = this.nodes.map(node => node.value).join("");
 
-    this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](this.name, value, startIndex, endIndex);
+      this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](this.name, value, startIndex, endIndex);
 
-    this.cursor.setIndex(this.node.endIndex);
+      this.cursor.setIndex(this.node.endIndex);
+    }
   }
 
   clone(name) {
@@ -728,21 +742,6 @@ class ParseError {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return StackInformation; });
-class StackInformation {
-    constructor(mark, pattern){
-        this.mark = mark;
-        this.pattern = pattern;
-        this.expectations = [];
-    }
-}
-
-/***/ }),
-/* 12 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return OptionalValue; });
 /* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8);
 
@@ -759,14 +758,17 @@ class OptionalValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["defau
     }
   }
 
-  parse(cursor, parseError) {
+  parse(cursor) {
     const mark = cursor.mark();
 
-    try {
-      return this.children[0].parse(cursor, parseError);
-    } catch (error) {
+    const node = this.children[0].parse(cursor);
+
+    if (cursor.hasUnresolvedError()) {
+      cursor.resolveError();
       cursor.moveToMark(mark);
       return null;
+    } else {
+      return node;
     }
   }
 
@@ -774,14 +776,14 @@ class OptionalValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["defau
     return new OptionalValue(this.children[0]);
   }
 
-  getCurrentMark(){
+  getCurrentMark() {
     return this.mark;
   }
 }
 
 
 /***/ }),
-/* 13 */
+/* 12 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -800,7 +802,6 @@ class AnyOfThese extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"
   constructor(name, characters) {
     super(name);
     this.characters = characters;
-
     this._assertArguments();
   }
 
@@ -818,8 +819,8 @@ class AnyOfThese extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"
     }
   }
 
-  parse(cursor, parseError) {
-    this._reset(cursor, parseError);
+  parse(cursor) {
+    this._reset(cursor);
     this._assertCursor();
     this._tryPattern();
     return this.node;
@@ -831,21 +832,10 @@ class AnyOfThese extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"
     }
   }
 
-  _reset(cursor, parseError) {
-    if (cursor == null) {
-      this.cursor = null;
-      this.mark = null;
-    } else {
-      this.cursor = cursor;
-      this.mark = this.cursor.mark();
-    }
-
+  _reset(cursor) {
+    this.cursor = cursor;
+    this.mark = this.cursor.mark();
     this.node = null;
-    this.parseError = parseError;
-
-    if (parseError == null){
-      this.parseError = new _ParseError_js__WEBPACK_IMPORTED_MODULE_1__["default"]();
-    }
   }
 
   _tryPattern() {
@@ -868,11 +858,8 @@ class AnyOfThese extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"
       this.characters
     }' but found '${this.cursor.getChar()}' while parsing for '${this.name}'.`;
 
-    this.parseError.message = message;
-    this.parseError.index = this.cursor.getIndex();
-    this.parseError.pattern = this;
-
-    throw this.parseError;
+    const parseError = new _ParseError_js__WEBPACK_IMPORTED_MODULE_1__["default"](message, this.cursor.getIndex(), this);
+    this.cursor.throwError(parseError);
   }
 
   clone(name) {
@@ -882,14 +869,14 @@ class AnyOfThese extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"
     return new AnyOfThese(name, this.characters);
   }
 
-  getCurrentMark(){
+  getCurrentMark() {
     return this.mark;
   }
 }
 
 
 /***/ }),
-/* 14 */
+/* 13 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -925,34 +912,22 @@ class Literal extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__["default"] {
     }
   }
 
-  parse(cursor, parseError) {
-    this._reset(cursor, parseError);
+  parse(cursor) {
+    this._reset(cursor);
     this._assertCursor();
     this._tryPattern();
 
     return this.node;
   }
 
-  _reset(cursor, parseError) {
-    if (cursor != null) {
-      this.cursor = cursor;
-      this.mark = this.cursor.mark();
-      this.substring = this.cursor.string.substring(
-        this.mark.index,
-        this.mark.index + this.literal.length
-      );
-    } else {
-      this.cursor = null;
-      this.mark = null;
-      this.substring = null;
-    }
-
-    this.parseError = parseError;
+  _reset(cursor) {
+    this.cursor = cursor;
+    this.mark = this.cursor.mark();
+    this.substring = this.cursor.string.substring(
+      this.mark.index,
+      this.mark.index + this.literal.length
+    );
     this.node = null;
-
-    if (parseError == null){
-      this.parseError = new _ParseError_js__WEBPACK_IMPORTED_MODULE_0__["default"]();
-    }
   }
 
   _assertCursor() {
@@ -970,15 +945,12 @@ class Literal extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__["default"] {
   }
 
   _processError() {
-    const message = `ParseError: Expected '${this.literal.charAt(
-      this.index
-    )}' but found '${this.cursor.getChar()}' while parsing for '${this.name}'.`;
+    const message = `ParseError: Expected '${
+      this.literal
+    }' but found '${this.substring}'.`;
 
-    this.parseError.message = message;
-    this.parseError.index = this.cursor.getIndex();
-    this.parseError.pattern = this;
-
-    throw this.parseError;
+    const parseError = new _ParseError_js__WEBPACK_IMPORTED_MODULE_0__["default"](message, this.cursor.getIndex(), this);
+    this.cursor.throwError(parseError);
   }
 
   _processMatch() {
@@ -999,14 +971,14 @@ class Literal extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__["default"] {
     return new Literal(name, this.literal);
   }
 
-  getCurrentMark(){
+  getCurrentMark() {
     return this.mark;
   }
 }
 
 
 /***/ }),
-/* 15 */
+/* 14 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1023,7 +995,6 @@ class NotValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
   constructor(name, pattern) {
     super(name, [pattern]);
     this._assertArguments();
-    this._reset();
   }
 
   _assertArguments() {
@@ -1038,25 +1009,15 @@ class NotValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
     }
   }
 
-  _reset(cursor, parseError) {
-    this.cursor = null;
-    this.mark = null;
+  _reset(cursor) {
     this.match = "";
     this.node = null;
-    this.parseError = parseError;
-
-    if (cursor != null) {
-      this.cursor = cursor;
-      this.mark = this.cursor.mark();
-    }
-
-    if (parseError == null) {
-      this.parseError = new _ParseError_js__WEBPACK_IMPORTED_MODULE_2__["default"]();
-    }
+    this.cursor = cursor;
+    this.mark = this.cursor.mark();
   }
 
-  parse(cursor, parseError) {
-    this._reset(cursor, parseError);
+  parse(cursor) {
+    this._reset(cursor);
     this._tryPattern();
 
     return this.node;
@@ -1065,14 +1026,15 @@ class NotValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
   _tryPattern() {
     while (true) {
       const mark = this.cursor.mark();
+      this.children[0].parse(this.cursor);
 
-      try {
-        this.children[0].parse(this.cursor, this.parseError);
-        this.cursor.moveToMark(mark);
-        break;
-      } catch (error) {
+      if (this.cursor.hasUnresolvedError()) {
+        this.cursor.resolveError();
         this.cursor.moveToMark(mark);
         this.match += this.cursor.getChar();
+        break;
+      } else {
+        this.cursor.moveToMark(mark);
         break;
       }
     }
@@ -1082,11 +1044,12 @@ class NotValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
 
   _processMatch() {
     if (this.match.length === 0) {
-      this.parserError.message = `Didn't find any characters the didn't match the ${this.children[0].name} pattern.`;
-      this.parseError.index = this.mark.index;
-      this.parserError.pattern = this;
-
-      throw this.parseError;
+      const parseError = new _ParseError_js__WEBPACK_IMPORTED_MODULE_2__["default"](
+        `Didn't find any characters that didn't match the ${this.children[0].name} pattern.`,
+        this.mark.index,
+        this
+      );
+      this.cursor.throwError(parseError);
     } else {
       this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](
         this.name,
@@ -1113,7 +1076,7 @@ class NotValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
 
 
 /***/ }),
-/* 16 */
+/* 15 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1122,11 +1085,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8);
 /* harmony import */ var _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5);
 /* harmony import */ var _Cursor_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6);
-/* harmony import */ var _StackInformation_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(11);
-/* harmony import */ var _OptionalValue_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(12);
-/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(10);
-
-
+/* harmony import */ var _OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(11);
 
 
 
@@ -1146,7 +1105,7 @@ class OrValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
     }
 
     const hasOptionalChildren = this._children.some(
-      pattern => pattern instanceof _OptionalValue_js__WEBPACK_IMPORTED_MODULE_4__["default"]
+      pattern => pattern instanceof _OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__["default"]
     );
 
     if (hasOptionalChildren) {
@@ -1154,26 +1113,16 @@ class OrValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
     }
   }
 
-  _reset(cursor, parseError) {
-    this.cursor = null;
-    this.mark = null;
+  _reset(cursor) {
     this.index = 0;
     this.errors = [];
     this.node = null;
-    this.parseError = parseError;
-
-    if (cursor != null) {
-      this.cursor = cursor;
-      this.mark = cursor.mark();
-    }
-
-    if (parseError == null){
-      this.parseError = new _ParseError_js__WEBPACK_IMPORTED_MODULE_5__["default"]();
-    }
+    this.cursor = cursor;
+    this.mark = cursor.mark();
   }
 
-  parse(cursor, parseError) {
-    this._reset(cursor, parseError);
+  parse(cursor) {
+    this._reset(cursor);
     this._assertCursor();
     this._tryPattern();
 
@@ -1189,10 +1138,20 @@ class OrValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
   _tryPattern() {
     while (true) {
       const pattern = this._children[this.index];
+      const node = pattern.parse(this.cursor, this.parseError);
 
-      try {
-        const node = pattern.parse(this.cursor, this.parseError);
+      if (this.cursor.hasUnresolvedError()) {
 
+        if (this.index + 1 < this._children.length) {
+          this.cursor.resolveError();
+          this.index++;
+          this.cursor.moveToMark(this.mark);
+        } else {
+          this.node = null;
+          break;
+        }
+
+      } else {
         this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](
           this.name,
           node.value,
@@ -1202,31 +1161,8 @@ class OrValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
         this.cursor.setIndex(this.node.endIndex);
         break;
-      } catch (error) {
-        this.errors.push(error);
-
-        if (this.index + 1 < this._children.length) {
-          this.index++;
-          this.cursor.moveToMark(this.mark);
-        } else {
-          this.throwError();
-        }
       }
     }
-  }
-
-  throwError() {
-    const error = this.errors.reduce((furthestError, nextError) => {
-      if (furthestError.index > nextError.index) {
-        return furthestError;
-      } else {
-        return nextError;
-      }
-    });
-
-    error.stack.push(new _StackInformation_js__WEBPACK_IMPORTED_MODULE_3__["default"](this.mark, this));
-
-    throw error;
   }
 
   clone(name) {
@@ -1236,14 +1172,14 @@ class OrValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
     return new OrValue(name, this._children);
   }
 
-  getCurrentMark(){
+  getCurrentMark() {
     return this.mark;
   }
 }
 
 
 /***/ }),
-/* 17 */
+/* 16 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1252,7 +1188,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8);
 /* harmony import */ var _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5);
 /* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(10);
-/* harmony import */ var _OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(12);
+/* harmony import */ var _OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(11);
 
 
 
@@ -1266,7 +1202,6 @@ class RepeatValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default
     this._divider = this.children[1];
 
     this._assertArguments();
-    this._reset();
   }
 
   _assertArguments() {
@@ -1277,24 +1212,14 @@ class RepeatValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default
     }
   }
 
-  _reset(cursor, parseError) {
-    this.cursor = null;
-    this.mark = null;
+  _reset(cursor) {
     this.nodes = [];
-    this.parseError = parseError;
-
-    if (cursor != null) {
-      this.cursor = cursor;
-      this.mark = this.cursor.mark();
-    }
-
-    if (parseError == null) {
-      this.parseError = new _ParseError_js__WEBPACK_IMPORTED_MODULE_2__["default"]();
-    }
+    this.cursor = cursor;
+    this.mark = this.cursor.mark();
   }
 
-  parse(cursor, parseError) {
-    this._reset(cursor, parseError);
+  parse(cursor) {
+    this._reset(cursor);
     this._tryPattern();
 
     return this.node;
@@ -1304,8 +1229,12 @@ class RepeatValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default
     while (true) {
       let mark = this.cursor.mark();
 
-      try {
-        const node = this._pattern.parse(this.cursor, this.parseError);
+      const node = this._pattern.parse(this.cursor, this.parseError);
+
+      if (this.cursor.hasUnresolvedError()) {
+        this._processMatch();
+        break;
+      } else {
         this.nodes.push(node);
 
         if (node.endIndex === this.cursor.lastIndex()) {
@@ -1314,34 +1243,36 @@ class RepeatValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default
         }
 
         mark = this.cursor.mark();
-
         this.cursor.next();
 
         if (this._divider != null) {
           const mark = this.cursor.mark();
-          try {
-            this.nodes.push(this._divider.parse(this.cursor, this.parseError));
-            this.cursor.next();
-          } catch (error) {
+          const node = this._divider.parse(this.cursor);
+
+          if (this.cursor.hasUnresolvedError()) {
             this.cursor.moveToMark(mark);
             this._processMatch();
             break;
+          } else {
+            this.nodes.push(node);
+            this.cursor.next();
           }
         }
-      } catch (error) {
-        this._processMatch();
-        break;
       }
     }
   }
 
   _processMatch() {
+    this.cursor.resolveError();
+    
     if (this.nodes.length === 0) {
-      this.parseError.message= `Did not find a repeating match of ${this.name}.`;
-      this.parseError.index = this.mark.index;
-      this.parseError.pattern = this;
-
-      throw this.parseError;
+      const parseError = new _ParseError_js__WEBPACK_IMPORTED_MODULE_2__["default"](
+        `Did not find a repeating match of ${this.name}.`,
+        this.mark.index,
+        this
+      );
+      this.cursor.throwError(parseError);
+      this.node = null;
     } else {
       const value = this.nodes.map(node => node.value).join("");
 
@@ -1370,18 +1301,18 @@ class RepeatValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default
 
 
 /***/ }),
-/* 18 */
+/* 17 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return AndComposite; });
-/* harmony import */ var _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(19);
+/* harmony import */ var _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(18);
 /* harmony import */ var _ast_CompositeNode_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4);
 /* harmony import */ var _Cursor_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6);
 /* harmony import */ var _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(10);
-/* harmony import */ var _StackInformation_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(11);
-/* harmony import */ var _value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(12);
+/* harmony import */ var _StackInformation_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(19);
+/* harmony import */ var _value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(11);
 /* harmony import */ var _OptionalComposite_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(20);
 
 
@@ -1405,25 +1336,16 @@ class AndComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["de
     }
   }
 
-  _reset(cursor, parseError) {
-    this.cursor = null;
+  _reset(cursor) {
     this.index = 0;
     this.nodes = [];
     this.node = null;
-    this.parseError = parseError;
-
-    if (cursor != null) {
-      this.cursor = cursor;
-      this.mark = this.cursor.mark();
-    }
-
-    if (parseError == null){
-      this.parseError = new _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_3__["default"]();
-    }
+    this.cursor = cursor;
+    this.mark = this.cursor.mark();
   }
 
-  parse(cursor, parseError) {
-    this._reset(cursor, parseError);
+  parse(cursor) {
+    this._reset(cursor);
     this._assertCursor();
     this._tryPatterns();
 
@@ -1439,12 +1361,13 @@ class AndComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["de
   _tryPatterns() {
     while (true) {
       const pattern = this._children[this.index];
+      const node = pattern.parse(this.cursor);
 
-      try {
-        this.nodes.push(pattern.parse(this.cursor, this.parseError));
-      } catch (error) {
-        error.stack.push(new _StackInformation_js__WEBPACK_IMPORTED_MODULE_4__["default"](this.mark, this));
-        throw error;
+      if (this.cursor.hasUnresolvedError()) {
+        this.cursor.moveToMark(this.mark);
+        break;
+      } else {
+        this.nodes.push(node);
       }
 
       if (!this._next()) {
@@ -1490,23 +1413,30 @@ class AndComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["de
     });
 
     if (!areTheRestOptional) {
-      throw new _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_3__["default"](
-        `Could not match ${this.name} before string ran out.`
+      const parseError = new _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_3__["default"](
+        `Could not match ${this.name} before string ran out.`,
+        this.index,
+        this
       );
+      this.cursor.throwError(parseError);
     }
   }
 
   _processValue() {
-    this.nodes = this.nodes.filter(node => node != null);
+    if (!this.cursor.hasUnresolvedError()) {
+      this.nodes = this.nodes.filter(node => node != null);
 
-    const lastNode = this.nodes[this.nodes.length - 1];
-    const startIndex = this.mark.index;
-    const endIndex = lastNode.endIndex;
+      const lastNode = this.nodes[this.nodes.length - 1];
+      const startIndex = this.mark.index;
+      const endIndex = lastNode.endIndex;
 
-    this.node = new _ast_CompositeNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](this.name, startIndex, endIndex);
-    this.node.children = this.nodes;
+      this.node = new _ast_CompositeNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](this.name, startIndex, endIndex);
+      this.node.children = this.nodes;
 
-    this.cursor.setIndex(this.node.endIndex);
+      this.cursor.setIndex(this.node.endIndex);
+    } else {
+      this.node = null;
+    }
   }
 
   clone(name) {
@@ -1516,14 +1446,14 @@ class AndComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["de
     return new AndComposite(name, this._children);
   }
 
-  getCurrentMark(){
+  getCurrentMark() {
     return this.mark;
   }
 }
 
 
 /***/ }),
-/* 19 */
+/* 18 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1591,19 +1521,33 @@ class CompositePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default
 
 
 /***/ }),
+/* 19 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return StackInformation; });
+class StackInformation {
+    constructor(mark, pattern){
+        this.mark = mark;
+        this.pattern = pattern;
+        this.expectations = [];
+    }
+}
+
+/***/ }),
 /* 20 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return OptionalComposite; });
-/* harmony import */ var _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(19);
+/* harmony import */ var _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(18);
 
 
 class OptionalComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
   constructor(pattern) {
     super("optional-composite", [pattern]);
-    
     this._assertArguments();
   }
 
@@ -1613,15 +1557,18 @@ class OptionalComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0_
     }
   }
 
-  parse(cursor, parseError) {
+  parse(cursor) {
     const mark = cursor.mark();
     this.mark = mark;
-    
-    try {
-      return this.children[0].parse(cursor, parseError);
-    } catch (error) {
+
+    const node = this.children[0].parse(cursor);
+
+    if (cursor.hasUnresolvedError()) {
+      cursor.resolveError();
       cursor.moveToMark(mark);
       return null;
+    } else {
+      return node;
     }
   }
 
@@ -1629,7 +1576,7 @@ class OptionalComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0_
     return new OptionalComposite(this.children[0]);
   }
 
-  getCurrentMark(){
+  getCurrentMark() {
     return this.mark;
   }
 }
@@ -1642,10 +1589,10 @@ class OptionalComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0_
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return OrComposite; });
-/* harmony import */ var _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(19);
+/* harmony import */ var _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(18);
 /* harmony import */ var _Cursor_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6);
-/* harmony import */ var _StackInformation_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(11);
-/* harmony import */ var _value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(12);
+/* harmony import */ var _StackInformation_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(19);
+/* harmony import */ var _value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(11);
 /* harmony import */ var _OptionalComposite_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(20);
 /* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(10);
 
@@ -1678,26 +1625,20 @@ class OrComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["def
     }
   }
 
-  _reset(cursor, parseError) {
+  _reset(cursor) {
     this.cursor = null;
     this.mark = null;
     this.index = 0;
-    this.errors = [];
     this.node = null;
-    this.parseError = parseError;
 
     if (cursor != null) {
       this.cursor = cursor;
       this.mark = cursor.mark();
     }
-
-    if (parseError == null) {
-      this.parseError = new _ParseError_js__WEBPACK_IMPORTED_MODULE_5__["default"]();
-    }
   }
 
-  parse(cursor, parseError) {
-    this._reset(cursor, parseError);
+  parse(cursor) {
+    this._reset(cursor);
     this._assertCursor();
     this._tryPattern();
 
@@ -1714,35 +1655,24 @@ class OrComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["def
     while (true) {
       const pattern = this._children[this.index];
 
-      try {
-        this.node = pattern.parse(this.cursor, this.parseError);
-        this.cursor.setIndex(this.node.endIndex);
-        break;
-      } catch (error) {
-        this.errors.push(error);
+      this.node = pattern.parse(this.cursor);
+
+      if (this.cursor.hasUnresolvedError()) {
 
         if (this.index + 1 < this._children.length) {
+          this.cursor.resolveError();
           this.index++;
           this.cursor.moveToMark(this.mark);
         } else {
-          this.throwError();
+          this.node = null;
+          break;
         }
+
+      } else {
+        this.cursor.setIndex(this.node.endIndex);
+        break;
       }
     }
-  }
-
-  throwError() {
-    const error = this.errors.reduce((furthestError, nextError) => {
-      if (furthestError.index > nextError.index) {
-        return furthestError;
-      } else {
-        return nextError;
-      }
-    });
-
-    error.stack.push(new _StackInformation_js__WEBPACK_IMPORTED_MODULE_2__["default"](this.mark, this));
-
-    throw error;
   }
 
   clone(name) {
@@ -1765,7 +1695,7 @@ class OrComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["def
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return RepeatComposite; });
-/* harmony import */ var _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(19);
+/* harmony import */ var _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(18);
 /* harmony import */ var _ast_CompositeNode_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4);
 /* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(10);
 /* harmony import */ var _OptionalComposite_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(20);
@@ -1777,10 +1707,8 @@ __webpack_require__.r(__webpack_exports__);
 class RepeatComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
   constructor(name, pattern, divider) {
     super(name, divider != null ? [pattern, divider] : [pattern]);
-
     this._pattern = this.children[0];
     this._divider = this.children[1];
-
     this._assertArguments();
   }
 
@@ -1792,24 +1720,14 @@ class RepeatComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__[
     }
   }
 
-  _reset(cursor, parseError) {
-    this.cursor = null;
-    this.mark = null;
+  _reset(cursor) {
     this.nodes = [];
-    this.parseError = parseError;
-
-    if (cursor != null) {
-      this.cursor = cursor;
-      this.mark = this.cursor.mark();
-    }
-
-    if (parseError == null) {
-      this.parseError = new _ParseError_js__WEBPACK_IMPORTED_MODULE_2__["default"]();
-    }
+    this.cursor = cursor;
+    this.mark = this.cursor.mark();
   }
 
-  parse(cursor, parseError) {
-    this._reset(cursor, parseError);
+  parse(cursor) {
+    this._reset(cursor);
     this._tryPattern();
 
     return this.node;
@@ -1817,35 +1735,45 @@ class RepeatComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__[
 
   _tryPattern() {
     while (true) {
-      try {
-        this.nodes.push(this._pattern.parse(this.cursor, this.parseError));
+      const node = this._pattern.parse(this.cursor);
+
+      if (this.cursor.hasUnresolvedError()) {
+        this._processMatch();
+        break;
+      } else {
+        this.nodes.push(node);
         this.cursor.next();
 
         if (this._divider != null) {
           const mark = this.cursor.mark();
-          try {
-            this.nodes.push(this._divider.parse(this.cursor));
-            this.cursor.next();
-          } catch (error) {
+
+          const node = this._divider.parse(this.cursor);
+
+          if (this.cursor.hasUnresolvedError()) {
             this.cursor.moveToMark(mark);
             this._processMatch();
             break;
+          } else {
+            this.nodes.push(node);
+            this.cursor.next();
           }
         }
-      } catch (error) {
-        this._processMatch();
-        break;
       }
     }
   }
 
   _processMatch() {
+    this.cursor.resolveError();
+
     if (this.nodes.length === 0) {
-      throw new _ParseError_js__WEBPACK_IMPORTED_MODULE_2__["default"](
-        `Did not find a repeating match of ${this.name}.`,
-        this.mark.index,
-        this
+      this.cursor.throwError(
+        new _ParseError_js__WEBPACK_IMPORTED_MODULE_2__["default"](
+          `Did not find a repeating match of ${this.name}.`,
+          this.mark.index,
+          this
+        )
       );
+      this.node = null;
     } else {
       this.node = new _ast_CompositeNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](
         this.name,
@@ -1905,18 +1833,24 @@ class RecursivePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default
     }
   }
 
-  parse(cursor, parseError) {
+  parse(cursor) {
     const pattern = this.getPattern();
 
     if (pattern == null) {
-      throw new _ParseError_js__WEBPACK_IMPORTED_MODULE_1__["default"](
-        `Couldn't find parent pattern to recursively parse, with the name ${this.name}.`
+      cursor.throwError(
+        new _ParseError_js__WEBPACK_IMPORTED_MODULE_1__["default"](
+          `Couldn't find parent pattern to recursively parse, with the name ${this.name}.`
+        ),
+        cursor.index,
+        this
       );
+      return null;
     }
+
     this.pattern = pattern.clone();
     this.pattern.parent = this;
 
-    return this.pattern.parse(cursor, parseError);
+    return this.pattern.parse(cursor);
   }
 
   clone(name) {
@@ -1926,7 +1860,7 @@ class RecursivePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default
     return new RecursivePattern(name);
   }
 
-  getCurrentMark(){
+  getCurrentMark() {
     return this.pattern.getCurrentMark();
   }
 }

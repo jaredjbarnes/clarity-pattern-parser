@@ -39,9 +39,8 @@ exports["RepeatValue: No Match"] = () => {
   const johns = new RepeatValue("johns", john);
   const cursor = new Cursor("JaneJane");
 
-  assert.throws(() => {
-    johns.parse(cursor);
-  });
+  johns.parse(cursor);
+  assert.equal(cursor.hasUnresolvedError(), true);
 };
 
 exports["RepeatValue: Success, one John"] = () => {
@@ -103,5 +102,4 @@ exports["RepeatValue: With divider."] = () => {
 
   assert.equal(node.name, "johns");
   assert.equal(node.value, "John,John");
-
 };

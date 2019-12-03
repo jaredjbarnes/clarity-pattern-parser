@@ -1,11 +1,30 @@
 import Mark from "./Mark.js";
 
 export default class Cursor {
-  constructor(string) {
+  constructor(string, { verbose } = {}) {
     this.string = string;
     this.index = 0;
     this.length = string.length;
+    this.parseError = null;
+    this.verbose = typeof verbose === "boolean" ? verbose : false;
+    this.isInErrorState = false;
     this.assertValidity();
+  }
+
+  throwError(parseError) {
+    this.isInErrorState = true;
+
+    if (this.parseError == null || parseError.index >= this.parseError.index){
+      this.parseError = parseError;
+    }
+  }
+
+  resolveError() {
+    this.isInErrorState = false;
+  }
+
+  hasUnresolvedError() {
+    return this.isInErrorState;
   }
 
   assertValidity() {

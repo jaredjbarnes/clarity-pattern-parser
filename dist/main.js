@@ -1227,9 +1227,7 @@ class RepeatValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default
 
   _tryPattern() {
     while (true) {
-      let mark = this.cursor.mark();
-
-      const node = this._pattern.parse(this.cursor, this.parseError);
+      const node = this._pattern.parse(this.cursor);
 
       if (this.cursor.hasUnresolvedError()) {
         this._processMatch();
@@ -1241,10 +1239,9 @@ class RepeatValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default
           this._processMatch();
           break;
         }
-
-        mark = this.cursor.mark();
+        
         this.cursor.next();
-
+        
         if (this._divider != null) {
           const mark = this.cursor.mark();
           const node = this._divider.parse(this.cursor);
@@ -1742,11 +1739,16 @@ class RepeatComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__[
         break;
       } else {
         this.nodes.push(node);
+
+        if (node.endIndex === this.cursor.lastIndex()) {
+          this._processMatch();
+          break;
+        }
+
         this.cursor.next();
 
         if (this._divider != null) {
           const mark = this.cursor.mark();
-
           const node = this._divider.parse(this.cursor);
 
           if (this.cursor.hasUnresolvedError()) {

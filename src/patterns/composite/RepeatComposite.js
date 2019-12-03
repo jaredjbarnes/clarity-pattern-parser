@@ -41,11 +41,16 @@ export default class RepeatComposite extends CompositePattern {
         break;
       } else {
         this.nodes.push(node);
+
+        if (node.endIndex === this.cursor.lastIndex()) {
+          this._processMatch();
+          break;
+        }
+
         this.cursor.next();
 
         if (this._divider != null) {
           const mark = this.cursor.mark();
-
           const node = this._divider.parse(this.cursor);
 
           if (this.cursor.hasUnresolvedError()) {

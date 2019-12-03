@@ -36,9 +36,7 @@ export default class RepeatValue extends ValuePattern {
 
   _tryPattern() {
     while (true) {
-      let mark = this.cursor.mark();
-
-      const node = this._pattern.parse(this.cursor, this.parseError);
+      const node = this._pattern.parse(this.cursor);
 
       if (this.cursor.hasUnresolvedError()) {
         this._processMatch();
@@ -50,10 +48,9 @@ export default class RepeatValue extends ValuePattern {
           this._processMatch();
           break;
         }
-
-        mark = this.cursor.mark();
+        
         this.cursor.next();
-
+        
         if (this._divider != null) {
           const mark = this.cursor.mark();
           const node = this._divider.parse(this.cursor);

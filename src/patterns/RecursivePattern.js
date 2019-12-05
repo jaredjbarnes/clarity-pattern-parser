@@ -24,21 +24,23 @@ export default class RecursivePattern extends Pattern {
   }
 
   parse(cursor) {
-    const pattern = this.getPattern();
+    if (this.pattern == null) {
+      const pattern = this.getPattern();
 
-    if (pattern == null) {
-      cursor.throwError(
-        new ParserError(
-          `Couldn't find parent pattern to recursively parse, with the name ${this.name}.`
-        ),
-        cursor.index,
-        this
-      );
-      return null;
+      if (pattern == null) {
+        cursor.throwError(
+          new ParserError(
+            `Couldn't find parent pattern to recursively parse, with the name ${this.name}.`
+          ),
+          cursor.index,
+          this
+        );
+        return null;
+      }
+
+      this.pattern = pattern.clone();
+      this.pattern.parent = this;
     }
-
-    this.pattern = pattern.clone();
-    this.pattern.parent = this;
 
     return this.pattern.parse(cursor);
   }

@@ -1836,21 +1836,23 @@ class RecursivePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default
   }
 
   parse(cursor) {
-    const pattern = this.getPattern();
+    if (this.pattern == null) {
+      const pattern = this.getPattern();
 
-    if (pattern == null) {
-      cursor.throwError(
-        new _ParseError_js__WEBPACK_IMPORTED_MODULE_1__["default"](
-          `Couldn't find parent pattern to recursively parse, with the name ${this.name}.`
-        ),
-        cursor.index,
-        this
-      );
-      return null;
+      if (pattern == null) {
+        cursor.throwError(
+          new _ParseError_js__WEBPACK_IMPORTED_MODULE_1__["default"](
+            `Couldn't find parent pattern to recursively parse, with the name ${this.name}.`
+          ),
+          cursor.index,
+          this
+        );
+        return null;
+      }
+
+      this.pattern = pattern.clone();
+      this.pattern.parent = this;
     }
-
-    this.pattern = pattern.clone();
-    this.pattern.parent = this;
 
     return this.pattern.parse(cursor);
   }

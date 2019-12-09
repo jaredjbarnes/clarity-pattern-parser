@@ -1540,6 +1540,8 @@ class StackInformation {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return OptionalComposite; });
 /* harmony import */ var _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(18);
+/* harmony import */ var _Pattern_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(9);
+
 
 
 class OptionalComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
@@ -1549,8 +1551,8 @@ class OptionalComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0_
   }
 
   _assertArguments() {
-    if (!(this.children[0] instanceof _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"])) {
-      throw new Error("Invalid Arguments: Expected a CompositePattern.");
+    if (!(this.children[0] instanceof _Pattern_js__WEBPACK_IMPORTED_MODULE_1__["default"])) {
+      throw new Error("Invalid Arguments: Expected a Pattern.");
     }
   }
 

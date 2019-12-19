@@ -122,56 +122,60 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Cursor_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(6);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Cursor", function() { return _Cursor_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
 
-/* harmony import */ var _patterns_value_AndValue_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(7);
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "AndValue", function() { return _patterns_value_AndValue_js__WEBPACK_IMPORTED_MODULE_5__["default"]; });
+/* harmony import */ var _patterns_value_RegexValue_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(7);
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "RegexValue", function() { return _patterns_value_RegexValue_js__WEBPACK_IMPORTED_MODULE_5__["default"]; });
 
-/* harmony import */ var _patterns_value_AnyOfThese_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(12);
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "AnyOfThese", function() { return _patterns_value_AnyOfThese_js__WEBPACK_IMPORTED_MODULE_6__["default"]; });
+/* harmony import */ var _patterns_value_AndValue_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(11);
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "AndValue", function() { return _patterns_value_AndValue_js__WEBPACK_IMPORTED_MODULE_6__["default"]; });
 
-/* harmony import */ var _patterns_value_Literal_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(13);
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Literal", function() { return _patterns_value_Literal_js__WEBPACK_IMPORTED_MODULE_7__["default"]; });
+/* harmony import */ var _patterns_value_AnyOfThese_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(13);
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "AnyOfThese", function() { return _patterns_value_AnyOfThese_js__WEBPACK_IMPORTED_MODULE_7__["default"]; });
 
-/* harmony import */ var _patterns_value_NotValue_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(14);
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "NotValue", function() { return _patterns_value_NotValue_js__WEBPACK_IMPORTED_MODULE_8__["default"]; });
+/* harmony import */ var _patterns_value_Literal_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(14);
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Literal", function() { return _patterns_value_Literal_js__WEBPACK_IMPORTED_MODULE_8__["default"]; });
 
-/* harmony import */ var _patterns_value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(11);
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "OptionalValue", function() { return _patterns_value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_9__["default"]; });
+/* harmony import */ var _patterns_value_NotValue_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(15);
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "NotValue", function() { return _patterns_value_NotValue_js__WEBPACK_IMPORTED_MODULE_9__["default"]; });
 
-/* harmony import */ var _patterns_value_OrValue_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(15);
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "OrValue", function() { return _patterns_value_OrValue_js__WEBPACK_IMPORTED_MODULE_10__["default"]; });
+/* harmony import */ var _patterns_value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(12);
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "OptionalValue", function() { return _patterns_value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_10__["default"]; });
 
-/* harmony import */ var _patterns_value_RepeatValue_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(16);
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "RepeatValue", function() { return _patterns_value_RepeatValue_js__WEBPACK_IMPORTED_MODULE_11__["default"]; });
+/* harmony import */ var _patterns_value_OrValue_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(16);
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "OrValue", function() { return _patterns_value_OrValue_js__WEBPACK_IMPORTED_MODULE_11__["default"]; });
 
-/* harmony import */ var _patterns_value_ValuePattern_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(8);
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ValuePattern", function() { return _patterns_value_ValuePattern_js__WEBPACK_IMPORTED_MODULE_12__["default"]; });
+/* harmony import */ var _patterns_value_RepeatValue_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(17);
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "RepeatValue", function() { return _patterns_value_RepeatValue_js__WEBPACK_IMPORTED_MODULE_12__["default"]; });
 
-/* harmony import */ var _patterns_composite_AndComposite_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(17);
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "AndComposite", function() { return _patterns_composite_AndComposite_js__WEBPACK_IMPORTED_MODULE_13__["default"]; });
+/* harmony import */ var _patterns_value_ValuePattern_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(9);
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ValuePattern", function() { return _patterns_value_ValuePattern_js__WEBPACK_IMPORTED_MODULE_13__["default"]; });
 
-/* harmony import */ var _patterns_composite_CompositePattern_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(18);
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "CompositePattern", function() { return _patterns_composite_CompositePattern_js__WEBPACK_IMPORTED_MODULE_14__["default"]; });
+/* harmony import */ var _patterns_composite_AndComposite_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(18);
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "AndComposite", function() { return _patterns_composite_AndComposite_js__WEBPACK_IMPORTED_MODULE_14__["default"]; });
 
-/* harmony import */ var _patterns_composite_OptionalComposite_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(20);
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "OptionalComposite", function() { return _patterns_composite_OptionalComposite_js__WEBPACK_IMPORTED_MODULE_15__["default"]; });
+/* harmony import */ var _patterns_composite_CompositePattern_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(19);
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "CompositePattern", function() { return _patterns_composite_CompositePattern_js__WEBPACK_IMPORTED_MODULE_15__["default"]; });
 
-/* harmony import */ var _patterns_composite_OrComposite_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(21);
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "OrComposite", function() { return _patterns_composite_OrComposite_js__WEBPACK_IMPORTED_MODULE_16__["default"]; });
+/* harmony import */ var _patterns_composite_OptionalComposite_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(21);
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "OptionalComposite", function() { return _patterns_composite_OptionalComposite_js__WEBPACK_IMPORTED_MODULE_16__["default"]; });
 
-/* harmony import */ var _patterns_composite_RepeatComposite_js__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(22);
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "RepeatComposite", function() { return _patterns_composite_RepeatComposite_js__WEBPACK_IMPORTED_MODULE_17__["default"]; });
+/* harmony import */ var _patterns_composite_OrComposite_js__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(22);
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "OrComposite", function() { return _patterns_composite_OrComposite_js__WEBPACK_IMPORTED_MODULE_17__["default"]; });
 
-/* harmony import */ var _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(10);
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ParseError", function() { return _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_18__["default"]; });
+/* harmony import */ var _patterns_composite_RepeatComposite_js__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(23);
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "RepeatComposite", function() { return _patterns_composite_RepeatComposite_js__WEBPACK_IMPORTED_MODULE_18__["default"]; });
 
-/* harmony import */ var _patterns_Pattern_js__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(9);
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Pattern", function() { return _patterns_Pattern_js__WEBPACK_IMPORTED_MODULE_19__["default"]; });
+/* harmony import */ var _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(8);
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ParseError", function() { return _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_19__["default"]; });
 
-/* harmony import */ var _patterns_StackInformation_js__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(19);
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "StackInformation", function() { return _patterns_StackInformation_js__WEBPACK_IMPORTED_MODULE_20__["default"]; });
+/* harmony import */ var _patterns_Pattern_js__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(10);
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Pattern", function() { return _patterns_Pattern_js__WEBPACK_IMPORTED_MODULE_20__["default"]; });
 
-/* harmony import */ var _patterns_RecursivePattern_js__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(23);
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "RecursivePattern", function() { return _patterns_RecursivePattern_js__WEBPACK_IMPORTED_MODULE_21__["default"]; });
+/* harmony import */ var _patterns_StackInformation_js__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(20);
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "StackInformation", function() { return _patterns_StackInformation_js__WEBPACK_IMPORTED_MODULE_21__["default"]; });
+
+/* harmony import */ var _patterns_RecursivePattern_js__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(24);
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "RecursivePattern", function() { return _patterns_RecursivePattern_js__WEBPACK_IMPORTED_MODULE_22__["default"]; });
+
 
 
 
@@ -427,12 +431,288 @@ class Cursor {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return RegexValue; });
+/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8);
+/* harmony import */ var _Cursor_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6);
+/* harmony import */ var _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5);
+/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(9);
+
+
+
+
+
+class RegexValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__["default"] {
+  constructor(name, regex) {
+    super(name);
+    this.regexString = regex;
+    this.regex = new RegExp(`^${regex}`, "g");
+    this._assertArguments();
+  }
+
+  _assertArguments() {
+    if (typeof this.regexString !== "string") {
+      throw new Error(
+        "Invalid Arguments: The regex argument needs to be a string of regex."
+      );
+    }
+
+    if (this.regexString.length < 1) {
+      throw new Error(
+        "Invalid Arguments: The regex string argument needs to be at least one character long."
+      );
+    }
+
+    if (this.regexString.charAt(0) === "^") {
+      throw new Error(
+        "Invalid Arguments: The regex string cannot start with a '^' because it is expected to be in the middle of a string."
+      );
+    }
+
+    if (this.regexString.charAt(this.regexString.length - 1) === "$") {
+      throw new Error(
+        "Invalid Arguments: The regex string cannot end with a '$' because it is expected to be in the middle of a string."
+      );
+    }
+  }
+
+  parse(cursor) {
+    this._reset(cursor);
+    this._tryPattern();
+
+    return this.node;
+  }
+
+  _reset(cursor) {
+    this.cursor = cursor;
+    this.regex.lastIndex = 0;
+    this.substring = this.cursor.string.substr(this.cursor.getIndex());
+    this.node = null;
+  }
+
+  _assertCursor() {
+    if (!(this.cursor instanceof _Cursor_js__WEBPACK_IMPORTED_MODULE_1__["default"])) {
+      throw new Error("Invalid Arguments: Expected a cursor.");
+    }
+  }
+
+  _tryPattern() {
+    const result = this.regex.exec(this.substring);
+
+    if (result != null) {
+      const currentIndex = this.cursor.getIndex();
+      const newIndex = currentIndex + this.regex.lastIndex - 1;
+
+      this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_2__["default"](this.name, result[0], currentIndex, newIndex);
+
+      this.cursor.setIndex(newIndex);
+    } else {
+      this._processError();
+    }
+  }
+
+  _processError() {
+    const message = `ParseError: Expected regex pattern of '${this.regexString}' but found '${this.substring}'.`;
+    const parseError = new _ParseError_js__WEBPACK_IMPORTED_MODULE_0__["default"](message, this.cursor.getIndex(), this);
+
+    this.cursor.throwError(parseError);
+  }
+
+  clone(name) {
+    if (typeof name !== "string") {
+      name = this.name;
+    }
+    return new RegexValue(name, this.regexString);
+  }
+
+  getCurrentMark() {
+    return this.cursor.getIndex();
+  }
+}
+
+
+/***/ }),
+/* 8 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ParseError; });
+class ParseError {
+    constructor(message, index, pattern){
+        this.message = message;
+        this.name = 'ParseError';
+        this.index = index;
+        this.pattern = pattern;
+        this.stack = [];
+    }
+}
+
+/***/ }),
+/* 9 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ValuePattern; });
+/* harmony import */ var _Pattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(10);
+
+
+class ValuePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
+  constructor(name, children = []) {
+    super(name);
+    this._children = children;
+    this._assertPatternArguments();
+    this._cloneChildren();
+    this._assignAsParent();
+  }
+
+  _assertPatternArguments() {
+    if (!Array.isArray(this._children)) {
+      throw new Error(
+        "Invalid Arguments: The patterns argument need to be an array of ValuePattern."
+      );
+    }
+
+    const areAllPatterns = this._children.every(
+      pattern => pattern instanceof ValuePattern
+    );
+
+    if (!areAllPatterns) {
+      throw new Error(
+        "Invalid Argument: All patterns need to be an instance of ValuePattern."
+      );
+    }
+
+    if (typeof this.name !== "string") {
+      throw new Error(
+        "Invalid Argument: ValuePatterns needs to have a name that's a string."
+      );
+    }
+  }
+
+  _cloneChildren() {
+    // We need to clone the patterns so nested patterns can be parsed.
+    this._children = this._children.map(pattern => pattern.clone());
+
+    // We need to freeze the childen so they aren't modified.
+    Object.freeze(this._children);
+  }
+
+  _assignAsParent() {
+    this._children.forEach(child => (child.parent = this));
+  }
+
+  clone() {
+    throw new Error("Not Yet Implemented");
+  }
+
+  getCurrentMark(){
+    throw new Error("Not Yet Implemented");
+  }
+}
+
+
+/***/ }),
+/* 10 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Pattern; });
+class Pattern {
+  constructor(name = null) {
+    this._name = name;
+    this._parent = null;
+    this._children = [];
+
+    this._assertName();
+  }
+
+  _assertName() {
+    if (typeof this.name !== "string") {
+      throw new Error(
+        "Invalid Argument: Patterns needs to have a name that's a string."
+      );
+    }
+  }
+
+  parse() {
+    throw new Error("Method Not Implemented");
+  }
+
+  get name() {
+    return this._name;
+  }
+
+  get parent() {
+    return this._parent;
+  }
+
+  set parent(value) {
+    if (value instanceof Pattern) {
+      this._parent = value;
+    }
+  }
+
+  get children() {
+    return this._children;
+  }
+
+  set children(value) {
+    this._children = value;
+    this._assertChildren();
+    this._assignAsParent();
+
+    this._children = value.map(pattern => pattern.clone());
+    Object.freeze(this._children);
+  }
+
+  _assertChildren() {
+    if (!Array.isArray(this._children)) {
+      throw new Error(
+        "Invalid Arguments: The patterns argument need to be an array of Patterns."
+      );
+    }
+
+    const areAllPatterns = this._children.every(
+      pattern => pattern instanceof Pattern
+    );
+
+    if (!areAllPatterns) {
+      throw new Error(
+        "Invalid Argument: All patterns need to be an instance of Pattern."
+      );
+    }
+
+    if (this._children.length < 2) {
+      throw new Error(
+        "Invalid Argument: Composite Patterns needs to have more than one value pattern."
+      );
+    }
+  }
+
+  _assignAsParent() {
+    this._children.forEach(child => (child.parent = this));
+  }
+
+  clone() {
+    throw new Error("Method Not Implemented");
+  }
+}
+
+
+/***/ }),
+/* 11 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return AndValue; });
-/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8);
+/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
 /* harmony import */ var _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5);
 /* harmony import */ var _Cursor_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6);
-/* harmony import */ var _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(10);
-/* harmony import */ var _OptionalValue_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(11);
+/* harmony import */ var _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(8);
+/* harmony import */ var _OptionalValue_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(12);
 
 
 
@@ -463,18 +743,11 @@ class AndValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
 
   parse(cursor) {
     this._reset(cursor);
-    this._assertCursor();
     this._tryPatterns();
 
     return this.node;
   }
-
-  _assertCursor() {
-    if (!(this.cursor instanceof _Cursor_js__WEBPACK_IMPORTED_MODULE_2__["default"])) {
-      throw new Error("Invalid Arguments: Expected a cursor.");
-    }
-  }
-
+  
   _tryPatterns() {
     while (true) {
       const pattern = this._children[this.index];
@@ -566,184 +839,13 @@ class AndValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
 
 
 /***/ }),
-/* 8 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ValuePattern; });
-/* harmony import */ var _Pattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
-
-
-class ValuePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
-  constructor(name, children = []) {
-    super(name);
-    this._children = children;
-    this._assertPatternArguments();
-    this._cloneChildren();
-    this._assignAsParent();
-  }
-
-  _assertPatternArguments() {
-    if (!Array.isArray(this._children)) {
-      throw new Error(
-        "Invalid Arguments: The patterns argument need to be an array of ValuePattern."
-      );
-    }
-
-    const areAllPatterns = this._children.every(
-      pattern => pattern instanceof ValuePattern
-    );
-
-    if (!areAllPatterns) {
-      throw new Error(
-        "Invalid Argument: All patterns need to be an instance of ValuePattern."
-      );
-    }
-
-    if (typeof this.name !== "string") {
-      throw new Error(
-        "Invalid Argument: ValuePatterns needs to have a name that's a string."
-      );
-    }
-  }
-
-  _cloneChildren() {
-    // We need to clone the patterns so nested patterns can be parsed.
-    this._children = this._children.map(pattern => pattern.clone());
-
-    // We need to freeze the childen so they aren't modified.
-    Object.freeze(this._children);
-  }
-
-  _assignAsParent() {
-    this._children.forEach(child => (child.parent = this));
-  }
-
-  clone() {
-    throw new Error("Not Yet Implemented");
-  }
-
-  getCurrentMark(){
-    throw new Error("Not Yet Implemented");
-  }
-}
-
-
-/***/ }),
-/* 9 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Pattern; });
-class Pattern {
-  constructor(name = null) {
-    this._name = name;
-    this._parent = null;
-    this._children = [];
-
-    this._assertName();
-  }
-
-  _assertName() {
-    if (typeof this.name !== "string") {
-      throw new Error(
-        "Invalid Argument: Patterns needs to have a name that's a string."
-      );
-    }
-  }
-
-  parse() {
-    throw new Error("Method Not Implemented");
-  }
-
-  get name() {
-    return this._name;
-  }
-
-  get parent() {
-    return this._parent;
-  }
-
-  set parent(value) {
-    if (value instanceof Pattern) {
-      this._parent = value;
-    }
-  }
-
-  get children() {
-    return this._children;
-  }
-
-  set children(value) {
-    this._children = value;
-    this._assertChildren();
-    this._assignAsParent();
-
-    this._children = value.map(pattern => pattern.clone());
-    Object.freeze(this._children);
-  }
-
-  _assertChildren() {
-    if (!Array.isArray(this._children)) {
-      throw new Error(
-        "Invalid Arguments: The patterns argument need to be an array of Patterns."
-      );
-    }
-
-    const areAllPatterns = this._children.every(
-      pattern => pattern instanceof Pattern
-    );
-
-    if (!areAllPatterns) {
-      throw new Error(
-        "Invalid Argument: All patterns need to be an instance of Pattern."
-      );
-    }
-
-    if (this._children.length < 2) {
-      throw new Error(
-        "Invalid Argument: Composite Patterns needs to have more than one value pattern."
-      );
-    }
-  }
-
-  _assignAsParent() {
-    this._children.forEach(child => (child.parent = this));
-  }
-
-  clone() {
-    throw new Error("Method Not Implemented");
-  }
-}
-
-
-/***/ }),
-/* 10 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ParseError; });
-class ParseError {
-    constructor(message, index, pattern){
-        this.message = message;
-        this.name = 'ParseError';
-        this.index = index;
-        this.pattern = pattern;
-        this.stack = [];
-    }
-}
-
-/***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return OptionalValue; });
-/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8);
+/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
 
 
 class OptionalValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
@@ -783,14 +885,14 @@ class OptionalValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["defau
 
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return AnyOfThese; });
-/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8);
-/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(10);
+/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
+/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(8);
 /* harmony import */ var _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5);
 /* harmony import */ var _Cursor_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(6);
 
@@ -821,15 +923,8 @@ class AnyOfThese extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"
 
   parse(cursor) {
     this._reset(cursor);
-    this._assertCursor();
     this._tryPattern();
     return this.node;
-  }
-
-  _assertCursor() {
-    if (!(this.cursor instanceof _Cursor_js__WEBPACK_IMPORTED_MODULE_3__["default"])) {
-      throw new Error("Invalid Arguments: Expected a cursor.");
-    }
   }
 
   _reset(cursor) {
@@ -876,16 +971,16 @@ class AnyOfThese extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"
 
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Literal; });
-/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(10);
+/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8);
 /* harmony import */ var _Cursor_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6);
 /* harmony import */ var _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5);
-/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(8);
+/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(9);
 
 
 
@@ -914,7 +1009,6 @@ class Literal extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__["default"] {
 
   parse(cursor) {
     this._reset(cursor);
-    this._assertCursor();
     this._tryPattern();
 
     return this.node;
@@ -929,13 +1023,7 @@ class Literal extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__["default"] {
     );
     this.node = null;
   }
-
-  _assertCursor() {
-    if (!(this.cursor instanceof _Cursor_js__WEBPACK_IMPORTED_MODULE_1__["default"])) {
-      throw new Error("Invalid Arguments: Expected a cursor.");
-    }
-  }
-
+  
   _tryPattern() {
     if (this.substring === this.literal) {
       this._processMatch();
@@ -978,15 +1066,15 @@ class Literal extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__["default"] {
 
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return NotValue; });
-/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8);
+/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
 /* harmony import */ var _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5);
-/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(10);
+/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(8);
 
 
 
@@ -1076,16 +1164,16 @@ class NotValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
 
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return OrValue; });
-/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8);
+/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
 /* harmony import */ var _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5);
 /* harmony import */ var _Cursor_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6);
-/* harmony import */ var _OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(11);
+/* harmony import */ var _OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(12);
 
 
 
@@ -1123,16 +1211,9 @@ class OrValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
   parse(cursor) {
     this._reset(cursor);
-    this._assertCursor();
     this._tryPattern();
 
     return this.node;
-  }
-
-  _assertCursor() {
-    if (!(this.cursor instanceof _Cursor_js__WEBPACK_IMPORTED_MODULE_2__["default"])) {
-      throw new Error("Invalid Arguments: Expected a cursor.");
-    }
   }
 
   _tryPattern() {
@@ -1179,16 +1260,16 @@ class OrValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return RepeatValue; });
-/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8);
+/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
 /* harmony import */ var _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5);
-/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(10);
-/* harmony import */ var _OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(11);
+/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(8);
+/* harmony import */ var _OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(12);
 
 
 
@@ -1298,19 +1379,19 @@ class RepeatValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default
 
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return AndComposite; });
-/* harmony import */ var _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(18);
+/* harmony import */ var _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(19);
 /* harmony import */ var _ast_CompositeNode_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4);
 /* harmony import */ var _Cursor_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6);
-/* harmony import */ var _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(10);
-/* harmony import */ var _StackInformation_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(19);
-/* harmony import */ var _value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(11);
-/* harmony import */ var _OptionalComposite_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(20);
+/* harmony import */ var _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(8);
+/* harmony import */ var _StackInformation_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(20);
+/* harmony import */ var _value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(12);
+/* harmony import */ var _OptionalComposite_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(21);
 
 
 
@@ -1450,13 +1531,13 @@ class AndComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["de
 
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return CompositePattern; });
-/* harmony import */ var _Pattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
+/* harmony import */ var _Pattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(10);
 
 
 class CompositePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
@@ -1518,7 +1599,7 @@ class CompositePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default
 
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1533,14 +1614,14 @@ class StackInformation {
 }
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return OptionalComposite; });
-/* harmony import */ var _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(18);
-/* harmony import */ var _Pattern_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(9);
+/* harmony import */ var _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(19);
+/* harmony import */ var _Pattern_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(10);
 
 
 
@@ -1582,18 +1663,18 @@ class OptionalComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0_
 
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return OrComposite; });
-/* harmony import */ var _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(18);
+/* harmony import */ var _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(19);
 /* harmony import */ var _Cursor_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6);
-/* harmony import */ var _StackInformation_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(19);
-/* harmony import */ var _value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(11);
-/* harmony import */ var _OptionalComposite_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(20);
-/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(10);
+/* harmony import */ var _StackInformation_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(20);
+/* harmony import */ var _value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(12);
+/* harmony import */ var _OptionalComposite_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(21);
+/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(8);
 
 
 
@@ -1688,16 +1769,16 @@ class OrComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["def
 
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return RepeatComposite; });
-/* harmony import */ var _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(18);
+/* harmony import */ var _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(19);
 /* harmony import */ var _ast_CompositeNode_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4);
-/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(10);
-/* harmony import */ var _OptionalComposite_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(20);
+/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(8);
+/* harmony import */ var _OptionalComposite_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(21);
 
 
 
@@ -1804,14 +1885,14 @@ class RepeatComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__[
 
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return RecursivePattern; });
-/* harmony import */ var _Pattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
-/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(10);
+/* harmony import */ var _Pattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(10);
+/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(8);
 
 
 

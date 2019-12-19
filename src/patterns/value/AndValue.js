@@ -28,18 +28,11 @@ export default class AndValue extends ValuePattern {
 
   parse(cursor) {
     this._reset(cursor);
-    this._assertCursor();
     this._tryPatterns();
 
     return this.node;
   }
-
-  _assertCursor() {
-    if (!(this.cursor instanceof Cursor)) {
-      throw new Error("Invalid Arguments: Expected a cursor.");
-    }
-  }
-
+  
   _tryPatterns() {
     while (true) {
       const pattern = this._children[this.index];

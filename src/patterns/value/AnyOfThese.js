@@ -26,15 +26,8 @@ export default class AnyOfThese extends ValuePattern {
 
   parse(cursor) {
     this._reset(cursor);
-    this._assertCursor();
     this._tryPattern();
     return this.node;
-  }
-
-  _assertCursor() {
-    if (!(this.cursor instanceof Cursor)) {
-      throw new Error("Invalid Arguments: Expected a cursor.");
-    }
   }
 
   _reset(cursor) {

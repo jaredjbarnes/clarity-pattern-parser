@@ -26,7 +26,6 @@ export default class Literal extends ValuePattern {
 
   parse(cursor) {
     this._reset(cursor);
-    this._assertCursor();
     this._tryPattern();
 
     return this.node;
@@ -41,13 +40,7 @@ export default class Literal extends ValuePattern {
     );
     this.node = null;
   }
-
-  _assertCursor() {
-    if (!(this.cursor instanceof Cursor)) {
-      throw new Error("Invalid Arguments: Expected a cursor.");
-    }
-  }
-
+  
   _tryPattern() {
     if (this.substring === this.literal) {
       this._processMatch();

@@ -3,6 +3,7 @@ import Node from "./ast/Node.js";
 import CompositeNode from "./ast/CompositeNode.js";
 import ValueNode from "./ast/ValueNode.js";
 import Cursor from "./Cursor.js";
+import RegexValue from "./patterns/value/RegexValue.js";
 import AndValue from "./patterns/value/AndValue.js";
 import AnyOfThese from "./patterns/value/AnyOfThese.js";
 import Literal from "./patterns/value/Literal.js";
@@ -27,6 +28,7 @@ export {
   CompositeNode,
   ValueNode,
   Cursor,
+  RegexValue,
   AndValue,
   AnyOfThese,
   Literal,

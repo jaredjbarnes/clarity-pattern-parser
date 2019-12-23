@@ -320,7 +320,6 @@ class Cursor {
 
   throwError(parseError) {
     this.isInErrorState = true;
-
     if (this.parseError == null || parseError.index >= this.parseError.index){
       this.parseError = parseError;
     }
@@ -500,7 +499,7 @@ class RegexValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__["default"
 
     if (result != null) {
       const currentIndex = this.cursor.getIndex();
-      const newIndex = currentIndex + this.regex.lastIndex - 1;
+      const newIndex = currentIndex + result[0].length - 1;
 
       this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_2__["default"](this.name, result[0], currentIndex, newIndex);
 
@@ -1919,6 +1918,7 @@ class RecursivePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default
   }
 
   parse(cursor) {
+    
     if (this.pattern == null) {
       const pattern = this.getPattern();
 

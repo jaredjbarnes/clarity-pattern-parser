@@ -62,7 +62,7 @@ export default class RegexValue extends ValuePattern {
 
     if (result != null) {
       const currentIndex = this.cursor.getIndex();
-      const newIndex = currentIndex + this.regex.lastIndex - 1;
+      const newIndex = currentIndex + result[0].length - 1;
 
       this.node = new ValueNode(this.name, result[0], currentIndex, newIndex);
 

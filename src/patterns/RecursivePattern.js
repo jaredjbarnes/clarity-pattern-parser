@@ -24,6 +24,7 @@ export default class RecursivePattern extends Pattern {
   }
 
   parse(cursor) {
+    
     if (this.pattern == null) {
       const pattern = this.getPattern();
 

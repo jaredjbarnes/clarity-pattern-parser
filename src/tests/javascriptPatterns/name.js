@@ -17,6 +17,6 @@ import RegexValue from "../../patterns/value/RegexValue.js";
 //     optionalCharacter
 // ]);
 
-const name = new RegexValue("name", "[a-zA-Z]+[a-zA-Z0-9_]+");
+const name = new RegexValue("name", "[a-zA-Z]+[a-zA-Z0-9_]*");
 
 export default name;

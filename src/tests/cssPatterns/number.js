@@ -1,6 +1,4 @@
-import {
-  RegexValue
-} from "../../index.js";
+import { RegexValue } from "../../index.js";
 
 const number = new RegexValue(
   "number",

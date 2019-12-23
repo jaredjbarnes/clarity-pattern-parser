@@ -13,7 +13,6 @@ export default class Cursor {
 
   throwError(parseError) {
     this.isInErrorState = true;
-
     if (this.parseError == null || parseError.index >= this.parseError.index){
       this.parseError = parseError;
     }

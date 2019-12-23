@@ -60,7 +60,7 @@ export default class RegexValue extends ValuePattern {
   _tryPattern() {
     const result = this.regex.exec(this.substring);
 
-    if (result != null) {
+    if (result != null && result.index === 0) {
       const currentIndex = this.cursor.getIndex();
       const newIndex = currentIndex + result[0].length - 1;
 

@@ -45,6 +45,15 @@ exports["Css: spaced values within method"] = () => {
 };
 
 exports["Css: spaced values"] = () => {
-  const cursor = new Cursor("inner-method(0,0,0,0) inner-method(0,0,0,0) 0px 10px 0%");
+  const cursor = new Cursor(
+    "inner-method(0,0,0,0) inner-method(0,0,0,0) 0px 10px 0%"
+  );
   const result = values.parse(cursor);
+};
+
+exports["Css: complex spaced values"] = () => {
+  const cursor = new Cursor(
+    "#222 linear-gradient(to left, #333, #333 50%, #eee 75%, #333 75%) linear-gradient(to bottom, #555, #555 50%, #eee 75%, #555 75%)"
+  );
+  const node = values.parse(cursor);
 };

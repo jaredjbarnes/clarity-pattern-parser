@@ -51,12 +51,6 @@ export default class RegexValue extends ValuePattern {
     this.node = null;
   }
 
-  _assertCursor() {
-    if (!(this.cursor instanceof Cursor)) {
-      throw new Error("Invalid Arguments: Expected a cursor.");
-    }
-  }
-
   _tryPattern() {
     const result = this.regex.exec(this.substring);
 

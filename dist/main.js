@@ -370,18 +370,11 @@ class Cursor {
   }
 
   mark() {
-    return new _Mark_js__WEBPACK_IMPORTED_MODULE_0__["default"](this, this.index);
+    return this.index;
   }
 
   moveToMark(mark) {
-    if (mark instanceof _Mark_js__WEBPACK_IMPORTED_MODULE_0__["default"] && mark.cursor === this) {
-      this.index = mark.index;
-      return true;
-    } else {
-      throw new Error(
-        "Illegal Argument: The mark needs to be an instance of Mark and created by this cursor."
-      );
-    }
+    this.setIndex(mark);
   }
 
   moveToBeginning() {
@@ -486,12 +479,6 @@ class RegexValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__["default"
     this.regex.lastIndex = 0;
     this.substring = this.cursor.string.substr(this.cursor.getIndex());
     this.node = null;
-  }
-
-  _assertCursor() {
-    if (!(this.cursor instanceof _Cursor_js__WEBPACK_IMPORTED_MODULE_1__["default"])) {
-      throw new Error("Invalid Arguments: Expected a cursor.");
-    }
   }
 
   _tryPattern() {
@@ -814,7 +801,7 @@ class AndValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
       this.nodes = this.nodes.filter(node => node != null);
 
       const lastNode = this.nodes[this.nodes.length - 1];
-      const startIndex = this.mark.index;
+      const startIndex = this.mark;
       const endIndex = lastNode.endIndex;
       const value = this.nodes.map(node => node.value).join("");
 
@@ -977,15 +964,13 @@ class AnyOfThese extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Literal; });
 /* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8);
-/* harmony import */ var _Cursor_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6);
-/* harmony import */ var _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5);
-/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(9);
+/* harmony import */ var _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5);
+/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(9);
 
 
 
 
-
-class Literal extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__["default"] {
+class Literal extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_2__["default"] {
   constructor(name, literal) {
     super(name);
     this.literal = literal;
@@ -1017,8 +1002,8 @@ class Literal extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__["default"] {
     this.cursor = cursor;
     this.mark = this.cursor.mark();
     this.substring = this.cursor.string.substring(
-      this.mark.index,
-      this.mark.index + this.literal.length
+      this.mark,
+      this.mark + this.literal.length
     );
     this.node = null;
   }
@@ -1041,11 +1026,11 @@ class Literal extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__["default"] {
   }
 
   _processMatch() {
-    this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_2__["default"](
+    this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](
       this.name,
       this.substring,
-      this.mark.index,
-      this.mark.index + this.literal.length - 1
+      this.mark,
+      this.mark + this.literal.length - 1
     );
 
     this.cursor.setIndex(this.node.endIndex);
@@ -1133,7 +1118,7 @@ class NotValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
     if (this.match.length === 0) {
       const parseError = new _ParseError_js__WEBPACK_IMPORTED_MODULE_2__["default"](
         `Didn't find any characters that didn't match the ${this.children[0].name} pattern.`,
-        this.mark.index,
+        this.mark,
         this
       );
       this.cursor.throwError(parseError);
@@ -1141,8 +1126,8 @@ class NotValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
       this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](
         this.name,
         this.match,
-        this.mark.index,
-        this.mark.index
+        this.mark,
+        this.mark
       );
 
       this.cursor.setIndex(this.node.endIndex);
@@ -1345,7 +1330,7 @@ class RepeatValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default
     if (this.nodes.length === 0) {
       const parseError = new _ParseError_js__WEBPACK_IMPORTED_MODULE_2__["default"](
         `Did not find a repeating match of ${this.name}.`,
-        this.mark.index,
+        this.mark,
         this
       );
       this.cursor.throwError(parseError);
@@ -1423,16 +1408,9 @@ class AndComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["de
 
   parse(cursor) {
     this._reset(cursor);
-    this._assertCursor();
     this._tryPatterns();
 
     return this.node;
-  }
-
-  _assertCursor() {
-    if (!(this.cursor instanceof _Cursor_js__WEBPACK_IMPORTED_MODULE_2__["default"])) {
-      throw new Error("Invalid Arguments: Expected a cursor.");
-    }
   }
 
   _tryPatterns() {
@@ -1504,7 +1482,7 @@ class AndComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["de
       this.nodes = this.nodes.filter(node => node != null);
 
       const lastNode = this.nodes[this.nodes.length - 1];
-      const startIndex = this.mark.index;
+      const startIndex = this.mark;
       const endIndex = lastNode.endIndex;
 
       this.node = new _ast_CompositeNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](this.name, startIndex, endIndex);
@@ -1718,16 +1696,9 @@ class OrComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["def
 
   parse(cursor) {
     this._reset(cursor);
-    this._assertCursor();
     this._tryPattern();
 
     return this.node;
-  }
-
-  _assertCursor() {
-    if (!(this.cursor instanceof _Cursor_js__WEBPACK_IMPORTED_MODULE_1__["default"])) {
-      throw new Error("Invalid Arguments: Expected a cursor.");
-    }
   }
 
   _tryPattern() {
@@ -1853,7 +1824,7 @@ class RepeatComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__[
       this.cursor.throwError(
         new _ParseError_js__WEBPACK_IMPORTED_MODULE_2__["default"](
           `Did not find a repeating match of ${this.name}.`,
-          this.mark.index,
+          this.mark,
           this
         )
       );

@@ -74,7 +74,7 @@ export default class RepeatValue extends ValuePattern {
     if (this.nodes.length === 0) {
       const parseError = new ParseError(
         `Did not find a repeating match of ${this.name}.`,
-        this.mark.index,
+        this.mark,
         this
       );
       this.cursor.throwError(parseError);

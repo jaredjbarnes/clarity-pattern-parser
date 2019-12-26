@@ -57,7 +57,7 @@ export default class NotValue extends ValuePattern {
     if (this.match.length === 0) {
       const parseError = new ParseError(
         `Didn't find any characters that didn't match the ${this.children[0].name} pattern.`,
-        this.mark.index,
+        this.mark,
         this
       );
       this.cursor.throwError(parseError);
@@ -65,8 +65,8 @@ export default class NotValue extends ValuePattern {
       this.node = new ValueNode(
         this.name,
         this.match,
-        this.mark.index,
-        this.mark.index
+        this.mark,
+        this.mark
       );
 
       this.cursor.setIndex(this.node.endIndex);

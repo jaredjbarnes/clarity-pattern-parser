@@ -73,7 +73,7 @@ export default class RepeatComposite extends CompositePattern {
       this.cursor.throwError(
         new ParseError(
           `Did not find a repeating match of ${this.name}.`,
-          this.mark.index,
+          this.mark,
           this
         )
       );

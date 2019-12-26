@@ -1,5 +1,4 @@
 import ParseError from "../ParseError.js";
-import Cursor from "../../Cursor.js";
 import ValueNode from "../../ast/ValueNode.js";
 import ValuePattern from "./ValuePattern.js";
 
@@ -35,8 +34,8 @@ export default class Literal extends ValuePattern {
     this.cursor = cursor;
     this.mark = this.cursor.mark();
     this.substring = this.cursor.string.substring(
-      this.mark.index,
-      this.mark.index + this.literal.length
+      this.mark,
+      this.mark + this.literal.length
     );
     this.node = null;
   }
@@ -62,8 +61,8 @@ export default class Literal extends ValuePattern {
     this.node = new ValueNode(
       this.name,
       this.substring,
-      this.mark.index,
-      this.mark.index + this.literal.length - 1
+      this.mark,
+      this.mark + this.literal.length - 1
     );
 
     this.cursor.setIndex(this.node.endIndex);

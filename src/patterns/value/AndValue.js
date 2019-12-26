@@ -100,7 +100,7 @@ export default class AndValue extends ValuePattern {
       this.nodes = this.nodes.filter(node => node != null);
 
       const lastNode = this.nodes[this.nodes.length - 1];
-      const startIndex = this.mark.index;
+      const startIndex = this.mark;
       const endIndex = lastNode.endIndex;
       const value = this.nodes.map(node => node.value).join("");
 

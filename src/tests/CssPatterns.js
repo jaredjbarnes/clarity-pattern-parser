@@ -1,11 +1,11 @@
 import cssValue from "./cssPatterns/cssValue.js";
-import values from "./cssPatterns/values.js";
 import { Cursor } from "../index.js";
 import assert from "assert";
 
 exports["Css: unit"] = () => {
   const cursor = new Cursor("10% 10%");
   const result = cssValue.parse(cursor);
+  assert.equal(result.endIndex, cursor.string.length - 1);
 };
 
 exports["Css: All known unit values spaced"] = () => {

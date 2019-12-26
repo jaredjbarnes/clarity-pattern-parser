@@ -30,16 +30,9 @@ export default class AndComposite extends CompositePattern {
 
   parse(cursor) {
     this._reset(cursor);
-    this._assertCursor();
     this._tryPatterns();
 
     return this.node;
-  }
-
-  _assertCursor() {
-    if (!(this.cursor instanceof Cursor)) {
-      throw new Error("Invalid Arguments: Expected a cursor.");
-    }
   }
 
   _tryPatterns() {
@@ -111,7 +104,7 @@ export default class AndComposite extends CompositePattern {
       this.nodes = this.nodes.filter(node => node != null);
 
       const lastNode = this.nodes[this.nodes.length - 1];
-      const startIndex = this.mark.index;
+      const startIndex = this.mark;
       const endIndex = lastNode.endIndex;
 
       this.node = new CompositeNode(this.name, startIndex, endIndex);

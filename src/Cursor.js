@@ -63,18 +63,11 @@ export default class Cursor {
   }
 
   mark() {
-    return new Mark(this, this.index);
+    return this.index;
   }
 
   moveToMark(mark) {
-    if (mark instanceof Mark && mark.cursor === this) {
-      this.index = mark.index;
-      return true;
-    } else {
-      throw new Error(
-        "Illegal Argument: The mark needs to be an instance of Mark and created by this cursor."
-      );
-    }
+    this.setIndex(mark);
   }
 
   moveToBeginning() {

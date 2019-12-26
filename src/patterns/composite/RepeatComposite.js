@@ -86,7 +86,7 @@ export default class RepeatComposite extends CompositePattern {
       );
 
       this.node.children = this.nodes;
-      this.cursor.setIndex(this.node.endIndex);
+      this.cursor.index = this.node.endIndex;
     }
   }
 

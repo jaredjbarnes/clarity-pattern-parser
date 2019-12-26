@@ -32,7 +32,7 @@ export default class AndValue extends ValuePattern {
 
     return this.node;
   }
-  
+
   _tryPatterns() {
     while (true) {
       const pattern = this._children[this.index];
@@ -106,7 +106,7 @@ export default class AndValue extends ValuePattern {
 
       this.node = new ValueNode(this.name, value, startIndex, endIndex);
 
-      this.cursor.setIndex(this.node.endIndex);
+      this.cursor.index = this.node.endIndex;
     }
   }
 

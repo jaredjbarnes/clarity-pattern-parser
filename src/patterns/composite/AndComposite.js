@@ -110,7 +110,7 @@ export default class AndComposite extends CompositePattern {
       this.node = new CompositeNode(this.name, startIndex, endIndex);
       this.node.children = this.nodes;
 
-      this.cursor.setIndex(this.node.endIndex);
+      this.cursor.index = this.node.endIndex;
     } else {
       this.node = null;
     }

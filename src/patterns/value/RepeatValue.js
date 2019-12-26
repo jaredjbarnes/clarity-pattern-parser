@@ -48,9 +48,9 @@ export default class RepeatValue extends ValuePattern {
           this._processMatch();
           break;
         }
-        
+
         this.cursor.next();
-        
+
         if (this._divider != null) {
           const mark = this.cursor.mark();
           const node = this._divider.parse(this.cursor);
@@ -70,7 +70,7 @@ export default class RepeatValue extends ValuePattern {
 
   _processMatch() {
     this.cursor.resolveError();
-    
+
     if (this.nodes.length === 0) {
       const parseError = new ParseError(
         `Did not find a repeating match of ${this.name}.`,
@@ -89,7 +89,7 @@ export default class RepeatValue extends ValuePattern {
         this.nodes[this.nodes.length - 1].endIndex
       );
 
-      this.cursor.setIndex(this.node.endIndex);
+      this.cursor.index = this.node.endIndex;
     }
   }
 

@@ -65,7 +65,7 @@ export default class Literal extends ValuePattern {
       this.mark + this.literal.length - 1
     );
 
-    this.cursor.setIndex(this.node.endIndex);
+    this.cursor.index = (this.node.endIndex);
   }
 
   clone(name) {

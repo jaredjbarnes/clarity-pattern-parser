@@ -64,7 +64,7 @@ export default class OrValue extends ValuePattern {
           node.endIndex
         );
 
-        this.cursor.setIndex(this.node.endIndex);
+        this.cursor.index = (this.node.endIndex);
         break;
       }
     }

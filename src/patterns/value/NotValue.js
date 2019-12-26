@@ -62,14 +62,9 @@ export default class NotValue extends ValuePattern {
       );
       this.cursor.throwError(parseError);
     } else {
-      this.node = new ValueNode(
-        this.name,
-        this.match,
-        this.mark,
-        this.mark
-      );
+      this.node = new ValueNode(this.name, this.match, this.mark, this.mark);
 
-      this.cursor.setIndex(this.node.endIndex);
+      this.cursor.index = this.node.endIndex;
     }
   }
 

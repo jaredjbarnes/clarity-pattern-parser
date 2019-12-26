@@ -374,7 +374,7 @@ class Cursor {
   }
 
   moveToMark(mark) {
-    this.setIndex(mark);
+    this.index = mark;
   }
 
   moveToBeginning() {
@@ -490,7 +490,7 @@ class RegexValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__["default"
 
       this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_2__["default"](this.name, result[0], currentIndex, newIndex);
 
-      this.cursor.setIndex(newIndex);
+      this.cursor.index = (newIndex);
     } else {
       this._processError();
     }
@@ -733,7 +733,7 @@ class AndValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
 
     return this.node;
   }
-  
+
   _tryPatterns() {
     while (true) {
       const pattern = this._children[this.index];
@@ -807,7 +807,7 @@ class AndValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
 
       this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](this.name, value, startIndex, endIndex);
 
-      this.cursor.setIndex(this.node.endIndex);
+      this.cursor.index = this.node.endIndex;
     }
   }
 
@@ -1033,7 +1033,7 @@ class Literal extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_2__["default"] {
       this.mark + this.literal.length - 1
     );
 
-    this.cursor.setIndex(this.node.endIndex);
+    this.cursor.index = (this.node.endIndex);
   }
 
   clone(name) {
@@ -1123,14 +1123,9 @@ class NotValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
       );
       this.cursor.throwError(parseError);
     } else {
-      this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](
-        this.name,
-        this.match,
-        this.mark,
-        this.mark
-      );
+      this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](this.name, this.match, this.mark, this.mark);
 
-      this.cursor.setIndex(this.node.endIndex);
+      this.cursor.index = this.node.endIndex;
     }
   }
 
@@ -1224,7 +1219,7 @@ class OrValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
           node.endIndex
         );
 
-        this.cursor.setIndex(this.node.endIndex);
+        this.cursor.index = (this.node.endIndex);
         break;
       }
     }
@@ -1304,9 +1299,9 @@ class RepeatValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default
           this._processMatch();
           break;
         }
-        
+
         this.cursor.next();
-        
+
         if (this._divider != null) {
           const mark = this.cursor.mark();
           const node = this._divider.parse(this.cursor);
@@ -1326,7 +1321,7 @@ class RepeatValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default
 
   _processMatch() {
     this.cursor.resolveError();
-    
+
     if (this.nodes.length === 0) {
       const parseError = new _ParseError_js__WEBPACK_IMPORTED_MODULE_2__["default"](
         `Did not find a repeating match of ${this.name}.`,
@@ -1345,7 +1340,7 @@ class RepeatValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default
         this.nodes[this.nodes.length - 1].endIndex
       );
 
-      this.cursor.setIndex(this.node.endIndex);
+      this.cursor.index = this.node.endIndex;
     }
   }
 
@@ -1488,7 +1483,7 @@ class AndComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["de
       this.node = new _ast_CompositeNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](this.name, startIndex, endIndex);
       this.node.children = this.nodes;
 
-      this.cursor.setIndex(this.node.endIndex);
+      this.cursor.index = this.node.endIndex;
     } else {
       this.node = null;
     }
@@ -1708,7 +1703,6 @@ class OrComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["def
       this.node = pattern.parse(this.cursor);
 
       if (this.cursor.hasUnresolvedError()) {
-
         if (this.index + 1 < this._children.length) {
           this.cursor.resolveError();
           this.index++;
@@ -1717,9 +1711,8 @@ class OrComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["def
           this.node = null;
           break;
         }
-
       } else {
-        this.cursor.setIndex(this.node.endIndex);
+        this.cursor.index = this.node.endIndex;
         break;
       }
     }
@@ -1837,7 +1830,7 @@ class RepeatComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__[
       );
 
       this.node.children = this.nodes;
-      this.cursor.setIndex(this.node.endIndex);
+      this.cursor.index = this.node.endIndex;
     }
   }
 

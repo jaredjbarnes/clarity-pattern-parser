@@ -67,7 +67,7 @@ export default class Cursor {
   }
 
   moveToMark(mark) {
-    this.setIndex(mark);
+    this.index = mark;
   }
 
   moveToBeginning() {

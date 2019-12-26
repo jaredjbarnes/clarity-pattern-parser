@@ -54,7 +54,6 @@ export default class OrComposite extends CompositePattern {
       this.node = pattern.parse(this.cursor);
 
       if (this.cursor.hasUnresolvedError()) {
-
         if (this.index + 1 < this._children.length) {
           this.cursor.resolveError();
           this.index++;
@@ -63,9 +62,8 @@ export default class OrComposite extends CompositePattern {
           this.node = null;
           break;
         }
-
       } else {
-        this.cursor.setIndex(this.node.endIndex);
+        this.cursor.index = this.node.endIndex;
         break;
       }
     }

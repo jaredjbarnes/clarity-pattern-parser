@@ -60,7 +60,7 @@ export default class RegexValue extends ValuePattern {
 
       this.node = new ValueNode(this.name, result[0], currentIndex, newIndex);
 
-      this.cursor.setIndex(newIndex);
+      this.cursor.index = (newIndex);
     } else {
       this._processError();
     }

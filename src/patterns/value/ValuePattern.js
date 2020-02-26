@@ -1,8 +1,8 @@
 import Pattern from "../Pattern.js";
 
 export default class ValuePattern extends Pattern {
-  constructor(name, children = []) {
-    super(name);
+  constructor(type, name, children = []) {
+    super(type, name);
     this._children = children;
     this._assertPatternArguments();
     this._cloneChildren();
@@ -29,6 +29,12 @@ export default class ValuePattern extends Pattern {
     if (typeof this.name !== "string") {
       throw new Error(
         "Invalid Argument: ValuePatterns needs to have a name that's a string."
+      );
+    }
+
+    if (typeof this.type !== "string") {
+      throw new Error(
+        "Invalid Argument: ValuePatterns needs to have a type that's a string."
       );
     }
   }

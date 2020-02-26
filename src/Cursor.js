@@ -1,29 +1,14 @@
-import Mark from "./Mark.js";
+import CursorHistory from "./CursorHistory";
 
 export default class Cursor {
-  constructor(string, { verbose } = {}) {
+  constructor(string) {
     this.string = string;
     this.index = 0;
     this.length = string.length;
-    this.parseError = null;
-    this.verbose = typeof verbose === "boolean" ? verbose : false;
+    this.history = new CursorHistory();
     this.isInErrorState = false;
+
     this.assertValidity();
-  }
-
-  throwError(parseError) {
-    this.isInErrorState = true;
-    if (this.parseError == null || parseError.index >= this.parseError.index){
-      this.parseError = parseError;
-    }
-  }
-
-  resolveError() {
-    this.isInErrorState = false;
-  }
-
-  hasUnresolvedError() {
-    return this.isInErrorState;
   }
 
   assertValidity() {
@@ -32,6 +17,35 @@ export default class Cursor {
         "Illegal Argument: Cursor needs to have a string that has a length greater than 0."
       );
     }
+  }
+
+  startRecording(){
+    this.history.startRecording();
+  }
+
+  stopRecording(){
+    this.history.stopRecording();
+  }
+
+  get parseError (){
+    return this.history.getFurthestError();
+  }
+
+  throwError(parseError) {
+    this.isInErrorState = true;
+    this.history.addError(parseError);
+  }
+
+  addMatch(pattern, astNode){
+    this.history.addMatch(pattern, astNode);
+  }
+
+  resolveError() {
+    this.isInErrorState = false;
+  }
+
+  hasUnresolvedError() {
+    return this.isInErrorState;
   }
 
   isNullOrEmpty(value) {
@@ -106,5 +120,9 @@ export default class Cursor {
 
   lastIndex() {
     return this.length - 1;
+  }
+
+  didSuccessfullyParse(){
+    return !this.hasUnresolvedError() && this.isAtEnd();
   }
 }

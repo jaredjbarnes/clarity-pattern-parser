@@ -95,4 +95,5 @@ exports["RecursivePattern: JSON"] = () => {
 
   assert.equal(object.name, "object-literal");
   assert.equal(array.name, "array-literal");
+  assert.equal(object.toString(), json);
 };

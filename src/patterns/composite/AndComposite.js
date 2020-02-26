@@ -1,14 +1,12 @@
 import CompositePattern from "./CompositePattern.js";
 import CompositeNode from "../../ast/CompositeNode.js";
-import Cursor from "../../Cursor.js";
 import ParseError from "../../patterns/ParseError.js";
-import StackInformation from "../StackInformation.js";
 import OptionalValue from "../value/OptionalValue.js";
 import OptionalComposite from "./OptionalComposite.js";
 
 export default class AndComposite extends CompositePattern {
   constructor(name, patterns) {
-    super(name, patterns);
+    super("and-composite", name, patterns);
     this._assertArguments();
   }
 
@@ -107,10 +105,18 @@ export default class AndComposite extends CompositePattern {
       const startIndex = this.mark;
       const endIndex = lastNode.endIndex;
 
-      this.node = new CompositeNode(this.name, startIndex, endIndex);
-      this.node.children = this.nodes;
+      this.node = new CompositeNode(
+        "and-composite",
+        this.name,
+        startIndex,
+        endIndex
+      );
 
+      this.node.children = this.nodes;
+      
       this.cursor.index = this.node.endIndex;
+      this.cursor.addMatch(this, this.node);
+
     } else {
       this.node = null;
     }

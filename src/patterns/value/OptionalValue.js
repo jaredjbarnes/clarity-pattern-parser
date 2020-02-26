@@ -2,7 +2,7 @@ import ValuePattern from "./ValuePattern.js";
 
 export default class OptionalValue extends ValuePattern {
   constructor(pattern) {
-    super("optional-value", [pattern]);
+    super("optional-value", "optional-value", [pattern]);
     this._assertArguments();
   }
 
@@ -22,6 +22,7 @@ export default class OptionalValue extends ValuePattern {
       cursor.moveToMark(mark);
       return null;
     } else {
+      cursor.addMatch(this, node);
       return node;
     }
   }

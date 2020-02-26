@@ -46,6 +46,7 @@ exports["Complex Examples: number"] = () => {
 
   assert.equal(validExponentNode.name, "number");
   assert.equal(validExponentNode.value, "1.23e+5");
+  assert.equal(validExponent.didSuccessfullyParse(), true);
 
   assert.equal(singleNumberNode.name, "number");
   assert.equal(singleNumberNode.value, "1");
@@ -77,6 +78,6 @@ exports["Complex Examples: Natural Language."] = () => {
 
 exports["Complex Examples: cssMethod"] = () => {
   const cursor = new Cursor(
-    "linear-gradient(to left, #333, #333 50%, #eee 75%, #333 75%);"
+    "linear-gradient(to left, #333, #333 50%, #eee 75%, #333 75%)"
   );
 };

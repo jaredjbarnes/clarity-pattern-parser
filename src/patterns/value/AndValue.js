@@ -1,12 +1,11 @@
 import ValuePattern from "./ValuePattern.js";
 import ValueNode from "../../ast/ValueNode.js";
-import Cursor from "../../Cursor.js";
 import ParseError from "../../patterns/ParseError.js";
 import OptionalValue from "./OptionalValue.js";
 
 export default class AndValue extends ValuePattern {
   constructor(name, patterns) {
-    super(name, patterns);
+    super("and-value", name, patterns);
     this._assertArguments();
   }
 
@@ -104,9 +103,10 @@ export default class AndValue extends ValuePattern {
       const endIndex = lastNode.endIndex;
       const value = this.nodes.map(node => node.value).join("");
 
-      this.node = new ValueNode(this.name, value, startIndex, endIndex);
+      this.node = new ValueNode("and-value", this.name, value, startIndex, endIndex);
 
       this.cursor.index = this.node.endIndex;
+      this.cursor.addMatch(this, this.node);
     }
   }
 

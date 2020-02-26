@@ -3,7 +3,7 @@ import Pattern from "../Pattern.js";
 
 export default class OptionalComposite extends CompositePattern {
   constructor(pattern) {
-    super("optional-composite", [pattern]);
+    super("optional-composite", "optional-composite", [pattern]);
     this._assertArguments();
   }
 
@@ -24,6 +24,7 @@ export default class OptionalComposite extends CompositePattern {
       cursor.moveToMark(mark);
       return null;
     } else {
+      cursor.addMatch(this, node);
       return node;
     }
   }

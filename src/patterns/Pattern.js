@@ -1,5 +1,8 @@
+import Cursor from "../Cursor.js";
+
 export default class Pattern {
-  constructor(name = null) {
+  constructor(type = null, name = null) {
+    this._type = type;
     this._name = name;
     this._parent = null;
     this._children = [];
@@ -19,8 +22,27 @@ export default class Pattern {
     throw new Error("Method Not Implemented");
   }
 
+  exec(string) {
+    const cursor = new Cursor(string);
+    const node = this.parse(cursor);
+
+    if (cursor.didSuccessfullyParse()) {
+      return node;
+    } else {
+      return null;
+    }
+  }
+
+  test(string) {
+    return this.exec(string) != null;
+  }
+
   get name() {
     return this._name;
+  }
+
+  get type() {
+    return this._type;
   }
 
   get parent() {

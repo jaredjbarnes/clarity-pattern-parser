@@ -4,7 +4,7 @@ import ParseError from "../ParseError.js";
 
 export default class NotValue extends ValuePattern {
   constructor(name, pattern) {
-    super(name, [pattern]);
+    super("not-value", name, [pattern]);
     this._assertArguments();
   }
 
@@ -62,9 +62,16 @@ export default class NotValue extends ValuePattern {
       );
       this.cursor.throwError(parseError);
     } else {
-      this.node = new ValueNode(this.name, this.match, this.mark, this.mark);
+      this.node = new ValueNode(
+        "not-value",
+        this.name,
+        this.match,
+        this.mark,
+        this.mark
+      );
 
       this.cursor.index = this.node.endIndex;
+      this.cursor.addMatch(this, this.node);
     }
   }
 

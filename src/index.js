@@ -19,8 +19,7 @@ import OrComposite from "./patterns/composite/OrComposite.js";
 import RepeatComposite from "./patterns/composite/RepeatComposite.js";
 import ParseError from "./patterns/ParseError.js";
 import Pattern from "./patterns/Pattern.js";
-import StackInformation from "./patterns/StackInformation.js";
-import RecursivePattern from "./patterns/RecursivePattern.js"
+import RecursivePattern from "./patterns/RecursivePattern.js";
 
 export {
   Mark,
@@ -44,6 +43,5 @@ export {
   RepeatComposite,
   ParseError,
   Pattern,
-  RecursivePattern,
-  StackInformation
+  RecursivePattern
 };

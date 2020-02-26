@@ -5,7 +5,7 @@ import OptionalValue from "./OptionalValue.js";
 
 export default class OrValue extends ValuePattern {
   constructor(name, patterns) {
-    super(name, patterns);
+    super("or-value", name, patterns);
     this._assertArguments();
   }
 
@@ -46,7 +46,6 @@ export default class OrValue extends ValuePattern {
       const node = pattern.parse(this.cursor, this.parseError);
 
       if (this.cursor.hasUnresolvedError()) {
-
         if (this.index + 1 < this._children.length) {
           this.cursor.resolveError();
           this.index++;
@@ -55,16 +54,18 @@ export default class OrValue extends ValuePattern {
           this.node = null;
           break;
         }
-
       } else {
         this.node = new ValueNode(
+          "or-value",
           this.name,
           node.value,
           node.startIndex,
           node.endIndex
         );
 
-        this.cursor.index = (this.node.endIndex);
+        this.cursor.index = this.node.endIndex;
+        this.cursor.addMatch(this, this.node);
+
         break;
       }
     }

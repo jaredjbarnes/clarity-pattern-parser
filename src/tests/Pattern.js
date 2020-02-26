@@ -2,14 +2,14 @@ import Pattern from "../patterns/Pattern.js";
 import assert from "assert";
 
 exports["Pattern: parse."] = () => {
-  const valuePattern = new Pattern("pattern");
+  const valuePattern = new Pattern("pattern-type", "pattern");
   assert.throws(() => {
     valuePattern.parse();
   });
 };
 
 exports["Pattern: clone."] = () => {
-  const valuePattern = new Pattern("pattern");
+  const valuePattern = new Pattern("pattern-type", "pattern");
   assert.throws(() => {
     valuePattern.clone();
   });

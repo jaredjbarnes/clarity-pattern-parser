@@ -5,7 +5,11 @@ import OptionalComposite from "./OptionalComposite.js";
 
 export default class RepeatComposite extends CompositePattern {
   constructor(name, pattern, divider) {
-    super(name, divider != null ? [pattern, divider] : [pattern]);
+    super(
+      "repeat-composite",
+      name,
+      divider != null ? [pattern, divider] : [pattern]
+    );
     this._pattern = this.children[0];
     this._divider = this.children[1];
     this._assertArguments();
@@ -80,6 +84,7 @@ export default class RepeatComposite extends CompositePattern {
       this.node = null;
     } else {
       this.node = new CompositeNode(
+        "repeat-composite",
         this.name,
         this.nodes[0].startIndex,
         this.nodes[this.nodes.length - 1].endIndex
@@ -87,6 +92,8 @@ export default class RepeatComposite extends CompositePattern {
 
       this.node.children = this.nodes;
       this.cursor.index = this.node.endIndex;
+
+      this.cursor.addMatch(this, this.node);
     }
   }
 

@@ -5,7 +5,11 @@ import OptionalValue from "./OptionalValue.js";
 
 export default class RepeatValue extends ValuePattern {
   constructor(name, pattern, divider) {
-    super(name, divider != null ? [pattern, divider] : [pattern]);
+    super(
+      "repeat-value",
+      name,
+      divider != null ? [pattern, divider] : [pattern]
+    );
 
     this._pattern = this.children[0];
     this._divider = this.children[1];
@@ -83,6 +87,7 @@ export default class RepeatValue extends ValuePattern {
       const value = this.nodes.map(node => node.value).join("");
 
       this.node = new ValueNode(
+        "repeat-value",
         this.name,
         value,
         this.nodes[0].startIndex,
@@ -90,6 +95,7 @@ export default class RepeatValue extends ValuePattern {
       );
 
       this.cursor.index = this.node.endIndex;
+      this.cursor.addMatch(this, this.node);
     }
   }
 

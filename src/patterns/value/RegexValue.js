@@ -5,7 +5,7 @@ import ValuePattern from "./ValuePattern.js";
 
 export default class RegexValue extends ValuePattern {
   constructor(name, regex) {
-    super(name);
+    super("regex-value", name);
     this.regexString = regex;
     this.regex = new RegExp(`^${regex}`, "g");
     this._assertArguments();
@@ -58,9 +58,16 @@ export default class RegexValue extends ValuePattern {
       const currentIndex = this.cursor.getIndex();
       const newIndex = currentIndex + result[0].length - 1;
 
-      this.node = new ValueNode(this.name, result[0], currentIndex, newIndex);
+      this.node = new ValueNode(
+        "regex-value",
+        this.name,
+        result[0],
+        currentIndex,
+        newIndex
+      );
 
-      this.cursor.index = (newIndex);
+      this.cursor.index = newIndex;
+      this.cursor.addMatch(this, this.node);
     } else {
       this._processError();
     }

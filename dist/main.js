@@ -122,37 +122,37 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Cursor_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(6);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Cursor", function() { return _Cursor_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
 
-/* harmony import */ var _patterns_value_RegexValue_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(7);
+/* harmony import */ var _patterns_value_RegexValue_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(8);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "RegexValue", function() { return _patterns_value_RegexValue_js__WEBPACK_IMPORTED_MODULE_5__["default"]; });
 
-/* harmony import */ var _patterns_value_AndValue_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(11);
+/* harmony import */ var _patterns_value_AndValue_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(12);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "AndValue", function() { return _patterns_value_AndValue_js__WEBPACK_IMPORTED_MODULE_6__["default"]; });
 
-/* harmony import */ var _patterns_value_AnyOfThese_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(13);
+/* harmony import */ var _patterns_value_AnyOfThese_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(14);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "AnyOfThese", function() { return _patterns_value_AnyOfThese_js__WEBPACK_IMPORTED_MODULE_7__["default"]; });
 
-/* harmony import */ var _patterns_value_Literal_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(14);
+/* harmony import */ var _patterns_value_Literal_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(15);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Literal", function() { return _patterns_value_Literal_js__WEBPACK_IMPORTED_MODULE_8__["default"]; });
 
-/* harmony import */ var _patterns_value_NotValue_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(15);
+/* harmony import */ var _patterns_value_NotValue_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(16);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "NotValue", function() { return _patterns_value_NotValue_js__WEBPACK_IMPORTED_MODULE_9__["default"]; });
 
-/* harmony import */ var _patterns_value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(12);
+/* harmony import */ var _patterns_value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(13);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "OptionalValue", function() { return _patterns_value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_10__["default"]; });
 
-/* harmony import */ var _patterns_value_OrValue_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(16);
+/* harmony import */ var _patterns_value_OrValue_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(17);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "OrValue", function() { return _patterns_value_OrValue_js__WEBPACK_IMPORTED_MODULE_11__["default"]; });
 
-/* harmony import */ var _patterns_value_RepeatValue_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(17);
+/* harmony import */ var _patterns_value_RepeatValue_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(18);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "RepeatValue", function() { return _patterns_value_RepeatValue_js__WEBPACK_IMPORTED_MODULE_12__["default"]; });
 
-/* harmony import */ var _patterns_value_ValuePattern_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(9);
+/* harmony import */ var _patterns_value_ValuePattern_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(10);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ValuePattern", function() { return _patterns_value_ValuePattern_js__WEBPACK_IMPORTED_MODULE_13__["default"]; });
 
-/* harmony import */ var _patterns_composite_AndComposite_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(18);
+/* harmony import */ var _patterns_composite_AndComposite_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(19);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "AndComposite", function() { return _patterns_composite_AndComposite_js__WEBPACK_IMPORTED_MODULE_14__["default"]; });
 
-/* harmony import */ var _patterns_composite_CompositePattern_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(19);
+/* harmony import */ var _patterns_composite_CompositePattern_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(20);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "CompositePattern", function() { return _patterns_composite_CompositePattern_js__WEBPACK_IMPORTED_MODULE_15__["default"]; });
 
 /* harmony import */ var _patterns_composite_OptionalComposite_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(21);
@@ -164,18 +164,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _patterns_composite_RepeatComposite_js__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(23);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "RepeatComposite", function() { return _patterns_composite_RepeatComposite_js__WEBPACK_IMPORTED_MODULE_18__["default"]; });
 
-/* harmony import */ var _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(8);
+/* harmony import */ var _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(9);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ParseError", function() { return _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_19__["default"]; });
 
-/* harmony import */ var _patterns_Pattern_js__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(10);
+/* harmony import */ var _patterns_Pattern_js__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(11);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Pattern", function() { return _patterns_Pattern_js__WEBPACK_IMPORTED_MODULE_20__["default"]; });
 
-/* harmony import */ var _patterns_StackInformation_js__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(20);
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "StackInformation", function() { return _patterns_StackInformation_js__WEBPACK_IMPORTED_MODULE_21__["default"]; });
-
-/* harmony import */ var _patterns_RecursivePattern_js__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(24);
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "RecursivePattern", function() { return _patterns_RecursivePattern_js__WEBPACK_IMPORTED_MODULE_22__["default"]; });
-
+/* harmony import */ var _patterns_RecursivePattern_js__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(24);
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "RecursivePattern", function() { return _patterns_RecursivePattern_js__WEBPACK_IMPORTED_MODULE_21__["default"]; });
 
 
 
@@ -225,7 +221,8 @@ class Mark {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Node; });
 class Node {
-  constructor(name, startIndex, endIndex) {
+  constructor(type, name, startIndex, endIndex) {
+    this.type = type;
     this.name = name;
     this.startIndex = startIndex;
     this.endIndex = endIndex;
@@ -259,18 +256,22 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class CompositeNode extends _Node_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
-  constructor(name, startIndex = 0, endIndex = 0) {
-    super(name, startIndex, endIndex);
+  constructor(type, name, startIndex = 0, endIndex = 0) {
+    super(type, name, startIndex, endIndex);
     this.children = [];
   }
 
   clone() {
-    const node = new CompositeNode(this.name, this.startIndex, this.endIndex);
+    const node = new CompositeNode(this.type, this.name, this.startIndex, this.endIndex);
     node.children = this.children.map(child => {
       return child.clone();
     });
 
     return node;
+  }
+
+  toString(){
+    return this.children.map(child=>child.toString()).join("");
   }
 }
 
@@ -286,13 +287,17 @@ __webpack_require__.r(__webpack_exports__);
 
 // We might want reference to the pattern on the node.
 class ValueNode extends _Node_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
-  constructor(name, value, startIndex = 0, endIndex = 0) {
-    super(name, startIndex, endIndex);
+  constructor(type, name, value, startIndex = 0, endIndex = 0) {
+    super(type, name, startIndex, endIndex);
     this.value = value;
   }
 
   clone() {
-    return new ValueNode(this.name, this.value, this.startIndex, this.endIndex);
+    return new ValueNode(this.type, this.name, this.value, this.startIndex, this.endIndex);
+  }
+
+  toString(){
+    return this.value;
   }
 }
 
@@ -304,33 +309,18 @@ class ValueNode extends _Node_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Cursor; });
-/* harmony import */ var _Mark_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2);
+/* harmony import */ var _CursorHistory__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7);
 
 
 class Cursor {
-  constructor(string, { verbose } = {}) {
+  constructor(string) {
     this.string = string;
     this.index = 0;
     this.length = string.length;
-    this.parseError = null;
-    this.verbose = typeof verbose === "boolean" ? verbose : false;
+    this.history = new _CursorHistory__WEBPACK_IMPORTED_MODULE_0__["default"]();
     this.isInErrorState = false;
+
     this.assertValidity();
-  }
-
-  throwError(parseError) {
-    this.isInErrorState = true;
-    if (this.parseError == null || parseError.index >= this.parseError.index){
-      this.parseError = parseError;
-    }
-  }
-
-  resolveError() {
-    this.isInErrorState = false;
-  }
-
-  hasUnresolvedError() {
-    return this.isInErrorState;
   }
 
   assertValidity() {
@@ -339,6 +329,35 @@ class Cursor {
         "Illegal Argument: Cursor needs to have a string that has a length greater than 0."
       );
     }
+  }
+
+  startRecording(){
+    this.history.startRecording();
+  }
+
+  stopRecording(){
+    this.history.stopRecording();
+  }
+
+  get parseError (){
+    return this.history.getFurthestError();
+  }
+
+  throwError(parseError) {
+    this.isInErrorState = true;
+    this.history.addError(parseError);
+  }
+
+  addMatch(pattern, astNode){
+    this.history.addMatch(pattern, astNode);
+  }
+
+  resolveError() {
+    this.isInErrorState = false;
+  }
+
+  hasUnresolvedError() {
+    return this.isInErrorState;
   }
 
   isNullOrEmpty(value) {
@@ -414,6 +433,10 @@ class Cursor {
   lastIndex() {
     return this.length - 1;
   }
+
+  didSuccessfullyParse(){
+    return !this.hasUnresolvedError() && this.isAtEnd();
+  }
 }
 
 
@@ -423,11 +446,95 @@ class Cursor {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return CursorHistory; });
+class CursorHistory {
+  constructor() {
+    this.isRecording = false;
+
+    this.furthestMatch = {
+      pattern: null,
+      astNode: null
+    };
+
+    this.furthestError = null;
+
+    this.patterns = [];
+    this.astNodes = [];
+    this.errors = [];
+  }
+
+  addMatch(pattern, astNode) {
+    if (this.isRecording) {
+      this.patterns.push(pattern);
+      this.astNodes.push(astNode);
+    }
+
+    if (
+      this.furthestMatch.astNode == null ||
+      astNode.endIndex >= this.furthestMatch.astNode.endIndex
+    ) {
+      this.furthestMatch.pattern = {
+        pattern,
+        astNode
+      };
+    }
+  }
+
+  addError(error) {
+    if (this.isRecording) {
+      this.errors.push(error);
+    }
+
+    if (this.furthestError == null || error.index >= this.furthestError.index) {
+      this.furthestError = error;
+    }
+  }
+
+  startRecording() {
+    this.isRecording = true;
+  }
+
+  stopRecording() {
+    this.isRecording = false;
+  }
+
+  clear() {
+    this.matches = [];
+    this.errors = [];
+  }
+
+  getFurthestError() {
+    return this.furthestError;
+  }
+
+  getFurthestMatch() {
+    return this.furthestMatch;
+  }
+
+  getLastMatch() {
+    return {
+      pattern: this.patterns[this.patterns.length - 1] || null,
+      astNode: this.astNodes[this.astNodes.length - 1] || null
+    };
+  }
+
+  getLastError() {
+    return this.errors[this.errors.length - 1] || null;
+  }
+}
+
+
+/***/ }),
+/* 8 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return RegexValue; });
-/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8);
+/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
 /* harmony import */ var _Cursor_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6);
 /* harmony import */ var _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5);
-/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(9);
+/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(10);
 
 
 
@@ -435,7 +542,7 @@ __webpack_require__.r(__webpack_exports__);
 
 class RegexValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__["default"] {
   constructor(name, regex) {
-    super(name);
+    super("regex-value", name);
     this.regexString = regex;
     this.regex = new RegExp(`^${regex}`, "g");
     this._assertArguments();
@@ -488,9 +595,16 @@ class RegexValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__["default"
       const currentIndex = this.cursor.getIndex();
       const newIndex = currentIndex + result[0].length - 1;
 
-      this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_2__["default"](this.name, result[0], currentIndex, newIndex);
+      this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_2__["default"](
+        "regex-value",
+        this.name,
+        result[0],
+        currentIndex,
+        newIndex
+      );
 
-      this.cursor.index = (newIndex);
+      this.cursor.index = newIndex;
+      this.cursor.addMatch(this, this.node);
     } else {
       this._processError();
     }
@@ -517,7 +631,7 @@ class RegexValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__["default"
 
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -534,18 +648,18 @@ class ParseError {
 }
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ValuePattern; });
-/* harmony import */ var _Pattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(10);
+/* harmony import */ var _Pattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(11);
 
 
 class ValuePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
-  constructor(name, children = []) {
-    super(name);
+  constructor(type, name, children = []) {
+    super(type, name);
     this._children = children;
     this._assertPatternArguments();
     this._cloneChildren();
@@ -574,6 +688,12 @@ class ValuePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
         "Invalid Argument: ValuePatterns needs to have a name that's a string."
       );
     }
+
+    if (typeof this.type !== "string") {
+      throw new Error(
+        "Invalid Argument: ValuePatterns needs to have a type that's a string."
+      );
+    }
   }
 
   _cloneChildren() {
@@ -599,14 +719,18 @@ class ValuePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Pattern; });
+/* harmony import */ var _Cursor_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6);
+
+
 class Pattern {
-  constructor(name = null) {
+  constructor(type = null, name = null) {
+    this._type = type;
     this._name = name;
     this._parent = null;
     this._children = [];
@@ -626,8 +750,27 @@ class Pattern {
     throw new Error("Method Not Implemented");
   }
 
+  exec(string) {
+    const cursor = new _Cursor_js__WEBPACK_IMPORTED_MODULE_0__["default"](string);
+    const node = this.parse(cursor);
+
+    if (cursor.didSuccessfullyParse()) {
+      return node;
+    } else {
+      return null;
+    }
+  }
+
+  test(string) {
+    return this.exec(string) != null;
+  }
+
   get name() {
     return this._name;
+  }
+
+  get type() {
+    return this._type;
   }
 
   get parent() {
@@ -688,18 +831,16 @@ class Pattern {
 
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return AndValue; });
-/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
+/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(10);
 /* harmony import */ var _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5);
-/* harmony import */ var _Cursor_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6);
-/* harmony import */ var _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(8);
-/* harmony import */ var _OptionalValue_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(12);
-
+/* harmony import */ var _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(9);
+/* harmony import */ var _OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(13);
 
 
 
@@ -707,7 +848,7 @@ __webpack_require__.r(__webpack_exports__);
 
 class AndValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
   constructor(name, patterns) {
-    super(name, patterns);
+    super("and-value", name, patterns);
     this._assertArguments();
   }
 
@@ -780,11 +921,11 @@ class AndValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
 
   _assertRestOfPatternsAreOptional() {
     const areTheRestOptional = this.children.every((pattern, index) => {
-      return index <= this.index || pattern instanceof _OptionalValue_js__WEBPACK_IMPORTED_MODULE_4__["default"];
+      return index <= this.index || pattern instanceof _OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__["default"];
     });
 
     if (!areTheRestOptional) {
-      const parseError = new _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_3__["default"](
+      const parseError = new _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_2__["default"](
         `Could not match ${this.name} before string ran out.`,
         this.index,
         this
@@ -805,9 +946,10 @@ class AndValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
       const endIndex = lastNode.endIndex;
       const value = this.nodes.map(node => node.value).join("");
 
-      this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](this.name, value, startIndex, endIndex);
+      this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__["default"]("and-value", this.name, value, startIndex, endIndex);
 
       this.cursor.index = this.node.endIndex;
+      this.cursor.addMatch(this, this.node);
     }
   }
 
@@ -825,18 +967,18 @@ class AndValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
 
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return OptionalValue; });
-/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
+/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(10);
 
 
 class OptionalValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
   constructor(pattern) {
-    super("optional-value", [pattern]);
+    super("optional-value", "optional-value", [pattern]);
     this._assertArguments();
   }
 
@@ -856,6 +998,7 @@ class OptionalValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["defau
       cursor.moveToMark(mark);
       return null;
     } else {
+      cursor.addMatch(this, node);
       return node;
     }
   }
@@ -871,14 +1014,14 @@ class OptionalValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["defau
 
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return AnyOfThese; });
-/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
-/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(8);
+/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(10);
+/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(9);
 /* harmony import */ var _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5);
 /* harmony import */ var _Cursor_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(6);
 
@@ -888,7 +1031,7 @@ __webpack_require__.r(__webpack_exports__);
 
 class AnyOfThese extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
   constructor(name, characters) {
-    super(name);
+    super("any-of-these", name);
     this.characters = characters;
     this._assertArguments();
   }
@@ -924,7 +1067,9 @@ class AnyOfThese extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"
       const value = this.cursor.getChar();
       const index = this.cursor.getIndex();
 
-      this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_2__["default"](this.name, value, index, index);
+      this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_2__["default"]("any-of-these", this.name, value, index, index);
+
+      this.cursor.addMatch(this, this.node);
     } else {
       this._processError();
     }
@@ -957,22 +1102,22 @@ class AnyOfThese extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"
 
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Literal; });
-/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8);
+/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
 /* harmony import */ var _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5);
-/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(9);
+/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(10);
 
 
 
 
 class Literal extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_2__["default"] {
   constructor(name, literal) {
-    super(name);
+    super("literal", name);
     this.literal = literal;
     this._assertArguments();
   }
@@ -1007,7 +1152,7 @@ class Literal extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_2__["default"] {
     );
     this.node = null;
   }
-  
+
   _tryPattern() {
     if (this.substring === this.literal) {
       this._processMatch();
@@ -1017,9 +1162,7 @@ class Literal extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_2__["default"] {
   }
 
   _processError() {
-    const message = `ParseError: Expected '${
-      this.literal
-    }' but found '${this.substring}'.`;
+    const message = `ParseError: Expected '${this.literal}' but found '${this.substring}'.`;
 
     const parseError = new _ParseError_js__WEBPACK_IMPORTED_MODULE_0__["default"](message, this.cursor.getIndex(), this);
     this.cursor.throwError(parseError);
@@ -1027,13 +1170,15 @@ class Literal extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_2__["default"] {
 
   _processMatch() {
     this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](
+      "literal",
       this.name,
       this.substring,
       this.mark,
       this.mark + this.literal.length - 1
     );
 
-    this.cursor.index = (this.node.endIndex);
+    this.cursor.index = this.node.endIndex;
+    this.cursor.addMatch(this, this.node);
   }
 
   clone(name) {
@@ -1050,22 +1195,22 @@ class Literal extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_2__["default"] {
 
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return NotValue; });
-/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
+/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(10);
 /* harmony import */ var _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5);
-/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(8);
+/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(9);
 
 
 
 
 class NotValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
   constructor(name, pattern) {
-    super(name, [pattern]);
+    super("not-value", name, [pattern]);
     this._assertArguments();
   }
 
@@ -1123,9 +1268,16 @@ class NotValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
       );
       this.cursor.throwError(parseError);
     } else {
-      this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](this.name, this.match, this.mark, this.mark);
+      this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](
+        "not-value",
+        this.name,
+        this.match,
+        this.mark,
+        this.mark
+      );
 
       this.cursor.index = this.node.endIndex;
+      this.cursor.addMatch(this, this.node);
     }
   }
 
@@ -1143,16 +1295,16 @@ class NotValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
 
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return OrValue; });
-/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
+/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(10);
 /* harmony import */ var _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5);
 /* harmony import */ var _Cursor_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6);
-/* harmony import */ var _OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(12);
+/* harmony import */ var _OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(13);
 
 
 
@@ -1160,7 +1312,7 @@ __webpack_require__.r(__webpack_exports__);
 
 class OrValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
   constructor(name, patterns) {
-    super(name, patterns);
+    super("or-value", name, patterns);
     this._assertArguments();
   }
 
@@ -1201,7 +1353,6 @@ class OrValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
       const node = pattern.parse(this.cursor, this.parseError);
 
       if (this.cursor.hasUnresolvedError()) {
-
         if (this.index + 1 < this._children.length) {
           this.cursor.resolveError();
           this.index++;
@@ -1210,16 +1361,18 @@ class OrValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
           this.node = null;
           break;
         }
-
       } else {
         this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](
+          "or-value",
           this.name,
           node.value,
           node.startIndex,
           node.endIndex
         );
 
-        this.cursor.index = (this.node.endIndex);
+        this.cursor.index = this.node.endIndex;
+        this.cursor.addMatch(this, this.node);
+
         break;
       }
     }
@@ -1239,16 +1392,16 @@ class OrValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return RepeatValue; });
-/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
+/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(10);
 /* harmony import */ var _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5);
-/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(8);
-/* harmony import */ var _OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(12);
+/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(9);
+/* harmony import */ var _OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(13);
 
 
 
@@ -1256,7 +1409,11 @@ __webpack_require__.r(__webpack_exports__);
 
 class RepeatValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
   constructor(name, pattern, divider) {
-    super(name, divider != null ? [pattern, divider] : [pattern]);
+    super(
+      "repeat-value",
+      name,
+      divider != null ? [pattern, divider] : [pattern]
+    );
 
     this._pattern = this.children[0];
     this._divider = this.children[1];
@@ -1334,6 +1491,7 @@ class RepeatValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default
       const value = this.nodes.map(node => node.value).join("");
 
       this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](
+        "repeat-value",
         this.name,
         value,
         this.nodes[0].startIndex,
@@ -1341,6 +1499,7 @@ class RepeatValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default
       );
 
       this.cursor.index = this.node.endIndex;
+      this.cursor.addMatch(this, this.node);
     }
   }
 
@@ -1358,21 +1517,17 @@ class RepeatValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default
 
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return AndComposite; });
-/* harmony import */ var _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(19);
+/* harmony import */ var _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(20);
 /* harmony import */ var _ast_CompositeNode_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4);
-/* harmony import */ var _Cursor_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6);
-/* harmony import */ var _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(8);
-/* harmony import */ var _StackInformation_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(20);
-/* harmony import */ var _value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(12);
-/* harmony import */ var _OptionalComposite_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(21);
-
-
+/* harmony import */ var _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(9);
+/* harmony import */ var _value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(13);
+/* harmony import */ var _OptionalComposite_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(21);
 
 
 
@@ -1381,7 +1536,7 @@ __webpack_require__.r(__webpack_exports__);
 
 class AndComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
   constructor(name, patterns) {
-    super(name, patterns);
+    super("and-composite", name, patterns);
     this._assertArguments();
   }
 
@@ -1457,13 +1612,13 @@ class AndComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["de
     const areTheRestOptional = this.children.every((pattern, index) => {
       return (
         index <= this.index ||
-        pattern instanceof _value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_5__["default"] ||
-        pattern instanceof _OptionalComposite_js__WEBPACK_IMPORTED_MODULE_6__["default"]
+        pattern instanceof _value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__["default"] ||
+        pattern instanceof _OptionalComposite_js__WEBPACK_IMPORTED_MODULE_4__["default"]
       );
     });
 
     if (!areTheRestOptional) {
-      const parseError = new _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_3__["default"](
+      const parseError = new _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_2__["default"](
         `Could not match ${this.name} before string ran out.`,
         this.index,
         this
@@ -1480,10 +1635,18 @@ class AndComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["de
       const startIndex = this.mark;
       const endIndex = lastNode.endIndex;
 
-      this.node = new _ast_CompositeNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](this.name, startIndex, endIndex);
-      this.node.children = this.nodes;
+      this.node = new _ast_CompositeNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](
+        "and-composite",
+        this.name,
+        startIndex,
+        endIndex
+      );
 
+      this.node.children = this.nodes;
+      
       this.cursor.index = this.node.endIndex;
+      this.cursor.addMatch(this, this.node);
+
     } else {
       this.node = null;
     }
@@ -1503,18 +1666,18 @@ class AndComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["de
 
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return CompositePattern; });
-/* harmony import */ var _Pattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(10);
+/* harmony import */ var _Pattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(11);
 
 
 class CompositePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
-  constructor(name, children = []) {
-    super(name);
+  constructor(type, name, children = []) {
+    super(type, name);
 
     this._children = children;
     this._assertArguments();
@@ -1571,35 +1734,20 @@ class CompositePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default
 
 
 /***/ }),
-/* 20 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return StackInformation; });
-class StackInformation {
-    constructor(mark, pattern){
-        this.mark = mark;
-        this.pattern = pattern;
-        this.expectations = [];
-    }
-}
-
-/***/ }),
 /* 21 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return OptionalComposite; });
-/* harmony import */ var _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(19);
-/* harmony import */ var _Pattern_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(10);
+/* harmony import */ var _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(20);
+/* harmony import */ var _Pattern_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(11);
 
 
 
 class OptionalComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
   constructor(pattern) {
-    super("optional-composite", [pattern]);
+    super("optional-composite", "optional-composite", [pattern]);
     this._assertArguments();
   }
 
@@ -1620,6 +1768,7 @@ class OptionalComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0_
       cursor.moveToMark(mark);
       return null;
     } else {
+      cursor.addMatch(this, node);
       return node;
     }
   }
@@ -1641,22 +1790,16 @@ class OptionalComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0_
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return OrComposite; });
-/* harmony import */ var _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(19);
-/* harmony import */ var _Cursor_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6);
-/* harmony import */ var _StackInformation_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(20);
-/* harmony import */ var _value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(12);
-/* harmony import */ var _OptionalComposite_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(21);
-/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(8);
-
-
-
+/* harmony import */ var _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(20);
+/* harmony import */ var _value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(13);
+/* harmony import */ var _OptionalComposite_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(21);
 
 
 
 
 class OrComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
   constructor(name, patterns) {
-    super(name, patterns);
+    super("or-composite", name, patterns);
     this._assertArguments();
   }
 
@@ -1669,7 +1812,7 @@ class OrComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["def
 
     const hasOptionalChildren = this._children.some(
       pattern =>
-        pattern instanceof _value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__["default"] || pattern instanceof _OptionalComposite_js__WEBPACK_IMPORTED_MODULE_4__["default"]
+        pattern instanceof _value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_1__["default"] || pattern instanceof _OptionalComposite_js__WEBPACK_IMPORTED_MODULE_2__["default"]
     );
 
     if (hasOptionalChildren) {
@@ -1692,6 +1835,10 @@ class OrComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["def
   parse(cursor) {
     this._reset(cursor);
     this._tryPattern();
+
+    if (this.node != null) {
+      this.cursor.addMatch(this, this.node);
+    }
 
     return this.node;
   }
@@ -1738,9 +1885,9 @@ class OrComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["def
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return RepeatComposite; });
-/* harmony import */ var _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(19);
+/* harmony import */ var _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(20);
 /* harmony import */ var _ast_CompositeNode_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4);
-/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(8);
+/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(9);
 /* harmony import */ var _OptionalComposite_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(21);
 
 
@@ -1749,7 +1896,11 @@ __webpack_require__.r(__webpack_exports__);
 
 class RepeatComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
   constructor(name, pattern, divider) {
-    super(name, divider != null ? [pattern, divider] : [pattern]);
+    super(
+      "repeat-composite",
+      name,
+      divider != null ? [pattern, divider] : [pattern]
+    );
     this._pattern = this.children[0];
     this._divider = this.children[1];
     this._assertArguments();
@@ -1824,6 +1975,7 @@ class RepeatComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__[
       this.node = null;
     } else {
       this.node = new _ast_CompositeNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](
+        "repeat-composite",
         this.name,
         this.nodes[0].startIndex,
         this.nodes[this.nodes.length - 1].endIndex
@@ -1831,6 +1983,8 @@ class RepeatComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__[
 
       this.node.children = this.nodes;
       this.cursor.index = this.node.endIndex;
+
+      this.cursor.addMatch(this, this.node);
     }
   }
 
@@ -1854,14 +2008,14 @@ class RepeatComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__[
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return RecursivePattern; });
-/* harmony import */ var _Pattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(10);
-/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(8);
+/* harmony import */ var _Pattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(11);
+/* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(9);
 
 
 
 class RecursivePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
   constructor(name) {
-    super(name);
+    super("recursive", name);
   }
 
   getPattern() {
@@ -1882,7 +2036,6 @@ class RecursivePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default
   }
 
   parse(cursor) {
-    
     if (this.pattern == null) {
       const pattern = this.getPattern();
 
@@ -1901,7 +2054,13 @@ class RecursivePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default
       this.pattern.parent = this;
     }
 
-    return this.pattern.parse(cursor);
+    const node = this.pattern.parse(cursor);
+
+    if (!cursor.hasUnresolvedError()) {
+      cursor.addMatch(this, node);
+    }
+
+    return node;
   }
 
   clone(name) {

@@ -3,7 +3,7 @@ import ParserError from "./ParseError.js";
 
 export default class RecursivePattern extends Pattern {
   constructor(name) {
-    super(name);
+    super("recursive", name);
   }
 
   getPattern() {
@@ -24,7 +24,6 @@ export default class RecursivePattern extends Pattern {
   }
 
   parse(cursor) {
-    
     if (this.pattern == null) {
       const pattern = this.getPattern();
 
@@ -43,7 +42,13 @@ export default class RecursivePattern extends Pattern {
       this.pattern.parent = this;
     }
 
-    return this.pattern.parse(cursor);
+    const node = this.pattern.parse(cursor);
+
+    if (!cursor.hasUnresolvedError()) {
+      cursor.addMatch(this, node);
+    }
+
+    return node;
   }
 
   clone(name) {

@@ -1,5 +1,6 @@
 export default class Node {
-  constructor(name, startIndex, endIndex) {
+  constructor(type, name, startIndex, endIndex) {
+    this.type = type;
     this.name = name;
     this.startIndex = startIndex;
     this.endIndex = endIndex;

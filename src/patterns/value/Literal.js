@@ -4,7 +4,7 @@ import ValuePattern from "./ValuePattern.js";
 
 export default class Literal extends ValuePattern {
   constructor(name, literal) {
-    super(name);
+    super("literal", name);
     this.literal = literal;
     this._assertArguments();
   }
@@ -39,7 +39,7 @@ export default class Literal extends ValuePattern {
     );
     this.node = null;
   }
-  
+
   _tryPattern() {
     if (this.substring === this.literal) {
       this._processMatch();
@@ -49,9 +49,7 @@ export default class Literal extends ValuePattern {
   }
 
   _processError() {
-    const message = `ParseError: Expected '${
-      this.literal
-    }' but found '${this.substring}'.`;
+    const message = `ParseError: Expected '${this.literal}' but found '${this.substring}'.`;
 
     const parseError = new ParseError(message, this.cursor.getIndex(), this);
     this.cursor.throwError(parseError);
@@ -59,13 +57,15 @@ export default class Literal extends ValuePattern {
 
   _processMatch() {
     this.node = new ValueNode(
+      "literal",
       this.name,
       this.substring,
       this.mark,
       this.mark + this.literal.length - 1
     );
 
-    this.cursor.index = (this.node.endIndex);
+    this.cursor.index = this.node.endIndex;
+    this.cursor.addMatch(this, this.node);
   }
 
   clone(name) {

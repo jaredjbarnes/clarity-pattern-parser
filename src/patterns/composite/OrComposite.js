@@ -1,13 +1,10 @@
 import CompositePattern from "./CompositePattern.js";
-import Cursor from "../../Cursor.js";
-import StackInformation from "../StackInformation.js";
 import OptionalValue from "../value/OptionalValue.js";
 import OptionalComposite from "./OptionalComposite.js";
-import ParseError from "../ParseError.js";
 
 export default class OrComposite extends CompositePattern {
   constructor(name, patterns) {
-    super(name, patterns);
+    super("or-composite", name, patterns);
     this._assertArguments();
   }
 
@@ -43,6 +40,10 @@ export default class OrComposite extends CompositePattern {
   parse(cursor) {
     this._reset(cursor);
     this._tryPattern();
+
+    if (this.node != null) {
+      this.cursor.addMatch(this, this.node);
+    }
 
     return this.node;
   }

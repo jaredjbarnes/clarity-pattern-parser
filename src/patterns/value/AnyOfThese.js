@@ -5,7 +5,7 @@ import Cursor from "../../Cursor.js";
 
 export default class AnyOfThese extends ValuePattern {
   constructor(name, characters) {
-    super(name);
+    super("any-of-these", name);
     this.characters = characters;
     this._assertArguments();
   }
@@ -41,7 +41,9 @@ export default class AnyOfThese extends ValuePattern {
       const value = this.cursor.getChar();
       const index = this.cursor.getIndex();
 
-      this.node = new ValueNode(this.name, value, index, index);
+      this.node = new ValueNode("any-of-these", this.name, value, index, index);
+
+      this.cursor.addMatch(this, this.node);
     } else {
       this._processError();
     }

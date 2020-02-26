@@ -1,8 +1,8 @@
 import Pattern from "../Pattern.js";
 
 export default class CompositePattern extends Pattern {
-  constructor(name, children = []) {
-    super(name);
+  constructor(type, name, children = []) {
+    super(type, name);
 
     this._children = children;
     this._assertArguments();

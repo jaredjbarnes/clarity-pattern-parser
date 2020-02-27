@@ -99,4 +99,8 @@ export default class Pattern {
   clone() {
     throw new Error("Method Not Implemented");
   }
+
+  getPossibilities() {
+    throw new Error("Method Not Implemented");
+  }
 }

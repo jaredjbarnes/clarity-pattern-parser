@@ -34,4 +34,8 @@ export default class OptionalValue extends ValuePattern {
   getCurrentMark() {
     return this.mark;
   }
+
+  getPossibilities() {
+    return this.children[0].getPossibilities();
+  }
 }

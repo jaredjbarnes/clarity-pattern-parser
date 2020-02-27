@@ -85,4 +85,8 @@ export default class NotValue extends ValuePattern {
   getCurrentMark() {
     return this.mark;
   }
+
+  getPossibilities() {
+    return [this.name];
+  }
 }

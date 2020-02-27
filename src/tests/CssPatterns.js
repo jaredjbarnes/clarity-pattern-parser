@@ -9,7 +9,9 @@ exports["Css: unit"] = () => {
 };
 
 exports["Css: All known unit values spaced"] = () => {
-  const cursor = new Cursor("10 linear-gradient(to left, #333, #333 50%, #eee 75%, #333 75%) rgba(0,0,0,1) #333 #555555 0px 0% 0deg 1em radial-gradient(at 40% 40%, rgba(187,202,218,1) 0%, rgba(187,202,218,1) 20%, rgba(187,202,218,1) 100%)");
+  const cursor = new Cursor(
+    "10 linear-gradient(to left, #333, #333 50%, #eee 75%, #333 75%) rgba(0,0,0,1) #333 #555555 0px 0% 0deg 1em radial-gradient(at 40% 40%, rgba(187,202,218,1) 0%, rgba(187,202,218,1) 20%, rgba(187,202,218,1) 100%)"
+  );
   const result = cssValue.parse(cursor);
   assert.equal(result.endIndex, cursor.string.length - 1);
   assert.equal(cursor.string, result.toString());
@@ -76,9 +78,15 @@ exports["Css: complex spaced values"] = () => {
 };
 
 exports["Css: multiple linear gradients"] = () => {
-    const cursor = new Cursor(
-      "linear-gradient(to left, #333, #333 50%, #eee 75%, #333 75%), linear-gradient(to bottom, #555, #555 50%, #eee 75%, #555 75%)"
-    );
-    const result = cssValue.parse(cursor);
-    assert.equal(result.endIndex, cursor.string.length - 1);
-  };
+  const cursor = new Cursor(
+    "linear-gradient(to left, #333, #333 50%, #eee 75%, #333 75%), linear-gradient(to bottom, #555, #555 50%, #eee 75%, #555 75%)"
+  );
+  const result = cssValue.parse(cursor);
+  assert.equal(result.endIndex, cursor.string.length - 1);
+};
+
+exports["Css: getPossibilities"] = () => {
+  
+  const result = cssValue.getPossibilities();
+  
+};

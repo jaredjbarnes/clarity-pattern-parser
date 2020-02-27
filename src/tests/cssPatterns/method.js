@@ -17,7 +17,7 @@ const args = new RepeatComposite("arguments", values, divider);
 const optionalArgs = new OptionalComposite(args);
 
 const method = new AndComposite("method", [
-  name,
+  name.clone("[Method Name]"),
   openParen,
   optionalSpaces,
   optionalArgs,

@@ -2,6 +2,9 @@ import ValuePattern from "./ValuePattern.js";
 import ValueNode from "../../ast/ValueNode.js";
 import ParseError from "../../patterns/ParseError.js";
 import OptionalValue from "./OptionalValue.js";
+import Permutor from "../../Permutor.js";
+
+const permutor = new Permutor();
 
 export default class AndValue extends ValuePattern {
   constructor(name, patterns) {
@@ -119,5 +122,10 @@ export default class AndValue extends ValuePattern {
 
   getCurrentMark() {
     return this.mark;
+  }
+
+  getPossibilities() {
+    const possibilities = this.children.map(child => child.getPossibilities());
+    return permutor.permute(possibilities);
   }
 }

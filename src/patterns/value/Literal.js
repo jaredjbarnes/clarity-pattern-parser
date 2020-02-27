@@ -78,4 +78,8 @@ export default class Literal extends ValuePattern {
   getCurrentMark() {
     return this.mark;
   }
+
+  getPossibilities() {
+    return [this.literal];
+  }
 }

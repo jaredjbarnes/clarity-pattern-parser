@@ -1,5 +1,5 @@
 import { RegexValue } from "../../index.js";
 
-const spaces = new RegexValue("spaces", "\\s+");
+const spaces = new RegexValue(" ", "\\s+");
 
 export default spaces;

@@ -19,15 +19,15 @@ export default class CursorHistory {
       this.patterns.push(pattern);
       this.astNodes.push(astNode);
     }
-
+    if (astNode == null) {
+      debugger;
+    }
     if (
       this.furthestMatch.astNode == null ||
       astNode.endIndex >= this.furthestMatch.astNode.endIndex
     ) {
-      this.furthestMatch.pattern = {
-        pattern,
-        astNode
-      };
+      this.furthestMatch.pattern = pattern;
+      this.furthestMatch.astNode = astNode;
     }
   }
 

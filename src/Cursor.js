@@ -31,6 +31,10 @@ export default class Cursor {
     return this.history.getFurthestError();
   }
 
+  get lastMatch(){
+    return this.history.getFurthestMatch();
+  }
+
   throwError(parseError) {
     this.isInErrorState = true;
     this.history.addError(parseError);

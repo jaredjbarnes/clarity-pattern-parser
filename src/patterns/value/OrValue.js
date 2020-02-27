@@ -81,4 +81,14 @@ export default class OrValue extends ValuePattern {
   getCurrentMark() {
     return this.mark;
   }
+
+  getPossibilities() {
+    return this.children
+      .map(child => {
+        return child.getPossibilities();
+      })
+      .reduce((acc, value) => {
+        return acc.concat(value);
+      }, []);
+  }
 }

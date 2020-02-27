@@ -72,4 +72,8 @@ export default class AnyOfThese extends ValuePattern {
   getCurrentMark() {
     return this.mark;
   }
+
+  getPossibilities() {
+    return this.characters.split("");
+  }
 }

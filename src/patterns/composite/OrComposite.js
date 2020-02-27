@@ -80,4 +80,14 @@ export default class OrComposite extends CompositePattern {
   getCurrentMark() {
     return this.mark;
   }
+
+  getPossibilities() {
+    return this.children
+      .map(child => {
+        return child.getPossibilities();
+      })
+      .reduce((acc, value) => {
+        return acc.concat(value);
+      }, []);
+  }
 }

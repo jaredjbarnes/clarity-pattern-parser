@@ -36,4 +36,8 @@ export default class OptionalComposite extends CompositePattern {
   getCurrentMark() {
     return this.mark;
   }
+
+  getPossibilities() {
+    return this.children[0].getPossibilities();
+  }
 }

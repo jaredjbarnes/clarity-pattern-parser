@@ -4,6 +4,7 @@ import ParserError from "./ParseError.js";
 export default class RecursivePattern extends Pattern {
   constructor(name) {
     super("recursive", name);
+    this.isGettingPossibilities = false;
   }
 
   getPattern() {
@@ -60,5 +61,17 @@ export default class RecursivePattern extends Pattern {
 
   getCurrentMark() {
     return this.pattern.getCurrentMark();
+  }
+
+  getPossibilities() {
+    if (!this.isGettingPossibilities) {
+      this.isGettingPossibilities = true;
+      const possibilities = this.getPattern().getPossibilities();
+      this.isGettingPossibilities = false;
+
+      return possibilities;
+    } else {
+      return [this.name];
+    }
   }
 }

@@ -107,4 +107,23 @@ export default class RepeatComposite extends CompositePattern {
   getCurrentMark() {
     return this.mark;
   }
+
+  getPossibilities() {
+    
+    if (this._divider != null){
+      const dividerPossibilities = this._divider.getPossibilities();
+
+      return this._pattern.getPossibilities().map((possibility)=>{
+        return dividerPossibilities.map((divider)=>{
+          return `${possibility}${divider}`;
+        });
+      }).reduce((acc, value)=>{
+        return acc.concat(value);
+      }, []);
+
+    } else {
+      return this._pattern.getPossibilities();
+    }
+
+  }
 }

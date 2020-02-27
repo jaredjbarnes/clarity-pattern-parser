@@ -3,6 +3,9 @@ import CompositeNode from "../../ast/CompositeNode.js";
 import ParseError from "../../patterns/ParseError.js";
 import OptionalValue from "../value/OptionalValue.js";
 import OptionalComposite from "./OptionalComposite.js";
+import Permutor from "../../Permutor.js";
+
+const permutor = new Permutor();
 
 export default class AndComposite extends CompositePattern {
   constructor(name, patterns) {
@@ -113,10 +116,9 @@ export default class AndComposite extends CompositePattern {
       );
 
       this.node.children = this.nodes;
-      
+
       this.cursor.index = this.node.endIndex;
       this.cursor.addMatch(this, this.node);
-
     } else {
       this.node = null;
     }
@@ -131,5 +133,10 @@ export default class AndComposite extends CompositePattern {
 
   getCurrentMark() {
     return this.mark;
+  }
+
+  getPossibilities() {
+    const possibilities = this.children.map(child => child.getPossibilities());
+    return permutor.permute(possibilities);
   }
 }

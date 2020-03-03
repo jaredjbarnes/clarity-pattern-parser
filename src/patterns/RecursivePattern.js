@@ -71,7 +71,7 @@ export default class RecursivePattern extends Pattern {
 
       return possibilities;
     } else {
-      return [this.name];
+      return [`[${this.name}]`];
     }
   }
 }

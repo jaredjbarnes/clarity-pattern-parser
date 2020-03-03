@@ -41,7 +41,12 @@ export default class ValuePattern extends Pattern {
 
   _cloneChildren() {
     // We need to clone the patterns so nested patterns can be parsed.
-    this._children = this._children.map(pattern => pattern.clone());
+    this._children = this._children.map(pattern => {
+      if (!(pattern instanceof Pattern)) {
+        throw new Error(`The ${this.name} pattern has an invalid child pattern.`);
+      }
+      return pattern.clone();
+    });
 
     // We need to freeze the childen so they aren't modified.
     Object.freeze(this._children);

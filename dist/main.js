@@ -706,7 +706,12 @@ class ValuePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
   _cloneChildren() {
     // We need to clone the patterns so nested patterns can be parsed.
-    this._children = this._children.map(pattern => pattern.clone());
+    this._children = this._children.map(pattern => {
+      if (!(pattern instanceof _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default"])) {
+        throw new Error(`The ${this.name} pattern has an invalid child pattern.`);
+      }
+      return pattern.clone();
+    });
 
     // We need to freeze the childen so they aren't modified.
     Object.freeze(this._children);
@@ -1861,13 +1866,18 @@ class CompositePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default
 
   _cloneChildren() {
     // We need to clone the patterns so nested patterns can be parsed.
-    this._children = this._children.map(pattern => pattern.clone());
+    this._children = this._children.map(pattern => {
+      if (!(pattern instanceof _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default"])) {
+        throw new Error(`The ${this.name} pattern has an invalid child pattern.`);
+      }
+      return pattern.clone();
+    });
 
     // We need to freeze the childen so they aren't modified.
     Object.freeze(this._children);
   }
 
-  _assignAsParent(){
+  _assignAsParent() {
     this._children.forEach(child => (child.parent = this));
   }
 
@@ -2260,7 +2270,7 @@ class RecursivePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default
 
       return possibilities;
     } else {
-      return [this.name];
+      return [`[${this.name}]`];
     }
   }
 }

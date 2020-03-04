@@ -1,4 +1,5 @@
 import ValuePattern from "./ValuePattern.js";
+import Pattern from "../Pattern.js";
 
 export default class OptionalValue extends ValuePattern {
   constructor(pattern) {
@@ -35,7 +36,19 @@ export default class OptionalValue extends ValuePattern {
     return this.mark;
   }
 
-  getPossibilities() {
-    return this.children[0].getPossibilities();
+  getPossibilities(rootPattern) {
+    if (rootPattern == null || !(rootPattern instanceof Pattern)) {
+      rootPattern = this;
+    }
+
+    // This is to prevent possibilities explosion.
+    if (this.parent === rootPattern) {
+      const possibilities = this.children[0].getPossibilities(rootPattern);
+      possibilities.unshift("");
+
+      return possibilities;
+    } else {
+      return this.children[0].getPossibilities(rootPattern);
+    }
   }
 }

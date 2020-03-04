@@ -2,6 +2,7 @@ import ValuePattern from "./ValuePattern.js";
 import ValueNode from "../../ast/ValueNode.js";
 import ParseError from "../ParseError.js";
 import OptionalValue from "./OptionalValue.js";
+import Pattern from "../Pattern.js";
 
 export default class RepeatValue extends ValuePattern {
   constructor(name, pattern, divider) {
@@ -110,12 +111,16 @@ export default class RepeatValue extends ValuePattern {
     return this.mark;
   }
 
-  getPossibilities() {
+  getPossibilities(rootPattern) {
+    if (rootPattern == null || !(rootPattern instanceof Pattern)) {
+      rootPattern = this;
+    }
+
     if (this._divider != null) {
-      const dividerPossibilities = this._divider.getPossibilities();
+      const dividerPossibilities = this._divider.getPossibilities(rootPattern);
 
       return this._pattern
-        .getPossibilities()
+        .getPossibilities(rootPattern)
         .map(possibility => {
           return dividerPossibilities.map(divider => {
             return `${possibility}${divider}`;
@@ -125,7 +130,7 @@ export default class RepeatValue extends ValuePattern {
           return acc.concat(value);
         }, []);
     } else {
-      return this._pattern.getPossibilities();
+      return this._pattern.getPossibilities(rootPattern);
     }
   }
 }

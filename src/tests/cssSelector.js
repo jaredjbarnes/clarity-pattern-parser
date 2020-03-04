@@ -2,18 +2,17 @@ import attribute from "../queryPatterns/attribute.js";
 import cssSelector from "../queryPatterns/cssSelector.js";
 import Cursor from "../Cursor.js";
 import assert from "assert";
-import elementSelector from "../queryPatterns/elementSelector.js";
 
 exports["attribute: valid"] = () => {
-    const cursor = new Cursor("[name]='value'");
+    const cursor = new Cursor("[name='value']");
     const result = attribute.parse(cursor);
     
     assert.equal(result.name, "attribute");
-    assert.equal(result.children[0].name, "name");
-    assert.equal(result.children[0].children[1].value, "name");
-    assert.equal(result.children[1].name, "equal");
-    assert.equal(result.children[2].name, "value");
-    assert.equal(result.children[2].children[1].value, "value");
+    assert.equal(result.children[1].name, "name");
+    assert.equal(result.children[1].value, "name");
+    assert.equal(result.children[2].name, "equal");
+    assert.equal(result.children[3].name, "value");
+    assert.equal(result.children[3].children[1].value, "value");
     assert.equal(cursor.didSuccessfullyParse(), true);
 
 };

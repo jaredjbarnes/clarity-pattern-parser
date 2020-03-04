@@ -1,6 +1,7 @@
 import CompositePattern from "./CompositePattern.js";
 import OptionalValue from "../value/OptionalValue.js";
 import OptionalComposite from "./OptionalComposite.js";
+import Pattern from "../Pattern.js";
 
 export default class OrComposite extends CompositePattern {
   constructor(name, patterns) {
@@ -81,10 +82,14 @@ export default class OrComposite extends CompositePattern {
     return this.mark;
   }
 
-  getPossibilities() {
+  getPossibilities(rootPattern) {
+    if (rootPattern == null || !(rootPattern instanceof Pattern)){
+      rootPattern = this;
+    }
+
     return this.children
       .map(child => {
-        return child.getPossibilities();
+        return child.getPossibilities(rootPattern);
       })
       .reduce((acc, value) => {
         return acc.concat(value);

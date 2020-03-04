@@ -1,7 +1,7 @@
 import ValuePattern from "./ValuePattern.js";
 import ParseError from "../ParseError.js";
 import ValueNode from "../../ast/ValueNode.js";
-import Cursor from "../../Cursor.js";
+import Pattern from "../Pattern.js";
 
 export default class AnyOfThese extends ValuePattern {
   constructor(name, characters) {
@@ -73,7 +73,11 @@ export default class AnyOfThese extends ValuePattern {
     return this.mark;
   }
 
-  getPossibilities() {
+  getPossibilities(rootPattern) {
+    if (rootPattern == null || !(rootPattern instanceof Pattern)) {
+      rootPattern = this;
+    }
+
     return this.characters.split("");
   }
 }

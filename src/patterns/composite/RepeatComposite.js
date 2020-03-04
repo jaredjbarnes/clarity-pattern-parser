@@ -2,6 +2,7 @@ import CompositePattern from "./CompositePattern.js";
 import CompositeNode from "../../ast/CompositeNode.js";
 import ParseError from "../ParseError.js";
 import OptionalComposite from "./OptionalComposite.js";
+import Pattern from "../Pattern.js";
 
 export default class RepeatComposite extends CompositePattern {
   constructor(name, pattern, divider) {
@@ -108,22 +109,26 @@ export default class RepeatComposite extends CompositePattern {
     return this.mark;
   }
 
-  getPossibilities() {
-    
-    if (this._divider != null){
-      const dividerPossibilities = this._divider.getPossibilities();
-
-      return this._pattern.getPossibilities().map((possibility)=>{
-        return dividerPossibilities.map((divider)=>{
-          return `${possibility}${divider}`;
-        });
-      }).reduce((acc, value)=>{
-        return acc.concat(value);
-      }, []);
-
-    } else {
-      return this._pattern.getPossibilities();
+  getPossibilities(rootPattern) {
+    if (rootPattern == null || !(rootPattern instanceof Pattern)) {
+      rootPattern = this;
     }
 
+    if (this._divider != null) {
+      const dividerPossibilities = this._divider.getPossibilities(rootPattern);
+
+      return this._pattern
+        .getPossibilities(rootPattern)
+        .map(possibility => {
+          return dividerPossibilities.map(divider => {
+            return `${possibility}${divider}`;
+          });
+        })
+        .reduce((acc, value) => {
+          return acc.concat(value);
+        }, []);
+    } else {
+      return this._pattern.getPossibilities(rootPattern);
+    }
   }
 }

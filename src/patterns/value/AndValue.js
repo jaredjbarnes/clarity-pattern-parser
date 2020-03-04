@@ -3,6 +3,7 @@ import ValueNode from "../../ast/ValueNode.js";
 import ParseError from "../../patterns/ParseError.js";
 import OptionalValue from "./OptionalValue.js";
 import Permutor from "../../Permutor.js";
+import Pattern from "../Pattern.js";
 
 const permutor = new Permutor();
 
@@ -106,7 +107,13 @@ export default class AndValue extends ValuePattern {
       const endIndex = lastNode.endIndex;
       const value = this.nodes.map(node => node.value).join("");
 
-      this.node = new ValueNode("and-value", this.name, value, startIndex, endIndex);
+      this.node = new ValueNode(
+        "and-value",
+        this.name,
+        value,
+        startIndex,
+        endIndex
+      );
 
       this.cursor.index = this.node.endIndex;
       this.cursor.addMatch(this, this.node);
@@ -124,8 +131,14 @@ export default class AndValue extends ValuePattern {
     return this.mark;
   }
 
-  getPossibilities() {
-    const possibilities = this.children.map(child => child.getPossibilities());
+  getPossibilities(rootPattern) {
+    if (rootPattern == null || !(rootPattern instanceof Pattern)) {
+      rootPattern = this;
+    }
+
+    const possibilities = this.children.map(child =>
+      child.getPossibilities(rootPattern)
+    );
     return permutor.permute(possibilities);
   }
 }

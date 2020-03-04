@@ -1,7 +1,7 @@
 import ValuePattern from "./ValuePattern.js";
 import ValueNode from "../../ast/ValueNode.js";
-import Cursor from "../../Cursor.js";
 import OptionalValue from "./OptionalValue.js";
+import Pattern from "../Pattern.js";
 
 export default class OrValue extends ValuePattern {
   constructor(name, patterns) {
@@ -82,10 +82,14 @@ export default class OrValue extends ValuePattern {
     return this.mark;
   }
 
-  getPossibilities() {
+  getPossibilities(rootPattern) {
+    if (rootPattern == null || !(rootPattern instanceof Pattern)) {
+      rootPattern = this;
+    }
+
     return this.children
       .map(child => {
-        return child.getPossibilities();
+        return child.getPossibilities(rootPattern);
       })
       .reduce((acc, value) => {
         return acc.concat(value);

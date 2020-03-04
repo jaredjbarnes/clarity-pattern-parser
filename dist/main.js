@@ -859,6 +859,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _patterns_ParseError_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(9);
 /* harmony import */ var _OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(13);
 /* harmony import */ var _Permutor_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(14);
+/* harmony import */ var _Pattern_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(11);
+
 
 
 
@@ -967,7 +969,13 @@ class AndValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
       const endIndex = lastNode.endIndex;
       const value = this.nodes.map(node => node.value).join("");
 
-      this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__["default"]("and-value", this.name, value, startIndex, endIndex);
+      this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](
+        "and-value",
+        this.name,
+        value,
+        startIndex,
+        endIndex
+      );
 
       this.cursor.index = this.node.endIndex;
       this.cursor.addMatch(this, this.node);
@@ -985,8 +993,14 @@ class AndValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
     return this.mark;
   }
 
-  getPossibilities() {
-    const possibilities = this.children.map(child => child.getPossibilities());
+  getPossibilities(rootPattern) {
+    if (rootPattern == null || !(rootPattern instanceof _Pattern_js__WEBPACK_IMPORTED_MODULE_5__["default"])) {
+      rootPattern = this;
+    }
+
+    const possibilities = this.children.map(child =>
+      child.getPossibilities(rootPattern)
+    );
     return permutor.permute(possibilities);
   }
 }
@@ -1000,6 +1014,8 @@ class AndValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return OptionalValue; });
 /* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(10);
+/* harmony import */ var _Pattern_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(11);
+
 
 
 class OptionalValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
@@ -1037,8 +1053,20 @@ class OptionalValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["defau
     return this.mark;
   }
 
-  getPossibilities() {
-    return this.children[0].getPossibilities();
+  getPossibilities(rootPattern) {
+    if (rootPattern == null || !(rootPattern instanceof _Pattern_js__WEBPACK_IMPORTED_MODULE_1__["default"])) {
+      rootPattern = this;
+    }
+
+    // This is to prevent possibilities explosion.
+    if (this.parent === rootPattern) {
+      const possibilities = this.children[0].getPossibilities(rootPattern);
+      possibilities.unshift("");
+
+      return possibilities;
+    } else {
+      return this.children[0].getPossibilities(rootPattern);
+    }
   }
 }
 
@@ -1123,7 +1151,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(10);
 /* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(9);
 /* harmony import */ var _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5);
-/* harmony import */ var _Cursor_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(6);
+/* harmony import */ var _Pattern_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(11);
 
 
 
@@ -1199,7 +1227,11 @@ class AnyOfThese extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"
     return this.mark;
   }
 
-  getPossibilities() {
+  getPossibilities(rootPattern) {
+    if (rootPattern == null || !(rootPattern instanceof _Pattern_js__WEBPACK_IMPORTED_MODULE_3__["default"])) {
+      rootPattern = this;
+    }
+
     return this.characters.split("");
   }
 }
@@ -1312,6 +1344,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(10);
 /* harmony import */ var _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5);
 /* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(9);
+/* harmony import */ var _Pattern_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(11);
+
 
 
 
@@ -1401,7 +1435,7 @@ class NotValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
   }
 
   getPossibilities() {
-    return [this.name];
+    return [];
   }
 }
 
@@ -1415,8 +1449,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return OrValue; });
 /* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(10);
 /* harmony import */ var _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5);
-/* harmony import */ var _Cursor_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6);
-/* harmony import */ var _OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(13);
+/* harmony import */ var _OptionalValue_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(13);
+/* harmony import */ var _Pattern_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(11);
 
 
 
@@ -1436,7 +1470,7 @@ class OrValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
     }
 
     const hasOptionalChildren = this._children.some(
-      pattern => pattern instanceof _OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__["default"]
+      pattern => pattern instanceof _OptionalValue_js__WEBPACK_IMPORTED_MODULE_2__["default"]
     );
 
     if (hasOptionalChildren) {
@@ -1501,10 +1535,14 @@ class OrValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
     return this.mark;
   }
 
-  getPossibilities() {
+  getPossibilities(rootPattern) {
+    if (rootPattern == null || !(rootPattern instanceof _Pattern_js__WEBPACK_IMPORTED_MODULE_3__["default"])) {
+      rootPattern = this;
+    }
+
     return this.children
       .map(child => {
-        return child.getPossibilities();
+        return child.getPossibilities(rootPattern);
       })
       .reduce((acc, value) => {
         return acc.concat(value);
@@ -1524,6 +1562,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5);
 /* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(9);
 /* harmony import */ var _OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(13);
+/* harmony import */ var _Pattern_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(11);
+
 
 
 
@@ -1636,12 +1676,16 @@ class RepeatValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default
     return this.mark;
   }
 
-  getPossibilities() {
+  getPossibilities(rootPattern) {
+    if (rootPattern == null || !(rootPattern instanceof _Pattern_js__WEBPACK_IMPORTED_MODULE_4__["default"])) {
+      rootPattern = this;
+    }
+
     if (this._divider != null) {
-      const dividerPossibilities = this._divider.getPossibilities();
+      const dividerPossibilities = this._divider.getPossibilities(rootPattern);
 
       return this._pattern
-        .getPossibilities()
+        .getPossibilities(rootPattern)
         .map(possibility => {
           return dividerPossibilities.map(divider => {
             return `${possibility}${divider}`;
@@ -1651,7 +1695,7 @@ class RepeatValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default
           return acc.concat(value);
         }, []);
     } else {
-      return this._pattern.getPossibilities();
+      return this._pattern.getPossibilities(rootPattern);
     }
   }
 }
@@ -1670,6 +1714,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(13);
 /* harmony import */ var _OptionalComposite_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(22);
 /* harmony import */ var _Permutor_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(14);
+/* harmony import */ var _Pattern_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(11);
+
 
 
 
@@ -1807,8 +1853,12 @@ class AndComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["de
     return this.mark;
   }
 
-  getPossibilities() {
-    const possibilities = this.children.map(child => child.getPossibilities());
+  getPossibilities(rootPattern) {
+    if (rootPattern == null || !(rootPattern instanceof _Pattern_js__WEBPACK_IMPORTED_MODULE_6__["default"])){
+      rootPattern = this;
+    }
+
+    const possibilities = this.children.map(child => child.getPossibilities(rootPattern));
     return permutor.permute(possibilities);
   }
 }
@@ -1935,8 +1985,20 @@ class OptionalComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0_
     return this.mark;
   }
 
-  getPossibilities() {
-    return this.children[0].getPossibilities();
+  getPossibilities(rootPattern) {
+    if (rootPattern == null || !(rootPattern instanceof _Pattern_js__WEBPACK_IMPORTED_MODULE_1__["default"])) {
+      rootPattern = this;
+    }
+
+    // This is to prevent possibilities explosion.
+    if (this.parent === rootPattern){
+      const possibilities = this.children[0].getPossibilities(rootPattern);
+      possibilities.unshift("");
+
+      return possibilities;
+    } else {
+      return this.children[0].getPossibilities(rootPattern);
+    }
   }
 }
 
@@ -1951,6 +2013,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(21);
 /* harmony import */ var _value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(13);
 /* harmony import */ var _OptionalComposite_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(22);
+/* harmony import */ var _Pattern_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(11);
+
 
 
 
@@ -2034,10 +2098,14 @@ class OrComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["def
     return this.mark;
   }
 
-  getPossibilities() {
+  getPossibilities(rootPattern) {
+    if (rootPattern == null || !(rootPattern instanceof _Pattern_js__WEBPACK_IMPORTED_MODULE_3__["default"])){
+      rootPattern = this;
+    }
+
     return this.children
       .map(child => {
-        return child.getPossibilities();
+        return child.getPossibilities(rootPattern);
       })
       .reduce((acc, value) => {
         return acc.concat(value);
@@ -2057,6 +2125,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _ast_CompositeNode_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4);
 /* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(9);
 /* harmony import */ var _OptionalComposite_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(22);
+/* harmony import */ var _Pattern_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(11);
+
 
 
 
@@ -2167,23 +2237,27 @@ class RepeatComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__[
     return this.mark;
   }
 
-  getPossibilities() {
-    
-    if (this._divider != null){
-      const dividerPossibilities = this._divider.getPossibilities();
-
-      return this._pattern.getPossibilities().map((possibility)=>{
-        return dividerPossibilities.map((divider)=>{
-          return `${possibility}${divider}`;
-        });
-      }).reduce((acc, value)=>{
-        return acc.concat(value);
-      }, []);
-
-    } else {
-      return this._pattern.getPossibilities();
+  getPossibilities(rootPattern) {
+    if (rootPattern == null || !(rootPattern instanceof _Pattern_js__WEBPACK_IMPORTED_MODULE_4__["default"])) {
+      rootPattern = this;
     }
 
+    if (this._divider != null) {
+      const dividerPossibilities = this._divider.getPossibilities(rootPattern);
+
+      return this._pattern
+        .getPossibilities(rootPattern)
+        .map(possibility => {
+          return dividerPossibilities.map(divider => {
+            return `${possibility}${divider}`;
+          });
+        })
+        .reduce((acc, value) => {
+          return acc.concat(value);
+        }, []);
+    } else {
+      return this._pattern.getPossibilities(rootPattern);
+    }
   }
 }
 

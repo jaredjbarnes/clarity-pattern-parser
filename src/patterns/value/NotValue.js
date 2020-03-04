@@ -1,6 +1,7 @@
 import ValuePattern from "./ValuePattern.js";
 import ValueNode from "../../ast/ValueNode.js";
 import ParseError from "../ParseError.js";
+import Pattern from "../Pattern.js";
 
 export default class NotValue extends ValuePattern {
   constructor(name, pattern) {
@@ -87,6 +88,6 @@ export default class NotValue extends ValuePattern {
   }
 
   getPossibilities() {
-    return [this.name];
+    return [];
   }
 }

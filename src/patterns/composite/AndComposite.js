@@ -4,6 +4,7 @@ import ParseError from "../../patterns/ParseError.js";
 import OptionalValue from "../value/OptionalValue.js";
 import OptionalComposite from "./OptionalComposite.js";
 import Permutor from "../../Permutor.js";
+import Pattern from "../Pattern.js";
 
 const permutor = new Permutor();
 
@@ -135,8 +136,12 @@ export default class AndComposite extends CompositePattern {
     return this.mark;
   }
 
-  getPossibilities() {
-    const possibilities = this.children.map(child => child.getPossibilities());
+  getPossibilities(rootPattern) {
+    if (rootPattern == null || !(rootPattern instanceof Pattern)){
+      rootPattern = this;
+    }
+
+    const possibilities = this.children.map(child => child.getPossibilities(rootPattern));
     return permutor.permute(possibilities);
   }
 }

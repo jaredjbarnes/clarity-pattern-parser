@@ -3,13 +3,12 @@ import ValueNode from "../../ast/ValueNode.js";
 import ParseError from "../ParseError.js";
 import Pattern from "../Pattern.js";
 
-export default class NotValue extends ValuePattern {
+export default class NotValue extends Pattern {
   constructor(name, pattern) {
     super("not-value", name, [pattern]);
-    this._assertArguments();
   }
 
-  _assertArguments() {
+  _assertChildren() {
     if (!(this.children[0] instanceof Pattern)) {
       throw new Error(
         "Invalid Arguments: Expected the pattern to be a ValuePattern."

@@ -2,14 +2,10 @@ import Pattern from "../Pattern.js";
 
 export default class ValuePattern extends Pattern {
   constructor(type, name, children = []) {
-    super(type, name);
-    this._children = children;
-    this._assertPatternArguments();
-    this._cloneChildren();
-    this._assignAsParent();
+    super(type, name, children);
   }
 
-  _assertPatternArguments() {
+  _assertChildren() {
     if (!Array.isArray(this._children)) {
       throw new Error(
         "Invalid Arguments: The patterns argument need to be an array of ValuePattern."
@@ -17,7 +13,7 @@ export default class ValuePattern extends Pattern {
     }
 
     const areAllPatterns = this._children.every(
-      pattern => pattern instanceof ValuePattern
+      pattern => pattern instanceof ValuePattern || pattern instanceof Pattern
     );
 
     if (!areAllPatterns) {
@@ -39,28 +35,11 @@ export default class ValuePattern extends Pattern {
     }
   }
 
-  _cloneChildren() {
-    // We need to clone the patterns so nested patterns can be parsed.
-    this._children = this._children.map(pattern => {
-      if (!(pattern instanceof Pattern)) {
-        throw new Error(`The ${this.name} pattern has an invalid child pattern.`);
-      }
-      return pattern.clone();
-    });
-
-    // We need to freeze the childen so they aren't modified.
-    Object.freeze(this._children);
-  }
-
-  _assignAsParent() {
-    this._children.forEach(child => (child.parent = this));
-  }
-
   clone() {
     throw new Error("Not Yet Implemented");
   }
 
-  getCurrentMark(){
+  getCurrentMark() {
     throw new Error("Not Yet Implemented");
   }
 }

@@ -667,14 +667,10 @@ __webpack_require__.r(__webpack_exports__);
 
 class ValuePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
   constructor(type, name, children = []) {
-    super(type, name);
-    this._children = children;
-    this._assertPatternArguments();
-    this._cloneChildren();
-    this._assignAsParent();
+    super(type, name, children);
   }
 
-  _assertPatternArguments() {
+  _assertChildren() {
     if (!Array.isArray(this._children)) {
       throw new Error(
         "Invalid Arguments: The patterns argument need to be an array of ValuePattern."
@@ -682,7 +678,7 @@ class ValuePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
     }
 
     const areAllPatterns = this._children.every(
-      pattern => pattern instanceof ValuePattern
+      pattern => pattern instanceof ValuePattern || pattern instanceof _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default"]
     );
 
     if (!areAllPatterns) {
@@ -704,28 +700,11 @@ class ValuePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
     }
   }
 
-  _cloneChildren() {
-    // We need to clone the patterns so nested patterns can be parsed.
-    this._children = this._children.map(pattern => {
-      if (!(pattern instanceof _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default"])) {
-        throw new Error(`The ${this.name} pattern has an invalid child pattern.`);
-      }
-      return pattern.clone();
-    });
-
-    // We need to freeze the childen so they aren't modified.
-    Object.freeze(this._children);
-  }
-
-  _assignAsParent() {
-    this._children.forEach(child => (child.parent = this));
-  }
-
   clone() {
     throw new Error("Not Yet Implemented");
   }
 
-  getCurrentMark(){
+  getCurrentMark() {
     throw new Error("Not Yet Implemented");
   }
 }
@@ -742,13 +721,13 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class Pattern {
-  constructor(type = null, name = null) {
+  constructor(type = null, name = null, children = []) {
     this._type = type;
     this._name = name;
     this._parent = null;
-    this._children = [];
 
     this._assertName();
+    this.children = children;
   }
 
   _assertName() {
@@ -802,35 +781,28 @@ class Pattern {
 
   set children(value) {
     this._children = value;
+    this._cloneChildren();
     this._assertChildren();
     this._assignAsParent();
-
-    this._children = value.map(pattern => pattern.clone());
-    Object.freeze(this._children);
   }
 
   _assertChildren() {
-    if (!Array.isArray(this._children)) {
-      throw new Error(
-        "Invalid Arguments: The patterns argument need to be an array of Patterns."
-      );
-    }
+    // Empty, meant to be overridden by subclasses.
+  }
 
-    const areAllPatterns = this._children.every(
-      pattern => pattern instanceof Pattern
-    );
+  _cloneChildren() {
+    // We need to clone the patterns so nested patterns can be parsed.
+    this._children = this._children.map(pattern => {
+      if (!(pattern instanceof Pattern)) {
+        throw new Error(
+          `The ${this.name} pattern has an invalid child pattern.`
+        );
+      }
+      return pattern.clone();
+    });
 
-    if (!areAllPatterns) {
-      throw new Error(
-        "Invalid Argument: All patterns need to be an instance of Pattern."
-      );
-    }
-
-    if (this._children.length < 2) {
-      throw new Error(
-        "Invalid Argument: Composite Patterns needs to have more than one value pattern."
-      );
-    }
+    // We need to freeze the childen so they aren't modified.
+    Object.freeze(this._children);
   }
 
   _assignAsParent() {
@@ -1350,13 +1322,12 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class NotValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
+class NotValue extends _Pattern_js__WEBPACK_IMPORTED_MODULE_3__["default"] {
   constructor(name, pattern) {
     super("not-value", name, [pattern]);
-    this._assertArguments();
   }
 
-  _assertArguments() {
+  _assertChildren() {
     if (!(this.children[0] instanceof _Pattern_js__WEBPACK_IMPORTED_MODULE_3__["default"])) {
       throw new Error(
         "Invalid Arguments: Expected the pattern to be a ValuePattern."
@@ -1876,15 +1847,10 @@ __webpack_require__.r(__webpack_exports__);
 
 class CompositePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
   constructor(type, name, children = []) {
-    super(type, name);
-
-    this._children = children;
-    this._assertArguments();
-    this._cloneChildren();
-    this._assignAsParent();
+    super(type, name, children);
   }
 
-  _assertArguments() {
+  _assertChildren() {
     if (!Array.isArray(this._children)) {
       throw new Error(
         "Invalid Arguments: The patterns argument need to be an array of Patterns."
@@ -1901,34 +1867,12 @@ class CompositePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default
       );
     }
 
-    if (this._children.length < 2) {
-      throw new Error(
-        "Invalid Argument: Composite Patterns needs to have more than one value pattern."
-      );
-    }
+    // if (this._children.length < 2) {
+    //   throw new Error(
+    //     "Invalid Argument: Composite Patterns need to have more than one value pattern."
+    //   );
+    // }
 
-    if (typeof this.name !== "string") {
-      throw new Error(
-        "Invalid Argument: Composite Patterns needs to have a name that's a string."
-      );
-    }
-  }
-
-  _cloneChildren() {
-    // We need to clone the patterns so nested patterns can be parsed.
-    this._children = this._children.map(pattern => {
-      if (!(pattern instanceof _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default"])) {
-        throw new Error(`The ${this.name} pattern has an invalid child pattern.`);
-      }
-      return pattern.clone();
-    });
-
-    // We need to freeze the childen so they aren't modified.
-    Object.freeze(this._children);
-  }
-
-  _assignAsParent() {
-    this._children.forEach(child => (child.parent = this));
   }
 
   clone() {

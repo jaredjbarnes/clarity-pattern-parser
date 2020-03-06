@@ -1,13 +1,13 @@
 import Cursor from "../Cursor.js";
 
 export default class Pattern {
-  constructor(type = null, name = null) {
+  constructor(type = null, name = null, children = []) {
     this._type = type;
     this._name = name;
     this._parent = null;
-    this._children = [];
 
     this._assertName();
+    this.children = children;
   }
 
   _assertName() {
@@ -61,35 +61,28 @@ export default class Pattern {
 
   set children(value) {
     this._children = value;
+    this._cloneChildren();
     this._assertChildren();
     this._assignAsParent();
-
-    this._children = value.map(pattern => pattern.clone());
-    Object.freeze(this._children);
   }
 
   _assertChildren() {
-    if (!Array.isArray(this._children)) {
-      throw new Error(
-        "Invalid Arguments: The patterns argument need to be an array of Patterns."
-      );
-    }
+    // Empty, meant to be overridden by subclasses.
+  }
 
-    const areAllPatterns = this._children.every(
-      pattern => pattern instanceof Pattern
-    );
+  _cloneChildren() {
+    // We need to clone the patterns so nested patterns can be parsed.
+    this._children = this._children.map(pattern => {
+      if (!(pattern instanceof Pattern)) {
+        throw new Error(
+          `The ${this.name} pattern has an invalid child pattern.`
+        );
+      }
+      return pattern.clone();
+    });
 
-    if (!areAllPatterns) {
-      throw new Error(
-        "Invalid Argument: All patterns need to be an instance of Pattern."
-      );
-    }
-
-    if (this._children.length < 2) {
-      throw new Error(
-        "Invalid Argument: Composite Patterns needs to have more than one value pattern."
-      );
-    }
+    // We need to freeze the childen so they aren't modified.
+    Object.freeze(this._children);
   }
 
   _assignAsParent() {

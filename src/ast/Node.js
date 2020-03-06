@@ -15,7 +15,17 @@ export default class Node {
     }
   }
 
+  filter(){
+    throw new Error("Not Implemented Exception: expected subclass to override this method.");
+  }
+
   clone() {
+    throw new Error(
+      "Not Implemented Exception: expected subclass to override this method."
+    );
+  }
+
+  toString() {
     throw new Error(
       "Not Implemented Exception: expected subclass to override this method."
     );

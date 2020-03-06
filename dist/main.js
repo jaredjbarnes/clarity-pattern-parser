@@ -237,7 +237,17 @@ class Node {
     }
   }
 
+  filter(){
+    throw new Error("Not Implemented Exception: expected subclass to override this method.");
+  }
+
   clone() {
+    throw new Error(
+      "Not Implemented Exception: expected subclass to override this method."
+    );
+  }
+
+  toString() {
     throw new Error(
       "Not Implemented Exception: expected subclass to override this method."
     );
@@ -262,7 +272,12 @@ class CompositeNode extends _Node_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
   }
 
   clone() {
-    const node = new CompositeNode(this.type, this.name, this.startIndex, this.endIndex);
+    const node = new CompositeNode(
+      this.type,
+      this.name,
+      this.startIndex,
+      this.endIndex
+    );
     node.children = this.children.map(child => {
       return child.clone();
     });
@@ -270,8 +285,27 @@ class CompositeNode extends _Node_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
     return node;
   }
 
-  toString(){
-    return this.children.map(child=>child.toString()).join("");
+  filter(isMatch, context = []) {
+    const childrenContext = context.slice();
+    childrenContext.push(this);
+
+    Object.freeze(childrenContext);
+
+    const matches = this.children.reduce((acc, child) => {
+      return acc.concat(child.filter(isMatch, childrenContext));
+    }, []);
+
+    const match = isMatch(this, context);
+
+    if (match) {
+      matches.push(this);
+    }
+
+    return matches;
+  }
+
+  toString() {
+    return this.children.map(child => child.toString()).join("");
   }
 }
 
@@ -294,6 +328,16 @@ class ValueNode extends _Node_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
   clone() {
     return new ValueNode(this.type, this.name, this.value, this.startIndex, this.endIndex);
+  }
+
+  filter(isMatch, context){
+    const match = isMatch(this, context);
+
+    if (match){
+      return [this];
+    }
+
+    return [];
   }
 
   toString(){

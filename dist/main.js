@@ -1357,7 +1357,7 @@ class NotValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
   }
 
   _assertArguments() {
-    if (!(this.children[0] instanceof _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"])) {
+    if (!(this.children[0] instanceof _Pattern_js__WEBPACK_IMPORTED_MODULE_3__["default"])) {
       throw new Error(
         "Invalid Arguments: Expected the pattern to be a ValuePattern."
       );

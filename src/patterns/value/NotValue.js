@@ -10,7 +10,7 @@ export default class NotValue extends ValuePattern {
   }
 
   _assertArguments() {
-    if (!(this.children[0] instanceof ValuePattern)) {
+    if (!(this.children[0] instanceof Pattern)) {
       throw new Error(
         "Invalid Arguments: Expected the pattern to be a ValuePattern."
       );

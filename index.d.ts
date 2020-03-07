@@ -1,12 +1,12 @@
 export declare class Node {
   constructor(type: string, name: string, startIndex: number, endIndex: number);
 
-  filter(): Node[] | null;
+  filter(shouldKeep: (node: Node) => boolean): Node[];
   clone(): Node;
   toString(): string;
 }
 
-export declare class CompositeNode {
+export declare class CompositeNode extends Node {
   constructor(
     type: string,
     name: string,
@@ -21,7 +21,7 @@ export declare class CompositeNode {
   toString(): string;
 }
 
-export declare class ValueNode {
+export declare class ValueNode extends Node {
   constructor(
     type: string,
     name: string,

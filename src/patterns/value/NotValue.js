@@ -82,10 +82,6 @@ export default class NotValue extends Pattern {
     return new NotValue(name, this.children[0]);
   }
 
-  getCurrentMark() {
-    return this.mark;
-  }
-
   getPossibilities() {
     return [];
   }

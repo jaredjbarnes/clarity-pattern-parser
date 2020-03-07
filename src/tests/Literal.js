@@ -26,6 +26,24 @@ exports["Literal: Empty literal."] = () => {
   });
 };
 
+exports["Literal: exec."] = () => {
+  const john = new Literal("john", "John");
+
+  const result = john.exec("John");
+  const result2 = john.exec("Jane");
+
+  const expectedValue = {
+    type: "literal",
+    name: "john",
+    startIndex: 0,
+    endIndex: 3,
+    value: "John"
+  };
+
+  assert.equal(JSON.stringify(result), JSON.stringify(expectedValue));
+  assert.equal(result2, null);
+};
+
 exports["Literal: Match."] = () => {
   const variable = new Literal("variable", "var");
   const cursor = new Cursor("var foo = 'Hello World';");

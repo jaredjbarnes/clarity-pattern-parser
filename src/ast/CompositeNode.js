@@ -20,17 +20,17 @@ export default class CompositeNode extends Node {
     return node;
   }
 
-  filter(isMatch, context = []) {
+  filter(shouldKeep, context = []) {
     const childrenContext = context.slice();
     childrenContext.push(this);
 
     Object.freeze(childrenContext);
 
     const matches = this.children.reduce((acc, child) => {
-      return acc.concat(child.filter(isMatch, childrenContext));
+      return acc.concat(child.filter(shouldKeep, childrenContext));
     }, []);
 
-    const match = isMatch(this, context);
+    const match = shouldKeep(this, context);
 
     if (match) {
       matches.push(this);

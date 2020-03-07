@@ -78,10 +78,6 @@ export default class OrComposite extends CompositePattern {
     return new OrComposite(name, this._children);
   }
 
-  getCurrentMark() {
-    return this.mark;
-  }
-
   getPossibilities(rootPattern) {
     if (rootPattern == null || !(rootPattern instanceof Pattern)){
       rootPattern = this;

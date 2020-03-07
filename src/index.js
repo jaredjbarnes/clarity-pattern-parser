@@ -1,4 +1,3 @@
-import Mark from "./Mark.js";
 import Node from "./ast/Node.js";
 import CompositeNode from "./ast/CompositeNode.js";
 import ValueNode from "./ast/ValueNode.js";
@@ -20,10 +19,9 @@ import RepeatComposite from "./patterns/composite/RepeatComposite.js";
 import ParseError from "./patterns/ParseError.js";
 import Pattern from "./patterns/Pattern.js";
 import RecursivePattern from "./patterns/RecursivePattern.js";
-import ParseInspector from "./ParseInspector";
+import ParseInspector from "./ParseInspector.js";
 
 export {
-  Mark,
   Node,
   CompositeNode,
   ValueNode,

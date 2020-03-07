@@ -127,10 +127,6 @@ export default class AndValue extends ValuePattern {
     return new AndValue(name, this._children);
   }
 
-  getCurrentMark() {
-    return this.mark;
-  }
-
   getPossibilities(rootPattern) {
     if (rootPattern == null || !(rootPattern instanceof Pattern)) {
       rootPattern = this;

@@ -87,10 +87,6 @@ export default class RegexValue extends ValuePattern {
     return new RegexValue(name, this.regexString);
   }
 
-  getCurrentMark() {
-    return this.cursor.getIndex();
-  }
-
   getPossibilities() {
     return [this.name];
   }

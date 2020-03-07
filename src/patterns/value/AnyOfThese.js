@@ -69,10 +69,6 @@ export default class AnyOfThese extends ValuePattern {
     return new AnyOfThese(name, this.characters);
   }
 
-  getCurrentMark() {
-    return this.mark;
-  }
-
   getPossibilities(rootPattern) {
     if (rootPattern == null || !(rootPattern instanceof Pattern)) {
       rootPattern = this;

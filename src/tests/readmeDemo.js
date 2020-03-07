@@ -33,10 +33,16 @@ exports["readme.md: value"] = () => {
 
   assert.equal(node.name, "line-ending-comment"); // --> true
   assert.equal(node.value, string); // --> true
-  assert.equal(
-    JSON.stringify(node),
-    '{"type":"and-value","name":"line-ending-comment","startIndex":0,"endIndex":20,"value":"// This is a comment\\n"}'
-  ); // --> true
+
+  const expectedValue = {
+    type: "and-value",
+    name: "line-ending-comment",
+    startIndex: 0,
+    endIndex: 20,
+    value: "// This is a comment\n"
+  };
+
+  assert.equal(JSON.stringify(node), JSON.stringify(expectedValue)); // --> true
 };
 
 exports["readme.md: composite"] = () => {
@@ -72,8 +78,35 @@ exports["readme.md: composite"] = () => {
   assert.equal(node.children[2].name, "line-end");
   assert.equal(node.children[2].value, "\n");
 
-  assert.equal(
-    JSON.stringify(node),
-    '{"type":"and-composite","name":"line-ending-comment","startIndex":0,"endIndex":20,"children":[{"type":"literal","name":"forward-slashes","startIndex":0,"endIndex":1,"value":"//"},{"type":"repeat-value","name":"comment","startIndex":2,"endIndex":19,"value":" This is a comment"},{"type":"or-value","name":"line-end","startIndex":20,"endIndex":20,"value":"\\n"}]}'
-  );
+  const expectedValue = {
+    type: "and-composite",
+    name: "line-ending-comment",
+    startIndex: 0,
+    endIndex: 20,
+    children: [
+      {
+        type: "literal",
+        name: "forward-slashes",
+        startIndex: 0,
+        endIndex: 1,
+        value: "//"
+      },
+      {
+        type: "repeat-value",
+        name: "comment",
+        startIndex: 2,
+        endIndex: 19,
+        value: " This is a comment"
+      },
+      {
+        type: "or-value",
+        name: "line-end",
+        startIndex: 20,
+        endIndex: 20,
+        value: "\n"
+      }
+    ]
+  };
+
+  assert.equal(JSON.stringify(node), JSON.stringify(expectedValue)); // --> true
 };

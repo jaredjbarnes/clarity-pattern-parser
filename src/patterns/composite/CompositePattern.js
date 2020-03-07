@@ -22,12 +22,6 @@ export default class CompositePattern extends Pattern {
       );
     }
 
-    // if (this._children.length < 2) {
-    //   throw new Error(
-    //     "Invalid Argument: Composite Patterns need to have more than one value pattern."
-    //   );
-    // }
-
   }
 
   clone() {

@@ -32,10 +32,6 @@ export default class OptionalValue extends ValuePattern {
     return new OptionalValue(this.children[0]);
   }
 
-  getCurrentMark() {
-    return this.mark;
-  }
-
   getPossibilities(rootPattern) {
     if (rootPattern == null || !(rootPattern instanceof Pattern)) {
       rootPattern = this;

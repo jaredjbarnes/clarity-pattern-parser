@@ -59,10 +59,6 @@ export default class RecursivePattern extends Pattern {
     return new RecursivePattern(name);
   }
 
-  getCurrentMark() {
-    return this.pattern.getCurrentMark();
-  }
-
   getPossibilities() {
     if (!this.isGettingPossibilities) {
       this.isGettingPossibilities = true;

@@ -10,8 +10,8 @@ export default class ValueNode extends Node {
     return new ValueNode(this.type, this.name, this.value, this.startIndex, this.endIndex);
   }
 
-  filter(isMatch, context){
-    const match = isMatch(this, context);
+  filter(shouldKeep, context){
+    const match = shouldKeep(this, context);
 
     if (match){
       return [this];

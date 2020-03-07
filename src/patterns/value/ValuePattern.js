@@ -39,7 +39,4 @@ export default class ValuePattern extends Pattern {
     throw new Error("Not Yet Implemented");
   }
 
-  getCurrentMark() {
-    throw new Error("Not Yet Implemented");
-  }
 }

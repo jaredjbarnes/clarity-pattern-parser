@@ -105,10 +105,6 @@ export default class RepeatComposite extends CompositePattern {
     return new RepeatComposite(name, this._pattern, this._divider);
   }
 
-  getCurrentMark() {
-    return this.mark;
-  }
-
   getPossibilities(rootPattern) {
     if (rootPattern == null || !(rootPattern instanceof Pattern)) {
       rootPattern = this;

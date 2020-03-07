@@ -22,6 +22,8 @@ export default class ParseInspector {
     // If no text all options are available.
     if (text.length === 0) {
       return {
+        pattern: null,
+        astNode: null,
         match: null,
         error: null,
         possibilities: {

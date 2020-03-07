@@ -1,4 +1,4 @@
-import CursorHistory from "./CursorHistory";
+import CursorHistory from "./CursorHistory.js";
 
 export default class Cursor {
   constructor(string) {

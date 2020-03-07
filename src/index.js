@@ -20,6 +20,7 @@ import RepeatComposite from "./patterns/composite/RepeatComposite.js";
 import ParseError from "./patterns/ParseError.js";
 import Pattern from "./patterns/Pattern.js";
 import RecursivePattern from "./patterns/RecursivePattern.js";
+import ParseInspector from "./ParseInspector";
 
 export {
   Mark,
@@ -43,5 +44,6 @@ export {
   RepeatComposite,
   ParseError,
   Pattern,
-  RecursivePattern
+  RecursivePattern,
+  ParseInspector
 };

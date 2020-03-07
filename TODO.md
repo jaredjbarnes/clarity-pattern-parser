@@ -1,1 +1,0 @@
-Add rootPattern to getPossibilities to give more meaningful suggestion. We could iterate over all ors and options one level deep, to stop the exponential explosion of suggestions. 

@@ -56,7 +56,7 @@ export declare class ValuePattern extends Pattern {
   clone(): ValuePattern;
 }
 
-export declare class CompositePattern {
+export declare class CompositePattern extends Pattern {
   constructor(type: string, name: string, children?: Pattern[]);
 
   clone(): CompositePattern;

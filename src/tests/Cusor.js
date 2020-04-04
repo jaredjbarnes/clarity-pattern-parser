@@ -170,9 +170,14 @@ exports["Cursor: isAtBeginning."] = () => {
   assert.equal(cursor.isAtBeginning(), true);
 };
 
-exports["Cursor: setIndex."] = () => {
+exports["Cursor: setIndex invalid number."] = () => {
   const cursor = new Cursor("Text");
   assert.throws(() => {
-    cursor.setIndex("");
+    cursor.setIndex(-1);
   });
+};
+
+exports["Cursor: setIndex invalid with string."] = () => {
+  const cursor = new Cursor("Text");
+  cursor.setIndex("");
 };

@@ -7,14 +7,26 @@ exports["Node: clone."] = () => {
   });
 };
 
+exports["Node: fitler."] = () => {
+  assert.throws(() => {
+    new Node("type", 0, 1).filter();
+  });
+};
+
+exports["Node: toString."] = () => {
+  assert.throws(() => {
+    new Node("type", 0, 1).toString();
+  });
+};
+
 exports["Node: With no startIndex."] = () => {
   assert.throws(() => {
-    new Node("type", undefined, 1).clone();
+    new Node("type", undefined, 1);
   });
 };
 
 exports["Node: With no endIndex."] = () => {
   assert.throws(() => {
-    new Node("type", 0).clone();
+    new Node("type", 0);
   });
 };

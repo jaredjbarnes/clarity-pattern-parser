@@ -17,11 +17,6 @@ exports["Html: element with attributes"] = () => {
   const result = element.parse(cursor);
 };
 
-exports["Html: element with attributes"] = () => {
-  const cursor = new Cursor('<div prop="value"></div>');
-  const result = element.parse(cursor);
-};
-
 exports["Html: multiple children"] = () => {
     const cursor = new Cursor(`<div prop="value">
         Text

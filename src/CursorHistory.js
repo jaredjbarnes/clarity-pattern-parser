@@ -19,9 +19,7 @@ export default class CursorHistory {
       this.patterns.push(pattern);
       this.astNodes.push(astNode);
     }
-    if (astNode == null) {
-      debugger;
-    }
+
     if (
       this.furthestMatch.astNode == null ||
       astNode.endIndex >= this.furthestMatch.astNode.endIndex
@@ -47,13 +45,13 @@ export default class CursorHistory {
 
   stopRecording() {
     this.isRecording = false;
-    this.patterns.length = 0;
-    this.astNodes.length = 0;
+    this.clear();
   }
 
   clear() {
-    this.matches = [];
-    this.errors = [];
+    this.patterns.length = 0;
+    this.astNodes.length = 0;
+    this.errors.length = 0;
   }
 
   getFurthestError() {

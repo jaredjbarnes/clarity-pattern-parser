@@ -49,7 +49,7 @@ exports["Css: nested methods with trailing value"] = () => {
   assert.equal(result.endIndex, cursor.string.length - 1);
 };
 
-exports["Css: spaced values"] = () => {
+exports["Css: spaced values in a method"] = () => {
   const cursor = new Cursor("method(arg1 0%, arg2, 10%) 0%");
   const result = cssValue.parse(cursor);
   assert.equal(result.endIndex, cursor.string.length - 1);

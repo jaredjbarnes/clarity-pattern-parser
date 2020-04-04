@@ -41,19 +41,33 @@ exports["attribute: escaped single quotes."] = () => {
 exports["cssSelector: any element type"] = ()=>{
     const cursor = new Cursor("*");
     const result = cssSelector.parse(cursor);
+
+    assert.equal(result.value, "*");
+    assert.equal(result.name, "element-name");
+    assert.equal(result.type, "regex-value");
+    assert.equal(result.startIndex, 0);
+    assert.equal(result.endIndex, 0);
 };
 
 exports["cssSelector: element with attribute"] = ()=>{
     const cursor = new Cursor("*[name='value']");
     const result = cssSelector.parse(cursor);
+
+    assert.equal(result.type, "and-composite");
+    assert.equal(result.name, "attribute-selector");
+    assert.equal(result.children[0].name, "element-name");
+    assert.equal(result.children[0].value, "*");
+    assert.equal(result.children[1].name, "attribute");
+    assert.equal(result.startIndex, 0);
+    assert.equal(result.endIndex, 14);
 };
 
-exports["cssSelector: element with attribute"] = ()=>{
+exports["cssSelector: element with attribute and a child selector"] = ()=>{
     const cursor = new Cursor("element-name > *[name='value']");
     const result = cssSelector.parse(cursor);
 };
 
-exports["cssSelector: element with attribute"] = ()=>{
+exports["cssSelector: element with attribute and two deep child selector"] = ()=>{
     const cursor = new Cursor("element-name > * > *[name='value']");
     const result = cssSelector.parse(cursor);
 };

@@ -4,7 +4,7 @@ export default class CursorHistory {
 
     this.furthestMatch = {
       pattern: null,
-      astNode: null
+      astNode: null,
     };
 
     this.furthestError = null;
@@ -47,6 +47,8 @@ export default class CursorHistory {
 
   stopRecording() {
     this.isRecording = false;
+    this.patterns.length = 0;
+    this.astNodes.length = 0;
   }
 
   clear() {
@@ -63,10 +65,14 @@ export default class CursorHistory {
   }
 
   getLastMatch() {
-    return {
-      pattern: this.patterns[this.patterns.length - 1] || null,
-      astNode: this.astNodes[this.astNodes.length - 1] || null
-    };
+    if (this.isRecording) {
+      return {
+        pattern: this.patterns[this.patterns.length - 1] || null,
+        astNode: this.astNodes[this.astNodes.length - 1] || null,
+      };
+    } else {
+      return this.furthestMatch;
+    }
   }
 
   getLastError() {

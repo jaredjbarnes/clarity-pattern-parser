@@ -112,3 +112,15 @@ exports["ParseInspector: Complete Match."] = () => {
   assert.equal(inspection.error, null);
   assert.equal(inspection.possibilities, null);
 };
+
+exports["ParseInspector: static inspectParse."] = () => {
+  const text = "Pat went to a big store";
+  const inspection = ParseInspector.inspectParse(text, sentence);
+
+  assert.equal(inspection.match.text, "Pat went to a big store");
+  assert.equal(inspection.isComplete, true);
+  assert.equal(inspection.match.startIndex, 0);
+  assert.equal(inspection.match.endIndex, 22);
+  assert.equal(inspection.error, null);
+  assert.equal(inspection.possibilities, null);
+};

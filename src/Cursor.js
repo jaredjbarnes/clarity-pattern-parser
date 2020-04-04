@@ -3,12 +3,13 @@ import CursorHistory from "./CursorHistory.js";
 export default class Cursor {
   constructor(string) {
     this.string = string;
+    this.assertValidity();
+
+
     this.index = 0;
     this.length = string.length;
     this.history = new CursorHistory();
     this.isInErrorState = false;
-
-    this.assertValidity();
   }
 
   assertValidity() {
@@ -92,7 +93,7 @@ export default class Cursor {
     this.index = 0;
   }
 
-  moveToLast() {
+  moveToEnd() {
     this.index = this.string.length - 1;
   }
 

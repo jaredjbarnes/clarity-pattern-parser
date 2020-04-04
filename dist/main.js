@@ -345,12 +345,13 @@ __webpack_require__.r(__webpack_exports__);
 class Cursor {
   constructor(string) {
     this.string = string;
+    this.assertValidity();
+
+
     this.index = 0;
     this.length = string.length;
     this.history = new _CursorHistory_js__WEBPACK_IMPORTED_MODULE_0__["default"]();
     this.isInErrorState = false;
-
-    this.assertValidity();
   }
 
   assertValidity() {
@@ -434,7 +435,7 @@ class Cursor {
     this.index = 0;
   }
 
-  moveToLast() {
+  moveToEnd() {
     this.index = this.string.length - 1;
   }
 
@@ -487,7 +488,7 @@ class CursorHistory {
 
     this.furthestMatch = {
       pattern: null,
-      astNode: null
+      astNode: null,
     };
 
     this.furthestError = null;
@@ -530,6 +531,8 @@ class CursorHistory {
 
   stopRecording() {
     this.isRecording = false;
+    this.patterns.length = 0;
+    this.astNodes.length = 0;
   }
 
   clear() {
@@ -546,10 +549,14 @@ class CursorHistory {
   }
 
   getLastMatch() {
-    return {
-      pattern: this.patterns[this.patterns.length - 1] || null,
-      astNode: this.astNodes[this.astNodes.length - 1] || null
-    };
+    if (this.isRecording) {
+      return {
+        pattern: this.patterns[this.patterns.length - 1] || null,
+        astNode: this.astNodes[this.astNodes.length - 1] || null,
+      };
+    } else {
+      return this.furthestMatch;
+    }
   }
 
   getLastError() {

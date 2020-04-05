@@ -9,7 +9,7 @@ import Pattern from "../Pattern.js";
 const permutor = new Permutor();
 
 export default class AndComposite extends CompositePattern {
-  constructor(name, patterns) {
+  constructor(name, patterns = []) {
     super("and-composite", name, patterns);
     this._assertArguments();
   }
@@ -103,7 +103,7 @@ export default class AndComposite extends CompositePattern {
 
   _processValue() {
     if (!this.cursor.hasUnresolvedError()) {
-      this.nodes = this.nodes.filter(node => node != null);
+      this.nodes = this.nodes.filter((node) => node != null);
 
       const lastNode = this.nodes[this.nodes.length - 1];
       const startIndex = this.mark;
@@ -133,11 +133,13 @@ export default class AndComposite extends CompositePattern {
   }
 
   getPossibilities(rootPattern) {
-    if (rootPattern == null || !(rootPattern instanceof Pattern)){
+    if (rootPattern == null || !(rootPattern instanceof Pattern)) {
       rootPattern = this;
     }
 
-    const possibilities = this.children.map(child => child.getPossibilities(rootPattern));
+    const possibilities = this.children.map((child) =>
+      child.getPossibilities(rootPattern)
+    );
     return permutor.permute(possibilities);
   }
 }

@@ -748,7 +748,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class Pattern {
-  constructor(type = null, name = null, children = []) {
+  constructor(type = null, name, children = []) {
     this._type = type;
     this._name = name;
     this._parent = null;
@@ -1696,7 +1696,7 @@ __webpack_require__.r(__webpack_exports__);
 const permutor = new _Permutor_js__WEBPACK_IMPORTED_MODULE_5__["default"]();
 
 class AndComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
-  constructor(name, patterns) {
+  constructor(name, patterns = []) {
     super("and-composite", name, patterns);
     this._assertArguments();
   }
@@ -1790,7 +1790,7 @@ class AndComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["de
 
   _processValue() {
     if (!this.cursor.hasUnresolvedError()) {
-      this.nodes = this.nodes.filter(node => node != null);
+      this.nodes = this.nodes.filter((node) => node != null);
 
       const lastNode = this.nodes[this.nodes.length - 1];
       const startIndex = this.mark;
@@ -1820,11 +1820,13 @@ class AndComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["de
   }
 
   getPossibilities(rootPattern) {
-    if (rootPattern == null || !(rootPattern instanceof _Pattern_js__WEBPACK_IMPORTED_MODULE_6__["default"])){
+    if (rootPattern == null || !(rootPattern instanceof _Pattern_js__WEBPACK_IMPORTED_MODULE_6__["default"])) {
       rootPattern = this;
     }
 
-    const possibilities = this.children.map(child => child.getPossibilities(rootPattern));
+    const possibilities = this.children.map((child) =>
+      child.getPossibilities(rootPattern)
+    );
     return permutor.permute(possibilities);
   }
 }
@@ -1843,25 +1845,6 @@ __webpack_require__.r(__webpack_exports__);
 class CompositePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
   constructor(type, name, children = []) {
     super(type, name, children);
-  }
-
-  _assertChildren() {
-    if (!Array.isArray(this._children)) {
-      throw new Error(
-        "Invalid Arguments: The patterns argument need to be an array of Patterns."
-      );
-    }
-
-    const areAllPatterns = this._children.every(
-      pattern => pattern instanceof _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default"]
-    );
-
-    if (!areAllPatterns) {
-      throw new Error(
-        "Invalid Argument: All patterns need to be an instance of Pattern."
-      );
-    }
-
   }
 
   clone() {
@@ -1885,13 +1868,6 @@ __webpack_require__.r(__webpack_exports__);
 class OptionalComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
   constructor(pattern) {
     super("optional-composite", "optional-composite", [pattern]);
-    this._assertArguments();
-  }
-
-  _assertArguments() {
-    if (!(this.children[0] instanceof _Pattern_js__WEBPACK_IMPORTED_MODULE_1__["default"])) {
-      throw new Error("Invalid Arguments: Expected a Pattern.");
-    }
   }
 
   parse(cursor) {
@@ -1962,7 +1938,7 @@ class OrComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["def
     }
 
     const hasOptionalChildren = this._children.some(
-      pattern =>
+      (pattern) =>
         pattern instanceof _value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_1__["default"] || pattern instanceof _OptionalComposite_js__WEBPACK_IMPORTED_MODULE_2__["default"]
     );
 
@@ -1972,15 +1948,11 @@ class OrComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["def
   }
 
   _reset(cursor) {
-    this.cursor = null;
+    this.cursor = cursor;
     this.mark = null;
     this.index = 0;
     this.node = null;
-
-    if (cursor != null) {
-      this.cursor = cursor;
-      this.mark = cursor.mark();
-    }
+    this.mark = cursor.mark();
   }
 
   parse(cursor) {
@@ -2024,12 +1996,12 @@ class OrComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["def
   }
 
   getPossibilities(rootPattern) {
-    if (rootPattern == null || !(rootPattern instanceof _Pattern_js__WEBPACK_IMPORTED_MODULE_3__["default"])){
+    if (rootPattern == null || !(rootPattern instanceof _Pattern_js__WEBPACK_IMPORTED_MODULE_3__["default"])) {
       rootPattern = this;
     }
 
     return this.children
-      .map(child => {
+      .map((child) => {
         return child.getPossibilities(rootPattern);
       })
       .reduce((acc, value) => {
@@ -2202,7 +2174,10 @@ class RecursivePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default
   }
 
   getPattern() {
-    return this._climb(this.parent, pattern => {
+    return this._climb(this.parent, (pattern) => {
+      if (pattern == null) {
+        return false;
+      }
       return pattern.name === this.name;
     });
   }
@@ -2211,7 +2186,7 @@ class RecursivePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default
     if (isMatch(pattern)) {
       return pattern;
     } else {
-      if (pattern.parent != null) {
+      if (pattern && pattern.parent != null) {
         return this._climb(pattern.parent, isMatch);
       }
       return null;

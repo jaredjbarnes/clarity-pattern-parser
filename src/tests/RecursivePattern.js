@@ -9,7 +9,7 @@ import {
   OptionalComposite,
   OrComposite,
   Cursor,
-  AndValue
+  AndValue,
 } from "../index.js";
 import string from "./javascriptPatterns/string.js";
 import number from "./javascriptPatterns/number.js";
@@ -29,7 +29,7 @@ const comma = new Literal(",", ",");
 const divider = new AndValue("divider", [
   optionalSpaces,
   comma,
-  optionalSpaces
+  optionalSpaces,
 ]);
 
 const arrayValues = new RepeatComposite(
@@ -44,7 +44,7 @@ const arrayLiteral = new AndComposite("array-literal", [
   optionalSpaces,
   optionalArrayValues,
   optionalSpaces,
-  closeSquareBracket
+  closeSquareBracket,
 ]);
 
 const keyValue = new AndComposite("key-value", [
@@ -52,7 +52,7 @@ const keyValue = new AndComposite("key-value", [
   optionalSpaces,
   colon,
   optionalSpaces,
-  new RecursivePattern("literals")
+  new RecursivePattern("literals"),
 ]);
 
 const keyValues = new RepeatComposite("key-values", keyValue, divider);
@@ -63,7 +63,7 @@ const objectLiteral = new AndComposite("object-literal", [
   optionalSpaces,
   optionalKeyValues,
   optionalSpaces,
-  closeCurlyBracket
+  closeCurlyBracket,
 ]);
 
 const literals = new OrComposite("literals", [
@@ -72,7 +72,7 @@ const literals = new OrComposite("literals", [
   boolean,
   nullLiteral,
   objectLiteral,
-  arrayLiteral
+  arrayLiteral,
 ]);
 
 exports["RecursivePattern: JSON"] = () => {
@@ -81,10 +81,10 @@ exports["RecursivePattern: JSON"] = () => {
     number: 1,
     boolean: true,
     json: {
-      string: "This is a nested string."
+      string: "This is a nested string.",
     },
     null: null,
-    array: [1, "Blah", { prop1: true }]
+    array: [1, "Blah", { prop1: true }],
   });
 
   const cursor = new Cursor(json);
@@ -96,4 +96,22 @@ exports["RecursivePattern: JSON"] = () => {
   assert.equal(object.name, "object-literal");
   assert.equal(array.name, "array-literal");
   assert.equal(object.toString(), json);
+};
+
+exports["RecursivePattern: No pattern"] = () => {
+  const node = new RecursivePattern("nothing");
+  const result = node.exec("Some string.");
+
+  assert.equal(result, null);
+};
+
+exports["RecursivePattern: clone."] = () => {
+  const node = new RecursivePattern("nothing");
+  const clone = node.clone();
+
+  assert.equal(node.name, clone.name);
+
+  const otherClone = node.clone("nothing2");
+
+  assert.equal(otherClone.name, "nothing2");
 };

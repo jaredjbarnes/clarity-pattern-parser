@@ -17,7 +17,7 @@ export default class OrComposite extends CompositePattern {
     }
 
     const hasOptionalChildren = this._children.some(
-      pattern =>
+      (pattern) =>
         pattern instanceof OptionalValue || pattern instanceof OptionalComposite
     );
 
@@ -27,15 +27,11 @@ export default class OrComposite extends CompositePattern {
   }
 
   _reset(cursor) {
-    this.cursor = null;
+    this.cursor = cursor;
     this.mark = null;
     this.index = 0;
     this.node = null;
-
-    if (cursor != null) {
-      this.cursor = cursor;
-      this.mark = cursor.mark();
-    }
+    this.mark = cursor.mark();
   }
 
   parse(cursor) {
@@ -79,12 +75,12 @@ export default class OrComposite extends CompositePattern {
   }
 
   getPossibilities(rootPattern) {
-    if (rootPattern == null || !(rootPattern instanceof Pattern)){
+    if (rootPattern == null || !(rootPattern instanceof Pattern)) {
       rootPattern = this;
     }
 
     return this.children
-      .map(child => {
+      .map((child) => {
         return child.getPossibilities(rootPattern);
       })
       .reduce((acc, value) => {

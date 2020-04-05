@@ -4,13 +4,6 @@ import Pattern from "../Pattern.js";
 export default class OptionalComposite extends CompositePattern {
   constructor(pattern) {
     super("optional-composite", "optional-composite", [pattern]);
-    this._assertArguments();
-  }
-
-  _assertArguments() {
-    if (!(this.children[0] instanceof Pattern)) {
-      throw new Error("Invalid Arguments: Expected a Pattern.");
-    }
   }
 
   parse(cursor) {

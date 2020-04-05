@@ -8,7 +8,10 @@ export default class RecursivePattern extends Pattern {
   }
 
   getPattern() {
-    return this._climb(this.parent, pattern => {
+    return this._climb(this.parent, (pattern) => {
+      if (pattern == null) {
+        return false;
+      }
       return pattern.name === this.name;
     });
   }
@@ -17,7 +20,7 @@ export default class RecursivePattern extends Pattern {
     if (isMatch(pattern)) {
       return pattern;
     } else {
-      if (pattern.parent != null) {
+      if (pattern && pattern.parent != null) {
         return this._climb(pattern.parent, isMatch);
       }
       return null;

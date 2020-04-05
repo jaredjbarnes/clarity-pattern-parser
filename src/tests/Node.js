@@ -30,3 +30,7 @@ exports["Node: With no endIndex."] = () => {
     new Node("type", "name", 0);
   });
 };
+
+exports["Node: With all arguments."] = () => {
+  new Node("type", "name", 0, 0);
+};

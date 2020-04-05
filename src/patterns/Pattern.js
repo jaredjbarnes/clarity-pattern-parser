@@ -1,7 +1,7 @@
 import Cursor from "../Cursor.js";
 
 export default class Pattern {
-  constructor(type = null, name = null, children = []) {
+  constructor(type = null, name, children = []) {
     this._type = type;
     this._name = name;
     this._parent = null;

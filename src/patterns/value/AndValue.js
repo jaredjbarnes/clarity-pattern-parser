@@ -139,7 +139,19 @@ export default class AndValue extends ValuePattern {
   }
 
   getTokens() {
-    return this._children[0].getTokens();
-  }
+    let tokens = [];
 
+    for (let x = 0; x < this._children.length; x++) {
+      const child = this._children[x];
+
+      if (child instanceof OptionalValue) {
+        tokens = tokens.concat(child.getTokens());
+      } else {
+        tokens = tokens.concat(child.getTokens());
+        break;
+      }
+    }
+
+    return tokens;
+  }
 }

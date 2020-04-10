@@ -2,8 +2,9 @@ import Pattern from "../patterns/Pattern.js";
 import AndValue from "../patterns/value/AndValue.js";
 import OrValue from "../patterns/value/OrValue.js";
 import Literal from "../patterns/value/Literal.js";
-import assert from "assert";
 import RepeatValue from "../patterns/value/RepeatValue.js";
+import OptionalValue from "../patterns/value/OptionalValue.js";
+import assert from "assert";
 
 exports["Pattern: parse."] = () => {
   const valuePattern = new Pattern("pattern-type", "pattern");
@@ -140,16 +141,14 @@ exports["Pattern: getNextToken end of patterns."] = () => {
   const lastName = new Literal("last-name", "Doe");
   const moses = new Literal("moses", "Moses");
   const joshua = new Literal("other-middle-name", "Joshua");
-  const moreLastNames = new OrValue("more-last-names", [
-    moses,
-    joshua,
-  ]);
+  const moreLastNames = new OrValue("more-last-names", [moses, joshua]);
   const otherLastName = new Literal("other-last-name", "Smith");
-  const lastNames = new OrValue("last-names", [moreLastNames, lastName, otherLastName]);
-  const fullName = new AndValue("full-name", [
-    firstName,
-    lastNames,
+  const lastNames = new OrValue("last-names", [
+    moreLastNames,
+    lastName,
+    otherLastName,
   ]);
+  const fullName = new AndValue("full-name", [firstName, lastNames]);
 
   const tokens = fullName.children[0].getNextTokens();
   assert.equal(tokens.length, 4);
@@ -157,16 +156,15 @@ exports["Pattern: getNextToken end of patterns."] = () => {
   assert.equal(tokens[1], "Joshua");
   assert.equal(tokens[2], "Doe");
   assert.equal(tokens[3], "Smith");
-
 };
 
-exports["Pattern: with repeat."] = () => {
+exports["Pattern: getNextTokens, with repeat."] = () => {
   const firstName = new Literal("first-name", "John");
   const edward = new Literal("edward", "Edward");
   const middleName = new RepeatValue("middle-names", edward);
   const lastName = new Literal("lastName", "Doe");
   const fullName = new AndValue("full-name", [firstName, middleName, lastName]);
-  
+
   let tokens = fullName.children[0].getNextTokens();
   assert.equal(tokens.length, 1);
   assert.equal(tokens[0], "Edward");
@@ -177,14 +175,14 @@ exports["Pattern: with repeat."] = () => {
   assert.equal(tokens[1], "Doe");
 };
 
-exports["Pattern: with repeat and divider."] = () => {
+exports["Pattern: getNextTokens, with repeat and divider."] = () => {
   const firstName = new Literal("first-name", "John");
   const edward = new Literal("edward", "Edward");
   const stewart = new Literal("stewart", "Stewart");
   const middleName = new RepeatValue("middle-names", edward, stewart);
   const lastName = new Literal("lastName", "Doe");
   const fullName = new AndValue("full-name", [firstName, middleName, lastName]);
-  
+
   let tokens = fullName.children[0].getNextTokens();
   assert.equal(tokens.length, 1);
   assert.equal(tokens[0], "Edward");
@@ -200,24 +198,171 @@ exports["Pattern: with repeat and divider."] = () => {
   assert.equal(tokens[1], "Doe");
 };
 
-exports["Pattern: Has child and at the beginning."] = () => {
+exports["Pattern: getNextTokens, has child and at the beginning."] = () => {
   const firstName = new Literal("first-name", "John");
   const edward = new Literal("edward", "Edward");
   const stewart = new Literal("stewart", "Stewart");
   const middleName = new RepeatValue("middle-names", edward, stewart);
   const lastName = new Literal("lastName", "Doe");
   const fullName = new AndValue("full-name", [firstName, middleName, lastName]);
-  
-  let tokens = fullName.getNextTokens();
+
+  let tokens = fullName.getTokens();
   assert.equal(tokens.length, 1);
   assert.equal(tokens[0], "John");
 };
 
-exports["Pattern: Has no child and is at the beginning."] = () => {
+exports[
+  "Pattern: getNextTokens, has no child and is at the beginning."
+] = () => {
   const firstName = new Literal("first-name", "John");
-  
-  let tokens = firstName.getNextTokens();
+
+  let tokens = firstName.getTokens();
   assert.equal(tokens.length, 1);
   assert.equal(tokens[0], "John");
 };
 
+exports["Pattern: getNextTokens, and with optional start."] = () => {
+  const firstName = new Literal("first-name", "John");
+  const middleName = new Literal("middle-name", "Edward");
+  const lastName = new Literal("last-name", "Doe");
+  const fullName = new AndValue("full-name", [
+    new OptionalValue(firstName),
+    middleName,
+    lastName,
+  ]);
+
+  let tokens = fullName.getTokens();
+  assert.equal(tokens.length, 2);
+  assert.equal(tokens[0], "John");
+  assert.equal(tokens[1], "Edward");
+};
+
+exports["Pattern: getNextTokens, and with optional middle."] = () => {
+  const firstName = new Literal("first-name", "John");
+  const middleName = new Literal("middle-name", "Edward");
+  const lastName = new Literal("last-name", "Doe");
+  const fullName = new AndValue("full-name", [
+    firstName,
+    new OptionalValue(middleName),
+    lastName,
+  ]);
+
+  let tokens = fullName.children[0].getNextTokens();
+  assert.equal(tokens.length, 2);
+  assert.equal(tokens[0], "Edward");
+  assert.equal(tokens[1], "Doe");
+
+  tokens = fullName.children[1].getNextTokens();
+  assert.equal(tokens.length, 1);
+  assert.equal(tokens[0], "Doe");
+
+  tokens = fullName.children[2].getNextTokens();
+  assert.equal(tokens.length, 0);
+};
+
+exports["Pattern: getNextTokens, and with optional last."] = () => {
+  const firstName = new Literal("first-name", "John");
+  const middleName = new Literal("middle-name", "Edward");
+  const lastName = new Literal("last-name", "Doe");
+  const fullName = new AndValue("full-name", [
+    firstName,
+    middleName,
+    new OptionalValue(lastName),
+  ]);
+
+  let tokens = fullName.children[0].getNextTokens();
+  assert.equal(tokens.length, 1);
+  assert.equal(tokens[0], "Edward");
+
+  tokens = fullName.children[1].getNextTokens();
+  assert.equal(tokens.length, 1);
+  assert.equal(tokens[0], "Doe");
+
+  tokens = fullName.children[2].getNextTokens();
+  assert.equal(tokens.length, 0);
+};
+
+exports["Pattern: getNextTokens, first two optional."] = () => {
+  const firstName = new Literal("first-name", "John");
+  const middleName = new Literal("middle-name", "Edward");
+  const lastName = new Literal("last-name", "Doe");
+  const fullName = new AndValue("full-name", [
+    new OptionalValue(firstName),
+    new OptionalValue(middleName),
+    lastName,
+  ]);
+
+  let tokens = fullName.getTokens();
+  assert.equal(tokens.length, 3);
+  assert.equal(tokens[0], "John");
+  assert.equal(tokens[1], "Edward");
+  assert.equal(tokens[2], "Doe");
+
+  tokens = fullName.children[0].getNextTokens();
+  assert.equal(tokens.length, 2);
+  assert.equal(tokens[0], "Edward");
+  assert.equal(tokens[1], "Doe");
+
+  tokens = fullName.children[1].getNextTokens();
+  assert.equal(tokens.length, 1);
+  assert.equal(tokens[0], "Doe");
+
+  tokens = fullName.children[2].getNextTokens();
+  assert.equal(tokens.length, 0);
+};
+
+exports["Pattern: getNextTokens, last two optional."] = () => {
+  const firstName = new Literal("first-name", "John");
+  const middleName = new Literal("middle-name", "Edward");
+  const lastName = new Literal("last-name", "Doe");
+  const fullName = new AndValue("full-name", [
+    firstName,
+    new OptionalValue(middleName),
+    new OptionalValue(lastName),
+  ]);
+
+  let tokens = fullName.getTokens();
+  assert.equal(tokens.length, 1);
+  assert.equal(tokens[0], "John");
+
+  tokens = fullName.children[0].getNextTokens();
+  assert.equal(tokens.length, 2);
+  assert.equal(tokens[0], "Edward");
+  assert.equal(tokens[1], "Doe");
+
+  tokens = fullName.children[1].getNextTokens();
+  assert.equal(tokens.length, 1);
+  assert.equal(tokens[0], "Doe");
+
+  tokens = fullName.children[2].getNextTokens();
+  assert.equal(tokens.length, 0);
+};
+
+exports["Pattern: getNextTokens, all three optional."] = () => {
+  const firstName = new Literal("first-name", "John");
+  const middleName = new Literal("middle-name", "Edward");
+  const lastName = new Literal("last-name", "Doe");
+  const fullName = new AndValue("full-name", [
+    new OptionalValue(firstName),
+    new OptionalValue(middleName),
+    new OptionalValue(lastName),
+  ]);
+
+  let tokens = fullName.getTokens();
+  assert.equal(tokens.length, 3);
+  assert.equal(tokens[0], "John");
+  assert.equal(tokens[1], "Edward");
+  assert.equal(tokens[2], "Doe");
+  
+  tokens = fullName.children[0].getNextTokens();
+  assert.equal(tokens.length, 2);
+  assert.equal(tokens[0], "Edward");
+  assert.equal(tokens[1], "Doe");
+
+  tokens = fullName.children[1].getNextTokens();
+  assert.equal(tokens.length, 1);
+  assert.equal(tokens[0], "Doe");
+
+  tokens = fullName.children[2].getNextTokens();
+  assert.equal(tokens.length, 0);
+};

@@ -865,7 +865,7 @@ class Pattern {
       const nextSibling = siblings[index + 1];
 
       // I don't like this, so I think we need to rethink this.
-      if (this._parent.type.indexOf("repeat") > -1) {
+      if (this._parent.type.indexOf("repeat") === 0) {
         const tokens = this._parent.getNextTokens();
         if (index === 0 && siblings.length > 1) {
           return nextSibling.getTokens().concat(tokens);
@@ -876,6 +876,37 @@ class Pattern {
         }
       }
 
+      // Another thing I don't like.
+      if (
+        this._parent.type.indexOf("and") === 0 &&
+        nextSibling != null &&
+        nextSibling.type.indexOf("optional") === 0
+      ) {
+        let tokens = [];
+
+        for (let x = index + 1; x < siblings.length; x++) {
+          const child = siblings[x];
+
+          if (child.type.indexOf("optional") === 0) {
+            tokens = tokens.concat(child.getTokens());
+          } else {
+            tokens = tokens.concat(child.getTokens());
+            break;
+          }
+
+          if (x === siblings.length - 1) {
+            tokens = tokens.concat(this._parent.getNextTokens());
+          }
+        }
+
+        return tokens;
+      }
+
+      // If you are an or you have already qualified.
+      if (this._parent.type.indexOf("or") === 0) {
+        return this._parent.getNextTokens();
+      }
+
       if (nextSibling != null) {
         return nextSibling.getTokens();
       } else {
@@ -883,11 +914,7 @@ class Pattern {
       }
     }
 
-    if (this._children.length === 0) {
-      return this.getTokens();
-    } else {
-      return this._children[0].getTokens();
-    }
+    return [];
   }
 
   getTokenValue() {
@@ -1050,9 +1077,21 @@ class AndValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
   }
 
   getTokens() {
-    return this._children[0].getTokens();
-  }
+    let tokens = [];
 
+    for (let x = 0; x < this._children.length; x++) {
+      const child = this._children[x];
+
+      if (child instanceof _OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__["default"]) {
+        tokens = tokens.concat(child.getTokens());
+      } else {
+        tokens = tokens.concat(child.getTokens());
+        break;
+      }
+    }
+
+    return tokens;
+  }
 }
 
 
@@ -1928,7 +1967,23 @@ class AndComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["de
   }
 
   getTokens() {
-    return this._children[0].getTokens();
+    let tokens = [];
+
+    for (let x = 0; x < this._children.length; x++) {
+      const child = this._children[x];
+
+      if (
+        child instanceof _value_OptionalValue_js__WEBPACK_IMPORTED_MODULE_3__["default"] ||
+        child instanceof _OptionalComposite_js__WEBPACK_IMPORTED_MODULE_4__["default"]
+      ) {
+        tokens = tokens.concat(child.getTokens());
+      } else {
+        tokens = tokens.concat(child.getTokens());
+        break;
+      }
+    }
+
+    return tokens;
   }
 }
 

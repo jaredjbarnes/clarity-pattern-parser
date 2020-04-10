@@ -115,3 +115,18 @@ exports["RecursivePattern: clone."] = () => {
 
   assert.equal(otherClone.name, "nothing2");
 };
+
+exports["RecursivePattern: getNextTokens."] = () => {
+  let tokens = literals.getTokens();
+
+  tokens = literals.children[0].getNextTokens();
+
+  tokens = literals.children[4].getTokens();
+  tokens = literals.children[4].children[1].getNextTokens();
+  tokens = literals.children[4].children[2].getNextTokens();
+
+  tokens = literals.children[4].children[2].children[0].children[0].children[0].children[0].getTokens();
+  tokens = literals.children[4].children[2].children[0].children[0].getNextTokens();
+
+  tokens = literals.children[4].children[3].getNextTokens();
+};

@@ -17,7 +17,7 @@ export default class OrValue extends ValuePattern {
     }
 
     const hasOptionalChildren = this._children.some(
-      pattern => pattern instanceof OptionalValue
+      (pattern) => pattern instanceof OptionalValue
     );
 
     if (hasOptionalChildren) {
@@ -84,11 +84,26 @@ export default class OrValue extends ValuePattern {
     }
 
     return this.children
-      .map(child => {
+      .map((child) => {
         return child.getPossibilities(rootPattern);
       })
       .reduce((acc, value) => {
         return acc.concat(value);
       }, []);
   }
+
+  getTokens() {
+    const tokens = this._children.map((c) => c.getTokens());
+
+    const hasPrimitiveTokens = tokens.every((t) =>
+      t.every((value) => typeof value === "string")
+    );
+
+    if (hasPrimitiveTokens && tokens.length > 0) {
+      return tokens.reduce((acc, t) => acc.concat(t), []);
+    }
+
+    return this._children[0].getTokens();
+  }
+
 }

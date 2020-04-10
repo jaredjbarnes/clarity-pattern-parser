@@ -4,7 +4,7 @@ import ParserError from "./ParseError.js";
 export default class RecursivePattern extends Pattern {
   constructor(name) {
     super("recursive", name);
-    this.isGettingPossibilities = false;
+    this.isRecursing = false;
   }
 
   getPattern() {
@@ -63,14 +63,28 @@ export default class RecursivePattern extends Pattern {
   }
 
   getPossibilities() {
-    if (!this.isGettingPossibilities) {
-      this.isGettingPossibilities = true;
+    if (!this.isRecursing) {
+      this.isRecursing = true;
       const possibilities = this.getPattern().getPossibilities();
-      this.isGettingPossibilities = false;
+      this.isRecursing = false;
 
       return possibilities;
     } else {
       return [`[${this.name}]`];
+    }
+  }
+
+  getTokenValue() {
+    return this.getPattern().getTokenValue();
+  }
+
+  getTokens() {
+    if (!this.isRecursing) {
+      this.isRecursing = true;
+      const tokens = this.getPattern().getTokens();
+      this.isRecursing = false;
+
+      return tokens;
     }
   }
 }

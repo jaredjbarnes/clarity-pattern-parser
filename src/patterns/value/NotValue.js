@@ -85,4 +85,8 @@ export default class NotValue extends Pattern {
   getPossibilities() {
     return [];
   }
+
+  getTokens() {
+    return [];
+  }
 }

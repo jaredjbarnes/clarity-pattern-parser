@@ -41,4 +41,8 @@ export default class OptionalComposite extends CompositePattern {
       return this.children[0].getPossibilities(rootPattern);
     }
   }
+
+  getTokens() {
+    return this._children[0].getTokens();
+  }
 }

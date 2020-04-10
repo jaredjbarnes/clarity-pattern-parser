@@ -142,4 +142,8 @@ export default class AndComposite extends CompositePattern {
     );
     return permutor.permute(possibilities);
   }
+
+  getTokens() {
+    return this._children[0].getTokens();
+  }
 }

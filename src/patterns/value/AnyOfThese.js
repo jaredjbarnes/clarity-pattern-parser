@@ -74,6 +74,11 @@ export default class AnyOfThese extends ValuePattern {
       rootPattern = this;
     }
 
+    return this.getTokens();
+  }
+
+  getTokens() {
     return this.characters.split("");
   }
+
 }

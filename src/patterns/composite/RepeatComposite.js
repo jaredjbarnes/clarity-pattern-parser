@@ -127,4 +127,8 @@ export default class RepeatComposite extends CompositePattern {
       return this._pattern.getPossibilities(rootPattern);
     }
   }
+
+  getTokens() {
+    return this._pattern.getTokens();
+  }
 }

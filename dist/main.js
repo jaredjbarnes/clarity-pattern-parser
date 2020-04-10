@@ -664,6 +664,14 @@ class RegexValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__["default"
   }
 
   getPossibilities() {
+    return [this.getTokenValue()];
+  }
+
+  getTokenValue() {
+    return this.name;
+  }
+
+  getTokens() {
     return [this.name];
   }
 }
@@ -751,7 +759,9 @@ class Pattern {
   constructor(type = null, name, children = []) {
     this._type = type;
     this._name = name;
+    this._children = [];
     this._parent = null;
+    this.isSequence = false;
 
     this._assertName();
     this.children = children;
@@ -819,7 +829,7 @@ class Pattern {
 
   _cloneChildren() {
     // We need to clone the patterns so nested patterns can be parsed.
-    this._children = this._children.map(pattern => {
+    this._children = this._children.map((pattern) => {
       if (!(pattern instanceof Pattern)) {
         throw new Error(
           `The ${this.name} pattern has an invalid child pattern.`
@@ -833,7 +843,7 @@ class Pattern {
   }
 
   _assignAsParent() {
-    this._children.forEach(child => (child.parent = this));
+    this._children.forEach((child) => (child.parent = this));
   }
 
   clone() {
@@ -842,6 +852,46 @@ class Pattern {
 
   getPossibilities() {
     throw new Error("Method Not Implemented");
+  }
+
+  getTokens() {
+    throw new Error("Method Not Implemented");
+  }
+
+  getNextTokens() {
+    if (this._parent != null) {
+      const siblings = this._parent.children;
+      const index = siblings.findIndex((c) => c === this);
+      const nextSibling = siblings[index + 1];
+
+      // I don't like this, so I think we need to rethink this.
+      if (this._parent.type.indexOf("repeat") > -1) {
+        const tokens = this._parent.getNextTokens();
+        if (index === 0 && siblings.length > 1) {
+          return nextSibling.getTokens().concat(tokens);
+        } else if (index === 1) {
+          return siblings[0].getTokens().concat(tokens);
+        } else {
+          return this.getTokens().concat(tokens);
+        }
+      }
+
+      if (nextSibling != null) {
+        return nextSibling.getTokens();
+      } else {
+        return this._parent.getNextTokens();
+      }
+    }
+
+    if (this._children.length === 0) {
+      return this.getTokens();
+    } else {
+      return this._children[0].getTokens();
+    }
+  }
+
+  getTokenValue() {
+    return null;
   }
 }
 
@@ -961,12 +1011,12 @@ class AndValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
     if (this.cursor.hasUnresolvedError()) {
       this.node = null;
     } else {
-      this.nodes = this.nodes.filter(node => node != null);
+      this.nodes = this.nodes.filter((node) => node != null);
 
       const lastNode = this.nodes[this.nodes.length - 1];
       const startIndex = this.mark;
       const endIndex = lastNode.endIndex;
-      const value = this.nodes.map(node => node.value).join("");
+      const value = this.nodes.map((node) => node.value).join("");
 
       this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](
         "and-value",
@@ -993,11 +1043,16 @@ class AndValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
       rootPattern = this;
     }
 
-    const possibilities = this.children.map(child =>
+    const possibilities = this.children.map((child) =>
       child.getPossibilities(rootPattern)
     );
     return permutor.permute(possibilities);
   }
+
+  getTokens() {
+    return this._children[0].getTokens();
+  }
+
 }
 
 
@@ -1059,6 +1114,11 @@ class OptionalValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["defau
       return this.children[0].getPossibilities(rootPattern);
     }
   }
+
+  getTokens() {
+    return this._children[0].getTokens();
+  }
+  
 }
 
 
@@ -1219,8 +1279,13 @@ class AnyOfThese extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"
       rootPattern = this;
     }
 
+    return this.getTokens();
+  }
+
+  getTokens() {
     return this.characters.split("");
   }
+
 }
 
 
@@ -1312,7 +1377,15 @@ class Literal extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_2__["default"] {
   }
 
   getPossibilities() {
-    return [this.literal];
+    return [this.getTokenValue()];
+  }
+
+  getTokenValue() {
+    return this.literal;
+  }
+
+  getTokens() {
+    return [this.getTokenValue()];
   }
 }
 
@@ -1415,6 +1488,10 @@ class NotValue extends _Pattern_js__WEBPACK_IMPORTED_MODULE_3__["default"] {
   getPossibilities() {
     return [];
   }
+
+  getTokens() {
+    return [];
+  }
 }
 
 
@@ -1448,7 +1525,7 @@ class OrValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
     }
 
     const hasOptionalChildren = this._children.some(
-      pattern => pattern instanceof _OptionalValue_js__WEBPACK_IMPORTED_MODULE_2__["default"]
+      (pattern) => pattern instanceof _OptionalValue_js__WEBPACK_IMPORTED_MODULE_2__["default"]
     );
 
     if (hasOptionalChildren) {
@@ -1515,13 +1592,28 @@ class OrValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
     }
 
     return this.children
-      .map(child => {
+      .map((child) => {
         return child.getPossibilities(rootPattern);
       })
       .reduce((acc, value) => {
         return acc.concat(value);
       }, []);
   }
+
+  getTokens() {
+    const tokens = this._children.map((c) => c.getTokens());
+
+    const hasPrimitiveTokens = tokens.every((t) =>
+      t.every((value) => typeof value === "string")
+    );
+
+    if (hasPrimitiveTokens && tokens.length > 0) {
+      return tokens.reduce((acc, t) => acc.concat(t), []);
+    }
+
+    return this._children[0].getTokens();
+  }
+
 }
 
 
@@ -1624,7 +1716,7 @@ class RepeatValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default
       this.cursor.throwError(parseError);
       this.node = null;
     } else {
-      const value = this.nodes.map(node => node.value).join("");
+      const value = this.nodes.map((node) => node.value).join("");
 
       this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](
         "repeat-value",
@@ -1656,8 +1748,8 @@ class RepeatValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default
 
       return this._pattern
         .getPossibilities(rootPattern)
-        .map(possibility => {
-          return dividerPossibilities.map(divider => {
+        .map((possibility) => {
+          return dividerPossibilities.map((divider) => {
             return `${possibility}${divider}`;
           });
         })
@@ -1668,6 +1760,11 @@ class RepeatValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_0__["default
       return this._pattern.getPossibilities(rootPattern);
     }
   }
+
+  getTokens() {
+    return this._pattern.getTokens();
+  }
+
 }
 
 
@@ -1829,6 +1926,10 @@ class AndComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["de
     );
     return permutor.permute(possibilities);
   }
+
+  getTokens() {
+    return this._children[0].getTokens();
+  }
 }
 
 
@@ -1904,6 +2005,10 @@ class OptionalComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0_
     } else {
       return this.children[0].getPossibilities(rootPattern);
     }
+  }
+
+  getTokens() {
+    return this._children[0].getTokens();
   }
 }
 
@@ -2007,6 +2112,20 @@ class OrComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__["def
       .reduce((acc, value) => {
         return acc.concat(value);
       }, []);
+  }
+
+  getTokens() {
+    const tokens = this._children.map((c) => c.getTokens());
+
+    const hasPrimitiveTokens = tokens.every((t) =>
+      t.every((value) => typeof value === "string")
+    );
+
+    if (hasPrimitiveTokens && tokens.length > 0) {
+      return tokens.reduce((acc, t) => acc.concat(t), []);
+    }
+
+    return this._children[0].getTokens();
   }
 }
 
@@ -2152,6 +2271,10 @@ class RepeatComposite extends _CompositePattern_js__WEBPACK_IMPORTED_MODULE_0__[
       return this._pattern.getPossibilities(rootPattern);
     }
   }
+
+  getTokens() {
+    return this._pattern.getTokens();
+  }
 }
 
 
@@ -2170,7 +2293,7 @@ __webpack_require__.r(__webpack_exports__);
 class RecursivePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
   constructor(name) {
     super("recursive", name);
-    this.isGettingPossibilities = false;
+    this.isRecursing = false;
   }
 
   getPattern() {
@@ -2229,14 +2352,28 @@ class RecursivePattern extends _Pattern_js__WEBPACK_IMPORTED_MODULE_0__["default
   }
 
   getPossibilities() {
-    if (!this.isGettingPossibilities) {
-      this.isGettingPossibilities = true;
+    if (!this.isRecursing) {
+      this.isRecursing = true;
       const possibilities = this.getPattern().getPossibilities();
-      this.isGettingPossibilities = false;
+      this.isRecursing = false;
 
       return possibilities;
     } else {
       return [`[${this.name}]`];
+    }
+  }
+
+  getTokenValue() {
+    return this.getPattern().getTokenValue();
+  }
+
+  getTokens() {
+    if (!this.isRecursing) {
+      this.isRecursing = true;
+      const tokens = this.getPattern().getTokens();
+      this.isRecursing = false;
+
+      return tokens;
     }
   }
 }

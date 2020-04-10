@@ -47,4 +47,9 @@ export default class OptionalValue extends ValuePattern {
       return this.children[0].getPossibilities(rootPattern);
     }
   }
+
+  getTokens() {
+    return this._children[0].getTokens();
+  }
+  
 }

@@ -87,4 +87,18 @@ export default class OrComposite extends CompositePattern {
         return acc.concat(value);
       }, []);
   }
+
+  getTokens() {
+    const tokens = this._children.map((c) => c.getTokens());
+
+    const hasPrimitiveTokens = tokens.every((t) =>
+      t.every((value) => typeof value === "string")
+    );
+
+    if (hasPrimitiveTokens && tokens.length > 0) {
+      return tokens.reduce((acc, t) => acc.concat(t), []);
+    }
+
+    return this._children[0].getTokens();
+  }
 }

@@ -4,7 +4,9 @@ export default class Pattern {
   constructor(type = null, name, children = []) {
     this._type = type;
     this._name = name;
+    this._children = [];
     this._parent = null;
+    this.isSequence = false;
 
     this._assertName();
     this.children = children;
@@ -72,7 +74,7 @@ export default class Pattern {
 
   _cloneChildren() {
     // We need to clone the patterns so nested patterns can be parsed.
-    this._children = this._children.map(pattern => {
+    this._children = this._children.map((pattern) => {
       if (!(pattern instanceof Pattern)) {
         throw new Error(
           `The ${this.name} pattern has an invalid child pattern.`
@@ -86,7 +88,7 @@ export default class Pattern {
   }
 
   _assignAsParent() {
-    this._children.forEach(child => (child.parent = this));
+    this._children.forEach((child) => (child.parent = this));
   }
 
   clone() {
@@ -95,5 +97,45 @@ export default class Pattern {
 
   getPossibilities() {
     throw new Error("Method Not Implemented");
+  }
+
+  getTokens() {
+    throw new Error("Method Not Implemented");
+  }
+
+  getNextTokens() {
+    if (this._parent != null) {
+      const siblings = this._parent.children;
+      const index = siblings.findIndex((c) => c === this);
+      const nextSibling = siblings[index + 1];
+
+      // I don't like this, so I think we need to rethink this.
+      if (this._parent.type.indexOf("repeat") > -1) {
+        const tokens = this._parent.getNextTokens();
+        if (index === 0 && siblings.length > 1) {
+          return nextSibling.getTokens().concat(tokens);
+        } else if (index === 1) {
+          return siblings[0].getTokens().concat(tokens);
+        } else {
+          return this.getTokens().concat(tokens);
+        }
+      }
+
+      if (nextSibling != null) {
+        return nextSibling.getTokens();
+      } else {
+        return this._parent.getNextTokens();
+      }
+    }
+
+    if (this._children.length === 0) {
+      return this.getTokens();
+    } else {
+      return this._children[0].getTokens();
+    }
+  }
+
+  getTokenValue() {
+    return null;
   }
 }

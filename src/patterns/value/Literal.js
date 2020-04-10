@@ -76,6 +76,14 @@ export default class Literal extends ValuePattern {
   }
 
   getPossibilities() {
-    return [this.literal];
+    return [this.getTokenValue()];
+  }
+
+  getTokenValue() {
+    return this.literal;
+  }
+
+  getTokens() {
+    return [this.getTokenValue()];
   }
 }

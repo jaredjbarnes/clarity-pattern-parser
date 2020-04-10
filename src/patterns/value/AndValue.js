@@ -100,12 +100,12 @@ export default class AndValue extends ValuePattern {
     if (this.cursor.hasUnresolvedError()) {
       this.node = null;
     } else {
-      this.nodes = this.nodes.filter(node => node != null);
+      this.nodes = this.nodes.filter((node) => node != null);
 
       const lastNode = this.nodes[this.nodes.length - 1];
       const startIndex = this.mark;
       const endIndex = lastNode.endIndex;
-      const value = this.nodes.map(node => node.value).join("");
+      const value = this.nodes.map((node) => node.value).join("");
 
       this.node = new ValueNode(
         "and-value",
@@ -132,9 +132,14 @@ export default class AndValue extends ValuePattern {
       rootPattern = this;
     }
 
-    const possibilities = this.children.map(child =>
+    const possibilities = this.children.map((child) =>
       child.getPossibilities(rootPattern)
     );
     return permutor.permute(possibilities);
   }
+
+  getTokens() {
+    return this._children[0].getTokens();
+  }
+
 }

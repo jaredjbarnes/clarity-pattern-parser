@@ -85,7 +85,7 @@ export default class RepeatValue extends ValuePattern {
       this.cursor.throwError(parseError);
       this.node = null;
     } else {
-      const value = this.nodes.map(node => node.value).join("");
+      const value = this.nodes.map((node) => node.value).join("");
 
       this.node = new ValueNode(
         "repeat-value",
@@ -117,8 +117,8 @@ export default class RepeatValue extends ValuePattern {
 
       return this._pattern
         .getPossibilities(rootPattern)
-        .map(possibility => {
-          return dividerPossibilities.map(divider => {
+        .map((possibility) => {
+          return dividerPossibilities.map((divider) => {
             return `${possibility}${divider}`;
           });
         })
@@ -129,4 +129,9 @@ export default class RepeatValue extends ValuePattern {
       return this._pattern.getPossibilities(rootPattern);
     }
   }
+
+  getTokens() {
+    return this._pattern.getTokens();
+  }
+
 }

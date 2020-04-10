@@ -88,6 +88,14 @@ export default class RegexValue extends ValuePattern {
   }
 
   getPossibilities() {
+    return [this.getTokenValue()];
+  }
+
+  getTokenValue() {
+    return this.name;
+  }
+
+  getTokens() {
     return [this.name];
   }
 }

@@ -1,0 +1,1 @@
+* Pull out getPossibilities and getNextTokens methods from the patterns and put them in a utility.

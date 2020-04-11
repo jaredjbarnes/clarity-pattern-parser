@@ -342,6 +342,7 @@ exports["Pattern: getNextTokens, all three optional."] = () => {
   const firstName = new Literal("first-name", "John");
   const middleName = new Literal("middle-name", "Edward");
   const lastName = new Literal("last-name", "Doe");
+  
   const fullName = new AndValue("full-name", [
     new OptionalValue(firstName),
     new OptionalValue(middleName),

@@ -5,6 +5,7 @@ import Cursor from "../Cursor.js";
 import filter from "./naturalLanguage/filter.js";
 import assert from "assert";
 import string from "./javascriptPatterns/string.js";
+import cssValue from "./cssPatterns/cssValue.js"
 
 exports["Complex Examples: A Comment"] = () => {
   const cursor = new Cursor(`/*
@@ -77,7 +78,5 @@ exports["Complex Examples: Natural Language."] = () => {
 };
 
 exports["Complex Examples: cssMethod"] = () => {
-  const cursor = new Cursor(
-    "linear-gradient(to left, #333, #333 50%, #eee 75%, #333 75%)"
-  );
+  const result = cssValue.exec("linear-gradient(to left, #333, #333 50%, #eee 75%, #333 75%)");
 };

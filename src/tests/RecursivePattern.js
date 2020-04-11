@@ -130,3 +130,9 @@ exports["RecursivePattern: getNextTokens."] = () => {
 
   tokens = literals.children[4].children[3].getNextTokens();
 };
+
+
+exports["RecursivePattern: getPossibilities."] = () => {
+  const possibilities = literals.getPossibilities();
+  
+};

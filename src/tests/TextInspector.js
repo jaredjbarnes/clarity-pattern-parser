@@ -93,5 +93,84 @@ exports["TextInspector: json inspect."] = () => {
   inspection = TextInspector.inspect(`{"blah":`, json);
   inspection = TextInspector.inspect(`{"blah":{`, json);
   inspection = TextInspector.inspect(`{"blah":0.9`, json);
+};
 
+exports["TextInspector: json inspect timing."] = () => {
+  let inspection = TextInspector.inspect("{", json);
+  const largeObject = [
+    {
+      firstName: "John",
+      lastName: "Doe",
+      age: 10,
+    },
+    {
+      firstName: "Jack",
+      lastName: "Doe",
+      age: 20,
+    },
+    {
+      firstName: "Joe",
+      lastName: "Doe",
+      age: 50,
+    },
+    {
+      firstName: "John",
+      lastName: "Smith",
+      age: 80,
+    },
+    {
+      firstName: "Joe",
+      lastName: "Smith",
+      age: 10,
+    },
+    {
+      firstName: "John",
+      lastName: "Doe",
+      age: 10,
+    },
+    {
+      firstName: "Jack",
+      lastName: "Doe",
+      age: 20,
+    },
+    {
+      firstName: "Joe",
+      lastName: "Doe",
+      age: 50,
+    },
+    {
+      firstName: "John",
+      lastName: "Smith",
+      age: 80,
+    },
+    {
+      firstName: "Joe",
+      lastName: "Smith",
+      age: 10,
+    },
+  ];
+
+  const smallObject = [
+    {
+      firstName: "John",
+      lastName: "Doe",
+      age: 10,
+    },
+  ];
+
+  const largeJson = JSON.stringify(largeObject);
+  const smallJson = JSON.stringify(smallObject);
+
+  const startTime = Date.now();
+
+  //inspection = TextInspector.inspect(`{"blah":`, json);
+  //inspection = TextInspector.inspect(`{"blah":{`, json);
+
+  for (let x = 0; x < 1; x++) {
+    inspection = TextInspector.inspect(largeJson, json);
+  }
+
+  const endTime = Date.now();
+
+  const duration = endTime - startTime;
 };

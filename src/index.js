@@ -20,6 +20,7 @@ import ParseError from "./patterns/ParseError.js";
 import Pattern from "./patterns/Pattern.js";
 import RecursivePattern from "./patterns/RecursivePattern.js";
 import ParseInspector from "./ParseInspector.js";
+import TextInspector from "./TextInspector.js";
 
 export {
   Node,
@@ -43,5 +44,6 @@ export {
   ParseError,
   Pattern,
   RecursivePattern,
-  ParseInspector
+  ParseInspector,
+  TextInspector,
 };

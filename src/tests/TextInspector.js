@@ -4,6 +4,7 @@ import assert from "assert";
 import Literal from "../patterns/value/Literal.js";
 import AndValue from "../patterns/value/AndValue.js";
 import OrValue from "../patterns/value/OrValue.js";
+import json from "./javascriptPatterns/json.js";
 
 exports["TextInspector: Partial Match"] = () => {
   const text = "Pat ";
@@ -84,4 +85,13 @@ exports["TextInspector: static inspect."] = () => {
   const either = new OrValue("either", [first, second]);
 
   const inspection = TextInspector.inspect("Show me ", either);
+};
+
+exports["TextInspector: json inspect."] = () => {
+  let inspection = TextInspector.inspect("{", json);
+
+  inspection = TextInspector.inspect(`{"blah":`, json);
+  inspection = TextInspector.inspect(`{"blah":{`, json);
+  inspection = TextInspector.inspect(`{"blah":0.9`, json);
+
 };

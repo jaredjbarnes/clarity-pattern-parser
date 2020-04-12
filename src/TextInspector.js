@@ -11,6 +11,7 @@ export default class TextInspector {
     this.matchedText = "";
     this.rootPattern = null;
     this.tokens = null;
+    this.options = [];
   }
 
   inspect(text, pattern) {
@@ -38,6 +39,7 @@ export default class TextInspector {
     this.saveMatchedText();
     this.saveMatch();
     this.saveError();
+    this.saveOptions();
     this.saveNextToken();
 
     return {
@@ -65,6 +67,7 @@ export default class TextInspector {
   parse() {
     this.rootPattern = this.rootPattern;
     this.cursor = new Cursor(this.text);
+    this.cursor.startRecording();
     this.result = this.rootPattern.parse(this.cursor);
     this.patternMatch = this.cursor.lastMatch;
   }
@@ -157,8 +160,7 @@ export default class TextInspector {
       return;
     }
 
-  
-    const options = this.patternMatch.pattern.getNextTokens();
+    const options = this.options;
     let startIndex = this.matchedText.length;
 
     if (this.matchedText.length < this.text.length) {
@@ -196,6 +198,35 @@ export default class TextInspector {
       startIndex,
       options,
     };
+  }
+
+  saveOptions() {
+    const furthestMatches = this.cursor.history.astNodes.reduce(
+      (acc, node, index) => {
+        if (node.endIndex === acc.furthestTextIndex) {
+          acc.nodeIndexes.push(index);
+        } else if (node.endIndex > acc.furthestTextIndex) {
+          acc.furthestTextIndex = node.endIndex;
+          acc.nodeIndexes = [index];
+        }
+
+        return acc;
+      },
+      { furthestTextIndex: -1, nodeIndexes: [] }
+    );
+
+    const matches = furthestMatches.nodeIndexes.reduce((acc, index) => {
+      const pattern = this.cursor.history.patterns[index];
+      const tokens = pattern.getNextTokens();
+
+      tokens.forEach((token) => {
+        acc[token] = true;
+      });
+
+      return acc;
+    }, {});
+
+    this.options = Object.keys(matches);
   }
 
   static inspect(text, pattern) {

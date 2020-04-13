@@ -23,6 +23,15 @@ exports["TextInspector: Partial Match, with error."] = () => {
   const textInspector = new TextInspector();
 
   const inspection = textInspector.inspect(text, sentence);
+
+  assert.equal(inspection.error.startIndex, 4);
+  assert.equal(inspection.error.endIndex, 7);
+  assert.equal(inspection.error.text, "wzoo");
+  assert.equal(inspection.match.startIndex, 0);
+  assert.equal(inspection.match.endIndex, 3);
+  assert.equal(inspection.match.text, "Pat ");
+  assert.equal(inspection.tokens, null);
+  assert.equal(inspection.isComplete, false);
 };
 
 exports["TextInspector: No auto complete so fallback to search."] = () => {
@@ -30,6 +39,14 @@ exports["TextInspector: No auto complete so fallback to search."] = () => {
   const textInspector = new TextInspector();
 
   const inspection = textInspector.inspect(text, sentence);
+
+  assert.equal(inspection.error.startIndex, 0);
+  assert.equal(inspection.error.endIndex, 3);
+  assert.equal(inspection.error.text, "bank");
+  assert.equal(inspection.tokens, null);
+  assert.equal(inspection.pattern, null);
+  assert.equal(inspection.match, null);
+  assert.equal(inspection.isComplete, false);
 };
 
 exports[
@@ -39,6 +56,14 @@ exports[
   const textInspector = new TextInspector();
 
   const inspection = textInspector.inspect(text, sentence);
+
+  assert.equal(inspection.error.startIndex, 0);
+  assert.equal(inspection.error.endIndex, 9);
+  assert.equal(inspection.error.text, "store bank");
+  assert.equal(inspection.tokens, null);
+  assert.equal(inspection.pattern, null);
+  assert.equal(inspection.match, null);
+  assert.equal(inspection.isComplete, false);
 };
 
 exports["TextInspector: Partial Half Match"] = () => {
@@ -46,6 +71,14 @@ exports["TextInspector: Partial Half Match"] = () => {
   const textInspector = new TextInspector();
 
   const inspection = textInspector.inspect(text, sentence);
+
+  assert.equal(inspection.match.startIndex, 0);
+  assert.equal(inspection.match.endIndex, 6);
+  assert.equal(inspection.match.text, "Pat wen");
+  assert.equal(inspection.tokens.options.length, 1);
+  assert.equal(inspection.tokens.options[0], "t to");
+  assert.equal(inspection.isComplete, false);
+  assert.equal(inspection.error, null);
 };
 
 exports["TextInspector: Empty String"] = () => {
@@ -53,13 +86,14 @@ exports["TextInspector: Empty String"] = () => {
   const textInspector = new TextInspector();
 
   const inspection = textInspector.inspect(text, sentence);
-};
 
-exports["TextInspector: No match with error."] = () => {
-  const text = "Jared left ";
-  const textInspector = new TextInspector();
-
-  const inspection = textInspector.inspect(text, sentence);
+  assert.equal(inspection.error, null);
+  assert.equal(inspection.tokens.options.length, 2);
+  assert.equal(inspection.tokens.options[0], "Pat");
+  assert.equal(inspection.tokens.options[1], "Dan");
+  assert.equal(inspection.pattern, null);
+  assert.equal(inspection.match, null);
+  assert.equal(inspection.isComplete, false);
 };
 
 exports["TextInspector: Complete Match."] = () => {
@@ -67,11 +101,25 @@ exports["TextInspector: Complete Match."] = () => {
   const textInspector = new TextInspector();
 
   const inspection = textInspector.inspect(text, sentence);
+
+  assert.equal(inspection.error, null);
+  assert.equal(inspection.tokens, null);
+  assert.equal(inspection.match.startIndex, 0);
+  assert.equal(inspection.match.endIndex, 22);
+  assert.equal(inspection.match.text, "Pat went to a big store");
+  assert.equal(inspection.isComplete, true);
 };
 
 exports["TextInspector: static inspect."] = () => {
   const text = "Pat went to a big store";
   const inspection = TextInspector.inspect(text, sentence);
+
+  assert.equal(inspection.error, null);
+  assert.equal(inspection.tokens, null);
+  assert.equal(inspection.match.startIndex, 0);
+  assert.equal(inspection.match.endIndex, 22);
+  assert.equal(inspection.match.text, "Pat went to a big store");
+  assert.equal(inspection.isComplete, true);
 };
 
 exports["TextInspector: static inspect."] = () => {
@@ -85,92 +133,65 @@ exports["TextInspector: static inspect."] = () => {
   const either = new OrValue("either", [first, second]);
 
   const inspection = TextInspector.inspect("Show me ", either);
+
+  assert.equal(inspection.error, null);
+  assert.equal(inspection.tokens.startIndex, 8);
+  assert.equal(inspection.tokens.options.length, 2);
+  assert.equal(inspection.tokens.options[0], "the money");
+  assert.equal(inspection.tokens.options[1], "your license");
+  assert.equal(inspection.match.startIndex, 0);
+  assert.equal(inspection.match.endIndex, 7);
+  assert.equal(inspection.match.text, "Show me ");
+  assert.equal(inspection.isComplete, false);
 };
 
 exports["TextInspector: json inspect."] = () => {
   let inspection = TextInspector.inspect("{", json);
 
   inspection = TextInspector.inspect(`{"blah":`, json);
+
+  assert.equal(inspection.error, null);
+  assert.equal(inspection.tokens.startIndex, 8);
+  assert.equal(inspection.tokens.options.length, 9);
+  assert.equal(inspection.tokens.options[0], " ");
+  assert.equal(inspection.tokens.options[1], "number");
+  assert.equal(inspection.tokens.options[2], "'");
+  assert.equal(inspection.tokens.options[3], "\"");
+  assert.equal(inspection.tokens.options[4], "true");
+  assert.equal(inspection.tokens.options[5], "false");
+  assert.equal(inspection.tokens.options[6], "null");
+  assert.equal(inspection.tokens.options[7], "{");
+  assert.equal(inspection.tokens.options[8], "[");
+  assert.equal(inspection.match.startIndex, 0);
+  assert.equal(inspection.match.endIndex, 7);
+  assert.equal(inspection.match.text, `{"blah":`);
+  assert.equal(inspection.isComplete, false);
+
   inspection = TextInspector.inspect(`{"blah":{`, json);
+
+  assert.equal(inspection.error, null);
+  assert.equal(inspection.tokens.startIndex, 9);
+  assert.equal(inspection.tokens.options.length, 4);
+  assert.equal(inspection.tokens.options[0], " ");
+  assert.equal(inspection.tokens.options[1], "'");
+  assert.equal(inspection.tokens.options[2], "\"");
+  assert.equal(inspection.tokens.options[3], "}");
+  assert.equal(inspection.match.startIndex, 0);
+  assert.equal(inspection.match.endIndex, 8);
+  assert.equal(inspection.match.text, `{"blah":{`);
+  assert.equal(inspection.isComplete, false);
+
+
   inspection = TextInspector.inspect(`{"blah":0.9`, json);
-};
 
-exports["TextInspector: json inspect timing."] = () => {
-  let inspection = TextInspector.inspect("{", json);
-  const largeObject = [
-    {
-      firstName: "John",
-      lastName: "Doe",
-      age: 10,
-    },
-    {
-      firstName: "Jack",
-      lastName: "Doe",
-      age: 20,
-    },
-    {
-      firstName: "Joe",
-      lastName: "Doe",
-      age: 50,
-    },
-    {
-      firstName: "John",
-      lastName: "Smith",
-      age: 80,
-    },
-    {
-      firstName: "Joe",
-      lastName: "Smith",
-      age: 10,
-    },
-    {
-      firstName: "John",
-      lastName: "Doe",
-      age: 10,
-    },
-    {
-      firstName: "Jack",
-      lastName: "Doe",
-      age: 20,
-    },
-    {
-      firstName: "Joe",
-      lastName: "Doe",
-      age: 50,
-    },
-    {
-      firstName: "John",
-      lastName: "Smith",
-      age: 80,
-    },
-    {
-      firstName: "Joe",
-      lastName: "Smith",
-      age: 10,
-    },
-  ];
-
-  const smallObject = [
-    {
-      firstName: "John",
-      lastName: "Doe",
-      age: 10,
-    },
-  ];
-
-  const largeJson = JSON.stringify(largeObject);
-  const smallJson = JSON.stringify(smallObject);
-
-  const startTime = Date.now();
-
-  //inspection = TextInspector.inspect(`{"blah":`, json);
-  //inspection = TextInspector.inspect(`{"blah":{`, json);
-
-  for (let x = 0; x < 1; x++) {
-    inspection = TextInspector.inspect(largeJson, json);
-  }
-
-  const endTime = Date.now();
-
-  const duration = endTime - startTime;
+  assert.equal(inspection.error, null);
+  assert.equal(inspection.tokens.startIndex, 11);
+  assert.equal(inspection.tokens.options.length, 3);
+  assert.equal(inspection.tokens.options[0], " ");
+  assert.equal(inspection.tokens.options[1], ",");
+  assert.equal(inspection.tokens.options[2], "}");
+  assert.equal(inspection.match.startIndex, 0);
+  assert.equal(inspection.match.endIndex, 10);
+  assert.equal(inspection.match.text, `{"blah":0.9`);
+  assert.equal(inspection.isComplete, false);
 };

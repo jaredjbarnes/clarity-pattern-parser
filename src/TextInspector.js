@@ -12,6 +12,7 @@ export default class TextInspector {
     this.rootPattern = null;
     this.tokens = null;
     this.options = [];
+    this.parseStack = [];
   }
 
   inspect(text, pattern) {
@@ -32,10 +33,12 @@ export default class TextInspector {
           options: pattern.getTokens(),
         },
         isComplete: false,
+        parseStack: []
       };
     }
 
     this.parse();
+    this.saveParseStack();
     this.saveMatchedText();
     this.saveMatch();
     this.saveError();
@@ -49,6 +52,7 @@ export default class TextInspector {
       error: this.error,
       tokens: this.tokens,
       isComplete: this.cursor.didSuccessfullyParse(),
+      parseStack: this.parseStack
     };
   }
 
@@ -62,6 +66,8 @@ export default class TextInspector {
     this.matchedText = "";
     this.rootPattern = null;
     this.tokens = null;
+    this.options = [];
+    this.parseStack = [];
   }
 
   parse() {
@@ -70,6 +76,10 @@ export default class TextInspector {
     this.cursor.startRecording();
     this.result = this.rootPattern.parse(this.cursor);
     this.patternMatch = this.cursor.lastMatch;
+  }
+
+  saveParseStack() {
+    this.parseStack = this.cursor.history.getLastParseStack();
   }
 
   saveMatchedText() {

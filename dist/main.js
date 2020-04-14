@@ -564,6 +564,57 @@ class CursorHistory {
   getLastError() {
     return this.errors[this.errors.length - 1] || null;
   }
+
+  getAllParseStacks() {
+    const stacks = this.astNodes.reduce((acc, node) => {
+      let container = acc[acc.length - 1];
+
+      if (node.startIndex === 0) {
+        container = [];
+        acc.push(container);
+      }
+
+      container.push(node);
+
+      return acc;
+    }, []);
+
+    // There are times when the matching will fail and hit again on the same node.
+    // This filters them out. 
+    // We simply check to see if there is any overlap with the previous one,
+    // and if there is we don't add it. This is why we move backwards.
+    const cleanedStack = stacks.map((stack) => {
+      const cleanedStack = [];
+
+      for (let x = stack.length - 1; x >= 0; x--) {
+        const currentNode = stack[x];
+        const previousNode = stack[x + 1];
+
+        if (previousNode == null) {
+          cleanedStack.unshift(currentNode);
+        } else {
+          const left = Math.max(
+            currentNode.startIndex,
+            previousNode.startIndex
+          );
+          const right = Math.min(currentNode.endIndex, previousNode.endIndex);
+          const isOverlapping = left <= right;
+
+          if (!isOverlapping) {
+            cleanedStack.unshift(currentNode);
+          }
+        }
+      }
+      return cleanedStack;
+    });
+
+    return cleanedStack;
+  }
+
+  getLastParseStack() {
+    const stacks = this.getAllParseStacks();
+    return stacks[stacks.length - 1] || [];
+  }
 }
 
 
@@ -2680,6 +2731,7 @@ class TextInspector {
     this.rootPattern = null;
     this.tokens = null;
     this.options = [];
+    this.parseStack = [];
   }
 
   inspect(text, pattern) {
@@ -2700,10 +2752,12 @@ class TextInspector {
           options: pattern.getTokens(),
         },
         isComplete: false,
+        parseStack: []
       };
     }
 
     this.parse();
+    this.saveParseStack();
     this.saveMatchedText();
     this.saveMatch();
     this.saveError();
@@ -2717,6 +2771,7 @@ class TextInspector {
       error: this.error,
       tokens: this.tokens,
       isComplete: this.cursor.didSuccessfullyParse(),
+      parseStack: this.parseStack
     };
   }
 
@@ -2730,6 +2785,8 @@ class TextInspector {
     this.matchedText = "";
     this.rootPattern = null;
     this.tokens = null;
+    this.options = [];
+    this.parseStack = [];
   }
 
   parse() {
@@ -2738,6 +2795,10 @@ class TextInspector {
     this.cursor.startRecording();
     this.result = this.rootPattern.parse(this.cursor);
     this.patternMatch = this.cursor.lastMatch;
+  }
+
+  saveParseStack() {
+    this.parseStack = this.cursor.history.getLastParseStack();
   }
 
   saveMatchedText() {

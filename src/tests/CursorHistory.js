@@ -1,6 +1,7 @@
 import CursorHistory from "../CursorHistory.js";
 import assert from "assert";
-import { ValuePattern, ValueNode } from "../index.js";
+import { ValuePattern, ValueNode, Cursor } from "../index.js";
+import sentence from "./patterns/sentence.js";
 
 exports["CursorHistory: addMatch"] = () => {
   const cursorHistory = new CursorHistory();
@@ -72,4 +73,35 @@ exports[
   assert.equal(cursorHistory.getLastMatch().astNode, null);
   assert.equal(cursorHistory.getFurthestMatch().pattern, null);
   assert.equal(cursorHistory.getFurthestMatch().astNode, null);
+};
+
+exports[
+  "CursorHistory: getAllParseStacks."
+] = () => {
+  const text = "Pat went to the";
+  const cursor = new Cursor(text);
+  cursor.startRecording();
+
+  sentence.parse(cursor);
+
+  const stacks = cursor.history.getAllParseStacks();
+};
+
+exports[
+  "CursorHistory: getLastParseStack."
+] = () => {
+  const text = "Pat went to the";
+  const cursor = new Cursor(text);
+  cursor.startRecording();
+
+  sentence.parse(cursor);
+
+  const stack = cursor.history.getLastParseStack();
+
+  assert.equal(stack.length, 5);
+  assert.equal(stack[0].name, "pat");
+  assert.equal(stack[1].name, "space");
+  assert.equal(stack[2].name, "went-to");
+  assert.equal(stack[3].name, "space");
+  assert.equal(stack[4].name, "the");
 };

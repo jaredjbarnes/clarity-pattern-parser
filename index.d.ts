@@ -203,6 +203,32 @@ export declare class ParseInspector {
   static inspectParse(text: string, pattern: Pattern): ParseInspection;
 }
 
+export type TextInspection = {
+  pattern: Pattern | null;
+  astNode: Node | null;
+  match: {
+    text: string;
+    startIndex: number;
+    endIndex: number;
+  } | null;
+  error: {
+    text: string;
+    startIndex: number;
+    endIndex: number;
+  } | null;
+  tokens: {
+    startIndex: number;
+    options: string[] | null;
+  } | null;
+  isComplete: boolean;
+  parseStack: Node[] | null;
+};
+
+export declare class TextInspector {
+  inspect(text: string, pattern: Pattern): TextInspection;
+  static inspect(text: string, pattern: Pattern): TextInspection;
+}
+
 export declare class ParseError {
   constructor(message: string, index: number, pattern: Pattern);
 

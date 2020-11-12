@@ -1,5 +1,4 @@
 import ParseError from "../ParseError.js";
-import Cursor from "../../Cursor.js";
 import ValueNode from "../../ast/ValueNode.js";
 import ValuePattern from "./ValuePattern.js";
 

@@ -1,4 +1,4 @@
-import { Cursor } from "./index.js";
+import Cursor from "./Cursor.js";
 
 export default class ParseInspector {
   constructor() {

@@ -1,4 +1,4 @@
-import { Cursor } from "./index.js";
+import Cursor from "./Cursor.js";
 
 export default class TextInspector {
   constructor() {
@@ -33,7 +33,7 @@ export default class TextInspector {
           options: pattern.getTokens(),
         },
         isComplete: false,
-        parseStack: []
+        parseStack: [],
       };
     }
 
@@ -52,7 +52,7 @@ export default class TextInspector {
       error: this.error,
       tokens: this.tokens,
       isComplete: this.cursor.didSuccessfullyParse(),
-      parseStack: this.parseStack
+      parseStack: this.parseStack,
     };
   }
 

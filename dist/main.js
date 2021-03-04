@@ -626,15 +626,13 @@ class CursorHistory {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return RegexValue; });
 /* harmony import */ var _ParseError_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8);
-/* harmony import */ var _Cursor_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5);
-/* harmony import */ var _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(4);
-/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(9);
+/* harmony import */ var _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4);
+/* harmony import */ var _ValuePattern_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(9);
 
 
 
 
-
-class RegexValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__["default"] {
+class RegexValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_2__["default"] {
   constructor(name, regex) {
     super("regex-value", name);
     this.regexString = regex;
@@ -689,7 +687,7 @@ class RegexValue extends _ValuePattern_js__WEBPACK_IMPORTED_MODULE_3__["default"
       const currentIndex = this.cursor.getIndex();
       const newIndex = currentIndex + result[0].length - 1;
 
-      this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_2__["default"](
+      this.node = new _ast_ValueNode_js__WEBPACK_IMPORTED_MODULE_1__["default"](
         "regex-value",
         this.name,
         result[0],

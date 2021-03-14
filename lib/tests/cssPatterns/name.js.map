@@ -1,1 +1,0 @@
-{"version":3,"sources":["../../../src/tests/cssPatterns/name.js"],"names":["name","RegexValue"],"mappings":";;;;;;;AAAA;;AAEA,IAAMA,IAAI,GAAG,IAAIC,iBAAJ,CAAe,MAAf,EAAuB,yBAAvB,CAAb;eAEeD,I","sourcesContent":["import { RegexValue } from \"../../index.js\";\n\nconst name = new RegexValue(\"name\", \"[a-zA-Z]+[a-zA-Z0-9_-]*\");\n\nexport default name;\n"],"file":"name.js"}

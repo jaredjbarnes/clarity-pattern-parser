@@ -1,1 +1,0 @@
-{"version":3,"sources":["../../../src/tests/cssPatterns/divider.js"],"names":["divider","RegexValue"],"mappings":";;;;;;;AAAA;;AAEA,IAAMA,OAAO,GAAG,IAAIC,iBAAJ,CAAe,GAAf,EAAoB,aAApB,CAAhB;eAEeD,O","sourcesContent":["import { RegexValue } from \"../../index.js\";\n\nconst divider = new RegexValue(\",\", \"\\\\s*[,]\\\\s*\");\n\nexport default divider;\n"],"file":"divider.js"}

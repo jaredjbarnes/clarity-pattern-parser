@@ -1,1 +1,0 @@
-{"version":3,"sources":["../../../src/tests/cssPatterns/hex.js"],"names":["hex","RegexValue"],"mappings":";;;;;;;AAAA;;AAEA,IAAMA,GAAG,GAAG,IAAIC,iBAAJ,CAAe,SAAf,EAA0B,iCAA1B,CAAZ;eAEeD,G","sourcesContent":["import { RegexValue } from \"../../index.js\";\n\nconst hex = new RegexValue(\"#______\", \"#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3}\");\n\nexport default hex;\n"],"file":"hex.js"}

@@ -4,11 +4,11 @@ import ValuePattern from "./ValuePattern";
 import Cursor from "../../Cursor";
 
 export default class Literal extends ValuePattern {
-	public literal: string;
-	public node: ValueNode;
-	public cursor: Cursor;
-	public mark: number;
-	public substring: string;
+  public literal: string;
+  public node: ValueNode | null = null;
+  public cursor!: Cursor;
+  public mark: number = 0;
+  public substring: string = "";
 
   constructor(name: string, literal: string) {
     super("literal", name);

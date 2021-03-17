@@ -9,10 +9,10 @@ import Node from "../../ast/Node";
 export default class RepeatComposite extends CompositePattern {
   private _pattern: Pattern;
   private _divider: Pattern;
-  public nodes: Node[];
-  public cursor: Cursor;
-  public mark: number;
-  public node: CompositeNode;
+  public nodes: Node[] = [];
+  public cursor!: Cursor;
+  public mark: number = 0;
+  public node: CompositeNode | null = null;
 
   constructor(name: string, pattern: Pattern, divider?: Pattern) {
     super(
@@ -50,7 +50,7 @@ export default class RepeatComposite extends CompositePattern {
     while (true) {
       const node = this._pattern.parse(this.cursor);
 
-      if (this.cursor.hasUnresolvedError()) {
+      if (this.cursor.hasUnresolvedError() || node == null) {
         this._processMatch();
         break;
       } else {
@@ -67,7 +67,7 @@ export default class RepeatComposite extends CompositePattern {
           const mark = this.cursor.mark();
           const node = this._divider.parse(this.cursor);
 
-          if (this.cursor.hasUnresolvedError()) {
+          if (this.cursor.hasUnresolvedError() || node == null) {
             this.cursor.moveToMark(mark);
             this._processMatch();
             break;

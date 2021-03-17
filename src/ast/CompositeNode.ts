@@ -1,11 +1,8 @@
 import Node from "./Node";
 
 export default class CompositeNode extends Node {
-  public children: Node[];
-
   constructor(type: string, name: string, startIndex = 0, endIndex = 0) {
-    super(type, name, startIndex, endIndex);
-    this.children = [];
+    super(type, name, startIndex, endIndex, true);
   }
 
   clone() {
@@ -13,7 +10,7 @@ export default class CompositeNode extends Node {
       this.type,
       this.name,
       this.startIndex,
-      this.endIndex
+      this.endIndex,
     );
 
     node.children = this.children.map((child) => {
@@ -24,7 +21,7 @@ export default class CompositeNode extends Node {
   }
 
   filter(
-    shouldKeep?: (node: Node, context: Node[]) => boolean,
+    shouldKeep: (node: Node, context: Node[]) => boolean,
     context: Node[] = []
   ) {
     const childrenContext = context.slice();
@@ -32,7 +29,7 @@ export default class CompositeNode extends Node {
 
     Object.freeze(childrenContext);
 
-    const matches = this.children.reduce((acc, child) => {
+    const matches = this.children.reduce((acc: Node[], child) => {
       return acc.concat(child.filter(shouldKeep, childrenContext));
     }, []);
 

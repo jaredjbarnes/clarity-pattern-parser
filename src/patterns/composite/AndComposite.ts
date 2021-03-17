@@ -10,11 +10,11 @@ import Cursor from "../../Cursor";
 const permutor = new Permutor();
 
 export default class AndComposite extends CompositePattern {
-  public index: any;
-  public nodes: any;
-  public node: any;
-  public cursor: any;
-  public mark: any;
+  public index!: number;
+  public nodes!: CompositeNode[];
+  public node!: CompositeNode | null;
+  public cursor!: Cursor;
+  public mark!: number;
 
   constructor(name: string, patterns: Pattern[] = []) {
     super("and-composite", name, patterns);
@@ -47,7 +47,7 @@ export default class AndComposite extends CompositePattern {
   private _tryPatterns() {
     while (true) {
       const pattern = this._children[this.index];
-      const node = pattern.parse(this.cursor);
+      const node = pattern.parse(this.cursor) as CompositeNode;
 
       if (this.cursor.hasUnresolvedError()) {
         this.cursor.moveToMark(this.mark);
@@ -151,7 +151,7 @@ export default class AndComposite extends CompositePattern {
   }
 
   getTokens() {
-    let tokens = [];
+    let tokens: string[] = [];
 
     for (let x = 0; x < this._children.length; x++) {
       const child = this._children[x];

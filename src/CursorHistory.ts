@@ -3,14 +3,14 @@ import Node from "./ast/Node";
 import ParseError from "./patterns/ParseError";
 
 export interface Match {
-  pattern: Pattern;
-  astNode: Node;
+  pattern: Pattern | null;
+  astNode: Node | null;
 }
 
 export default class CursorHistory {
   public isRecording: boolean;
   public furthestMatch: Match;
-  public furthestError: ParseError;
+  public furthestError: ParseError | null;
   public patterns: Pattern[];
   public astNodes: Node[];
   public errors: ParseError[];
@@ -45,7 +45,7 @@ export default class CursorHistory {
     }
   }
 
-  addError(error) {
+  addError(error: ParseError) {
     if (this.isRecording) {
       this.errors.push(error);
     }
@@ -94,7 +94,7 @@ export default class CursorHistory {
   }
 
   getAllParseStacks() {
-    const stacks = this.astNodes.reduce((acc, node) => {
+    const stacks = this.astNodes.reduce((acc: any, node) => {
       let container = acc[acc.length - 1];
 
       if (node.startIndex === 0) {
@@ -111,7 +111,7 @@ export default class CursorHistory {
     // This filters them out.
     // We simply check to see if there is any overlap with the previous one,
     // and if there is we don't add it. This is why we move backwards.
-    const cleanedStack = stacks.map((stack) => {
+    const cleanedStack = stacks.map((stack: any) => {
       const cleanedStack = [];
 
       for (let x = stack.length - 1; x >= 0; x--) {

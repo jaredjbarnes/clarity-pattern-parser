@@ -4,11 +4,11 @@ import ValuePattern from "./ValuePattern";
 import Cursor from "../../Cursor";
 
 export default class RegexValue extends ValuePattern {
-	public regexString: string;
-	public regex: RegExp;
-	public node: ValueNode;
-	public cursor: Cursor;
-	public substring: string;
+  public regexString: string;
+  public regex: RegExp;
+  public node: ValueNode | null = null;
+  public cursor!: Cursor;
+  public substring: string = "";
 
   constructor(name: string, regex: string) {
     super("regex-value", name);
@@ -43,14 +43,14 @@ export default class RegexValue extends ValuePattern {
     }
   }
 
-  parse(cursor?) {
+  parse(cursor: Cursor) {
     this._reset(cursor);
     this._tryPattern();
 
     return this.node;
   }
 
-  private _reset(cursor) {
+  private _reset(cursor: Cursor) {
     this.cursor = cursor;
     this.regex.lastIndex = 0;
     this.substring = this.cursor.text.substr(this.cursor.getIndex());
@@ -86,7 +86,7 @@ export default class RegexValue extends ValuePattern {
     this.cursor.throwError(parseError);
   }
 
-  clone(name?) {
+  clone(name: string) {
     if (typeof name !== "string") {
       name = this.name;
     }

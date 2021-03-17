@@ -5,10 +5,10 @@ export default abstract class Pattern {
   protected _type: string;
   protected _name: string;
   protected _children: Pattern[];
-  protected _parent: Pattern;
+  protected _parent: Pattern | null;
   public isSequence: boolean;
 
-  constructor(type = null, name?, children = []) {
+  constructor(type: string = "", name: string, children: Pattern[] = []) {
     this._type = type;
     this._name = name;
     this._children = [];
@@ -56,7 +56,7 @@ export default abstract class Pattern {
     return this._parent;
   }
 
-  set parent(value: Pattern) {
+  set parent(value: Pattern | null) {
     if (value instanceof Pattern) {
       this._parent = value;
     }
@@ -92,7 +92,7 @@ export default abstract class Pattern {
     Object.freeze(this._children);
   }
 
-  private  _assignAsParent() {
+  private _assignAsParent() {
     this._children.forEach((child) => (child.parent = this));
   }
 
@@ -102,15 +102,17 @@ export default abstract class Pattern {
 
   abstract getTokens(): string[];
 
-  getNextTokens() {
-    if (this._parent != null) {
-      const siblings = this._parent.children;
+  getNextTokens(): string[] {
+    const parent = this._parent;
+
+    if (parent != null) {
+      const siblings = parent.children;
       const index = siblings.findIndex((c) => c === this);
       const nextSibling = siblings[index + 1];
 
       // I don't like this, so I think we need to rethink this.
-      if (this._parent.type.indexOf("repeat") === 0) {
-        const tokens = this._parent.getNextTokens();
+      if (parent.type.indexOf("repeat") === 0) {
+        const tokens = parent.getNextTokens();
         if (index === 0 && siblings.length > 1) {
           return nextSibling.getTokens().concat(tokens);
         } else if (index === 1) {
@@ -122,11 +124,11 @@ export default abstract class Pattern {
 
       // Another thing I don't like.
       if (
-        this._parent.type.indexOf("and") === 0 &&
+        this._parent?.type?.indexOf("and") === 0 &&
         nextSibling != null &&
-        nextSibling.type.indexOf("optional") === 0
+        nextSibling?.type?.indexOf("optional") === 0
       ) {
-        let tokens = [];
+        let tokens: string[] = [];
 
         for (let x = index + 1; x < siblings.length; x++) {
           const child = siblings[x];
@@ -147,21 +149,21 @@ export default abstract class Pattern {
       }
 
       // If you are an or you have already qualified.
-      if (this._parent.type.indexOf("or") === 0) {
-        return this._parent.getNextTokens();
+      if (parent.type.indexOf("or") === 0) {
+        return parent.getNextTokens();
       }
 
       if (nextSibling != null) {
         return nextSibling.getTokens();
       } else {
-        return this._parent.getNextTokens();
+        return parent.getNextTokens();
       }
     }
 
     return [];
   }
 
-  getTokenValue() {
+  getTokenValue(): string | null {
     return null;
   }
 }

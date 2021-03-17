@@ -1,25 +1,25 @@
 export default class Permutor {
-	public array: any;
-	public positionToOptions: any;
+  public array: Array<Array<string>>;
+  public positionToOptions: { [key: string]: string[] };
 
   constructor() {
     this.array = [];
-    this.positionToOptions = null;
+    this.positionToOptions = {};
   }
 
-  permute(array) {
+  permute(array: any) {
     this.array = array;
     this.createPositionMap();
     return this.getPermutations();
   }
 
   getPermutations() {
-    return this.array[0].reduce((acc, value, index) => {
+    return this.array[0].reduce((acc: any, value, index) => {
       return acc.concat(this.getOptions(0, index));
     }, []);
   }
 
-  getKey(x, y) {
+  getKey(x: number, y: number) {
     return `${x}|${y}`;
   }
 
@@ -38,7 +38,7 @@ export default class Permutor {
             .map((option, index) => {
               let permutations = this.getOptions(nextX, index);
 
-              return permutations.map(option => {
+              return permutations.map((option) => {
                 return `${yValue}${option}`;
               });
             })
@@ -54,11 +54,11 @@ export default class Permutor {
     }
   }
 
-  getOptions(x, y) {
+  getOptions(x: number, y: number) {
     return this.positionToOptions[this.getKey(x, y)];
   }
 
-  setOptions(x, y, value) {
+  setOptions(x: number, y: number, value: string[]) {
     this.positionToOptions[this.getKey(x, y)] = value;
   }
 }

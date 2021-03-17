@@ -6,9 +6,9 @@ import Cursor from "../../Cursor";
 
 export default class AnyOfThese extends ValuePattern {
   public characters: string;
-  public node: ValueNode;
-  public cursor: Cursor;
-  public mark: number;
+  public node: ValueNode | null = null;
+  public cursor!: Cursor;
+  public mark: number = 0;
 
   constructor(name: string, characters: string) {
     super("any-of-these", name);

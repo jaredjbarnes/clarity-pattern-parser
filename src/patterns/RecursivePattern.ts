@@ -3,16 +3,16 @@ import ParserError from "./ParseError";
 import Cursor from "../Cursor";
 
 export default class RecursivePattern extends Pattern {
-  public isRecursing: any;
-  public pattern: any;
+  public isRecursing: boolean;
+  public pattern: Pattern | null = null;
 
-  constructor(name) {
+  constructor(name: string) {
     super("recursive", name);
     this.isRecursing = false;
   }
 
   getPattern() {
-    return this._climb(this.parent, (pattern) => {
+    return this._climb(this.parent, (pattern: Pattern | null) => {
       if (pattern == null) {
         return false;
       }
@@ -20,7 +20,10 @@ export default class RecursivePattern extends Pattern {
     });
   }
 
-  _climb(pattern, isMatch) {
+  _climb(
+    pattern: Pattern | null,
+    isMatch: (pattern: Pattern | null) => boolean
+  ): Pattern | null {
     if (isMatch(pattern)) {
       return pattern;
     } else {
@@ -40,26 +43,26 @@ export default class RecursivePattern extends Pattern {
           new ParserError(
             `Couldn't find parent pattern to recursively parse, with the name ${this.name}.`,
             cursor.index,
-            this
+            this as Pattern
           )
         );
         return null;
       }
 
       this.pattern = pattern.clone();
-      this.pattern.parent = this;
+      this.pattern.parent = this as Pattern;
     }
 
     const node = this.pattern.parse(cursor);
 
-    if (!cursor.hasUnresolvedError()) {
-      cursor.addMatch(this, node);
+    if (!cursor.hasUnresolvedError() && node != null) {
+      cursor.addMatch(this as Pattern, node);
     }
 
     return node;
   }
 
-  clone(name?) {
+  clone(name?: string): Pattern {
     if (typeof name !== "string") {
       name = this.name;
     }
@@ -69,7 +72,7 @@ export default class RecursivePattern extends Pattern {
   getPossibilities() {
     if (!this.isRecursing) {
       this.isRecursing = true;
-      const possibilities = this.getPattern().getPossibilities();
+      const possibilities = this.getPattern()?.getPossibilities() || [];
       this.isRecursing = false;
 
       return possibilities;
@@ -79,16 +82,17 @@ export default class RecursivePattern extends Pattern {
   }
 
   getTokenValue() {
-    return this.getPattern().getTokenValue();
+    return this.getPattern()?.getTokenValue() || null;
   }
 
   getTokens() {
     if (!this.isRecursing) {
       this.isRecursing = true;
-      const tokens = this.getPattern().getTokens();
+      const tokens = this.getPattern()?.getTokens() || [];
       this.isRecursing = false;
 
       return tokens;
     }
+    return [];
   }
 }

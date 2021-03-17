@@ -9,13 +9,13 @@ import Cursor from "../../Cursor";
 const permutor = new Permutor();
 
 export default class AndValue extends ValuePattern {
-  public index: number;
-  public nodes: ValueNode[];
-  public node: ValueNode;
-  public cursor: Cursor;
-  public mark: number;
+  public index: number = 0;
+  public nodes: ValueNode[] = [];
+  public node: ValueNode | null = null;
+  public cursor!: Cursor;
+  public mark: number = 0;
 
-  constructor(name: string, patterns: Pattern[]) {
+  constructor(name: string, patterns: ValuePattern[]) {
     super("and-value", name, patterns);
     this._assertArguments();
   }
@@ -131,7 +131,7 @@ export default class AndValue extends ValuePattern {
     if (typeof name !== "string") {
       name = this.name;
     }
-    return new AndValue(name, this._children);
+    return new AndValue(name, this._children as ValuePattern[]);
   }
 
   getPossibilities(rootPattern?: Pattern) {
@@ -146,7 +146,7 @@ export default class AndValue extends ValuePattern {
   }
 
   getTokens() {
-    let tokens = [];
+    let tokens: string[] = [];
 
     for (let x = 0; x < this._children.length; x++) {
       const child = this._children[x];

@@ -5,10 +5,10 @@ import Pattern from "../Pattern";
 import Cursor from "../../Cursor";
 
 export default class NotValue extends Pattern {
-  public match: string;
-  public node: ValueNode;
-  public cursor: Cursor;
-  public mark: number;
+  public match: string = "";
+  public node: ValueNode | null = null;
+  public cursor!: Cursor;
+  public mark: number = 0;
 
   constructor(name: string, pattern: Pattern) {
     super("not-value", name, [pattern]);
@@ -82,7 +82,7 @@ export default class NotValue extends Pattern {
     }
   }
 
-  clone(name?) {
+  clone(name: string) {
     if (typeof name !== "string") {
       name = this.name;
     }

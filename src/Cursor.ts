@@ -61,7 +61,7 @@ export default class Cursor {
     return this.isInErrorState;
   }
 
-  isNullOrEmpty(value) {
+  isNullOrEmpty(value: string | null) {
     return value == null || (typeof value === "string" && value.length === 0);
   }
 

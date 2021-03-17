@@ -6,14 +6,14 @@ import ParseError from "../ParseError";
 import Cursor from "../../Cursor";
 
 export default class OrValue extends ValuePattern {
-  public index: number;
-  public errors: ParseError[];
-  public node: ValueNode;
-  public cursor: Cursor;
-  public mark: number;
-  public parseError: ParseError;
+  public index: number = 0;
+  public errors: ParseError[] = [];
+  public node: ValueNode | null = null;
+  public cursor!: Cursor;
+  public mark: number = 0;
+  public parseError: ParseError | null = null;
 
-  constructor(name: string, patterns: Pattern[]) {
+  constructor(name: string, patterns: ValuePattern[]) {
     super("or-value", name, patterns);
     this._assertArguments();
   }
@@ -42,7 +42,7 @@ export default class OrValue extends ValuePattern {
     this.mark = cursor.mark();
   }
 
-  parse(cursor?: Cursor) {
+  parse(cursor: Cursor) {
     this._reset(cursor);
     this._tryPattern();
 
@@ -80,11 +80,11 @@ export default class OrValue extends ValuePattern {
     }
   }
 
-  clone(name?: string) {
+  clone(name: string) {
     if (typeof name !== "string") {
       name = this.name;
     }
-    return new OrValue(name, this._children);
+    return new OrValue(name, this._children as ValuePattern[]);
   }
 
   getPossibilities(rootPattern?: Pattern) {

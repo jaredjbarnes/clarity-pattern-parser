@@ -20,7 +20,9 @@ export default class OptionalComposite extends CompositePattern {
       cursor.moveToMark(mark);
       return null;
     } else {
-      cursor.addMatch(this, node);
+      if (node != null){
+        cursor.addMatch(this, node);
+      }
       return node;
     }
   }

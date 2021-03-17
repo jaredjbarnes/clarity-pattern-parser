@@ -8,10 +8,10 @@ import Cursor from "../../Cursor";
 export default class RepeatValue extends ValuePattern {
   public _pattern: ValuePattern;
   public _divider: ValuePattern;
-  public nodes: ValueNode[];
-  public cursor: Cursor;
-  public mark: number;
-  public node: ValueNode;
+  public nodes: ValueNode[] = [];
+  public cursor!: Cursor;
+  public mark: number = 0;
+  public node: ValueNode | null = null;
 
   constructor(name: string, pattern: ValuePattern, divider?: ValuePattern) {
     super(
@@ -115,7 +115,7 @@ export default class RepeatValue extends ValuePattern {
     return new RepeatValue(name, this._pattern, this._divider);
   }
 
-  getPossibilities(rootPattern?) {
+  getPossibilities(rootPattern: Pattern) {
     if (rootPattern == null || !(rootPattern instanceof Pattern)) {
       rootPattern = this;
     }

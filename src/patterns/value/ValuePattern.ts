@@ -1,7 +1,7 @@
 import Pattern from "../Pattern";
 
 export default abstract class ValuePattern extends Pattern {
-  constructor(type, name, children = []) {
+  constructor(type: string, name: string, children: ValuePattern[] = []) {
     super(type, name, children);
   }
 

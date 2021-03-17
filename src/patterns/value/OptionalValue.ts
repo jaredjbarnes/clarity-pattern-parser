@@ -3,7 +3,7 @@ import Pattern from "../Pattern";
 import Cursor from "../../Cursor";
 
 export default class OptionalValue extends ValuePattern {
-  constructor(pattern: Pattern) {
+  constructor(pattern: ValuePattern) {
     super("optional-value", "optional-value", [pattern]);
     this._assertArguments();
   }
@@ -19,7 +19,7 @@ export default class OptionalValue extends ValuePattern {
 
     const node = this.children[0].parse(cursor);
 
-    if (cursor.hasUnresolvedError()) {
+    if (cursor.hasUnresolvedError() || node == null) {
       cursor.resolveError();
       cursor.moveToMark(mark);
       return null;
@@ -30,7 +30,7 @@ export default class OptionalValue extends ValuePattern {
   }
 
   clone() {
-    return new OptionalValue(this.children[0]);
+    return new OptionalValue(this.children[0] as ValuePattern);
   }
 
   getPossibilities(rootPattern?: Pattern) {

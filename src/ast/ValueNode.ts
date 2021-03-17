@@ -25,7 +25,7 @@ export default class ValueNode extends Node {
   }
 
   filter(
-    shouldKeep?: (node: Node, context: Node[]) => boolean,
+    shouldKeep: (node: Node, context: Node[]) => boolean,
     context: Node[] = []
   ) {
     const match = shouldKeep(this, context);

@@ -4,13 +4,13 @@ import ParseError from "../ParseError";
 import Pattern from "../Pattern";
 import Cursor from "../../Cursor";
 
-export default class NotValue extends Pattern {
+export default class NotValue extends ValuePattern {
   public match: string = "";
   public node: ValueNode | null = null;
   public cursor!: Cursor;
   public mark: number = 0;
 
-  constructor(name: string, pattern: Pattern) {
+  constructor(name: string, pattern: ValuePattern) {
     super("not-value", name, [pattern]);
     this._assertArguments();
   }
@@ -82,11 +82,11 @@ export default class NotValue extends Pattern {
     }
   }
 
-  clone(name: string) {
+  clone(name?: string) {
     if (typeof name !== "string") {
       name = this.name;
     }
-    return new NotValue(name, this.children[0]);
+    return new NotValue(name, this.children[0] as ValuePattern);
   }
 
   getPossibilities() {

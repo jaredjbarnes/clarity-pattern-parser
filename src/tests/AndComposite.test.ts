@@ -2,7 +2,6 @@ import AndComposite from "../patterns/composite/AndComposite";
 import Literal from "../patterns/value/Literal";
 import OptionalValue from "../patterns/value/OptionalValue";
 import assert from "assert";
-import ValueNode from "../ast/ValueNode";
 import Cursor from "../Cursor";
 
 describe("AndComposite", () => {

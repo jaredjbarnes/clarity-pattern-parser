@@ -23,27 +23,15 @@ export interface Possibilities {
 export interface ParseResult {}
 
 export default class ParseInspector {
-  public cursor: Cursor | null;
-  public result: Node | null;
-  public text: string | null;
-  public match: ParseMatch | null;
-  public error: ParseError | null;
-  public patternMatch: Match | null;
-  public matchedText: string | null;
-  public rootPattern: Pattern | null;
-  public possibilities: Possibilities | null;
-
-  constructor() {
-    this.cursor = null;
-    this.result = null;
-    this.text = null;
-    this.match = null;
-    this.error = null;
-    this.patternMatch = null;
-    this.matchedText = "";
-    this.rootPattern = null;
-    this.possibilities = null;
-  }
+  public cursor: Cursor | null = null;
+  public result: Node | null = null;
+  public text: string = "";
+  public match: ParseMatch | null = null;
+  public error: ParseError | null = null;
+  public patternMatch: Match | null = null;
+  public matchedText: string = "";
+  public rootPattern: Pattern | null = null;
+  public possibilities: Possibilities | null = null;
 
   inspectParse(text: string, pattern: Pattern) {
     this.reset();
@@ -73,19 +61,19 @@ export default class ParseInspector {
     this.savePossibilities();
 
     return {
-      pattern: this.patternMatch.pattern,
-      astNode: this.patternMatch.astNode,
+      pattern: this.patternMatch?.pattern,
+      astNode: this.patternMatch?.astNode,
       match: this.match,
       error: this.error,
       possibilities: this.possibilities,
-      isComplete: this.cursor.didSuccessfullyParse(),
+      isComplete: this.cursor?.didSuccessfullyParse(),
     };
   }
 
-  reset() {
+  private reset() {
     this.cursor = null;
     this.result = null;
-    this.text = null;
+    this.text = "";
     this.match = null;
     this.error = null;
     this.patternMatch = null;
@@ -94,15 +82,14 @@ export default class ParseInspector {
     this.possibilities = null;
   }
 
-  parse() {
-    this.rootPattern = this.rootPattern;
+  private parse() {
     this.cursor = new Cursor(this.text);
-    this.result = this.rootPattern.parse(this.cursor);
+    this.result = this.rootPattern?.parse(this.cursor) || null;
     this.patternMatch = this.cursor.lastMatch;
   }
 
-  saveMatchedText() {
-    if (this.patternMatch.astNode != null) {
+  private saveMatchedText() {
+    if (this.patternMatch?.astNode != null) {
       this.matchedText = this.text.substring(
         0,
         this.patternMatch.astNode.endIndex + 1
@@ -110,8 +97,8 @@ export default class ParseInspector {
     }
   }
 
-  saveMatch() {
-    const node = this.patternMatch.astNode;
+  private saveMatch() {
+    const node = this.patternMatch?.astNode;
 
     if (node == null) {
       this.match = null;
@@ -127,8 +114,8 @@ export default class ParseInspector {
     };
   }
 
-  saveError() {
-    if (this.patternMatch.astNode == null) {
+  private saveError() {
+    if (this.patternMatch?.astNode == null) {
       this.error = {
         startIndex: 0,
         endIndex: this.text.length - 1,
@@ -155,44 +142,49 @@ export default class ParseInspector {
     }
   }
 
-  savePossibilities() {
+  private savePossibilities() {
     if (
-      this.patternMatch.pattern === this.rootPattern &&
-      this.cursor.didSuccessfullyParse()
+      this.patternMatch?.pattern === this.rootPattern &&
+      this.cursor?.didSuccessfullyParse()
     ) {
       this.possibilities = null;
       return;
     }
 
-    if (this.patternMatch.astNode == null) {
-      let options = this.rootPattern.getPossibilities();
+    if (this.patternMatch?.astNode == null) {
+      let options = this.rootPattern?.getPossibilities();
       const parts = this.text.split(" ").filter((part) => {
         return part.length > 0;
       });
 
-      options = options.filter((option) => {
+      options = options?.filter((option) => {
         return parts.some((part) => {
           return option.indexOf(part) > -1;
         });
       });
 
-      if (options.length === 0) {
+      if (options?.length === 0) {
         this.possibilities = null;
         return;
       }
 
       this.possibilities = {
         startIndex: 0,
-        options,
+        options: options != null ? options : [],
       };
 
       return;
     }
 
     const pattern = this.patternMatch.pattern;
-    const parentPattern = pattern.parent;
+    const parentPattern = pattern?.parent;
+
+    if (pattern == null || parentPattern == null) {
+      return;
+    }
+
     const index = parentPattern.children.indexOf(pattern);
-    const parentClone = parentPattern.clone();
+    const parentClone = parentPattern?.clone();
 
     parentClone.children = parentClone.children.slice(index + 1);
 
@@ -213,6 +205,10 @@ export default class ParseInspector {
         this.possibilities = null;
         return;
       } else {
+        if (this.match == null) {
+          return;
+        }
+
         this.match = {
           ...this.match,
           text: this.match.text + leftOver,
@@ -236,7 +232,7 @@ export default class ParseInspector {
     };
   }
 
-  static inspectParse(text, pattern) {
+  static inspectParse(text: string, pattern: Pattern) {
     return new ParseInspector().inspectParse(text, pattern);
   }
 }

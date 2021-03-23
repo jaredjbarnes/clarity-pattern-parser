@@ -1,10 +1,10 @@
-import typescript from '@rollup/plugin-typescript';
+import typescript from "@rollup/plugin-typescript";
 
 export default {
-  input: 'src/index.ts',
+  input: "src/index.ts",
   output: {
-    dir: 'dist',
-    format: 'umd'
+    name: "main",
+    format: "umd",
   },
-  plugins: [typescript()]
+  plugins: [typescript()],
 };

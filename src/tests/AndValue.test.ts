@@ -110,28 +110,6 @@ describe("AndValue", () => {
     expect(clone.name).toBe("full-name-2");
   });
 
-  test("getPossibilities.", () => {
-    const firstName = new Literal("first-name", "John");
-    const lastName = new Literal("last-name", "Doe");
-    const fullName = new AndValue("full-name", [firstName, lastName]);
-
-    const possibilities = fullName.getPossibilities();
-
-    expect(possibilities.length).toBe(1);
-    expect(possibilities[0]).toBe("JohnDoe");
-  });
-
-  test("getPossibilities with itself being the root pattern.", () => {
-    const firstName = new Literal("first-name", "John");
-    const lastName = new Literal("last-name", "Doe");
-    const fullName = new AndValue("full-name", [firstName, lastName]);
-
-    const possibilities = fullName.getPossibilities(fullName);
-
-    expect(possibilities.length).toBe(1);
-    expect(possibilities[0]).toBe("JohnDoe");
-  });
-
   test("Partial Match.", () => {
     const firstName = new Literal("first-name", "John");
     const lastName = new Literal("last-name", "Doe");

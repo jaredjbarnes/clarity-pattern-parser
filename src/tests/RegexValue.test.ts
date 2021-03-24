@@ -8,11 +8,13 @@ test("RegexValue: exec.", () => {
   const result2 = notA.exec("a");
 
   const expectedValue = {
+    children: [],
+    value: "John",
     type: "regex-value",
     name: "not-a",
     startIndex: 0,
     endIndex: 3,
-    value: "John",
+    isComposite: false,
   };
 
   expect(JSON.stringify(result)).toBe(JSON.stringify(expectedValue));

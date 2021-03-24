@@ -89,10 +89,6 @@ export default class NotValue extends ValuePattern {
     return new NotValue(name, this.children[0] as ValuePattern);
   }
 
-  getPossibilities() {
-    return [];
-  }
-
   getTokens() {
     return [];
   }

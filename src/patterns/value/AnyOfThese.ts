@@ -75,14 +75,6 @@ export default class AnyOfThese extends ValuePattern {
     return new AnyOfThese(name, this.characters);
   }
 
-  getPossibilities(rootPattern?: Pattern) {
-    if (rootPattern == null || !(rootPattern instanceof Pattern)) {
-      rootPattern = this;
-    }
-
-    return this.getTokens();
-  }
-
   getTokens() {
     return this.characters.split("");
   }

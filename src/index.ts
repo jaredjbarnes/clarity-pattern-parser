@@ -19,8 +19,7 @@ import RepeatComposite from "./patterns/composite/RepeatComposite";
 import ParseError from "./patterns/ParseError";
 import Pattern from "./patterns/Pattern";
 import RecursivePattern from "./patterns/RecursivePattern";
-import ParseInspector from "./ParseInspector";
-import TextInspector from "./TextInspector";
+import TextSuggester from "./TextSuggester";
 
 export {
   Node,
@@ -44,6 +43,5 @@ export {
   ParseError,
   Pattern,
   RecursivePattern,
-  ParseInspector,
-  TextInspector,
+  TextSuggester,
 };

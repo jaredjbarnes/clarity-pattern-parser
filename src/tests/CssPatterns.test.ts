@@ -86,11 +86,4 @@ describe("Css", () => {
     expect(result?.endIndex).toBe(cursor.text.length - 1);
   });
 
-  test("Css: getPossibilities", () => {
-    const result = cssValue.getPossibilities();
-
-    const cssString = "rgba(0,0,0,0), &8sd";
-
-    const parseResult = cssValue.parse(new Cursor(cssString));
-  });
 });

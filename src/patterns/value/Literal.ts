@@ -16,7 +16,7 @@ export default class Literal extends ValuePattern {
     this._assertArguments();
   }
 
-  _assertArguments() {
+  private _assertArguments() {
     if (typeof this.literal !== "string") {
       throw new Error(
         "Invalid Arguments: The literal argument needs to be a string of characters."
@@ -37,7 +37,7 @@ export default class Literal extends ValuePattern {
     return this.node;
   }
 
-  _reset(cursor: Cursor) {
+  private _reset(cursor: Cursor) {
     this.cursor = cursor;
     this.mark = this.cursor.mark();
     this.substring = this.cursor.text.substring(
@@ -47,7 +47,7 @@ export default class Literal extends ValuePattern {
     this.node = null;
   }
 
-  _tryPattern() {
+  private _tryPattern() {
     if (this.substring === this.literal) {
       this._processMatch();
     } else {
@@ -55,14 +55,14 @@ export default class Literal extends ValuePattern {
     }
   }
 
-  _processError() {
+  private _processError() {
     const message = `ParseError: Expected '${this.literal}' but found '${this.substring}'.`;
 
     const parseError = new ParseError(message, this.cursor.getIndex(), this);
     this.cursor.throwError(parseError);
   }
 
-  _processMatch() {
+  private _processMatch() {
     this.node = new ValueNode(
       "literal",
       this.name,
@@ -80,10 +80,6 @@ export default class Literal extends ValuePattern {
       name = this.name;
     }
     return new Literal(name, this.literal);
-  }
-
-  getPossibilities() {
-    return [this.getTokenValue()];
   }
 
   getTokenValue() {

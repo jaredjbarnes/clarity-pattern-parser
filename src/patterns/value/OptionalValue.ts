@@ -33,22 +33,6 @@ export default class OptionalValue extends ValuePattern {
     return new OptionalValue(this.children[0] as ValuePattern);
   }
 
-  getPossibilities(rootPattern?: Pattern) {
-    if (rootPattern == null || !(rootPattern instanceof Pattern)) {
-      rootPattern = this;
-    }
-
-    // This is to prevent possibilities explosion.
-    if (this.parent === rootPattern) {
-      const possibilities = this.children[0].getPossibilities(rootPattern);
-      possibilities.unshift("");
-
-      return possibilities;
-    } else {
-      return this.children[0].getPossibilities(rootPattern);
-    }
-  }
-
   getTokens() {
     return this._children[0].getTokens();
   }

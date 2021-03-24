@@ -80,20 +80,6 @@ export default class OrComposite extends CompositePattern {
     return new OrComposite(name, this._children);
   }
 
-  getPossibilities(rootPattern?: Pattern) {
-    if (rootPattern == null || !(rootPattern instanceof Pattern)) {
-      rootPattern = this;
-    }
-
-    return this.children
-      .map((child) => {
-        return child.getPossibilities(rootPattern);
-      })
-      .reduce((acc, value) => {
-        return acc.concat(value);
-      }, []);
-  }
-
   getTokens() {
     const tokens = this._children.map((c) => c.getTokens());
 

@@ -87,20 +87,6 @@ export default class OrValue extends ValuePattern {
     return new OrValue(name, this._children as ValuePattern[]);
   }
 
-  getPossibilities(rootPattern?: Pattern) {
-    if (rootPattern == null || !(rootPattern instanceof Pattern)) {
-      rootPattern = this;
-    }
-
-    return this.children
-      .map((child) => {
-        return child.getPossibilities(rootPattern);
-      })
-      .reduce((acc, value) => {
-        return acc.concat(value);
-      }, []);
-  }
-
   getTokens() {
     const tokens = this._children.map((c) => c.getTokens());
 

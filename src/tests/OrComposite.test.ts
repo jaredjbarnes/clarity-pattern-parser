@@ -46,18 +46,6 @@ describe("OrComposite", ()=>{
     }).toThrow();
   });
   
-  test("getPossibilities.", () => {
-    const john = new Literal("john", "John");
-    const jane = new Literal("jane", "Jane");
-    const name = new OrComposite("name", [john, jane]);
-  
-    const possibilities = name.getPossibilities();
-  
-    expect(possibilities.length).toBe(2);
-    expect(possibilities[0]).toBe("John");
-    expect(possibilities[1]).toBe("Jane");
-  });
-  
   test("parse with null cursor.", () => {
     const john = new Literal("john", "John");
     const jane = new Literal("jane", "Jane");

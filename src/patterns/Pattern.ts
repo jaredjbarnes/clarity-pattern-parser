@@ -98,8 +98,6 @@ export default abstract class Pattern {
 
   abstract clone(name?: string): Pattern;
 
-  abstract getPossibilities(rootPattern?: Pattern): string[];
-
   abstract getTokens(): string[];
 
   getNextTokens(): string[] {

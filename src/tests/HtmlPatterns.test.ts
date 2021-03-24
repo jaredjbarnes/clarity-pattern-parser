@@ -24,7 +24,6 @@ describe("HTML", () => {
           <span>World!</span>
       </div>`);
     const result = element.parse(cursor);
-    const possibilities = element.getPossibilities();
   });
 
   test("Attributes: ", () => {

@@ -58,7 +58,4 @@ describe("RecursivePattern", () => {
     tokens = literals.children[4].children[3].getNextTokens();
   });
 
-  test("getPossibilities.", () => {
-    const possibilities = literals.getPossibilities();
-  });
 });

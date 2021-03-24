@@ -93,10 +93,6 @@ export default class RegexValue extends ValuePattern {
     return new RegexValue(name, this.regexString);
   }
 
-  getPossibilities() {
-    return [this.getTokenValue()];
-  }
-
   getTokenValue() {
     return this.name;
   }

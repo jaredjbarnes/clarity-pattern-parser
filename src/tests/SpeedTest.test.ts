@@ -25,5 +25,6 @@ test("SpeedTest: unit", () => {
   const cpEndTime = Date.now();
   const cpDuration = cpEndTime - cpBeginTime;
 
-  console.log(regexDuration, cpDuration);
+  // We need another runner that shows this value. Just not in tests.
+  // console.log(regexDuration, cpDuration);
 });

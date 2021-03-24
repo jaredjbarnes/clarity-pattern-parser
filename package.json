@@ -2,9 +2,11 @@
   "name": "clarity-pattern-parser",
   "version": "2.0.16",
   "description": "",
-  "main": "./dist/main.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.esm.js",
+  "browser": "./dist/index.browser.js",
   "scripts": {
-    "build": "rollup",
+    "build": "rollup -c -m",
     "test": "jest"
   },
   "keywords": [],

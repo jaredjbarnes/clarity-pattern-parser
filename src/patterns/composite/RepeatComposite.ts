@@ -114,29 +114,6 @@ export default class RepeatComposite extends CompositePattern {
     return new RepeatComposite(name, this._pattern, this._divider);
   }
 
-  getPossibilities(rootPattern?: Pattern) {
-    if (rootPattern == null || !(rootPattern instanceof Pattern)) {
-      rootPattern = this;
-    }
-
-    if (this._divider != null) {
-      const dividerPossibilities = this._divider.getPossibilities(rootPattern);
-
-      return this._pattern
-        .getPossibilities(rootPattern)
-        .map((possibility) => {
-          return dividerPossibilities.map((divider) => {
-            return `${possibility}${divider}`;
-          });
-        })
-        .reduce((acc, value) => {
-          return acc.concat(value);
-        }, []);
-    } else {
-      return this._pattern.getPossibilities(rootPattern);
-    }
-  }
-
   getTokens() {
     return this._pattern.getTokens();
   }

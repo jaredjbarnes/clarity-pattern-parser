@@ -134,17 +134,6 @@ export default class AndValue extends ValuePattern {
     return new AndValue(name, this._children as ValuePattern[]);
   }
 
-  getPossibilities(rootPattern?: Pattern) {
-    if (rootPattern == null || !(rootPattern instanceof Pattern)) {
-      rootPattern = this;
-    }
-
-    const possibilities = this.children.map((child) =>
-      child.getPossibilities(rootPattern)
-    );
-    return permutor.permute(possibilities);
-  }
-
   getTokens() {
     let tokens: string[] = [];
 

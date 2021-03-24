@@ -85,7 +85,7 @@ export default class CursorHistory {
         astNode: this.astNodes[this.astNodes.length - 1] || null,
       } as Match;
     } else {
-      return this.furthestMatch;
+      return this.furthestMatch as Match;
     }
   }
 
@@ -94,8 +94,8 @@ export default class CursorHistory {
   }
 
   getAllParseStacks() {
-    const stacks = this.astNodes.reduce((acc: any, node) => {
-      let container = acc[acc.length - 1];
+    const stacks = this.astNodes.reduce((acc: Node[][], node) => {
+      let container: Node[] = acc[acc.length - 1];
 
       if (node.startIndex === 0) {
         container = [];
@@ -111,7 +111,7 @@ export default class CursorHistory {
     // This filters them out.
     // We simply check to see if there is any overlap with the previous one,
     // and if there is we don't add it. This is why we move backwards.
-    const cleanedStack = stacks.map((stack: any) => {
+    const cleanedStack = stacks.map((stack: Node[]) => {
       const cleanedStack = [];
 
       for (let x = stack.length - 1; x >= 0; x--) {

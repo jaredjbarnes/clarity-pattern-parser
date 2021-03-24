@@ -3,11 +3,9 @@ import CompositeNode from "../../ast/CompositeNode";
 import ParseError from "../../patterns/ParseError";
 import OptionalValue from "../value/OptionalValue";
 import OptionalComposite from "./OptionalComposite";
-import Permutor from "../../Permutor";
 import Pattern from "../Pattern";
 import Cursor from "../../Cursor";
 
-const permutor = new Permutor();
 
 export default class AndComposite extends CompositePattern {
   public index!: number;
@@ -137,17 +135,6 @@ export default class AndComposite extends CompositePattern {
       name = this.name;
     }
     return new AndComposite(name, this._children);
-  }
-
-  getPossibilities(rootPattern?: Pattern) {
-    if (rootPattern == null || !(rootPattern instanceof Pattern)) {
-      rootPattern = this;
-    }
-
-    const possibilities = this.children.map((child) =>
-      child.getPossibilities(rootPattern)
-    );
-    return permutor.permute(possibilities);
   }
 
   getTokens() {

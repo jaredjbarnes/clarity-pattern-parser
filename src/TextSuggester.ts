@@ -1,34 +1,52 @@
+import Node from "./ast/Node";
 import Cursor from "./Cursor";
+import { Match } from "./CursorHistory";
 import Pattern from "./patterns/Pattern";
 
-export default class TextInspector {
-  public cursor: any;
-  public result: any;
-  public text: any;
-  public match: any;
-  public error: any;
-  public patternMatch: any;
-  public matchedText: any;
-  public rootPattern: any;
-  public tokens: any;
-  public options: any;
-  public parseStack: any;
+export interface Token {
+  startIndex: number;
+  values: string[];
+}
 
-  constructor() {
-    this.cursor = null;
-    this.result = null;
-    this.text = null;
-    this.match = null;
-    this.error = null;
-    this.patternMatch = null;
-    this.matchedText = "";
-    this.rootPattern = null;
-    this.tokens = null;
-    this.options = [];
-    this.parseStack = [];
-  }
+export interface SuggestionError {
+  startIndex: number;
+  endIndex: number;
+  text: string;
+}
 
-  inspect(text: string, pattern: Pattern) {
+export interface SuggestionMatch {
+  startIndex: number;
+  endIndex: number;
+  text: string;
+}
+
+export interface SuggestionResult {
+  pattern: Pattern | null;
+  astNode: Node | null;
+  match: SuggestionMatch | null;
+  error: SuggestionError | null;
+  options: Token;
+  isComplete: boolean;
+  parseStack: Node[];
+}
+
+export default class TextSuggester {
+  public cursor: Cursor | null = null;
+  public result: Node | null = null;
+  public text: string = "";
+  public match: SuggestionMatch | null = null;
+  public error: SuggestionError | null = null;
+  public patternMatch: Match | null = null;
+  public matchedText: string = "";
+  public rootPattern: Pattern | null = null;
+  public tokens: Token | null = {
+    startIndex: 0,
+    values: [],
+  };
+  public options: string[] = [];
+  public parseStack: Node[] = [];
+
+  suggest(text: string, pattern: Pattern) {
     this.reset();
 
     this.text = text;
@@ -41,13 +59,13 @@ export default class TextInspector {
         astNode: null,
         match: null,
         error: null,
-        tokens: {
+        options: {
           startIndex: 0,
-          options: pattern.getTokens(),
+          values: pattern.getTokens(),
         },
         isComplete: false,
         parseStack: [],
-      };
+      } as SuggestionResult;
     }
 
     this.parse();
@@ -59,53 +77,54 @@ export default class TextInspector {
     this.saveNextToken();
 
     return {
-      pattern: this.patternMatch.pattern,
-      astNode: this.patternMatch.astNode,
+      pattern: this.patternMatch?.pattern || null,
+      astNode: this.patternMatch?.astNode || null,
       match: this.match,
       error: this.error,
-      tokens: this.tokens,
-      isComplete: this.cursor.didSuccessfullyParse(),
+      options: this.tokens,
+      isComplete: this.cursor?.didSuccessfullyParse() || false,
       parseStack: this.parseStack,
-    };
+    } as SuggestionResult;
   }
 
   private reset() {
     this.cursor = null;
     this.result = null;
-    this.text = null;
+    this.text = "";
     this.match = null;
     this.error = null;
     this.patternMatch = null;
     this.matchedText = "";
     this.rootPattern = null;
-    this.tokens = null;
+    this.tokens = {
+      startIndex: 0,
+      values: [],
+    };
     this.options = [];
     this.parseStack = [];
   }
 
   private parse() {
     this.rootPattern = this.rootPattern;
-    this.cursor = new Cursor(this.text);
+    this.cursor = new Cursor(this.text || "");
     this.cursor.startRecording();
-    this.result = this.rootPattern.parse(this.cursor);
+    this.result = this.rootPattern?.parse(this.cursor) || null;
     this.patternMatch = this.cursor.lastMatch;
   }
 
   private saveParseStack() {
-    this.parseStack = this.cursor.history.getLastParseStack();
+    this.parseStack = this.cursor?.history.getLastParseStack() || [];
   }
 
   private saveMatchedText() {
-    if (this.patternMatch.astNode != null) {
-      this.matchedText = this.text.substring(
-        0,
-        this.patternMatch.astNode.endIndex + 1
-      );
+    if (this.patternMatch?.astNode != null) {
+      this.matchedText =
+        this.text?.substring(0, this.patternMatch.astNode.endIndex + 1) || "";
     }
   }
 
   private saveMatch() {
-    const node = this.patternMatch.astNode;
+    const node = this.patternMatch?.astNode;
 
     if (node == null) {
       this.match = null;
@@ -122,7 +141,7 @@ export default class TextInspector {
   }
 
   private saveError() {
-    if (this.patternMatch.astNode == null) {
+    if (this.patternMatch?.astNode == null) {
       this.error = {
         startIndex: 0,
         endIndex: this.text.length - 1,
@@ -131,7 +150,10 @@ export default class TextInspector {
       return this;
     }
 
-    if (this.text.length > this.matchedText.length) {
+    if (
+      this.patternMatch != null &&
+      this.text.length > this.matchedText.length
+    ) {
       const difference = this.text.length - this.matchedText.length;
       const startIndex = this.patternMatch.astNode.endIndex + 1;
       const endIndex = startIndex + difference - 1;
@@ -151,33 +173,33 @@ export default class TextInspector {
 
   private saveNextToken() {
     if (
-      this.patternMatch.pattern === this.rootPattern &&
-      this.cursor.didSuccessfullyParse()
+      this.patternMatch?.pattern === this.rootPattern &&
+      this.cursor?.didSuccessfullyParse()
     ) {
       this.tokens = null;
       return;
     }
 
-    if (this.patternMatch.astNode == null) {
-      let options = this.rootPattern.getTokens();
+    if (this.patternMatch?.astNode == null) {
+      let options = this.rootPattern?.getTokens();
       const parts = this.text.split(" ").filter((part: any) => {
         return part.length > 0;
       });
 
-      options = options.filter((option: any) => {
+      options = options?.filter((option: any) => {
         return parts.some((part: any) => {
           return option.indexOf(part) > -1;
         });
       });
 
-      if (options.length === 0) {
+      if (options?.length === 0) {
         this.tokens = null;
         return;
       }
 
       this.tokens = {
         startIndex: 0,
-        options,
+        values: options || [],
       };
 
       return;
@@ -200,9 +222,13 @@ export default class TextInspector {
         this.tokens = null;
         return;
       } else {
+        if (this.match == null) {
+          return;
+        }
+
         this.match = {
-          ...this.match,
           text: this.match.text + leftOver,
+          startIndex: this.match.startIndex,
           endIndex: this.match.endIndex + leftOver.length,
         };
 
@@ -210,7 +236,7 @@ export default class TextInspector {
 
         this.tokens = {
           startIndex: this.match.endIndex + 1,
-          options: partialMatchOptions,
+          values: partialMatchOptions,
         };
 
         return;
@@ -219,12 +245,12 @@ export default class TextInspector {
 
     this.tokens = {
       startIndex,
-      options,
+      values: options,
     };
   }
 
   private saveOptions() {
-    const furthestMatches = this.cursor.history.astNodes.reduce(
+    const furthestMatches = this.cursor?.history.astNodes.reduce(
       (acc: any, node: any, index: any) => {
         if (node.endIndex === acc.furthestTextIndex) {
           acc.nodeIndexes.push(index);
@@ -240,10 +266,10 @@ export default class TextInspector {
 
     const matches = furthestMatches.nodeIndexes.reduce(
       (acc: any, index: any) => {
-        const pattern = this.cursor.history.patterns[index];
-        const tokens = pattern.getNextTokens();
+        const pattern = this.cursor?.history.patterns[index];
+        const tokens = pattern?.getNextTokens();
 
-        tokens.forEach((token: any) => {
+        tokens?.forEach((token: any) => {
           acc[token] = true;
         });
 
@@ -255,7 +281,7 @@ export default class TextInspector {
     this.options = Object.keys(matches);
   }
 
-  static inspect(text: string, pattern: Pattern) {
-    return new TextInspector().inspect(text, pattern);
+  static suggest(text: string, pattern: Pattern) {
+    return new TextSuggester().suggest(text, pattern);
   }
 }

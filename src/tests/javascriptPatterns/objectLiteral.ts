@@ -1,13 +1,14 @@
-import { Literal } from "../../patterns/value/Literal";
+import Literal from "../../patterns/value/Literal";
 import AndComposite from "../../patterns/composite/AndComposite";
 import RepeatComposite from "../../patterns/composite/RepeatComposite";
 import OptionalComposite from "../../patterns/composite/OptionalComposite";
 import OrValue from "../../patterns/value/OrValue";
 import OptionalValue from "../../patterns/value/OptionalValue";
-import { RecursivePattern } from "../../patterns/RecursivePattern";
+import RecursivePattern from "../../patterns/RecursivePattern";
 import name from "./name";
 import string from "./string";
 import whitespace from "./whitespace";
+import AndValue from "../../patterns/value/AndValue";
 
 const expression = new RecursivePattern("expression");
 const optionalWhitespace = new OptionalValue(whitespace);
@@ -17,7 +18,7 @@ const colon = new Literal(":", ":");
 const separator = new AndValue("separator", [
   optionalWhitespace,
   comma,
-  optionalWhitespace
+  optionalWhitespace,
 ]);
 
 const property = new OrValue("property", [name, string]);
@@ -27,7 +28,7 @@ const keyValue = new AndComposite("key-value", [
   optionalWhitespace,
   colon,
   optionalWhitespace,
-  expression
+  expression,
 ]);
 
 const keyValues = new RepeatComposite("key-values", keyValue, separator);
@@ -40,7 +41,7 @@ const objectLiteral = new AndComposite("object-literal", [
   optionalWhitespace,
   optionalKeyValues,
   optionalWhitespace,
-  closeBracket
+  closeBracket,
 ]);
 
 export default objectLiteral;

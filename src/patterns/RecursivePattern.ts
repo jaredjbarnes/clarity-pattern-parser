@@ -69,18 +69,6 @@ export default class RecursivePattern extends Pattern {
     return new RecursivePattern(name);
   }
 
-  getPossibilities() {
-    if (!this.isRecursing) {
-      this.isRecursing = true;
-      const possibilities = this.getPattern()?.getPossibilities() || [];
-      this.isRecursing = false;
-
-      return possibilities;
-    } else {
-      return [`[${this.name}]`];
-    }
-  }
-
   getTokenValue() {
     return this.getPattern()?.getTokenValue() || null;
   }

@@ -1,7 +1,6 @@
 import AndComposite from "../patterns/composite/AndComposite";
 import Literal from "../patterns/value/Literal";
 import OptionalValue from "../patterns/value/OptionalValue";
-import assert from "assert";
 import Cursor from "../Cursor";
 
 describe("AndComposite", () => {
@@ -28,11 +27,10 @@ describe("AndComposite", () => {
 
     const node = name.parse(cursor);
 
-    assert.equal(node, null);
-    assert.equal(cursor.getIndex(), 0);
-    assert.equal(cursor.hasUnresolvedError(), true);
-    assert.equal(
-      cursor.parseError?.message,
+    expect(node).toBe(null);
+    expect(cursor.getIndex()).toBe(0);
+    expect(cursor.hasUnresolvedError()).toBe(true);
+    expect(cursor.parseError?.message).toBe(
       "ParseError: Expected 'Doe' but found 'Smi'."
     );
   });
@@ -43,13 +41,13 @@ describe("AndComposite", () => {
     const name = new AndComposite("name", [john, doe]);
     const isMatch = name.test("JohnDoe");
 
-    assert.equal(isMatch, true);
+    expect(isMatch).toBe(true);
   });
 
   test("AndComposite: no children.", () => {
-    assert.throws(() => {
+    expect(() => {
       new AndComposite("name");
-    });
+    }).toThrow();
   });
 
   test("AndComposite: string runs out before match is done.", () => {
@@ -67,11 +65,11 @@ describe("AndComposite", () => {
     const cursor = new Cursor("JohnDo");
     const result = name.parse(cursor);
 
-    assert.equal(result?.name, "name");
-    assert.equal(result?.type, "and-composite");
-    assert.equal(result?.children[0].value, "John");
-    assert.equal(result?.children[0].name, "first");
-    assert.equal(result?.children[0].type, "literal");
+    expect(result?.name).toBe("name");
+    expect(result?.type).toBe("and-composite");
+    expect(result?.children[0].value).toBe("John");
+    expect(result?.children[0].name).toBe("first");
+    expect(result?.children[0].type).toBe("literal");
   });
 
   test("AndComposite: three non-optional patterns.", () => {
@@ -98,6 +96,6 @@ describe("AndComposite", () => {
     const name = new AndComposite("name", [john, doe]);
     const clone = name.clone("name2");
 
-    assert.equal(clone.name, "name2");
+    expect(clone.name).toBe("name2");
   });
 });

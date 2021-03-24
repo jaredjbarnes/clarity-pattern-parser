@@ -1,7 +1,6 @@
 import attribute from "../queryPatterns/attribute";
 import cssSelector from "../queryPatterns/cssSelector";
 import Cursor from "../Cursor";
-import assert from "assert";
 
 describe("attribute", () => {
   test("attribute: valid", () => {

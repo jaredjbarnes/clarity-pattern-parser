@@ -1,5 +1,4 @@
 import CompositeNode from "../ast/CompositeNode";
-import assert from "assert";
 import { ValueNode } from "../index";
 
 describe("CompositeNode", () => {

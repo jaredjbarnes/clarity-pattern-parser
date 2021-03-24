@@ -1,6 +1,5 @@
 import OptionalComposite from "../patterns/composite/OptionalComposite";
 import Literal from "../patterns/value/Literal";
-import assert from "assert";
 
 test(
   "OptionalComposite: getPossibilities with no rootPattern supplied."

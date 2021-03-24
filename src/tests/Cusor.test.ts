@@ -1,4 +1,3 @@
-import assert from "assert";
 import Cursor from "../Cursor";
 import ValueNode from "../ast/ValueNode";
 import Literal from "../patterns/value/Literal";

@@ -5,13 +5,14 @@
   "main": "./dist/index.js",
   "module": "./dist/index.esm.js",
   "browser": "./dist/index.browser.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "build": "rollup -c -m",
     "test": "jest"
   },
   "keywords": [],
   "devDependencies": {
-    "@rollup/plugin-typescript": "^8.2.0",
+    "rollup-plugin-typescript2": "^0.30.0",
     "@types/jest": "^26.0.20",
     "jest": "^26.6.3",
     "rollup": "^2.41.2",

@@ -31,20 +31,20 @@ export interface SuggestionResult {
 }
 
 export default class TextSuggester {
-  public cursor: Cursor | null = null;
-  public result: Node | null = null;
-  public text: string = "";
-  public match: SuggestionMatch | null = null;
-  public error: SuggestionError | null = null;
-  public patternMatch: Match | null = null;
-  public matchedText: string = "";
-  public rootPattern: Pattern | null = null;
-  public tokens: Token | null = {
+  private cursor: Cursor | null = null;
+  private result: Node | null = null;
+  private text: string = "";
+  private match: SuggestionMatch | null = null;
+  private error: SuggestionError | null = null;
+  private patternMatch: Match | null = null;
+  private matchedText: string = "";
+  private rootPattern: Pattern | null = null;
+  private tokens: Token | null = {
     startIndex: 0,
     values: [],
   };
-  public options: string[] = [];
-  public parseStack: Node[] = [];
+  private options: string[] = [];
+  private parseStack: Node[] = [];
 
   suggest(text: string, pattern: Pattern) {
     this.reset();

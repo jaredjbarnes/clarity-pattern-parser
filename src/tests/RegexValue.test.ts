@@ -1,7 +1,7 @@
 import { RegexValue } from "../index";
 import assert from "assert";
 
-exports["RegexValue: exec."] = () => {
+test("RegexValue: exec.", () => {
   const notA = new RegexValue("not-a", "[^a]+");
 
   const result = notA.exec("John");
@@ -12,9 +12,9 @@ exports["RegexValue: exec."] = () => {
     name: "not-a",
     startIndex: 0,
     endIndex: 3,
-    value: "John"
+    value: "John",
   };
 
-  assert.equal(JSON.stringify(result), JSON.stringify(expectedValue));
-  assert.equal(result2, null);
-};
+  expect(JSON.stringify(result)).toBe(JSON.stringify(expectedValue));
+  expect(result2).toBe(null);
+});

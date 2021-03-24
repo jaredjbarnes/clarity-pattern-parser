@@ -3,7 +3,7 @@ import Cursor from "../Cursor";
 
 const unitRegex = /(\\d*\\.?\\d+)\\s?(px|em|ex|%|in|cn|mm|pt|pc+)/gim;
 
-exports["SpeedTest: unit"] = () => {
+test("SpeedTest: unit", () => {
   const simpleUnit = "12px";
   const cursor = new Cursor(simpleUnit);
 
@@ -11,7 +11,7 @@ exports["SpeedTest: unit"] = () => {
 
   for (let x = 0; x < 100000; x++) {
     unitRegex.lastIndex = 0;
-    const result = unitRegex.exec(simpleUnit);
+    unitRegex.exec(simpleUnit);
   }
 
   const RegexEndTime = Date.now();
@@ -20,10 +20,10 @@ exports["SpeedTest: unit"] = () => {
   const cpBeginTime = Date.now();
   for (let x = 0; x < 100000; x++) {
     cursor.index = 0;
-    const result = unit.parse(cursor);
+    unit.parse(cursor);
   }
   const cpEndTime = Date.now();
   const cpDuration = cpEndTime - cpBeginTime;
 
   console.log(regexDuration, cpDuration);
-};
+});

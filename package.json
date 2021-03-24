@@ -1,6 +1,6 @@
 {
   "name": "clarity-pattern-parser",
-  "version": "2.0.16",
+  "version": "3.0.0",
   "description": "",
   "main": "./dist/index.js",
   "module": "./dist/index.esm.js",

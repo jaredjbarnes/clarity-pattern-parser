@@ -1,3 +1,4 @@
+/** @jest-environment node */
 import cssValue from "./cssPatterns/cssValue";
 import { Cursor } from "../index";
 

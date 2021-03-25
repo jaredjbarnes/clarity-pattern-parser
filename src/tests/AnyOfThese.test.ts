@@ -1,3 +1,4 @@
+/** @jest-environment node */
 import AnyOfThese from "../patterns/value/AnyOfThese";
 import Cursor from "../Cursor";
 

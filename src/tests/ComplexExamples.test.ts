@@ -1,3 +1,4 @@
+/** @jest-environment node */
 import whitespace from "./javascriptPatterns/whitespace";
 import name from "./javascriptPatterns/name";
 import number from "./javascriptPatterns/number";

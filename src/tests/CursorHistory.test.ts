@@ -1,3 +1,4 @@
+/** @jest-environment node */
 import CursorHistory from "../CursorHistory";
 import { Literal, ValueNode, Cursor, ParseError } from "../index";
 import sentence from "./patterns/sentence";

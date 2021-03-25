@@ -1,5 +1,5 @@
+/** @jest-environment node */
 import { RegexValue } from "../index";
-import assert from "assert";
 
 test("RegexValue: exec.", () => {
   const notA = new RegexValue("not-a", "[^a]+");

@@ -1,8 +1,8 @@
+/** @jest-environment node */
 import RepeatComposite from "../patterns/composite/RepeatComposite";
 import AndComposite from "../patterns/composite/AndComposite";
 import OptionalComposite from "../patterns/composite/OptionalComposite";
 import Literal from "../patterns/value/Literal";
-import assert from "assert";
 
 describe("RepeatComposite", () => {
   test("Cannot use optional patterns.", () => {

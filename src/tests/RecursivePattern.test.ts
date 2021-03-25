@@ -1,3 +1,4 @@
+/** @jest-environment node */
 import { RecursivePattern, Cursor } from "../index";
 import literals from "./javascriptPatterns/json";
 

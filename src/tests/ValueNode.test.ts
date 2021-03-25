@@ -1,3 +1,4 @@
+/** @jest-environment node */
 import ValueNode from "../ast/ValueNode";
 import assert from "assert";
 

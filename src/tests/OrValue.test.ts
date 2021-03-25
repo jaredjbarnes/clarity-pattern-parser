@@ -1,3 +1,4 @@
+/** @jest-environment node */
 import OrValue from "../patterns/value/OrValue";
 import AnyOfThese from "../patterns/value/AnyOfThese";
 import Literal from "../patterns/value/Literal";

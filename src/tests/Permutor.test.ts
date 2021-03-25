@@ -1,3 +1,4 @@
+/** @jest-environment node */
 import Permutor from "../Permutor";
 
 describe("Permutor", () => {

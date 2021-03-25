@@ -1,38 +1,38 @@
+/** @jest-environment node */
 import RepeatValue from "../patterns/value/RepeatValue";
 import Literal from "../patterns/value/Literal";
 import OptionalValue from "../patterns/value/OptionalValue";
-import assert from "assert";
 import Cursor from "../Cursor";
 
 describe("RepeatValue", function () {
   test("Empty Constructor.", () => {
-    assert.throws(() => {
+    expect(() => {
       new (RepeatValue as any)();
-    });
+    }).toThrow();
   });
 
   test("Invalid name.", () => {
-    assert.throws(() => {
+    expect(() => {
       new (RepeatValue as any)([], new Literal("blah", "Blah"));
-    });
+    }).toThrow();
   });
 
   test("No patterns", () => {
-    assert.throws(() => {
+    expect(() => {
       new (RepeatValue as any)("and-value");
-    });
+    }).toThrow();
   });
 
   test("Empty patterns", () => {
-    assert.throws(() => {
+    expect(() => {
       new (RepeatValue as any)("and-value", null);
-    });
+    }).toThrow();
   });
 
   test("Invalid patterns", () => {
-    assert.throws(() => {
+    expect(() => {
       new (RepeatValue as any)("and-value", {});
-    });
+    }).toThrow();
   });
 
   test("No Match", () => {
@@ -89,7 +89,7 @@ describe("RepeatValue", function () {
   test("Try Optional.", () => {
     const john = new Literal("john", "John");
 
-    assert.throws(() => {
+    expect(() => {
       new RepeatValue("johns", new OptionalValue(john));
     });
   });

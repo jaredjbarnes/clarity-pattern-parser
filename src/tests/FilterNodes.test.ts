@@ -1,3 +1,4 @@
+/** @jest-environment node */
 import element from "./htmlPatterns/element";
 import { Cursor } from "../index";
 

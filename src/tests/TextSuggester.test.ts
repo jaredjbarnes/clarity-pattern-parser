@@ -1,3 +1,4 @@
+/** @jest-environment node */
 import TextSuggester from "../TextSuggester";
 import sentence from "./patterns/sentence";
 import Literal from "../patterns/value/Literal";

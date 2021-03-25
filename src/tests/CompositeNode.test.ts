@@ -1,3 +1,4 @@
+/** @jest-environment node */
 import CompositeNode from "../ast/CompositeNode";
 import { ValueNode } from "../index";
 

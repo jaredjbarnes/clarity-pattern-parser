@@ -1,3 +1,4 @@
+/** @jest-environment node */
 import AndValue from "../patterns/value/AndValue";
 import Literal from "../patterns/value/Literal";
 import OptionalValue from "../patterns/value/OptionalValue";

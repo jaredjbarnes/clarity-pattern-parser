@@ -1,3 +1,4 @@
+/** @jest-environment node */
 import Cursor from "../Cursor";
 import ValueNode from "../ast/ValueNode";
 import Literal from "../patterns/value/Literal";

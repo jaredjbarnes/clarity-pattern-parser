@@ -1,3 +1,4 @@
+/** @jest-environment node */
 import OrComposite from "../patterns/composite/OrComposite";
 import Literal from "../patterns/value/Literal";
 import OptionalValue from "../patterns/value/OptionalValue";

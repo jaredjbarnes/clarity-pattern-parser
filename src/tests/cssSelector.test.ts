@@ -1,3 +1,4 @@
+/** @jest-environment node */
 import attribute from "../queryPatterns/attribute";
 import cssSelector from "../queryPatterns/cssSelector";
 import Cursor from "../Cursor";

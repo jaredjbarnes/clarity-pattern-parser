@@ -1,3 +1,4 @@
+/** @jest-environment node */
 import unit from "./javascriptPatterns/unit";
 import Cursor from "../Cursor";
 

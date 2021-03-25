@@ -1,3 +1,4 @@
+/** @jest-environment node */
 import Literal from "../patterns/value/Literal";
 import Cursor from "../Cursor";
 

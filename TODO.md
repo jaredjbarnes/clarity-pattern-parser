@@ -1,1 +1,2 @@
-* Remove the getNextToken from the Patterns. Use a Visitor pattern to figure out the tokens.
+- Remove the getNextToken from the Patterns. Use a Visitor pattern to figure out the tokens. Patterns should just be data.
+- Build a visitor and remove the filter off of the node. Nodes should just be data.

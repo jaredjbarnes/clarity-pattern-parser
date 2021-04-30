@@ -5,7 +5,7 @@ export default abstract class Node {
   public endIndex: number;
   public isComposite: boolean;
   public children: Node[] = [];
-  public value: string = "";
+  public value: string | null = null;
 
   constructor(
     type: string,
@@ -29,11 +29,6 @@ export default abstract class Node {
       );
     }
   }
-
-  abstract filter(
-    shouldKeep?: (node: Node, context: Node[]) => boolean,
-    context?: Node[]
-  ): Node[];
 
   abstract clone(): Node;
 

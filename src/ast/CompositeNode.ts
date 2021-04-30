@@ -10,7 +10,7 @@ export default class CompositeNode extends Node {
       this.type,
       this.name,
       this.startIndex,
-      this.endIndex,
+      this.endIndex
     );
 
     node.children = this.children.map((child) => {
@@ -18,28 +18,6 @@ export default class CompositeNode extends Node {
     });
 
     return node;
-  }
-
-  filter(
-    shouldKeep: (node: Node, context: Node[]) => boolean,
-    context: Node[] = []
-  ) {
-    const childrenContext = context.slice();
-    childrenContext.push(this);
-
-    Object.freeze(childrenContext);
-
-    const matches = this.children.reduce((acc: Node[], child) => {
-      return acc.concat(child.filter(shouldKeep, childrenContext));
-    }, []);
-
-    const match = shouldKeep(this, context);
-
-    if (match) {
-      matches.push(this);
-    }
-
-    return matches;
   }
 
   toString() {

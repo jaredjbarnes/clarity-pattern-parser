@@ -4,7 +4,7 @@ export default class Visitor {
   public root: Node | null;
   public selectedNodes: Node[];
 
-  constructor(root: Node | null, selectedNodes: Node[] = []) {
+  constructor(root: Node | null = null, selectedNodes: Node[] = []) {
     this.root = root;
     this.selectedNodes = selectedNodes;
   }

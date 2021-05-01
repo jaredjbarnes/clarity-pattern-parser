@@ -1510,7 +1510,7 @@ class TextSuggester {
 }
 
 class Visitor {
-    constructor(root, selectedNodes = []) {
+    constructor(root = null, selectedNodes = []) {
         this.root = root;
         this.selectedNodes = selectedNodes;
     }

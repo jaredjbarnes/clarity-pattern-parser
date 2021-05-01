@@ -5,7 +5,7 @@ export default abstract class Node {
   public endIndex: number;
   public isComposite: boolean;
   public children: Node[] = [];
-  public value: string | null = null;
+  public value: string = "";
 
   constructor(
     type: string,

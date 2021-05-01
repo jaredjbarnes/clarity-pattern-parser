@@ -5,7 +5,7 @@ export default abstract class Node {
     endIndex: number;
     isComposite: boolean;
     children: Node[];
-    value: string | null;
+    value: string;
     constructor(type: string, name: string, startIndex: number, endIndex: number, isComposite?: boolean);
     abstract clone(): Node;
     abstract toString(): string;

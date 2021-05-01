@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 class Node {
     constructor(type, name, startIndex, endIndex, isComposite = false) {
         this.children = [];
-        this.value = null;
+        this.value = "";
         this.type = type;
         this.name = name;
         this.startIndex = startIndex;

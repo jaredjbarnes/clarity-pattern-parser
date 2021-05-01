@@ -262,6 +262,7 @@ export default class Visitor {
 
   setRoot(root: Node | null) {
     this.root = root;
+    return this;
   }
 
   static select(root: Node, callback?: (node: Node) => boolean) {

@@ -26,6 +26,6 @@ export default class Visitor {
     last(): Visitor;
     get(index: number): Visitor;
     clear(): this;
-    setRoot(root: Node | null): void;
+    setRoot(root: Node | null): this;
     static select(root: Node, callback?: (node: Node) => boolean): Visitor;
 }

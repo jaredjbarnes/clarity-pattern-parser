@@ -42,10 +42,10 @@
           this.value = value;
       }
       clone() {
-          return new ValueNode(this.type, this.name, this.value || "", this.startIndex, this.endIndex);
+          return new ValueNode(this.type, this.name, this.value, this.startIndex, this.endIndex);
       }
       toString() {
-          return this.value || "";
+          return this.value;
       }
   }
 
@@ -1712,6 +1712,7 @@
       }
       setRoot(root) {
           this.root = root;
+          return this;
       }
       static select(root, callback) {
           if (callback != null) {

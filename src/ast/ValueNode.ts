@@ -16,13 +16,13 @@ export default class ValueNode extends Node {
     return new ValueNode(
       this.type,
       this.name,
-      this.value || "",
+      this.value,
       this.startIndex,
       this.endIndex
     );
   }
 
   toString() {
-    return this.value || "";
+    return this.value;
   }
 }

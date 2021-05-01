@@ -78,18 +78,14 @@ export default class NodeVisitor {
   }
 
   prepend(callback: (node: Node) => Node) {
-    this.walkDown(this.context, (node, stack) => {
+    this.walkUp(this.context, (node, stack) => {
       if (this.selectedNodes.includes(node)) {
         const parent = stack[stack.length - 1];
 
         if (parent != null) {
           const index = parent.children.indexOf(node);
           if (index > -1) {
-            if (index === 0) {
-              parent.children.unshift(callback(node));
-            } else {
-              parent.children.splice(index - 1, 0, callback(node));
-            }
+            parent.children.splice(index, 0, callback(node));
           }
         }
       }
@@ -106,7 +102,7 @@ export default class NodeVisitor {
         if (parent != null) {
           const index = parent.children.indexOf(node);
           if (index > -1) {
-            parent.children.splice(index, 0, callback(node));
+            parent.children.splice(index+1, 0, callback(node));
           }
         }
       }
@@ -143,7 +139,8 @@ export default class NodeVisitor {
     ancestors.push(node);
 
     if (node.isComposite && Array.isArray(node.children)) {
-      node.children.forEach((c) => this.walkUp(c, callback, ancestors));
+      const children = node.children.slice();
+      children.forEach((c) => this.walkUp(c, callback, ancestors));
     }
 
     ancestors.pop();
@@ -161,11 +158,16 @@ export default class NodeVisitor {
     ancestors.push(node);
 
     if (node.isComposite && Array.isArray(node.children)) {
-      node.children.forEach((c) => this.walkDown(c, callback, ancestors));
+      const children = node.children.slice();
+      children.forEach((c) => this.walkDown(c, callback, ancestors));
     }
 
     ancestors.pop();
     return this;
+  }
+
+  selectAll() {
+    return this.select((n) => true);
   }
 
   selectNode(node: Node) {
@@ -174,8 +176,7 @@ export default class NodeVisitor {
 
   deselectNode(node: Node) {
     const visitor = new NodeVisitor(this.context, this.selectedNodes.slice());
-    visitor.filter((n) => n !== node);
-    return visitor;
+    return visitor.filter((n) => n !== node);
   }
 
   select(callback: (node: Node) => boolean) {

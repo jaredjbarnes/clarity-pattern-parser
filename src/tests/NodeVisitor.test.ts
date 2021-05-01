@@ -1,6 +1,6 @@
 /** @jest-environment node */
 import CompositeNode from "../ast/CompositeNode";
-import NodeVisitor from "../ast/NodeVisitor";
+import Visitor from "../ast/Visitor";
 import ValueNode from "../ast/ValueNode";
 import cssValue from "./cssPatterns/cssValue";
 
@@ -20,14 +20,14 @@ function createContext(amount: number = 10) {
   return grandParent;
 }
 
-describe("NodeVisitor", () => {
+describe("Visitor", () => {
   test("flatten", () => {
     const node = cssValue.exec(
       "linear-gradient(to left, #333, #333 50%, #eee 75%, #333 75%), linear-gradient(to bottom, #555, #555 50%, #eee 75%, #555 75%)"
     );
 
     if (node != null) {
-      const visitor = new NodeVisitor(node);
+      const visitor = new Visitor(node);
       visitor.selectRoot().flatten();
 
       expect(node.children.length).toBe(47);
@@ -38,7 +38,7 @@ describe("NodeVisitor", () => {
     const node = cssValue.exec("linear-gradient(to left, #333, #333 50%, #eee 75%, #333 75%), linear-gradient(to bottom, #555, #555 50%, #eee 75%, #555 75%)");
 
     if (node != null) {
-      const visitor = new NodeVisitor(node);
+      const visitor = new Visitor(node);
       visitor
         .selectRoot()
         .flatten()
@@ -55,7 +55,7 @@ describe("NodeVisitor", () => {
     const node = createContext();
 
     if (node != null) {
-      const visitor = new NodeVisitor(node);
+      const visitor = new Visitor(node);
       const stringResult = visitor
         .select((n) => n.name === "child")
         .wrap((node) => {
@@ -64,9 +64,9 @@ describe("NodeVisitor", () => {
           return wrapper;
         });
 
-      let wrappers = NodeVisitor.select(node, (n) => n.type === "wrapper")
+      let wrappers = Visitor.select(node, (n) => n.type === "wrapper")
         .selectedNodes;
-      let children = NodeVisitor.select(node, (n) => n.type === "child")
+      let children = Visitor.select(node, (n) => n.type === "child")
         .selectedNodes;
 
       expect(wrappers.length).toBe(10);
@@ -86,7 +86,7 @@ describe("NodeVisitor", () => {
     const node = createContext();
 
     if (node != null) {
-      const visitor = new NodeVisitor(node);
+      const visitor = new Visitor(node);
       visitor
         .select((n) => n.type === "child")
         .prepend((n) => {
@@ -170,7 +170,7 @@ describe("NodeVisitor", () => {
     const node = createContext();
 
     if (node != null) {
-      const visitor = new NodeVisitor(node);
+      const visitor = new Visitor(node);
       visitor
         .select((n) => n.type === "child")
         .append((n) => {
@@ -254,7 +254,7 @@ describe("NodeVisitor", () => {
     const node = createContext();
 
     if (node != null) {
-      const visitor = new NodeVisitor(node);
+      const visitor = new Visitor(node);
       const all = visitor.selectAll().selectedNodes;
 
       expect(all.length).toBe(12);
@@ -275,7 +275,7 @@ describe("NodeVisitor", () => {
     const node = createContext();
 
     if (node != null) {
-      const visitor = new NodeVisitor(node);
+      const visitor = new Visitor(node);
       const selected = visitor.selectNode(node).selectedNodes;
 
       expect(selected.length).toBe(1);
@@ -287,7 +287,7 @@ describe("NodeVisitor", () => {
     const node = createContext();
 
     if (node != null) {
-      const visitor = new NodeVisitor(node);
+      const visitor = new Visitor(node);
       const selected = visitor.selectNode(node).deselectNode(node)
         .selectedNodes;
 
@@ -300,7 +300,7 @@ describe("NodeVisitor", () => {
     let count = 0;
 
     if (node != null) {
-      const visitor = new NodeVisitor(node);
+      const visitor = new Visitor(node);
       const selected = visitor.selectAll().forEach(() => count++).selectedNodes;
 
       expect(selected.length).toBe(12);

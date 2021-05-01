@@ -20,5 +20,5 @@ import ParseError from "./patterns/ParseError";
 import Pattern from "./patterns/Pattern";
 import RecursivePattern from "./patterns/RecursivePattern";
 import TextSuggester from "./TextSuggester";
-import NodeVisitor from "./ast/NodeVisitor";
-export { Node, CompositeNode, ValueNode, Cursor, RegexValue, AndValue, AnyOfThese, Literal, NotValue, OptionalValue, OrValue, RepeatValue, ValuePattern, AndComposite, CompositePattern, OptionalComposite, OrComposite, RepeatComposite, ParseError, Pattern, RecursivePattern, TextSuggester, NodeVisitor, };
+import Visitor from "./ast/Visitor";
+export { Node, CompositeNode, ValueNode, Cursor, RegexValue, AndValue, AnyOfThese, Literal, NotValue, OptionalValue, OrValue, RepeatValue, ValuePattern, AndComposite, CompositePattern, OptionalComposite, OrComposite, RepeatComposite, ParseError, Pattern, RecursivePattern, TextSuggester, Visitor, };

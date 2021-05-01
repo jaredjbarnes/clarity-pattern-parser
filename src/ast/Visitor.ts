@@ -1,6 +1,6 @@
 import Node from "./Node";
 
-export default class NodeVisitor {
+export default class Visitor {
   public root: Node | null;
   public selectedNodes: Node[];
 
@@ -51,7 +51,7 @@ export default class NodeVisitor {
   }
 
   wrap(callback: (node: Node) => Node) {
-    const visitor = new NodeVisitor(this.root);
+    const visitor = new Visitor(this.root);
 
     visitor.selectRoot().transform((node) => {
       if (this.selectedNodes.includes(node)) {
@@ -187,11 +187,11 @@ export default class NodeVisitor {
   }
 
   selectNode(node: Node) {
-    return new NodeVisitor(this.root, [...this.selectedNodes, node]);
+    return new Visitor(this.root, [...this.selectedNodes, node]);
   }
 
   deselectNode(node: Node) {
-    const visitor = new NodeVisitor(this.root, this.selectedNodes.slice());
+    const visitor = new Visitor(this.root, this.selectedNodes.slice());
     return visitor.filter((n) => n !== node);
   }
 
@@ -211,7 +211,7 @@ export default class NodeVisitor {
       });
     }
 
-    return new NodeVisitor(this.root, selectedNodes);
+    return new Visitor(this.root, selectedNodes);
   }
 
   forEach(callback: (node: Node) => void) {
@@ -220,11 +220,11 @@ export default class NodeVisitor {
   }
 
   filter(callback: (node: Node) => boolean) {
-    return new NodeVisitor(this.root, this.selectedNodes.filter(callback));
+    return new Visitor(this.root, this.selectedNodes.filter(callback));
   }
 
   map(callback: (node: Node) => Node) {
-    return new NodeVisitor(this.root, this.selectedNodes.map(callback));
+    return new Visitor(this.root, this.selectedNodes.map(callback));
   }
 
   selectRoot() {
@@ -232,7 +232,7 @@ export default class NodeVisitor {
       return this;
     }
 
-    return new NodeVisitor(this.root, [this.root]);
+    return new Visitor(this.root, [this.root]);
   }
 
   first() {
@@ -252,7 +252,7 @@ export default class NodeVisitor {
       );
     }
 
-    return new NodeVisitor(node, []);
+    return new Visitor(node, []);
   }
 
   clear() {
@@ -266,9 +266,9 @@ export default class NodeVisitor {
 
   static select(root: Node, callback?: (node: Node) => boolean) {
     if (callback != null) {
-      return new NodeVisitor(root).select(callback);
+      return new Visitor(root).select(callback);
     } else {
-      return new NodeVisitor(root);
+      return new Visitor(root);
     }
   }
 }

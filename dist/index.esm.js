@@ -1509,7 +1509,7 @@ class TextSuggester {
     }
 }
 
-class NodeVisitor {
+class Visitor {
     constructor(root, selectedNodes = []) {
         this.root = root;
         this.selectedNodes = selectedNodes;
@@ -1550,7 +1550,7 @@ class NodeVisitor {
         }
     }
     wrap(callback) {
-        const visitor = new NodeVisitor(this.root);
+        const visitor = new Visitor(this.root);
         visitor.selectRoot().transform((node) => {
             if (this.selectedNodes.includes(node)) {
                 return callback(node);
@@ -1650,10 +1650,10 @@ class NodeVisitor {
         return this.select((n) => true);
     }
     selectNode(node) {
-        return new NodeVisitor(this.root, [...this.selectedNodes, node]);
+        return new Visitor(this.root, [...this.selectedNodes, node]);
     }
     deselectNode(node) {
-        const visitor = new NodeVisitor(this.root, this.selectedNodes.slice());
+        const visitor = new Visitor(this.root, this.selectedNodes.slice());
         return visitor.filter((n) => n !== node);
     }
     select(callback) {
@@ -1669,23 +1669,23 @@ class NodeVisitor {
                 }
             });
         }
-        return new NodeVisitor(this.root, selectedNodes);
+        return new Visitor(this.root, selectedNodes);
     }
     forEach(callback) {
         this.selectedNodes.forEach(callback);
         return this;
     }
     filter(callback) {
-        return new NodeVisitor(this.root, this.selectedNodes.filter(callback));
+        return new Visitor(this.root, this.selectedNodes.filter(callback));
     }
     map(callback) {
-        return new NodeVisitor(this.root, this.selectedNodes.map(callback));
+        return new Visitor(this.root, this.selectedNodes.map(callback));
     }
     selectRoot() {
         if (this.root == null) {
             return this;
         }
-        return new NodeVisitor(this.root, [this.root]);
+        return new Visitor(this.root, [this.root]);
     }
     first() {
         return this.get(0);
@@ -1698,7 +1698,7 @@ class NodeVisitor {
         if (node == null) {
             throw new Error(`Couldn't find node at index: ${index}, out of ${this.selectedNodes.length}.`);
         }
-        return new NodeVisitor(node, []);
+        return new Visitor(node, []);
     }
     clear() {
         this.selectedNodes = [];
@@ -1709,13 +1709,13 @@ class NodeVisitor {
     }
     static select(root, callback) {
         if (callback != null) {
-            return new NodeVisitor(root).select(callback);
+            return new Visitor(root).select(callback);
         }
         else {
-            return new NodeVisitor(root);
+            return new Visitor(root);
         }
     }
 }
 
-export { AndComposite, AndValue, AnyOfThese, CompositeNode, CompositePattern, Cursor, Literal, Node, NodeVisitor, NotValue, OptionalComposite, OptionalValue, OrComposite, OrValue, ParseError, Pattern, RecursivePattern, RegexValue, RepeatComposite, RepeatValue, TextSuggester, ValueNode, ValuePattern };
+export { AndComposite, AndValue, AnyOfThese, CompositeNode, CompositePattern, Cursor, Literal, Node, NotValue, OptionalComposite, OptionalValue, OrComposite, OrValue, ParseError, Pattern, RecursivePattern, RegexValue, RepeatComposite, RepeatValue, TextSuggester, ValueNode, ValuePattern, Visitor };
 //# sourceMappingURL=index.esm.js.map

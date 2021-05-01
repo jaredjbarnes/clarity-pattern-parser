@@ -20,7 +20,7 @@ import ParseError from "./patterns/ParseError";
 import Pattern from "./patterns/Pattern";
 import RecursivePattern from "./patterns/RecursivePattern";
 import TextSuggester from "./TextSuggester";
-import NodeVisitor from "./ast/NodeVisitor";
+import Visitor from "./ast/Visitor";
 
 export {
   Node,
@@ -45,5 +45,5 @@ export {
   Pattern,
   RecursivePattern,
   TextSuggester,
-  NodeVisitor,
+  Visitor,
 };

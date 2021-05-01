@@ -1,11 +1,11 @@
 import Node from "./Node";
 
 export default class NodeVisitor {
-  public context: Node;
+  public root: Node | null;
   public selectedNodes: Node[];
 
-  constructor(context: Node, selectedNodes: Node[] = []) {
-    this.context = context;
+  constructor(root: Node | null, selectedNodes: Node[] = []) {
+    this.root = root;
     this.selectedNodes = selectedNodes;
   }
 
@@ -28,7 +28,11 @@ export default class NodeVisitor {
   }
 
   remove() {
-    this.recursiveRemove(this.context);
+    if (this.root == null) {
+      return this;
+    }
+
+    this.recursiveRemove(this.root);
     return this;
   }
 
@@ -47,7 +51,7 @@ export default class NodeVisitor {
   }
 
   wrap(callback: (node: Node) => Node) {
-    const visitor = new NodeVisitor(this.context);
+    const visitor = new NodeVisitor(this.root);
 
     visitor.selectRoot().transform((node) => {
       if (this.selectedNodes.includes(node)) {
@@ -60,7 +64,11 @@ export default class NodeVisitor {
   }
 
   unwrap() {
-    this.walkDown(this.context, (node, stack) => {
+    if (this.root == null) {
+      return this;
+    }
+
+    this.walkDown(this.root, (node, stack) => {
       if (this.selectedNodes.includes(node)) {
         const parent = stack[stack.length - 1];
         const grandParent = stack[stack.length - 2];
@@ -78,7 +86,11 @@ export default class NodeVisitor {
   }
 
   prepend(callback: (node: Node) => Node) {
-    this.walkUp(this.context, (node, stack) => {
+    if (this.root == null) {
+      return this;
+    }
+
+    this.walkUp(this.root, (node, stack) => {
       if (this.selectedNodes.includes(node)) {
         const parent = stack[stack.length - 1];
 
@@ -95,7 +107,11 @@ export default class NodeVisitor {
   }
 
   append(callback: (node: Node) => Node) {
-    this.walkDown(this.context, (node, stack) => {
+    if (this.root == null) {
+      return this;
+    }
+
+    this.walkDown(this.root, (node, stack) => {
       if (this.selectedNodes.includes(node)) {
         const parent = stack[stack.length - 1];
 
@@ -171,16 +187,20 @@ export default class NodeVisitor {
   }
 
   selectNode(node: Node) {
-    return new NodeVisitor(this.context, [...this.selectedNodes, node]);
+    return new NodeVisitor(this.root, [...this.selectedNodes, node]);
   }
 
   deselectNode(node: Node) {
-    const visitor = new NodeVisitor(this.context, this.selectedNodes.slice());
+    const visitor = new NodeVisitor(this.root, this.selectedNodes.slice());
     return visitor.filter((n) => n !== node);
   }
 
   select(callback: (node: Node) => boolean) {
-    const node = this.context;
+    if (this.root == null) {
+      return this;
+    }
+
+    const node = this.root;
     const selectedNodes: Node[] = [];
 
     if (node.isComposite) {
@@ -191,7 +211,7 @@ export default class NodeVisitor {
       });
     }
 
-    return new NodeVisitor(this.context, selectedNodes);
+    return new NodeVisitor(this.root, selectedNodes);
   }
 
   forEach(callback: (node: Node) => void) {
@@ -200,15 +220,19 @@ export default class NodeVisitor {
   }
 
   filter(callback: (node: Node) => boolean) {
-    return new NodeVisitor(this.context, this.selectedNodes.filter(callback));
+    return new NodeVisitor(this.root, this.selectedNodes.filter(callback));
   }
 
   map(callback: (node: Node) => Node) {
-    return new NodeVisitor(this.context, this.selectedNodes.map(callback));
+    return new NodeVisitor(this.root, this.selectedNodes.map(callback));
   }
 
   selectRoot() {
-    return new NodeVisitor(this.context, [this.context]);
+    if (this.root == null) {
+      return this;
+    }
+
+    return new NodeVisitor(this.root, [this.root]);
   }
 
   first() {
@@ -236,11 +260,15 @@ export default class NodeVisitor {
     return this;
   }
 
-  static select(context: Node, callback?: (node: Node) => boolean) {
+  setRoot(root: Node | null) {
+    this.root = root;
+  }
+
+  static select(root: Node, callback?: (node: Node) => boolean) {
     if (callback != null) {
-      return new NodeVisitor(context).select(callback);
+      return new NodeVisitor(root).select(callback);
     } else {
-      return new NodeVisitor(context);
+      return new NodeVisitor(root);
     }
   }
 }

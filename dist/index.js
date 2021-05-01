@@ -1514,8 +1514,8 @@ class TextSuggester {
 }
 
 class NodeVisitor {
-    constructor(context, selectedNodes = []) {
-        this.context = context;
+    constructor(root, selectedNodes = []) {
+        this.root = root;
         this.selectedNodes = selectedNodes;
     }
     flatten() {
@@ -1533,7 +1533,10 @@ class NodeVisitor {
         return this;
     }
     remove() {
-        this.recursiveRemove(this.context);
+        if (this.root == null) {
+            return this;
+        }
+        this.recursiveRemove(this.root);
         return this;
     }
     recursiveRemove(node) {
@@ -1551,7 +1554,7 @@ class NodeVisitor {
         }
     }
     wrap(callback) {
-        const visitor = new NodeVisitor(this.context);
+        const visitor = new NodeVisitor(this.root);
         visitor.selectRoot().transform((node) => {
             if (this.selectedNodes.includes(node)) {
                 return callback(node);
@@ -1561,7 +1564,10 @@ class NodeVisitor {
         return this;
     }
     unwrap() {
-        this.walkDown(this.context, (node, stack) => {
+        if (this.root == null) {
+            return this;
+        }
+        this.walkDown(this.root, (node, stack) => {
             if (this.selectedNodes.includes(node)) {
                 const parent = stack[stack.length - 1];
                 const grandParent = stack[stack.length - 2];
@@ -1576,7 +1582,10 @@ class NodeVisitor {
         return this;
     }
     prepend(callback) {
-        this.walkUp(this.context, (node, stack) => {
+        if (this.root == null) {
+            return this;
+        }
+        this.walkUp(this.root, (node, stack) => {
             if (this.selectedNodes.includes(node)) {
                 const parent = stack[stack.length - 1];
                 if (parent != null) {
@@ -1590,7 +1599,10 @@ class NodeVisitor {
         return this;
     }
     append(callback) {
-        this.walkDown(this.context, (node, stack) => {
+        if (this.root == null) {
+            return this;
+        }
+        this.walkDown(this.root, (node, stack) => {
             if (this.selectedNodes.includes(node)) {
                 const parent = stack[stack.length - 1];
                 if (parent != null) {
@@ -1642,14 +1654,17 @@ class NodeVisitor {
         return this.select((n) => true);
     }
     selectNode(node) {
-        return new NodeVisitor(this.context, [...this.selectedNodes, node]);
+        return new NodeVisitor(this.root, [...this.selectedNodes, node]);
     }
     deselectNode(node) {
-        const visitor = new NodeVisitor(this.context, this.selectedNodes.slice());
+        const visitor = new NodeVisitor(this.root, this.selectedNodes.slice());
         return visitor.filter((n) => n !== node);
     }
     select(callback) {
-        const node = this.context;
+        if (this.root == null) {
+            return this;
+        }
+        const node = this.root;
         const selectedNodes = [];
         if (node.isComposite) {
             this.walkDown(node, (descendant) => {
@@ -1658,20 +1673,23 @@ class NodeVisitor {
                 }
             });
         }
-        return new NodeVisitor(this.context, selectedNodes);
+        return new NodeVisitor(this.root, selectedNodes);
     }
     forEach(callback) {
         this.selectedNodes.forEach(callback);
         return this;
     }
     filter(callback) {
-        return new NodeVisitor(this.context, this.selectedNodes.filter(callback));
+        return new NodeVisitor(this.root, this.selectedNodes.filter(callback));
     }
     map(callback) {
-        return new NodeVisitor(this.context, this.selectedNodes.map(callback));
+        return new NodeVisitor(this.root, this.selectedNodes.map(callback));
     }
     selectRoot() {
-        return new NodeVisitor(this.context, [this.context]);
+        if (this.root == null) {
+            return this;
+        }
+        return new NodeVisitor(this.root, [this.root]);
     }
     first() {
         return this.get(0);
@@ -1690,12 +1708,15 @@ class NodeVisitor {
         this.selectedNodes = [];
         return this;
     }
-    static select(context, callback) {
+    setRoot(root) {
+        this.root = root;
+    }
+    static select(root, callback) {
         if (callback != null) {
-            return new NodeVisitor(context).select(callback);
+            return new NodeVisitor(root).select(callback);
         }
         else {
-            return new NodeVisitor(context);
+            return new NodeVisitor(root);
         }
     }
 }

@@ -1,8 +1,8 @@
 import Node from "./Node";
 export default class NodeVisitor {
-    context: Node;
+    root: Node | null;
     selectedNodes: Node[];
-    constructor(context: Node, selectedNodes?: Node[]);
+    constructor(root: Node | null, selectedNodes?: Node[]);
     flatten(): this;
     remove(): this;
     private recursiveRemove;
@@ -26,5 +26,6 @@ export default class NodeVisitor {
     last(): NodeVisitor;
     get(index: number): NodeVisitor;
     clear(): this;
-    static select(context: Node, callback?: (node: Node) => boolean): NodeVisitor;
+    setRoot(root: Node | null): void;
+    static select(root: Node, callback?: (node: Node) => boolean): NodeVisitor;
 }

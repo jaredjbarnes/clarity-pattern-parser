@@ -102,7 +102,7 @@ export default class NodeVisitor {
         if (parent != null) {
           const index = parent.children.indexOf(node);
           if (index > -1) {
-            parent.children.splice(index+1, 0, callback(node));
+            parent.children.splice(index + 1, 0, callback(node));
           }
         }
       }
@@ -111,7 +111,7 @@ export default class NodeVisitor {
     return this;
   }
 
-  private transform(callback: (node: Node) => Node) {
+  transform(callback: (node: Node) => Node) {
     this.selectedNodes.forEach((node) => {
       return this.recursiveTransform(node, callback);
     });

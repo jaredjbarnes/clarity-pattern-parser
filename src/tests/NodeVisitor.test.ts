@@ -2,7 +2,6 @@
 import CompositeNode from "../ast/CompositeNode";
 import NodeVisitor from "../ast/NodeVisitor";
 import ValueNode from "../ast/ValueNode";
-import Cursor from "../Cursor";
 import cssValue from "./cssPatterns/cssValue";
 
 function createContext(amount: number = 10) {
@@ -23,10 +22,9 @@ function createContext(amount: number = 10) {
 
 describe("NodeVisitor", () => {
   test("flatten", () => {
-    const cursor = new Cursor(
+    const node = cssValue.exec(
       "linear-gradient(to left, #333, #333 50%, #eee 75%, #333 75%), linear-gradient(to bottom, #555, #555 50%, #eee 75%, #555 75%)"
     );
-    const node = cssValue.parse(cursor);
 
     if (node != null) {
       const visitor = new NodeVisitor(node);
@@ -37,10 +35,7 @@ describe("NodeVisitor", () => {
   });
 
   test("remove", () => {
-    const cursor = new Cursor(
-      "linear-gradient(to left, #333, #333 50%, #eee 75%, #333 75%), linear-gradient(to bottom, #555, #555 50%, #eee 75%, #555 75%)"
-    );
-    const node = cssValue.parse(cursor);
+    const node = cssValue.exec("linear-gradient(to left, #333, #333 50%, #eee 75%, #333 75%), linear-gradient(to bottom, #555, #555 50%, #eee 75%, #555 75%)");
 
     if (node != null) {
       const visitor = new NodeVisitor(node);
@@ -306,8 +301,7 @@ describe("NodeVisitor", () => {
 
     if (node != null) {
       const visitor = new NodeVisitor(node);
-      const selected = visitor.selectAll().forEach(()=>count++)
-        .selectedNodes;
+      const selected = visitor.selectAll().forEach(() => count++).selectedNodes;
 
       expect(selected.length).toBe(12);
       expect(count).toBe(12);

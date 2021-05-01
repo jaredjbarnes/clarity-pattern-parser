@@ -111,7 +111,7 @@ describe("Readme.md", () => {
           isComposite: false,
         },
       ],
-      value: "",
+      value: null,
       type: "and-composite",
       name: "line-ending-comment",
       startIndex: 0,

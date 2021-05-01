@@ -1513,6 +1513,193 @@ class TextSuggester {
     }
 }
 
+class NodeVisitor {
+    constructor(context, selectedNodes = []) {
+        this.context = context;
+        this.selectedNodes = selectedNodes;
+    }
+    flatten() {
+        this.selectedNodes.forEach((node) => {
+            if (node.isComposite) {
+                const children = [];
+                this.walkUp(node, (descendant) => {
+                    if (!descendant.isComposite) {
+                        children.push(descendant);
+                    }
+                });
+                node.children = children;
+            }
+        });
+        return this;
+    }
+    remove() {
+        this.recursiveRemove(this.context);
+        return this;
+    }
+    recursiveRemove(node) {
+        const nodesToRemove = this.selectedNodes;
+        if (node.isComposite && Array.isArray(node.children)) {
+            for (let x = 0; x < node.children.length; x++) {
+                if (nodesToRemove.indexOf(node.children[x]) > -1) {
+                    node.children.splice(x, 1);
+                    x--;
+                }
+                else {
+                    this.recursiveRemove(node.children[x]);
+                }
+            }
+        }
+    }
+    wrap(callback) {
+        const visitor = new NodeVisitor(this.context);
+        visitor.selectRoot().transform((node) => {
+            if (this.selectedNodes.includes(node)) {
+                return callback(node);
+            }
+            return node;
+        });
+        return this;
+    }
+    unwrap() {
+        this.walkDown(this.context, (node, stack) => {
+            if (this.selectedNodes.includes(node)) {
+                const parent = stack[stack.length - 1];
+                const grandParent = stack[stack.length - 2];
+                if (parent != null && grandParent != null) {
+                    const index = grandParent.children.indexOf(parent);
+                    if (index > -1) {
+                        grandParent.children.splice(index, 1, ...parent.children);
+                    }
+                }
+            }
+        });
+        return this;
+    }
+    prepend(callback) {
+        this.walkUp(this.context, (node, stack) => {
+            if (this.selectedNodes.includes(node)) {
+                const parent = stack[stack.length - 1];
+                if (parent != null) {
+                    const index = parent.children.indexOf(node);
+                    if (index > -1) {
+                        parent.children.splice(index, 0, callback(node));
+                    }
+                }
+            }
+        });
+        return this;
+    }
+    append(callback) {
+        this.walkDown(this.context, (node, stack) => {
+            if (this.selectedNodes.includes(node)) {
+                const parent = stack[stack.length - 1];
+                if (parent != null) {
+                    const index = parent.children.indexOf(node);
+                    if (index > -1) {
+                        parent.children.splice(index + 1, 0, callback(node));
+                    }
+                }
+            }
+        });
+        return this;
+    }
+    transform(callback) {
+        this.selectedNodes.forEach((node) => {
+            return this.recursiveTransform(node, callback);
+        });
+        return this;
+    }
+    recursiveTransform(node, callback) {
+        if (node.isComposite && Array.isArray(node.children)) {
+            const length = node.children.length;
+            for (let x = 0; x < length; x++) {
+                node.children[x] = this.recursiveTransform(node.children[x], callback);
+            }
+        }
+        return callback(node);
+    }
+    walkUp(node, callback, ancestors = []) {
+        ancestors.push(node);
+        if (node.isComposite && Array.isArray(node.children)) {
+            const children = node.children.slice();
+            children.forEach((c) => this.walkUp(c, callback, ancestors));
+        }
+        ancestors.pop();
+        callback(node, ancestors);
+        return this;
+    }
+    walkDown(node, callback, ancestors = []) {
+        callback(node, ancestors);
+        ancestors.push(node);
+        if (node.isComposite && Array.isArray(node.children)) {
+            const children = node.children.slice();
+            children.forEach((c) => this.walkDown(c, callback, ancestors));
+        }
+        ancestors.pop();
+        return this;
+    }
+    selectAll() {
+        return this.select((n) => true);
+    }
+    selectNode(node) {
+        return new NodeVisitor(this.context, [...this.selectedNodes, node]);
+    }
+    deselectNode(node) {
+        const visitor = new NodeVisitor(this.context, this.selectedNodes.slice());
+        return visitor.filter((n) => n !== node);
+    }
+    select(callback) {
+        const node = this.context;
+        const selectedNodes = [];
+        if (node.isComposite) {
+            this.walkDown(node, (descendant) => {
+                if (callback(descendant)) {
+                    selectedNodes.push(descendant);
+                }
+            });
+        }
+        return new NodeVisitor(this.context, selectedNodes);
+    }
+    forEach(callback) {
+        this.selectedNodes.forEach(callback);
+        return this;
+    }
+    filter(callback) {
+        return new NodeVisitor(this.context, this.selectedNodes.filter(callback));
+    }
+    map(callback) {
+        return new NodeVisitor(this.context, this.selectedNodes.map(callback));
+    }
+    selectRoot() {
+        return new NodeVisitor(this.context, [this.context]);
+    }
+    first() {
+        return this.get(0);
+    }
+    last() {
+        return this.get(this.selectedNodes.length - 1);
+    }
+    get(index) {
+        const node = this.selectedNodes[index];
+        if (node == null) {
+            throw new Error(`Couldn't find node at index: ${index}, out of ${this.selectedNodes.length}.`);
+        }
+        return new NodeVisitor(node, []);
+    }
+    clear() {
+        this.selectedNodes = [];
+        return this;
+    }
+    static select(context, callback) {
+        if (callback != null) {
+            return new NodeVisitor(context).select(callback);
+        }
+        else {
+            return new NodeVisitor(context);
+        }
+    }
+}
+
 exports.AndComposite = AndComposite;
 exports.AndValue = AndValue;
 exports.AnyOfThese = AnyOfThese;
@@ -1521,6 +1708,7 @@ exports.CompositePattern = CompositePattern;
 exports.Cursor = Cursor;
 exports.Literal = Literal;
 exports.Node = Node;
+exports.NodeVisitor = NodeVisitor;
 exports.NotValue = NotValue;
 exports.OptionalComposite = OptionalComposite;
 exports.OptionalValue = OptionalValue;

@@ -14,7 +14,7 @@ export default class Visitor {
       if (node.isComposite) {
         const children: Node[] = [];
 
-        this.walkUp(node, (descendant: Node) => {
+        Visitor.walkUp(node, (descendant: Node) => {
           if (!descendant.isComposite) {
             children.push(descendant);
           }
@@ -68,7 +68,7 @@ export default class Visitor {
       return this;
     }
 
-    this.walkDown(this.root, (node, stack) => {
+    Visitor.walkDown(this.root, (node, stack) => {
       if (this.selectedNodes.includes(node)) {
         const parent = stack[stack.length - 1];
         const grandParent = stack[stack.length - 2];
@@ -90,7 +90,7 @@ export default class Visitor {
       return this;
     }
 
-    this.walkUp(this.root, (node, stack) => {
+    Visitor.walkUp(this.root, (node, stack) => {
       if (this.selectedNodes.includes(node)) {
         const parent = stack[stack.length - 1];
 
@@ -111,7 +111,7 @@ export default class Visitor {
       return this;
     }
 
-    this.walkDown(this.root, (node, stack) => {
+    Visitor.walkDown(this.root, (node, stack) => {
       if (this.selectedNodes.includes(node)) {
         const parent = stack[stack.length - 1];
 
@@ -147,41 +147,6 @@ export default class Visitor {
     return callback(node);
   }
 
-  walkUp(
-    node: Node,
-    callback: (node: Node, ancestors: Node[]) => void,
-    ancestors: Node[] = []
-  ) {
-    ancestors.push(node);
-
-    if (node.isComposite && Array.isArray(node.children)) {
-      const children = node.children.slice();
-      children.forEach((c) => this.walkUp(c, callback, ancestors));
-    }
-
-    ancestors.pop();
-    callback(node, ancestors);
-
-    return this;
-  }
-
-  walkDown(
-    node: Node,
-    callback: (node: Node, ancestors: Node[]) => void,
-    ancestors: Node[] = []
-  ) {
-    callback(node, ancestors);
-    ancestors.push(node);
-
-    if (node.isComposite && Array.isArray(node.children)) {
-      const children = node.children.slice();
-      children.forEach((c) => this.walkDown(c, callback, ancestors));
-    }
-
-    ancestors.pop();
-    return this;
-  }
-
   selectAll() {
     return this.select((n) => true);
   }
@@ -204,7 +169,7 @@ export default class Visitor {
     const selectedNodes: Node[] = [];
 
     if (node.isComposite) {
-      this.walkDown(node, (descendant: Node) => {
+      Visitor.walkDown(node, (descendant: Node) => {
         if (callback(descendant)) {
           selectedNodes.push(descendant);
         }
@@ -271,5 +236,40 @@ export default class Visitor {
     } else {
       return new Visitor(root);
     }
+  }
+
+  static walkUp(
+    node: Node,
+    callback: (node: Node, ancestors: Node[]) => void,
+    ancestors: Node[] = []
+  ) {
+    ancestors.push(node);
+
+    if (node.isComposite && Array.isArray(node.children)) {
+      const children = node.children.slice();
+      children.forEach((c) => this.walkUp(c, callback, ancestors));
+    }
+
+    ancestors.pop();
+    callback(node, ancestors);
+
+    return this;
+  }
+
+  static walkDown(
+    node: Node,
+    callback: (node: Node, ancestors: Node[]) => void,
+    ancestors: Node[] = []
+  ) {
+    callback(node, ancestors);
+    ancestors.push(node);
+
+    if (node.isComposite && Array.isArray(node.children)) {
+      const children = node.children.slice();
+      children.forEach((c) => this.walkDown(c, callback, ancestors));
+    }
+
+    ancestors.pop();
+    return this;
   }
 }

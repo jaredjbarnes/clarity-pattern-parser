@@ -1518,7 +1518,7 @@ class Visitor {
         this.selectedNodes.forEach((node) => {
             if (node.isComposite) {
                 const children = [];
-                this.walkUp(node, (descendant) => {
+                Visitor.walkUp(node, (descendant) => {
                     if (!descendant.isComposite) {
                         children.push(descendant);
                     }
@@ -1563,7 +1563,7 @@ class Visitor {
         if (this.root == null) {
             return this;
         }
-        this.walkDown(this.root, (node, stack) => {
+        Visitor.walkDown(this.root, (node, stack) => {
             if (this.selectedNodes.includes(node)) {
                 const parent = stack[stack.length - 1];
                 const grandParent = stack[stack.length - 2];
@@ -1581,7 +1581,7 @@ class Visitor {
         if (this.root == null) {
             return this;
         }
-        this.walkUp(this.root, (node, stack) => {
+        Visitor.walkUp(this.root, (node, stack) => {
             if (this.selectedNodes.includes(node)) {
                 const parent = stack[stack.length - 1];
                 if (parent != null) {
@@ -1598,7 +1598,7 @@ class Visitor {
         if (this.root == null) {
             return this;
         }
-        this.walkDown(this.root, (node, stack) => {
+        Visitor.walkDown(this.root, (node, stack) => {
             if (this.selectedNodes.includes(node)) {
                 const parent = stack[stack.length - 1];
                 if (parent != null) {
@@ -1626,26 +1626,6 @@ class Visitor {
         }
         return callback(node);
     }
-    walkUp(node, callback, ancestors = []) {
-        ancestors.push(node);
-        if (node.isComposite && Array.isArray(node.children)) {
-            const children = node.children.slice();
-            children.forEach((c) => this.walkUp(c, callback, ancestors));
-        }
-        ancestors.pop();
-        callback(node, ancestors);
-        return this;
-    }
-    walkDown(node, callback, ancestors = []) {
-        callback(node, ancestors);
-        ancestors.push(node);
-        if (node.isComposite && Array.isArray(node.children)) {
-            const children = node.children.slice();
-            children.forEach((c) => this.walkDown(c, callback, ancestors));
-        }
-        ancestors.pop();
-        return this;
-    }
     selectAll() {
         return this.select((n) => true);
     }
@@ -1663,7 +1643,7 @@ class Visitor {
         const node = this.root;
         const selectedNodes = [];
         if (node.isComposite) {
-            this.walkDown(node, (descendant) => {
+            Visitor.walkDown(node, (descendant) => {
                 if (callback(descendant)) {
                     selectedNodes.push(descendant);
                 }
@@ -1715,6 +1695,26 @@ class Visitor {
         else {
             return new Visitor(root);
         }
+    }
+    static walkUp(node, callback, ancestors = []) {
+        ancestors.push(node);
+        if (node.isComposite && Array.isArray(node.children)) {
+            const children = node.children.slice();
+            children.forEach((c) => this.walkUp(c, callback, ancestors));
+        }
+        ancestors.pop();
+        callback(node, ancestors);
+        return this;
+    }
+    static walkDown(node, callback, ancestors = []) {
+        callback(node, ancestors);
+        ancestors.push(node);
+        if (node.isComposite && Array.isArray(node.children)) {
+            const children = node.children.slice();
+            children.forEach((c) => this.walkDown(c, callback, ancestors));
+        }
+        ancestors.pop();
+        return this;
     }
 }
 

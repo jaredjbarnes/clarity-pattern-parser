@@ -12,8 +12,6 @@ export default class Visitor {
     append(callback: (node: Node) => Node): this;
     transform(callback: (node: Node) => Node): this;
     private recursiveTransform;
-    walkUp(node: Node, callback: (node: Node, ancestors: Node[]) => void, ancestors?: Node[]): this;
-    walkDown(node: Node, callback: (node: Node, ancestors: Node[]) => void, ancestors?: Node[]): this;
     selectAll(): Visitor;
     selectNode(node: Node): Visitor;
     deselectNode(node: Node): Visitor;
@@ -28,4 +26,6 @@ export default class Visitor {
     clear(): this;
     setRoot(root: Node | null): this;
     static select(root: Node, callback?: (node: Node) => boolean): Visitor;
+    static walkUp(node: Node, callback: (node: Node, ancestors: Node[]) => void, ancestors?: Node[]): typeof Visitor;
+    static walkDown(node: Node, callback: (node: Node, ancestors: Node[]) => void, ancestors?: Node[]): typeof Visitor;
 }

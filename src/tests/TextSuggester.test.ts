@@ -80,6 +80,21 @@ describe("TextInspector", () => {
     expect(inspection.error).toBe(null);
   });
 
+  test("Partial Half Match On First Token", () => {
+    const text = "Pa";
+    const textInspector = new TextSuggester();
+
+    const inspection = textInspector.suggest(text, sentence);
+
+    expect(inspection.match?.startIndex).toBe(0);
+    expect(inspection.match?.endIndex).toBe(1);
+    expect(inspection.match?.text).toBe("Pa");
+    expect(inspection.options.values.length).toBe(1);
+    expect(inspection.options.values[0]).toBe("t");
+    expect(inspection.isComplete).toBe(false);
+    expect(inspection.error).toBe(null);
+  });
+
   test("Empty String", () => {
     const text = "";
     const textInspector = new TextSuggester();

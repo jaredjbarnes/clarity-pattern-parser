@@ -182,14 +182,9 @@ export default class TextSuggester {
 
     if (this.patternMatch?.astNode == null) {
       let options = this.rootPattern?.getTokens();
-      const parts = this.text.split(" ").filter((part: any) => {
-        return part.length > 0;
-      });
 
       options = options?.filter((option: any) => {
-        return parts.some((part: any) => {
-          return option.indexOf(part) > -1;
-        });
+        return option.indexOf(this.text) > -1;
       });
 
       if (options?.length === 0) {
@@ -197,11 +192,24 @@ export default class TextSuggester {
         return;
       }
 
+      const values = options?.map((option) => {
+        const parts = option.split(this.text);
+        return parts[1];
+      });
+
       this.tokens = {
         startIndex: 0,
-        values: options || [],
+        values: values || [],
       };
 
+      this.matchedText = this.text;
+      this.match = {
+        text: this.text,
+        startIndex: 0,
+        endIndex: this.text.length - 1,
+      };
+      this.error = null;
+      
       return;
     }
 

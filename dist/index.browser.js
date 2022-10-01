@@ -1432,22 +1432,28 @@
           }
           if (((_c = this.patternMatch) === null || _c === void 0 ? void 0 : _c.astNode) == null) {
               let options = (_d = this.rootPattern) === null || _d === void 0 ? void 0 : _d.getTokens();
-              const parts = this.text.split(" ").filter((part) => {
-                  return part.length > 0;
-              });
               options = options === null || options === void 0 ? void 0 : options.filter((option) => {
-                  return parts.some((part) => {
-                      return option.indexOf(part) > -1;
-                  });
+                  return option.indexOf(this.text) > -1;
               });
               if ((options === null || options === void 0 ? void 0 : options.length) === 0) {
                   this.tokens = null;
                   return;
               }
+              const values = options === null || options === void 0 ? void 0 : options.map((option) => {
+                  const parts = option.split(this.text);
+                  return parts[1];
+              });
               this.tokens = {
                   startIndex: 0,
-                  values: options || [],
+                  values: values || [],
               };
+              this.matchedText = this.text;
+              this.match = {
+                  text: this.text,
+                  startIndex: 0,
+                  endIndex: this.text.length - 1,
+              };
+              this.error = null;
               return;
           }
           const options = this.options;

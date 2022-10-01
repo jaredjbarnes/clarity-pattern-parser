@@ -13,6 +13,7 @@ import {
 import string from "./string";
 import number from "./number";
 import boolean from "./boolean";
+import Cursor from "../../Cursor";
 
 const openCurlyBracket = new Literal("open-curly-bracket", "{");
 const closeCurlyBracket = new Literal("close-curly-bracket", "}");

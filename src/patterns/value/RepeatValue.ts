@@ -74,6 +74,12 @@ export default class RepeatValue extends ValuePattern {
             break;
           } else {
             this.nodes.push(node);
+
+            if (node.endIndex === this.cursor.lastIndex()) {
+              this._processMatch();
+              break;
+            }
+
             this.cursor.next();
           }
         }

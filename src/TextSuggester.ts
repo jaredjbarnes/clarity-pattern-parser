@@ -172,15 +172,17 @@ export default class TextSuggester {
   }
 
   private saveNextToken() {
-    if (
+    const isCompleteMatch =
       this.patternMatch?.pattern === this.rootPattern &&
-      this.cursor?.didSuccessfullyParse()
-    ) {
+      this.cursor?.didSuccessfullyParse();
+    const noMatch = this.patternMatch?.astNode == null;
+
+    if (isCompleteMatch) {
       this.tokens = null;
       return;
     }
 
-    if (this.patternMatch?.astNode == null) {
+    if (noMatch) {
       let options = this.rootPattern?.getTokens();
 
       options = options?.filter((option: any) => {
@@ -209,7 +211,7 @@ export default class TextSuggester {
         endIndex: this.text.length - 1,
       };
       this.error = null;
-      
+
       return;
     }
 

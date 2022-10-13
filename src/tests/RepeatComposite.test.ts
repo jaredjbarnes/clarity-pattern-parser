@@ -43,4 +43,16 @@ describe("RepeatComposite", () => {
     expect(result?.children[2].value).toBe("B");
     expect(result?.children[2].name).toBe("b");
   });
+
+  test("Cannot end on a divider.", () => {
+    const a = new Literal("a", "A");
+    const b = new Literal("b", "B");
+    const space = new Literal("space", " ");
+    const or = new OrComposite("names", [a, b]);
+
+    const repeat = new RepeatComposite("repeat", or, space);
+    const result = repeat.parse(new Cursor("A B "));
+
+    expect(result).toBe(null);
+  });
 });

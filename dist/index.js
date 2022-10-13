@@ -907,6 +907,7 @@ class RepeatValue extends ValuePattern {
                     else {
                         this.nodes.push(node);
                         if (node.endIndex === this.cursor.lastIndex()) {
+                            this.nodes.length = 0;
                             this._processMatch();
                             break;
                         }
@@ -1203,6 +1204,7 @@ class RepeatComposite extends CompositePattern {
                     else {
                         this.nodes.push(node);
                         if (node.endIndex === this.cursor.lastIndex()) {
+                            this.nodes.length = 0;
                             this._processMatch();
                             break;
                         }

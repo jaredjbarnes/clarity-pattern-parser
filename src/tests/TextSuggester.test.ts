@@ -5,6 +5,9 @@ import Literal from "../patterns/value/Literal";
 import AndValue from "../patterns/value/AndValue";
 import OrValue from "../patterns/value/OrValue";
 import json from "./javascriptPatterns/json";
+import OrComposite from "../patterns/composite/OrComposite";
+import RepeatComposite from "../patterns/composite/RepeatComposite";
+import Cursor from "../Cursor";
 
 describe("TextInspector", () => {
   test("Partial Match", () => {
@@ -213,5 +216,21 @@ describe("TextInspector", () => {
     expect(inspection.match?.endIndex).toBe(10);
     expect(inspection.match?.text).toBe(`{"blah":0.9`);
     expect(inspection.isComplete).toBe(false);
+  });
+
+  test("Suggest another item in the repeat.", () => {
+    const a = new Literal("a", "A");
+    const b = new Literal("b", "B");
+    const space = new Literal("space", " ");
+    const or = new OrComposite("names", [a, b]);
+
+    const repeat = new RepeatComposite("repeat", or, space);
+
+    const result = TextSuggester.suggest("A B ", repeat);
+
+    expect(result.isComplete).toBe(false);
+    expect(result.options.values[0]).toBe("A");
+    expect(result.options.values[1]).toBe("B");
+    expect(result.options.values.length).toBe(2);
   });
 });

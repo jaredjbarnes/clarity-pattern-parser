@@ -906,6 +906,10 @@ class RepeatValue extends ValuePattern {
                     }
                     else {
                         this.nodes.push(node);
+                        if (node.endIndex === this.cursor.lastIndex()) {
+                            this._processMatch();
+                            break;
+                        }
                         this.cursor.next();
                     }
                 }
@@ -1198,6 +1202,10 @@ class RepeatComposite extends CompositePattern {
                     }
                     else {
                         this.nodes.push(node);
+                        if (node.endIndex === this.cursor.lastIndex()) {
+                            this._processMatch();
+                            break;
+                        }
                         this.cursor.next();
                     }
                 }
@@ -1423,12 +1431,14 @@ class TextSuggester {
     }
     saveNextToken() {
         var _a, _b, _c, _d;
-        if (((_a = this.patternMatch) === null || _a === void 0 ? void 0 : _a.pattern) === this.rootPattern &&
-            ((_b = this.cursor) === null || _b === void 0 ? void 0 : _b.didSuccessfullyParse())) {
+        const isCompleteMatch = ((_a = this.patternMatch) === null || _a === void 0 ? void 0 : _a.pattern) === this.rootPattern &&
+            ((_b = this.cursor) === null || _b === void 0 ? void 0 : _b.didSuccessfullyParse());
+        const noMatch = ((_c = this.patternMatch) === null || _c === void 0 ? void 0 : _c.astNode) == null;
+        if (isCompleteMatch) {
             this.tokens = null;
             return;
         }
-        if (((_c = this.patternMatch) === null || _c === void 0 ? void 0 : _c.astNode) == null) {
+        if (noMatch) {
             let options = (_d = this.rootPattern) === null || _d === void 0 ? void 0 : _d.getTokens();
             options = options === null || options === void 0 ? void 0 : options.filter((option) => {
                 return option.indexOf(this.text) > -1;

@@ -346,7 +346,7 @@ class Pattern {
                     return nextSibling.getTokens().concat(tokens);
                 }
                 else if (index === 1) {
-                    return siblings[0].getTokens().concat(tokens);
+                    return siblings[0].getTokens();
                 }
                 else {
                     return this.getTokens().concat(tokens);
@@ -907,7 +907,6 @@ class RepeatValue extends ValuePattern {
                     else {
                         this.nodes.push(node);
                         if (node.endIndex === this.cursor.lastIndex()) {
-                            this.nodes.length = 0;
                             this._processMatch();
                             break;
                         }
@@ -1204,7 +1203,6 @@ class RepeatComposite extends CompositePattern {
                     else {
                         this.nodes.push(node);
                         if (node.endIndex === this.cursor.lastIndex()) {
-                            this.nodes.length = 0;
                             this._processMatch();
                             break;
                         }
@@ -1504,8 +1502,21 @@ class TextSuggester {
         };
     }
     saveOptions() {
-        var _a;
-        const furthestMatches = (_a = this.cursor) === null || _a === void 0 ? void 0 : _a.history.astNodes.reduce((acc, node, index) => {
+        const parents = new Map();
+        const cursor = this.cursor;
+        if (cursor == null) {
+            this.options = [];
+            return;
+        }
+        const furthestMatches = cursor.history.astNodes.reduce((acc, node, index) => {
+            const pattern = cursor.history.patterns[index];
+            const parent = pattern.parent;
+            if (parent != null) {
+                parents.set(parent, parent);
+            }
+            if (parents.has(pattern)) {
+                return acc;
+            }
             if (node.endIndex === acc.furthestTextIndex) {
                 acc.nodeIndexes.push(index);
             }

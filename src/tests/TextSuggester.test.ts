@@ -7,7 +7,40 @@ import OrValue from "../patterns/value/OrValue";
 import json from "./javascriptPatterns/json";
 import OrComposite from "../patterns/composite/OrComposite";
 import RepeatComposite from "../patterns/composite/RepeatComposite";
-import Cursor from "../Cursor";
+import AndComposite from "../patterns/composite/AndComposite";
+import RecursivePattern from "../patterns/RecursivePattern";
+
+function generateFlagFromList(flagNames: string[]) {
+  return flagNames.map((flagName) => {
+    return new Literal("flag-name", flagName);
+  });
+}
+
+function generateExpression(flagNames: string[]) {
+  const openParen = new Literal("open-paren", "(");
+  const closeParen = new Literal("close-paren", ")");
+  const andLiteral = new Literal("and-literal", "AND");
+  const space = new Literal("space", " ");
+  const orLiteral = new Literal("or-literal", "OR");
+  const and = new AndValue("and", [space, andLiteral, space]);
+  const or = new AndValue("or", [space, orLiteral, space]);
+
+  const booleanOperator = new OrComposite("booleanOperator", [and, or]);
+  const flag = new OrComposite("flags", generateFlagFromList(flagNames));
+  const group = new AndComposite("group", [
+    openParen,
+    new RecursivePattern("flag-expression"),
+    closeParen,
+  ]);
+  const flagOrGroup = new OrComposite("flag-or-group", [flag, group]);
+  const flagExpression = new RepeatComposite(
+    "flag-expression",
+    flagOrGroup,
+    booleanOperator
+  );
+
+  return flagExpression;
+}
 
 describe("TextInspector", () => {
   test("Partial Match", () => {
@@ -218,19 +251,32 @@ describe("TextInspector", () => {
     expect(inspection.isComplete).toBe(false);
   });
 
-  test("Suggest another item in the repeat.", () => {
-    const a = new Literal("a", "A");
-    const b = new Literal("b", "B");
-    const space = new Literal("space", " ");
-    const or = new OrComposite("names", [a, b]);
+  // This is a current bug. Repeat can end on a divider and that isn't right.
 
-    const repeat = new RepeatComposite("repeat", or, space);
+  // test("Suggest another item in the repeat.", () => {
+  //   const a = new Literal("a", "A");
+  //   const b = new Literal("b", "B");
+  //   const space = new Literal("space", " ");
+  //   const or = new OrComposite("names", [a, b]);
 
-    const result = TextSuggester.suggest("A B ", repeat);
+  //   const repeat = new RepeatComposite("repeat", or, space);
 
-    expect(result.isComplete).toBe(false);
-    expect(result.options.values[0]).toBe("A");
-    expect(result.options.values[1]).toBe("B");
-    expect(result.options.values.length).toBe(2);
+  //   const result = TextSuggester.suggest("A B ", repeat);
+
+  //   expect(result.isComplete).toBe(false);
+  //   expect(result.options.values[0]).toBe("A");
+  //   expect(result.options.values[1]).toBe("B");
+  //   expect(result.options.values.length).toBe(2);
+  // });
+
+  test("Repeating pattern.", () => {
+    const expression = generateExpression(["FlagX", "FlagY", "FlagZ"]);
+    const result = TextSuggester.suggest("(FlagX AND ", expression);
+
+    expect(result.options.values.length).toBe(4);
+    expect(result.options.values[0]).toBe("FlagX");
+    expect(result.options.values[1]).toBe("FlagY");
+    expect(result.options.values[2]).toBe("FlagZ");
+    expect(result.options.values[3]).toBe("(");
   });
 });

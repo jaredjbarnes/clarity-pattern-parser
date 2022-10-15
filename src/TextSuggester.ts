@@ -260,8 +260,27 @@ export default class TextSuggester {
   }
 
   private saveOptions() {
-    const furthestMatches = this.cursor?.history.astNodes.reduce(
+    const parents = new Map<Pattern, Pattern>();
+    const cursor = this.cursor;
+
+    if (cursor == null) {
+      this.options = [];
+      return;
+    }
+
+    const furthestMatches = cursor.history.astNodes.reduce(
       (acc: any, node: any, index: any) => {
+        const pattern = cursor.history.patterns[index];
+        const parent = pattern.parent;
+
+        if (parent != null) {
+          parents.set(parent, parent);
+        }
+
+        if (parents.has(pattern)){
+          return acc;
+        }
+
         if (node.endIndex === acc.furthestTextIndex) {
           acc.nodeIndexes.push(index);
         } else if (node.endIndex > acc.furthestTextIndex) {

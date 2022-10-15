@@ -114,7 +114,7 @@ export default abstract class Pattern {
         if (index === 0 && siblings.length > 1) {
           return nextSibling.getTokens().concat(tokens);
         } else if (index === 1) {
-          return siblings[0].getTokens().concat(tokens);
+          return siblings[0].getTokens();
         } else {
           return this.getTokens().concat(tokens);
         }

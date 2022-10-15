@@ -75,7 +75,6 @@ export default class RepeatComposite extends CompositePattern {
             this.nodes.push(node);
 
             if (node.endIndex === this.cursor.lastIndex()) {
-              this.nodes.length = 0;
               this._processMatch();
               break;
             }

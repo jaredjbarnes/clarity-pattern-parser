@@ -251,23 +251,21 @@ describe("TextInspector", () => {
     expect(inspection.isComplete).toBe(false);
   });
 
-  // This is a current bug. Repeat can end on a divider and that isn't right.
+  test("Suggest another item in the repeat.", () => {
+    const a = new Literal("a", "A");
+    const b = new Literal("b", "B");
+    const space = new Literal("space", " ");
+    const or = new OrComposite("names", [a, b]);
 
-  // test("Suggest another item in the repeat.", () => {
-  //   const a = new Literal("a", "A");
-  //   const b = new Literal("b", "B");
-  //   const space = new Literal("space", " ");
-  //   const or = new OrComposite("names", [a, b]);
+    const repeat = new RepeatComposite("repeat", or, space);
 
-  //   const repeat = new RepeatComposite("repeat", or, space);
+    const result = TextSuggester.suggest("A B ", repeat);
 
-  //   const result = TextSuggester.suggest("A B ", repeat);
-
-  //   expect(result.isComplete).toBe(false);
-  //   expect(result.options.values[0]).toBe("A");
-  //   expect(result.options.values[1]).toBe("B");
-  //   expect(result.options.values.length).toBe(2);
-  // });
+    expect(result.isComplete).toBe(false);
+    expect(result.options.values[0]).toBe("A");
+    expect(result.options.values[1]).toBe("B");
+    expect(result.options.values.length).toBe(2);
+  });
 
   test("Repeating pattern.", () => {
     const expression = generateExpression(["FlagX", "FlagY", "FlagZ"]);

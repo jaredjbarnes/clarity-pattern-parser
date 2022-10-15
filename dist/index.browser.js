@@ -919,8 +919,9 @@
           }
       }
       _processMatch() {
+          const endsOnDivider = this.nodes.length % 2 === 0;
           this.cursor.resolveError();
-          if (this.nodes.length === 0) {
+          if (endsOnDivider) {
               const parseError = new ParseError(`Did not find a repeating match of ${this.name}.`, this.mark, this);
               this.cursor.throwError(parseError);
               this.node = null;
@@ -1215,8 +1216,9 @@
           }
       }
       _processMatch() {
+          const endsOnDivider = this.nodes.length % 2 === 0;
           this.cursor.resolveError();
-          if (this.nodes.length === 0) {
+          if (endsOnDivider) {
               this.cursor.throwError(new ParseError(`Did not find a repeating match of ${this.name}.`, this.mark, this));
               this.node = null;
           }

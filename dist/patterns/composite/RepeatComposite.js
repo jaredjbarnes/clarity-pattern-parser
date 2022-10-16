@@ -51,6 +51,10 @@ export default class RepeatComposite extends CompositePattern {
                     }
                     else {
                         this.nodes.push(node);
+                        if (node.endIndex === this.cursor.lastIndex()) {
+                            this._processMatch();
+                            break;
+                        }
                         this.cursor.next();
                     }
                 }
@@ -58,8 +62,9 @@ export default class RepeatComposite extends CompositePattern {
         }
     }
     _processMatch() {
+        const endsOnDivider = this.nodes.length % 2 === 0;
         this.cursor.resolveError();
-        if (this.nodes.length === 0) {
+        if (endsOnDivider) {
             this.cursor.throwError(new ParseError(`Did not find a repeating match of ${this.name}.`, this.mark, this));
             this.node = null;
         }

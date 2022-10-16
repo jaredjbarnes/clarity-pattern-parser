@@ -131,29 +131,37 @@ export default class TextSuggester {
     }
     saveNextToken() {
         var _a, _b, _c, _d;
-        if (((_a = this.patternMatch) === null || _a === void 0 ? void 0 : _a.pattern) === this.rootPattern &&
-            ((_b = this.cursor) === null || _b === void 0 ? void 0 : _b.didSuccessfullyParse())) {
+        const isCompleteMatch = ((_a = this.patternMatch) === null || _a === void 0 ? void 0 : _a.pattern) === this.rootPattern &&
+            ((_b = this.cursor) === null || _b === void 0 ? void 0 : _b.didSuccessfullyParse());
+        const noMatch = ((_c = this.patternMatch) === null || _c === void 0 ? void 0 : _c.astNode) == null;
+        if (isCompleteMatch) {
             this.tokens = null;
             return;
         }
-        if (((_c = this.patternMatch) === null || _c === void 0 ? void 0 : _c.astNode) == null) {
+        if (noMatch) {
             let options = (_d = this.rootPattern) === null || _d === void 0 ? void 0 : _d.getTokens();
-            const parts = this.text.split(" ").filter((part) => {
-                return part.length > 0;
-            });
             options = options === null || options === void 0 ? void 0 : options.filter((option) => {
-                return parts.some((part) => {
-                    return option.indexOf(part) > -1;
-                });
+                return option.indexOf(this.text) > -1;
             });
             if ((options === null || options === void 0 ? void 0 : options.length) === 0) {
                 this.tokens = null;
                 return;
             }
+            const values = options === null || options === void 0 ? void 0 : options.map((option) => {
+                const parts = option.split(this.text);
+                return parts[1];
+            });
             this.tokens = {
                 startIndex: 0,
-                values: options || [],
+                values: values || [],
             };
+            this.matchedText = this.text;
+            this.match = {
+                text: this.text,
+                startIndex: 0,
+                endIndex: this.text.length - 1,
+            };
+            this.error = null;
             return;
         }
         const options = this.options;
@@ -194,8 +202,21 @@ export default class TextSuggester {
         };
     }
     saveOptions() {
-        var _a;
-        const furthestMatches = (_a = this.cursor) === null || _a === void 0 ? void 0 : _a.history.astNodes.reduce((acc, node, index) => {
+        const parents = new Map();
+        const cursor = this.cursor;
+        if (cursor == null) {
+            this.options = [];
+            return;
+        }
+        const furthestMatches = cursor.history.astNodes.reduce((acc, node, index) => {
+            const pattern = cursor.history.patterns[index];
+            const parent = pattern.parent;
+            if (parent != null) {
+                parents.set(parent, parent);
+            }
+            if (parents.has(pattern)) {
+                return acc;
+            }
             if (node.endIndex === acc.furthestTextIndex) {
                 acc.nodeIndexes.push(index);
             }

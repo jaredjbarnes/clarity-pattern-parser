@@ -81,7 +81,7 @@ export default class Pattern {
                     return nextSibling.getTokens().concat(tokens);
                 }
                 else if (index === 1) {
-                    return siblings[0].getTokens().concat(tokens);
+                    return siblings[0].getTokens();
                 }
                 else {
                     return this.getTokens().concat(tokens);

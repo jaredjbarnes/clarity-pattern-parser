@@ -88,9 +88,12 @@ export default class RepeatComposite extends CompositePattern {
 
   private _processMatch() {
     const endsOnDivider = this.nodes.length % 2 === 0;
+    const noMatch = this.nodes.length === 0;
+    const hasDivider = this._divider != null;
+
     this.cursor.resolveError();
 
-    if (endsOnDivider) {
+    if ((hasDivider && endsOnDivider) || noMatch) {
       this.cursor.throwError(
         new ParseError(
           `Did not find a repeating match of ${this.name}.`,

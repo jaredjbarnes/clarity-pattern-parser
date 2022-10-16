@@ -176,8 +176,9 @@ export default class TextSuggester {
       this.patternMatch?.pattern === this.rootPattern &&
       this.cursor?.didSuccessfullyParse();
     const noMatch = this.patternMatch?.astNode == null;
+    const noOptions = this.options.length === 0;
 
-    if (isCompleteMatch) {
+    if (isCompleteMatch && noOptions) {
       this.tokens = null;
       return;
     }

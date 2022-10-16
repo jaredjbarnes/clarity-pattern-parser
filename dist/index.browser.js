@@ -920,8 +920,10 @@
       }
       _processMatch() {
           const endsOnDivider = this.nodes.length % 2 === 0;
+          const noMatch = this.nodes.length === 0;
+          const hasDivider = this._divider != null;
           this.cursor.resolveError();
-          if (endsOnDivider) {
+          if ((hasDivider && endsOnDivider) || noMatch) {
               const parseError = new ParseError(`Did not find a repeating match of ${this.name}.`, this.mark, this);
               this.cursor.throwError(parseError);
               this.node = null;
@@ -1217,8 +1219,10 @@
       }
       _processMatch() {
           const endsOnDivider = this.nodes.length % 2 === 0;
+          const noMatch = this.nodes.length === 0;
+          const hasDivider = this._divider != null;
           this.cursor.resolveError();
-          if (endsOnDivider) {
+          if ((hasDivider && endsOnDivider) || noMatch) {
               this.cursor.throwError(new ParseError(`Did not find a repeating match of ${this.name}.`, this.mark, this));
               this.node = null;
           }
@@ -1438,7 +1442,8 @@
           const isCompleteMatch = ((_a = this.patternMatch) === null || _a === void 0 ? void 0 : _a.pattern) === this.rootPattern &&
               ((_b = this.cursor) === null || _b === void 0 ? void 0 : _b.didSuccessfullyParse());
           const noMatch = ((_c = this.patternMatch) === null || _c === void 0 ? void 0 : _c.astNode) == null;
-          if (isCompleteMatch) {
+          const noOptions = this.options.length === 0;
+          if (isCompleteMatch && noOptions) {
               this.tokens = null;
               return;
           }

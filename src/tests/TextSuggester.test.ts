@@ -267,6 +267,21 @@ describe("TextInspector", () => {
     expect(result.options.values.length).toBe(2);
   });
 
+  test("Suggest another item when its complete but is on a repeat.", () => {
+    const a = new Literal("a", "A");
+    const b = new Literal("b", "B");
+    const space = new Literal("space", " ");
+    const or = new OrComposite("names", [a, b]);
+
+    const repeat = new RepeatComposite("repeat", or, space);
+
+    const result = TextSuggester.suggest("A B", repeat);
+
+    expect(result.isComplete).toBe(true);
+    expect(result.options.values.length).toBe(1);
+    expect(result.options.values[0]).toBe(" ");
+  });
+
   test("Repeating pattern.", () => {
     const expression = generateExpression(["FlagX", "FlagY", "FlagZ"]);
     const result = TextSuggester.suggest("(FlagX AND ", expression);

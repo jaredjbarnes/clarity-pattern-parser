@@ -1,17 +1,16 @@
 /** @jest-environment node */
 import Literal from "../patterns/value/Literal";
 import Cursor from "../Cursor";
-import LookAheadValue from "../patterns/value/LookAheadValue";
+import LookAhead from "../patterns/LookAhead";
 import NotValue from "../patterns/value/NotValue";
 import OrValue from "../patterns/value/OrValue";
 import RegexValue from "../patterns/value/RegexValue";
 import AndValue from "../patterns/value/AndValue";
-import RecursivePattern from "../patterns/RecursivePattern";
 
 describe("LookAheadValue", () => {
   test("Look for pattern.", () => {
     const john = new Literal("john", "John");
-    const lookAheadValue = new LookAheadValue(john);
+    const lookAheadValue = new LookAhead(john);
     const cursor = new Cursor("John");
     const node = lookAheadValue.parse(cursor);
 
@@ -21,7 +20,7 @@ describe("LookAheadValue", () => {
 
   test("Look for a not pattern.", () => {
     const john = new Literal("john", "John");
-    const lookAheadValue = new LookAheadValue(new NotValue("not-john", john));
+    const lookAheadValue = new LookAhead(new NotValue("not-john", john));
     const cursor = new Cursor("Joel");
     const node = lookAheadValue.parse(cursor);
 
@@ -31,7 +30,7 @@ describe("LookAheadValue", () => {
 
   test("Fail looking for a pattern.", () => {
     const john = new Literal("john", "John");
-    const lookAheadValue = new LookAheadValue(john);
+    const lookAheadValue = new LookAhead(john);
     const cursor = new Cursor("Joel");
     const node = lookAheadValue.parse(cursor);
 
@@ -41,7 +40,7 @@ describe("LookAheadValue", () => {
 
   test("And a look ahead together.", () => {
     const john = new Literal("john", "John");
-    const lookAheadValue = new LookAheadValue(john);
+    const lookAheadValue = new LookAhead(john);
     const cursor = new Cursor("Joel");
     const node = lookAheadValue.parse(cursor);
 
@@ -64,8 +63,8 @@ describe("LookAheadValue", () => {
       "[a-zA-Z_$][a-zA-Z0-9_]*"
     );
     const identity = new AndValue("identity", [
-      new LookAheadValue(new NotValue("not-keywords", keywords)),
-      new LookAheadValue(new NotValue("not-operator", operator)),
+      new LookAhead(new NotValue("not-keywords", keywords)),
+      new LookAhead(new NotValue("not-operator", operator)),
       identFirstPart,
     ]);
 
@@ -91,5 +90,4 @@ describe("LookAheadValue", () => {
     expect(result3).toBe(null);
     expect(cursor3.hasUnresolvedError()).toBe(true);
   });
-  
 });

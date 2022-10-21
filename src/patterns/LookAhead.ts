@@ -1,17 +1,10 @@
-import ValuePattern from "./ValuePattern";
-import Cursor from "../../Cursor";
-import ParseError from "../ParseError";
+import Cursor from "../Cursor";
+import ParseError from "./ParseError";
+import Pattern from "./Pattern";
 
-export default class LookAheadValue extends ValuePattern {
-  constructor(pattern: ValuePattern) {
+export default class LookAhead extends Pattern {
+  constructor(pattern: Pattern) {
     super("look-ahead", "look-ahead", [pattern]);
-    this._assertArguments();
-  }
-
-  private _assertArguments() {
-    if (!(this.children[0] instanceof ValuePattern)) {
-      throw new Error("Invalid Arguments: Expected a ValuePattern.");
-    }
   }
 
   parse(cursor: Cursor) {
@@ -30,7 +23,7 @@ export default class LookAheadValue extends ValuePattern {
   }
 
   clone() {
-    return new LookAheadValue(this.children[0] as ValuePattern);
+    return new LookAhead(this.children[0].clone());
   }
 
   getTokens() {

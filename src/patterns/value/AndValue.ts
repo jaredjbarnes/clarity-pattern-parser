@@ -2,10 +2,7 @@ import ValuePattern from "./ValuePattern";
 import ValueNode from "../../ast/ValueNode";
 import ParseError from "../../patterns/ParseError";
 import OptionalValue from "./OptionalValue";
-import Permutor from "../../Permutor";
 import Cursor from "../../Cursor";
-
-const permutor = new Permutor();
 
 export default class AndValue extends ValuePattern {
   public index: number = 0;
@@ -87,11 +84,28 @@ export default class AndValue extends ValuePattern {
   }
 
   private _assertRestOfPatternsAreOptional() {
-    const areTheRestOptional = this.children.every((pattern, index) => {
-      return index <= this.index || pattern instanceof OptionalValue;
-    });
+    const optionalResults: boolean[] = [];
 
-    if (!areTheRestOptional) {
+    for (let x = this.index + 1; x < this.children.length; x++) {
+      const pattern = this.children[x];
+      const mark = this.cursor.mark();
+      const result = pattern.parse(this.cursor);
+      const isUnresolved = this.cursor.hasUnresolvedError();
+      
+      this.cursor.resolveError();
+      this.cursor.moveToMark(mark);
+
+      if (!isUnresolved && result == null){
+        optionalResults.push(true);
+      } else {
+        optionalResults.push(false);
+        break;
+      }
+    }
+
+    const areOptional = optionalResults.every((r) => r);
+
+    if (!areOptional) {
       const parseError = new ParseError(
         `Could not match ${this.name} before string ran out.`,
         this.index,

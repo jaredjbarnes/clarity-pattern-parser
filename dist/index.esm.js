@@ -556,10 +556,24 @@ class AndValue extends ValuePattern {
         return this.index + 1 < this._children.length;
     }
     _assertRestOfPatternsAreOptional() {
-        const areTheRestOptional = this.children.every((pattern, index) => {
-            return index <= this.index || pattern instanceof OptionalValue;
-        });
-        if (!areTheRestOptional) {
+        const optionalResults = [];
+        for (let x = this.index + 1; x < this.children.length; x++) {
+            const pattern = this.children[x];
+            const mark = this.cursor.mark();
+            const result = pattern.parse(this.cursor);
+            const isUnresolved = this.cursor.hasUnresolvedError();
+            this.cursor.resolveError();
+            this.cursor.moveToMark(mark);
+            if (!isUnresolved && result == null) {
+                optionalResults.push(true);
+            }
+            else {
+                optionalResults.push(false);
+                break;
+            }
+        }
+        const areOptional = optionalResults.every((r) => r);
+        if (!areOptional) {
             const parseError = new ParseError(`Could not match ${this.name} before string ran out.`, this.index, this);
             this.cursor.throwError(parseError);
         }
@@ -1038,12 +1052,24 @@ class AndComposite extends CompositePattern {
         return this.index + 1 < this._children.length;
     }
     _assertRestOfPatternsAreOptional() {
-        const areTheRestOptional = this.children.every((pattern, index) => {
-            return (index <= this.index ||
-                pattern instanceof OptionalValue ||
-                pattern instanceof OptionalComposite);
-        });
-        if (!areTheRestOptional) {
+        const optionalResults = [];
+        for (let x = this.index + 1; x < this.children.length; x++) {
+            const pattern = this.children[x];
+            const mark = this.cursor.mark();
+            const result = pattern.parse(this.cursor);
+            const isUnresolved = this.cursor.hasUnresolvedError();
+            this.cursor.resolveError();
+            this.cursor.moveToMark(mark);
+            if (!isUnresolved && result == null) {
+                optionalResults.push(true);
+            }
+            else {
+                optionalResults.push(false);
+                break;
+            }
+        }
+        const areOptional = optionalResults.every((r) => r);
+        if (!areOptional) {
             const parseError = new ParseError(`Could not match ${this.name} before string ran out.`, this.index, this);
             this.cursor.throwError(parseError);
         }

@@ -1,12 +1,11 @@
 import Pattern from "./Pattern";
-import ParserError from "./ParseError";
 import Cursor from "../Cursor";
 
-export default class ReferencePattern extends Pattern {
+export default class SoftReferencePattern extends Pattern {
   private isRecursing: boolean;
 
   constructor(name: string) {
-    super("reference", name);
+    super("soft-reference", name);
     this.isRecursing = false;
   }
 
@@ -61,36 +60,34 @@ export default class ReferencePattern extends Pattern {
   }
 
   parse(cursor: Cursor) {
-    try {
-      const node = this.safelyGetPattern().parse(cursor);
+    const pattern = this.safelyGetPattern();
 
-      if (!cursor.hasUnresolvedError() && node != null) {
-        cursor.addMatch(this, node);
-      }
-
-      return node;
-    } catch (error) {
-      cursor.throwError(
-        new ParserError(
-          `Couldn't find reference pattern to parse, with the name ${this.name}.`,
-          cursor.index,
-          this as Pattern
-        )
-      );
-
+    if (pattern == null) {
       return null;
     }
+
+    const node = pattern.parse(cursor);
+
+    if (!cursor.hasUnresolvedError() && node != null) {
+      cursor.addMatch(this, node);
+    }
+
+    return node;
   }
 
   clone(name?: string): Pattern {
     if (typeof name !== "string") {
       name = this.name;
     }
-    return new ReferencePattern(name);
+    return new SoftReferencePattern(name);
   }
 
   getTokenValue() {
-    return this.safelyGetPattern().getTokenValue();
+    const pattern = this.safelyGetPattern();
+    if (pattern == null) {
+      return null;
+    }
+    return pattern.getTokenValue();
   }
 
   private safelyGetPattern() {
@@ -100,14 +97,12 @@ export default class ReferencePattern extends Pattern {
     if (hasNoPattern) {
       const reference = this.findPattern();
       if (reference == null) {
-        throw new Error(
-          `Couldn't find reference pattern, with the name ${this.name}.`
-        );
+        return null;
       }
-
       pattern = reference;
       this.children = [pattern];
     }
+
 
     return pattern;
   }
@@ -116,6 +111,11 @@ export default class ReferencePattern extends Pattern {
     if (!this.isRecursing) {
       this.isRecursing = true;
       let pattern = this.safelyGetPattern();
+
+      if (pattern == null) {
+        return [];
+      }
+
       const tokens = pattern.getTokens();
       this.isRecursing = false;
       return tokens;

@@ -6,7 +6,6 @@ import OptionalComposite from "./OptionalComposite";
 import Pattern from "../Pattern";
 import Cursor from "../../Cursor";
 
-
 export default class AndComposite extends CompositePattern {
   public index!: number;
   public nodes!: CompositeNode[];
@@ -88,20 +87,34 @@ export default class AndComposite extends CompositePattern {
   }
 
   private _assertRestOfPatternsAreOptional() {
-    const areTheRestOptional = this.children.every((pattern, index) => {
-      return (
-        index <= this.index ||
-        pattern instanceof OptionalValue ||
-        pattern instanceof OptionalComposite
-      );
-    });
+    const optionalResults: boolean[] = [];
 
-    if (!areTheRestOptional) {
+    for (let x = this.index + 1; x < this.children.length; x++) {
+      const pattern = this.children[x];
+      const mark = this.cursor.mark();
+      const result = pattern.parse(this.cursor);
+      const isUnresolved = this.cursor.hasUnresolvedError();
+
+      this.cursor.resolveError();
+      this.cursor.moveToMark(mark);
+
+      if (!isUnresolved && result == null) {
+        optionalResults.push(true);
+      } else {
+        optionalResults.push(false);
+        break;
+      }
+    }
+
+    const areOptional = optionalResults.every((r) => r);
+
+    if (!areOptional) {
       const parseError = new ParseError(
         `Could not match ${this.name} before string ran out.`,
         this.index,
         this
       );
+
       this.cursor.throwError(parseError);
     }
   }

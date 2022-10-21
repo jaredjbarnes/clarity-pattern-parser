@@ -3,7 +3,6 @@ import ValueNode from "../../ast/ValueNode";
 import ParseError from "../../patterns/ParseError";
 import OptionalValue from "./OptionalValue";
 import Permutor from "../../Permutor";
-import Pattern from "../Pattern";
 import Cursor from "../../Cursor";
 
 const permutor = new Permutor();

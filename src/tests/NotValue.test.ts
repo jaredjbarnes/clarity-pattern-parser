@@ -2,6 +2,10 @@
 import NotValue from "../patterns/value/NotValue";
 import Literal from "../patterns/value/Literal";
 import Cursor from "../Cursor";
+import OrValue from "../patterns/value/OrValue";
+import AndValue from "../patterns/value/AndValue";
+import RepeatValue from "../patterns/value/RepeatValue";
+import RegexValue from "../patterns/value/RegexValue";
 
 describe("NotValue", () => {
   test("Empty Constructor.", () => {
@@ -66,4 +70,7 @@ describe("NotValue", () => {
 
     expect(notJohn.name).toBe(clone.name);
   });
+
+  
+
 });

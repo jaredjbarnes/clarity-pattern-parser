@@ -211,9 +211,8 @@ describe("ValuePattern", () => {
     expect(tokens[1]).toBe("Doe");
 
     tokens = fullName.children[1].children[1].getNextTokens();
-    expect(tokens.length).toBe(2);
+    expect(tokens.length).toBe(1);
     expect(tokens[0]).toBe("Edward");
-    expect(tokens[1]).toBe("Doe");
   });
 
   test("getNextTokens, has child and at the beginning.", () => {

@@ -1,1 +1,0 @@
-{"version":3,"file":"CompositePattern.js","sourceRoot":"","sources":["../../../src/patterns/composite/CompositePattern.ts"],"names":[],"mappings":"AAAA,OAAO,OAAO,MAAM,YAAY,CAAC;AAEjC,MAAM,CAAC,OAAO,OAAgB,gBAAiB,SAAQ,OAAO;IAC5D,YAAY,IAAY,EAAE,IAAY,EAAE,WAAsB,EAAE;QAC9D,KAAK,CAAC,IAAI,EAAE,IAAI,EAAE,QAAQ,CAAC,CAAC;IAC9B,CAAC;CACF"}

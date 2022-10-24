@@ -5,9 +5,9 @@ export default abstract class Pattern {
     protected _name: string;
     protected _children: Pattern[];
     protected _parent: Pattern | null;
-    isSequence: boolean;
-    constructor(type: string | undefined, name: string, children?: Pattern[]);
-    private _assertName;
+    protected _isOptional: boolean;
+    get isOptional(): boolean;
+    constructor(type: string, name: string, children?: Pattern[], isOptional?: boolean);
     abstract parse(cursor: Cursor): Node | null;
     exec(text: string): Node | null;
     test(text: string): boolean;
@@ -17,11 +17,10 @@ export default abstract class Pattern {
     set parent(value: Pattern | null);
     get children(): Pattern[];
     set children(value: Pattern[]);
-    protected _assertChildren(): void;
-    private _cloneChildren;
-    private _assignAsParent;
     abstract clone(name?: string): Pattern;
     abstract getTokens(): string[];
-    getNextTokens(): string[];
     getTokenValue(): string | null;
+    getNextTokens(): string[];
+    private cloneChildren;
+    private assignAsParent;
 }

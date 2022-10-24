@@ -1,12 +1,11 @@
-export default abstract class Node {
+export default class Node {
     type: string;
     name: string;
     startIndex: number;
     endIndex: number;
-    isComposite: boolean;
     children: Node[];
     value: string;
-    constructor(type: string, name: string, startIndex: number, endIndex: number, isComposite?: boolean);
-    abstract clone(): Node;
-    abstract toString(): string;
+    constructor(type: string, name: string, startIndex: number, endIndex: number, children?: Node[], value?: string);
+    clone(): Node;
+    toString(): string;
 }

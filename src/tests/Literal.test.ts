@@ -1,6 +1,5 @@
 /** @jest-environment node */
-import Literal from "../patterns/value/Literal";
-import Cursor from "../Cursor";
+import { Literal, Cursor } from "../index";
 
 describe("Literal", () => {
   test("Empty literal.", () => {
@@ -16,13 +15,12 @@ describe("Literal", () => {
     const result2 = john.exec("Jane");
 
     const expectedValue = {
-      children: [],
-      value: "John",
       type: "literal",
       name: "john",
       startIndex: 0,
       endIndex: 3,
-      isComposite: false,
+      children: [],
+      value: "John",
     };
 
     expect(JSON.stringify(result)).toBe(JSON.stringify(expectedValue));

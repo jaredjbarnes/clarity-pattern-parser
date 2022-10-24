@@ -1,14 +1,4 @@
-import RecursivePattern from "../../patterns/RecursivePattern";
-import {
-  Literal,
-  AndComposite,
-  RepeatValue,
-  OptionalValue,
-  RepeatComposite,
-  OptionalComposite,
-  OrComposite,
-  AndValue,
-} from "../../index";
+import { Literal, And, Repeat, Or, Recursive } from "../../index";
 
 import string from "./string";
 import number from "./number";
@@ -20,25 +10,25 @@ const openSquareBracket = new Literal("open-square-bracket", "[");
 const closeSquareBracket = new Literal("close-square-bracket", "]");
 const colon = new Literal(":", ":");
 const space = new Literal("space", " ");
-const spaces = new RepeatValue("spaces", space);
-const optionalSpaces = new OptionalValue(spaces);
+const spaces = new Repeat("spaces", space);
+const optionalSpaces = spaces.clone("optional-spaces", true);
 const nullLiteral = new Literal("null", "null");
 const comma = new Literal(",", ",");
 
-const divider = new AndValue("divider", [
+const divider = new And("divider", [
   optionalSpaces,
   comma,
   optionalSpaces,
 ]);
 
-const arrayValues = new RepeatComposite(
+const arrayValues = new Repeat(
   "values",
-  new RecursivePattern("literals"),
+  new Recursive("literals"),
   divider
 );
-const optionalArrayValues = new OptionalComposite(arrayValues);
+const optionalArrayValues = arrayValues.clone("optional-values", true);
 
-const arrayLiteral = new AndComposite("array-literal", [
+const arrayLiteral = new And("array-literal", [
   openSquareBracket,
   optionalSpaces,
   optionalArrayValues,
@@ -46,18 +36,18 @@ const arrayLiteral = new AndComposite("array-literal", [
   closeSquareBracket,
 ]);
 
-const keyValue = new AndComposite("key-value", [
+const keyValue = new And("key-value", [
   string,
   optionalSpaces,
   colon,
   optionalSpaces,
-  new RecursivePattern("literals"),
+  new Recursive("literals"),
 ]);
 
-const keyValues = new RepeatComposite("key-values", keyValue, divider);
-const optionalKeyValues = new OptionalComposite(keyValues);
+const keyValues = new Repeat("key-values", keyValue, divider);
+const optionalKeyValues = keyValues.clone("optional-key-values", true);
 
-const objectLiteral = new AndComposite("object-literal", [
+const objectLiteral = new And("object-literal", [
   openCurlyBracket,
   optionalSpaces,
   optionalKeyValues,
@@ -65,7 +55,7 @@ const objectLiteral = new AndComposite("object-literal", [
   closeCurlyBracket,
 ]);
 
-const json = new OrComposite("literals", [
+const json = new Or("literals", [
   number,
   string,
   boolean,
@@ -75,5 +65,3 @@ const json = new OrComposite("literals", [
 ]);
 
 export default json;
-
-

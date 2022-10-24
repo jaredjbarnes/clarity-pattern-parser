@@ -1,5 +1,5 @@
-import { RegexValue } from "../../index";
+import { Regex } from "../../index";
 
-const divider = new RegexValue(",", "\\s*[,]\\s*");
+const divider = new Regex(",", "\\s*[,]\\s*");
 
 export default divider;

@@ -1,5 +1,5 @@
-import { RegexValue } from "../../index";
+import { Regex } from "../../index";
 
-const name = new RegexValue("name", "[a-zA-Z]+[a-zA-Z0-9_-]*");
+const name = new Regex("name", "[a-zA-Z]+[a-zA-Z0-9_-]*");
 
 export default name;

@@ -1,20 +1,13 @@
 /** @jest-environment node */
-import AndValue from "../patterns/value/AndValue";
-import Literal from "../patterns/value/Literal";
-import OptionalValue from "../patterns/value/OptionalValue";
+import And from "../patterns/And";
+import Literal from "../patterns/Literal";
 import Cursor from "../Cursor";
 
-describe("AndValue", () => {
-  test("One Pattern", () => {
-    expect(() => {
-      new AndValue("and-value", [new Literal("literal", "LITERAL")]);
-    }).toThrow();
-  });
-
+describe("And", () => {
   test("Success", () => {
     const firstName = new Literal("first-name", "John");
     const lastName = new Literal("last-name", "Doe");
-    const fullName = new AndValue("full-name", [firstName, lastName]);
+    const fullName = new And("full-name", [firstName, lastName]);
     const cursor = new Cursor("JohnDoe");
     const node = fullName.parse(cursor);
 
@@ -26,11 +19,8 @@ describe("AndValue", () => {
 
   test("First Part Match with optional Second part.", () => {
     const firstName = new Literal("first-name", "John");
-    const lastName = new Literal("last-name", "Doe");
-    const fullName = new AndValue("full-name", [
-      firstName,
-      new OptionalValue(lastName),
-    ]);
+    const lastName = new Literal("last-name", "Doe", true);
+    const fullName = new And("full-name", [firstName, lastName]);
     const cursor = new Cursor("John");
     const node = fullName.parse(cursor);
 
@@ -43,7 +33,7 @@ describe("AndValue", () => {
   test("First Part Match, but run out for second part.", () => {
     const firstName = new Literal("first-name", "John");
     const lastName = new Literal("last-name", "Doe");
-    const fullName = new AndValue("full-name", [firstName, lastName]);
+    const fullName = new And("full-name", [firstName, lastName]);
     const cursor = new Cursor("John");
     const node = fullName.parse(cursor);
 
@@ -53,7 +43,7 @@ describe("AndValue", () => {
   test("No Match", () => {
     const firstName = new Literal("first-name", "John");
     const lastName = new Literal("last-name", "Doe");
-    const fullName = new AndValue("full-name", [firstName, lastName]);
+    const fullName = new And("full-name", [firstName, lastName]);
     const cursor = new Cursor("JaneDoe");
     const node = fullName.parse(cursor);
 
@@ -63,7 +53,7 @@ describe("AndValue", () => {
   test("Partial Match without optional siblings.", () => {
     const firstName = new Literal("first-name", "John");
     const lastName = new Literal("last-name", "Doe");
-    const fullName = new AndValue("full-name", [firstName, lastName]);
+    const fullName = new And("full-name", [firstName, lastName]);
     const cursor = new Cursor("JohnSmith");
     const node = fullName.parse(cursor);
 
@@ -73,7 +63,7 @@ describe("AndValue", () => {
   test("Success with more to parse", () => {
     const firstName = new Literal("first-name", "John");
     const lastName = new Literal("last-name", "Doe");
-    const fullName = new AndValue("full-name", [firstName, lastName]);
+    const fullName = new And("full-name", [firstName, lastName]);
     const cursor = new Cursor("JohnDoe JaneDoe");
     const node = fullName.parse(cursor);
 
@@ -86,7 +76,7 @@ describe("AndValue", () => {
   test("Clone.", () => {
     const firstName = new Literal("first-name", "John");
     const lastName = new Literal("last-name", "Doe");
-    const fullName = new AndValue("full-name", [firstName, lastName]);
+    const fullName = new And("full-name", [firstName, lastName]);
     const clone = fullName.clone();
 
     const fullNamePatterns = fullName.children;
@@ -100,7 +90,7 @@ describe("AndValue", () => {
   test("Clone with custom name.", () => {
     const firstName = new Literal("first-name", "John");
     const lastName = new Literal("last-name", "Doe");
-    const fullName = new AndValue("full-name", [firstName, lastName]);
+    const fullName = new And("full-name", [firstName, lastName]);
     const clone = fullName.clone("full-name-2");
 
     const fullNamePatterns = fullName.children;
@@ -113,57 +103,57 @@ describe("AndValue", () => {
 
   test("Partial Match.", () => {
     const firstName = new Literal("first-name", "John");
-    const lastName = new Literal("last-name", "Doe");
-    const fullName = new AndValue("full-name", [
+    const lastName = new Literal("last-name", "Doe", true);
+    const fullName = new And("full-name", [
       firstName,
-      new OptionalValue(lastName),
+      lastName,
     ]);
     const result = fullName.parse(new Cursor("JohnBo"));
 
-    expect(result?.type).toBe("and-value");
+    expect(result?.type).toBe("and");
     expect(result?.name).toBe("full-name");
     expect(result?.value).toBe("John");
   });
 
   test("Partial Match with string running out, and optional last name.", () => {
     const firstName = new Literal("first-name", "John");
-    const lastName = new Literal("last-name", "Doe");
-    const fullName = new AndValue("full-name", [
+    const lastName = new Literal("last-name", "Doe", true);
+    const fullName = new And("full-name", [
       firstName,
-      new OptionalValue(lastName),
+      lastName,
     ]);
     const result = fullName.parse(new Cursor("JohnDo"));
 
-    expect(result?.type).toBe("and-value");
+    expect(result?.type).toBe("and");
     expect(result?.name).toBe("full-name");
     expect(result?.value).toBe("John");
   });
 
   test("Three parts first optional.", () => {
-    const firstName = new Literal("first-name", "John");
+    const firstName = new Literal("first-name", "John", true);
     const middle = new Literal("middle", "Smith");
     const lastName = new Literal("last-name", "Doe");
 
-    const fullName = new AndValue("full-name", [
-      new OptionalValue(firstName),
+    const fullName = new And("full-name", [
+      firstName,
       middle,
       lastName,
     ]);
     const result = fullName.parse(new Cursor("SmithDoe"));
 
     expect(result?.value).toBe("SmithDoe");
-    expect(result?.type).toBe("and-value");
+    expect(result?.type).toBe("and");
     expect(result?.name).toBe("full-name");
   });
 
   test("Three parts middle optional.", () => {
     const firstName = new Literal("first-name", "John");
-    const middle = new Literal("middle", "Smith");
+    const middle = new Literal("middle", "Smith", true);
     const lastName = new Literal("last-name", "Doe");
 
-    const fullName = new AndValue("full-name", [
+    const fullName = new And("full-name", [
       firstName,
-      new OptionalValue(middle),
+      middle,
       lastName,
     ]);
     const result = fullName.parse(new Cursor("JohnDo"));
@@ -174,17 +164,17 @@ describe("AndValue", () => {
   test("Three parts third optional.", () => {
     const firstName = new Literal("first-name", "John");
     const middle = new Literal("middle", "Smith");
-    const lastName = new Literal("last-name", "Doe");
+    const lastName = new Literal("last-name", "Doe", true);
 
-    const fullName = new AndValue("full-name", [
+    const fullName = new And("full-name", [
       firstName,
       middle,
-      new OptionalValue(lastName),
+      lastName,
     ]);
     const result = fullName.parse(new Cursor("JohnSmith"));
 
     expect(result?.value).toBe("JohnSmith");
-    expect(result?.type).toBe("and-value");
+    expect(result?.type).toBe("and");
     expect(result?.name).toBe("full-name");
   });
 });

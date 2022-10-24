@@ -1,16 +1,14 @@
 /** @jest-environment node */
-import CompositeNode from "../ast/CompositeNode";
-import Visitor from "../ast/Visitor";
-import ValueNode from "../ast/ValueNode";
+import { Visitor, Node } from "../index";
 import cssValue from "./cssPatterns/cssValue";
 
 function createContext(amount: number = 10) {
-  const grandParent = new CompositeNode("grand-parent", "grand-parent");
-  const parent = new CompositeNode("parent", "parent");
-  const children: ValueNode[] = [];
+  const grandParent = new Node("grand-parent", "grand-parent", 0, 0);
+  const parent = new Node("parent", "parent", 0, 0);
+  const children: Node[] = [];
 
   for (let x = 0; x < amount; x++) {
-    const child = new ValueNode("child", "child", x.toString());
+    const child = new Node("child", "child", 0, 0, [], x.toString());
     children.push(child);
   }
 
@@ -35,7 +33,9 @@ describe("Visitor", () => {
   });
 
   test("remove", () => {
-    const node = cssValue.exec("linear-gradient(to left, #333, #333 50%, #eee 75%, #333 75%), linear-gradient(to bottom, #555, #555 50%, #eee 75%, #555 75%)");
+    const node = cssValue.exec(
+      "linear-gradient(to left, #333, #333 50%, #eee 75%, #333 75%), linear-gradient(to bottom, #555, #555 50%, #eee 75%, #555 75%)"
+    );
 
     if (node != null) {
       const visitor = new Visitor(node);
@@ -59,15 +59,19 @@ describe("Visitor", () => {
       const stringResult = visitor
         .select((n) => n.name === "child")
         .wrap((node) => {
-          const wrapper = new CompositeNode("wrapper", "wrapper");
+          const wrapper = new Node("wrapper", "wrapper", 0, 0);
           wrapper.children.push(node);
           return wrapper;
         });
 
-      let wrappers = Visitor.select(node, (n) => n.type === "wrapper")
-        .selectedNodes;
-      let children = Visitor.select(node, (n) => n.type === "child")
-        .selectedNodes;
+      let wrappers = Visitor.select(
+        node,
+        (n) => n.type === "wrapper"
+      ).selectedNodes;
+      let children = Visitor.select(
+        node,
+        (n) => n.type === "child"
+      ).selectedNodes;
 
       expect(wrappers.length).toBe(10);
       expect(children.length).toBe(10);
@@ -90,13 +94,21 @@ describe("Visitor", () => {
       visitor
         .select((n) => n.type === "child")
         .prepend((n) => {
-          const sibling = new ValueNode("sibling", "sibling", n.value || "");
+          const sibling = new Node(
+            "sibling",
+            "sibling",
+            0,
+            0,
+            [],
+            n.value || ""
+          );
 
           return sibling;
         });
 
-      const siblings = visitor.select((n) => n.type === "sibling")
-        .selectedNodes;
+      const siblings = visitor.select(
+        (n) => n.type === "sibling"
+      ).selectedNodes;
       const parent = visitor.select((n) => n.type === "parent")
         .selectedNodes[0];
 
@@ -174,13 +186,21 @@ describe("Visitor", () => {
       visitor
         .select((n) => n.type === "child")
         .append((n) => {
-          const sibling = new ValueNode("sibling", "sibling", n.value || "");
+          const sibling = new Node(
+            "sibling",
+            "sibling",
+            0,
+            0,
+            [],
+            n.value || ""
+          );
 
           return sibling;
         });
 
-      const siblings = visitor.select((n) => n.type === "sibling")
-        .selectedNodes;
+      const siblings = visitor.select(
+        (n) => n.type === "sibling"
+      ).selectedNodes;
       const parent = visitor.select((n) => n.type === "parent")
         .selectedNodes[0];
 
@@ -288,8 +308,9 @@ describe("Visitor", () => {
 
     if (node != null) {
       const visitor = new Visitor(node);
-      const selected = visitor.selectNode(node).deselectNode(node)
-        .selectedNodes;
+      const selected = visitor
+        .selectNode(node)
+        .deselectNode(node).selectedNodes;
 
       expect(selected.length).toBe(0);
     }

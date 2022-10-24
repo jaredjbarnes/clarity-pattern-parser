@@ -2,17 +2,17 @@ import Pattern from "./Pattern";
 import ParserError from "./ParseError";
 import Cursor from "../Cursor";
 
-export default class RecursivePattern extends Pattern {
+export default class Recursive extends Pattern {
   public isRecursing: boolean;
   public pattern: Pattern | null = null;
 
-  constructor(name: string) {
-    super("recursive", name);
+  constructor(name: string, isOptional = false) {
+    super("recursive", name, [], isOptional);
     this.isRecursing = false;
   }
 
   getPattern() {
-    return this._climb(this.parent, (pattern: Pattern | null) => {
+    return this.climb(this.parent, (pattern: Pattern | null) => {
       if (pattern == null) {
         return false;
       }
@@ -20,7 +20,7 @@ export default class RecursivePattern extends Pattern {
     });
   }
 
-  _climb(
+  private climb(
     pattern: Pattern | null,
     isMatch: (pattern: Pattern | null) => boolean
   ): Pattern | null {
@@ -28,7 +28,7 @@ export default class RecursivePattern extends Pattern {
       return pattern;
     } else {
       if (pattern && pattern.parent != null) {
-        return this._climb(pattern.parent, isMatch);
+        return this.climb(pattern.parent, isMatch);
       }
       return null;
     }
@@ -39,34 +39,48 @@ export default class RecursivePattern extends Pattern {
       const pattern = this.getPattern();
 
       if (pattern == null) {
-        cursor.throwError(
-          new ParserError(
-            `Couldn't find parent pattern to recursively parse, with the name ${this.name}.`,
-            cursor.index,
-            this as Pattern
-          )
-        );
+        if (!this._isOptional){
+          cursor.throwError(
+            new ParserError(
+              `Couldn't find parent pattern to recursively parse, with the name ${this.name}.`,
+              cursor.index,
+              this
+            )
+          );
+        }
+
         return null;
       }
 
       this.pattern = pattern.clone();
-      this.pattern.parent = this as Pattern;
+      this.pattern.parent = this;
     }
 
+    const mark = cursor.mark();
     const node = this.pattern.parse(cursor);
 
     if (!cursor.hasUnresolvedError() && node != null) {
-      cursor.addMatch(this as Pattern, node);
+      cursor.addMatch(this, node);
+    }
+
+    if (cursor.hasUnresolvedError() && this._isOptional) {
+      cursor.resolveError();
+      cursor.moveToMark(mark);
     }
 
     return node;
   }
 
-  clone(name?: string): Pattern {
-    if (typeof name !== "string") {
+  clone(name?: string, isOptional?: boolean) {
+    if (name == null) {
       name = this.name;
     }
-    return new RecursivePattern(name);
+
+    if (isOptional == null) {
+      isOptional = this._isOptional;
+    }
+
+    return new Recursive(name, isOptional);
   }
 
   getTokenValue() {

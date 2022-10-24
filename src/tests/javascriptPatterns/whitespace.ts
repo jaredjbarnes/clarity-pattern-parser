@@ -1,9 +1,5 @@
-import OrComposite from "../../patterns/composite/OrComposite";
-import Literal from "../../patterns/value/Literal";
-import NotValue from "../../patterns/value/NotValue";
-import OrValue from "../../patterns/value/OrValue";
-import RepeatValue from "../../patterns/value/RepeatValue";
-import AndValue from "../../patterns/value/AndValue";
+import { Literal, Or, Repeat, And, Regex} from "../../index";
+
 
 const space = new Literal("space", " ");
 const tab = new Literal("tab", "\t");
@@ -14,28 +10,28 @@ const doubleForwardSlash = new Literal("double-forward-slash", "//");
 const slashStar = new Literal("slash-star", "/*");
 const starSlash = new Literal("star-slash", "*/");
 
-const lineEnd = new OrValue("lineEnd", [
+const lineEnd = new Or("lineEnd", [
     windowsReturn,
     newLine,
     carriageReturn
   ]);
 
-const lineCommentContent = new RepeatValue("line-comment-content", new NotValue("not-line-end", lineEnd));
-const blockCommentContent = new RepeatValue("block-comment-content", new NotValue("not-start-slash", starSlash));
+const lineCommentContent = new Repeat("line-comment-content", new Regex("not-line-end", "[^\r][^\n]|[^\n]"));
+const blockCommentContent = new Repeat("block-comment-content", new Regex("not-start-slash", "[^*][^/]"));
 
-const lineComment = new AndValue("line-comment", [
+const lineComment = new And("line-comment", [
     doubleForwardSlash,
     lineCommentContent,
     lineEnd
 ]);
 
-const blockComment = new AndValue("block-comment", [
+const blockComment = new And("block-comment", [
     slashStar,
     blockCommentContent,
     starSlash
 ]);
 
-const whitespace = new OrComposite("whitespace", [
+const whitespace = new Or("whitespace", [
     space,
     tab,
     lineComment,

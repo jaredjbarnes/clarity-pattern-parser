@@ -139,7 +139,7 @@ export default class CursorHistory {
     return cleanedStack;
   }
 
-  getLastParseStack() {
+  getLastParseStack(): Node[] {
     const stacks = this.getAllParseStacks();
     return stacks[stacks.length - 1] || [];
   }

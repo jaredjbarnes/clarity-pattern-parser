@@ -1,6 +1,6 @@
-import { RegexValue } from "../../index";
+import { Regex } from "../../index";
 
-const number = new RegexValue(
+const number = new Regex(
   "[Number]",
   "[-+]?[0-9]*[.]?[0-9]+([eE][-+]?[0-9]+)?"
 );

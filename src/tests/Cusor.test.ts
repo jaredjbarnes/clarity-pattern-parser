@@ -1,13 +1,10 @@
 /** @jest-environment node */
-import Cursor from "../Cursor";
-import ValueNode from "../ast/ValueNode";
-import Literal from "../patterns/value/Literal";
-import ParseError from "../patterns/ParseError";
+import { Cursor, Literal, ParseError, Node } from "../index";
 
 describe("Cursor", () => {
   test("addMatch.", () => {
     const cursor = new Cursor("Text");
-    const node = new ValueNode("text-node", "Text", "Text", 0, 3);
+    const node = new Node("text-node", "Text", 0, 3, [], "Text");
     const pattern = new Literal("text", "Text");
 
     cursor.setIndex(3);
@@ -19,10 +16,10 @@ describe("Cursor", () => {
 
   test("addMatch that isn't as far.", () => {
     const cursor = new Cursor("Text");
-    const node = new ValueNode("text-node", "Text", "Text", 0, 3);
+    const node = new Node("text-node", "Text", 0, 3, [], "Text");
     const pattern = new Literal("text", "Text Node");
 
-    const shorterNode = new ValueNode("tex-node", "Tex", "Tex", 0, 2);
+    const shorterNode = new Node("tex-node", "Tex", 0, 2, [], "Tex2");
     const shorterPattern = new Literal("tex", "Tex");
 
     cursor.setIndex(3);
@@ -80,13 +77,13 @@ describe("Cursor", () => {
 
   test("recording history.", () => {
     const cursor = new Cursor("Text");
-    const tNode = new ValueNode("T", "T", "T", 0, 0);
+    const tNode = new Node("T", "T", 0, 0, [], "T");
     const tPattern = new Literal("T", "T");
 
-    const eNode = new ValueNode("e", "e", "e", 1, 1);
+    const eNode = new Node("e", "e", 1, 1, [], "e");
     const ePattern = new Literal("e", "e");
 
-    const xNode = new ValueNode("x", "x", "x", 2, 2);
+    const xNode = new Node("x", "x", 2, 2, [], "x");
     const xPattern = new Literal("x", "x");
 
     cursor.startRecording();

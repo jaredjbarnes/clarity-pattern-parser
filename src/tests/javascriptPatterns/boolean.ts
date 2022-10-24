@@ -1,9 +1,8 @@
-import Literal from "../../patterns/value/Literal";
-import OrValue from "../../patterns/value/OrValue";
+import {Literal, Or} from "../../index";
 
 const trueLiteral = new Literal("true", "true");
 const falseLiteral = new Literal("false", "false");
-const boolean = new OrValue("boolean", [
+const boolean = new Or("boolean", [
     trueLiteral,
     falseLiteral
 ]);

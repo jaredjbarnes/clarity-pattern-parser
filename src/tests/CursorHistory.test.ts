@@ -1,12 +1,12 @@
 /** @jest-environment node */
 import CursorHistory from "../CursorHistory";
-import { Literal, ValueNode, Cursor, ParseError } from "../index";
+import { Literal, Node, Cursor, ParseError } from "../index";
 import sentence from "./patterns/sentence";
 describe("CursorHistory", () => {
   test("addMatch", () => {
     const cursorHistory = new CursorHistory();
     const pattern = new Literal("T", "T");
-    const node = new ValueNode("T", "T", "T", 0, 1);
+    const node = new Node("T", "T", 0, 1, [], "T");
 
     cursorHistory.addMatch(pattern, node);
     expect(cursorHistory.getFurthestMatch().pattern).toBe(pattern);
@@ -16,7 +16,7 @@ describe("CursorHistory", () => {
   test("addMatch with Recording", () => {
     const cursorHistory = new CursorHistory();
     const pattern = new Literal("T", "T");
-    const node = new ValueNode("T", "T", "T", 0, 1);
+    const node = new Node("T", "T", 0, 1, [], "T");
 
     cursorHistory.startRecording();
     cursorHistory.addMatch(pattern, node);
@@ -98,10 +98,10 @@ describe("CursorHistory", () => {
     const stack = cursor.history.getLastParseStack();
 
     expect(stack.length).toBe(5);
-    expect(stack[0].name).toBe("pat");
+    expect(stack[0].name).toBe("noun");
     expect(stack[1].name).toBe("space");
-    expect(stack[2].name).toBe("went-to");
+    expect(stack[2].name).toBe("verb");
     expect(stack[3].name).toBe("space");
-    expect(stack[4].name).toBe("the");
+    expect(stack[4].name).toBe("article");
   });
 });

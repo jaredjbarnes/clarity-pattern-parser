@@ -1,11 +1,5 @@
 /** @jest-environment node */
-import Literal from "../patterns/value/Literal";
-import Cursor from "../Cursor";
-import LookAhead from "../patterns/LookAhead";
-import NotValue from "../patterns/value/NotValue";
-import OrValue from "../patterns/value/OrValue";
-import RegexValue from "../patterns/value/RegexValue";
-import AndValue from "../patterns/value/AndValue";
+import { Literal, Cursor, LookAhead, Not, Or, Regex, And } from "../index";
 
 describe("LookAheadValue", () => {
   test("Look for pattern.", () => {
@@ -20,7 +14,7 @@ describe("LookAheadValue", () => {
 
   test("Look for a not pattern.", () => {
     const john = new Literal("john", "John");
-    const lookAheadValue = new LookAhead(new NotValue("not-john", john));
+    const lookAheadValue = new Not(new LookAhead(john));
     const cursor = new Cursor("Joel");
     const node = lookAheadValue.parse(cursor);
 
@@ -53,18 +47,18 @@ describe("LookAheadValue", () => {
     const lessThan = new Literal("less-than", "<");
     const from = new Literal("from", "FROM");
     const table = new Literal("table", "Table");
-    const operator = new OrValue("operator", [lessThan, greaterThan]);
-    const keywords = new AndValue("keywords-with-space", [
-      new OrValue("keywords", [from, table]),
+    const operator = new Or("operator", [lessThan, greaterThan]);
+    const keywords = new And("keywords-with-space", [
+      new Or("keywords", [from, table]),
       new Literal("space", " "),
     ]);
-    const identFirstPart = new RegexValue(
+    const identFirstPart = new Regex(
       "ident-first-part",
       "[a-zA-Z_$][a-zA-Z0-9_]*"
     );
-    const identity = new AndValue("identity", [
-      new LookAhead(new NotValue("not-keywords", keywords)),
-      new LookAhead(new NotValue("not-operator", operator)),
+    const identity = new And("identity", [
+      new Not(keywords),
+      new Not(operator),
       identFirstPart,
     ]);
 

@@ -1,5 +1,5 @@
 /** @jest-environment node */
-import { RecursivePattern, Cursor } from "../index";
+import { Recursive, Cursor } from "../index";
 import literals from "./javascriptPatterns/json";
 
 describe("RecursivePattern", () => {
@@ -18,23 +18,25 @@ describe("RecursivePattern", () => {
     const cursor = new Cursor(json);
     const cursor2 = new Cursor(JSON.stringify([{ foo: "bar" }]));
 
-    const object = literals.parse(cursor);
-    const array = literals.parse(cursor2);
+    const result1 = literals.parse(cursor);
+    const result2 = literals.parse(cursor2);
 
-    expect(object.name).toBe("object-literal");
-    expect(array.name).toBe("array-literal");
-    expect(object.toString()).toBe(json);
+    expect(result1?.name).toBe("literals");
+    expect(result1?.children[0].name).toBe("object-literal");
+    expect(result2?.name).toBe("literals");
+    expect(result2?.children[0].name).toBe("array-literal");
+    expect(result1?.toString()).toBe(json);
   });
 
   test("No pattern", () => {
-    const node = new RecursivePattern("nothing");
+    const node = new Recursive("nothing");
     const result = node.exec("Some string.");
 
     expect(result).toBe(null);
   });
 
   test("clone.", () => {
-    const node = new RecursivePattern("nothing");
+    const node = new Recursive("nothing");
     const clone = node.clone();
 
     expect(node.name).toBe(clone.name);

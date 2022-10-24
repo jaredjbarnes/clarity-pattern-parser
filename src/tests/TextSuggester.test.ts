@@ -1,14 +1,12 @@
 /** @jest-environment node */
 import TextSuggester from "../TextSuggester";
 import sentence from "./patterns/sentence";
-import Literal from "../patterns/value/Literal";
-import AndValue from "../patterns/value/AndValue";
-import OrValue from "../patterns/value/OrValue";
+import Literal from "../patterns/Literal";
+import And from "../patterns/And";
+import Or from "../patterns/Or";
 import json from "./javascriptPatterns/json";
-import OrComposite from "../patterns/composite/OrComposite";
-import RepeatComposite from "../patterns/composite/RepeatComposite";
-import AndComposite from "../patterns/composite/AndComposite";
-import RecursivePattern from "../patterns/RecursivePattern";
+import Repeat from "../patterns/Repeat";
+import Recursive from "../patterns/Recursive";
 
 function generateFlagFromList(flagNames: string[]) {
   return flagNames.map((flagName) => {
@@ -22,18 +20,18 @@ function generateExpression(flagNames: string[]) {
   const andLiteral = new Literal("and-literal", "AND");
   const space = new Literal("space", " ");
   const orLiteral = new Literal("or-literal", "OR");
-  const and = new AndValue("and", [space, andLiteral, space]);
-  const or = new AndValue("or", [space, orLiteral, space]);
+  const and = new And("and", [space, andLiteral, space]);
+  const or = new And("or", [space, orLiteral, space]);
 
-  const booleanOperator = new OrComposite("booleanOperator", [and, or]);
-  const flag = new OrComposite("flags", generateFlagFromList(flagNames));
-  const group = new AndComposite("group", [
+  const booleanOperator = new Or("booleanOperator", [and, or]);
+  const flag = new Or("flags", generateFlagFromList(flagNames));
+  const group = new And("group", [
     openParen,
-    new RecursivePattern("flag-expression"),
+    new Recursive("flag-expression"),
     closeParen,
   ]);
-  const flagOrGroup = new OrComposite("flag-or-group", [flag, group]);
-  const flagExpression = new RepeatComposite(
+  const flagOrGroup = new Or("flag-or-group", [flag, group]);
+  const flagExpression = new Repeat(
     "flag-expression",
     flagOrGroup,
     booleanOperator
@@ -178,15 +176,9 @@ describe("TextInspector", () => {
     const theMoney = new Literal("the-money", "the money");
     const yourLicense = new Literal("your-license", "your license");
     const space = new Literal("space", " ");
-    const first = new AndValue("first", [show, space, me, space, theMoney]);
-    const second = new AndValue("second", [
-      show,
-      space,
-      me,
-      space,
-      yourLicense,
-    ]);
-    const either = new OrValue("either", [first, second]);
+    const first = new And("first", [show, space, me, space, theMoney]);
+    const second = new And("second", [show, space, me, space, yourLicense]);
+    const either = new Or("either", [first, second]);
 
     const inspection = TextSuggester.suggest("Show me ", either);
 
@@ -255,9 +247,9 @@ describe("TextInspector", () => {
     const a = new Literal("a", "A");
     const b = new Literal("b", "B");
     const space = new Literal("space", " ");
-    const or = new OrComposite("names", [a, b]);
+    const or = new Or("names", [a, b]);
 
-    const repeat = new RepeatComposite("repeat", or, space);
+    const repeat = new Repeat("repeat", or, space);
 
     const result = TextSuggester.suggest("A B ", repeat);
 
@@ -271,9 +263,9 @@ describe("TextInspector", () => {
     const a = new Literal("a", "A");
     const b = new Literal("b", "B");
     const space = new Literal("space", " ");
-    const or = new OrComposite("names", [a, b]);
+    const or = new Or("names", [a, b]);
 
-    const repeat = new RepeatComposite("repeat", or, space);
+    const repeat = new Repeat("repeat", or, space);
 
     const result = TextSuggester.suggest("A B", repeat);
 

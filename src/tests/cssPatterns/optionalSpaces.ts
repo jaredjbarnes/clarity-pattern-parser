@@ -1,6 +1,5 @@
-import { OptionalValue } from "../../index";
 import spaces from "./spaces";
 
-const optionalSpaces = new OptionalValue(spaces);
+const optionalSpaces = spaces.clone(spaces.name, true);
 
 export default optionalSpaces;

@@ -1,36 +1,39 @@
-export default abstract class Node {
+export default class Node {
   public type: string;
   public name: string;
   public startIndex: number;
   public endIndex: number;
-  public isComposite: boolean;
-  public children: Node[] = [];
-  public value: string = "";
+  public children: Node[];
+  public value: string;
 
   constructor(
     type: string,
     name: string,
     startIndex: number,
     endIndex: number,
-    isComposite = false
+    children: Node[] = [],
+    value: string = ""
   ) {
     this.type = type;
     this.name = name;
     this.startIndex = startIndex;
     this.endIndex = endIndex;
-    this.isComposite = isComposite;
-
-    if (
-      typeof this.startIndex !== "number" ||
-      typeof this.endIndex !== "number"
-    ) {
-      throw new Error(
-        "Invalid Arguments: startIndex and endIndex need to be number."
-      );
-    }
+    this.children = children;
+    this.value = value;
   }
 
-  abstract clone(): Node;
+  clone(): Node {
+    return new Node(
+      this.type,
+      this.name,
+      this.startIndex,
+      this.endIndex,
+      this.children.map((c) => c.clone()),
+      this.value
+    );
+  }
 
-  abstract toString(): string;
+  toString() {
+    return this.value;
+  }
 }

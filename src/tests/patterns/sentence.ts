@@ -1,4 +1,4 @@
-import { Literal, AndComposite, OrComposite } from "../../index";
+import { Literal, And, Or } from "../../index";
 
 const pat = new Literal("pat", "Pat");
 const dan = new Literal("dan", "Dan");
@@ -16,13 +16,13 @@ const visited = new Literal("visited", "visited");
 const a = new Literal("a", "a");
 const the = new Literal("the", "the");
 
-const noun = new OrComposite("noun", [pat, dan]);
-const location = new OrComposite("location", [store, bank]);
-const verb = new OrComposite("verb", [wentTo, visited]);
-const adjective = new OrComposite("adjective", [big, small]);
-const article = new OrComposite("article", [a, the]);
+const noun = new Or("noun", [pat, dan]);
+const location = new Or("location", [store, bank]);
+const verb = new Or("verb", [wentTo, visited]);
+const adjective = new Or("adjective", [big, small]);
+const article = new Or("article", [a, the]);
 
-const sentence = new AndComposite("sentence", [
+const sentence = new And("sentence", [
   noun,
   space,
   verb,
@@ -31,7 +31,7 @@ const sentence = new AndComposite("sentence", [
   space,
   adjective,
   space,
-  location
+  location,
 ]);
 
 export default sentence;

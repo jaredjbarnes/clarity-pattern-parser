@@ -6,25 +6,24 @@ export default abstract class Pattern {
   protected _name: string;
   protected _children: Pattern[];
   protected _parent: Pattern | null;
-  public isSequence: boolean;
+  protected _isOptional = false;
 
-  constructor(type: string = "", name: string, children: Pattern[] = []) {
+  get isOptional() {
+    return this._isOptional;
+  }
+
+  constructor(
+    type: string,
+    name: string,
+    children: Pattern[] = [],
+    isOptional = false
+  ) {
     this._type = type;
     this._name = name;
     this._children = [];
     this._parent = null;
-    this.isSequence = false;
-
-    this._assertName();
+    this._isOptional = isOptional;
     this.children = children;
-  }
-
-  private _assertName() {
-    if (typeof this.name !== "string") {
-      throw new Error(
-        "Invalid Argument: Patterns needs to have a name that's a string."
-      );
-    }
   }
 
   abstract parse(cursor: Cursor): Node | null;
@@ -57,9 +56,7 @@ export default abstract class Pattern {
   }
 
   set parent(value: Pattern | null) {
-    if (value instanceof Pattern) {
-      this._parent = value;
-    }
+    this._parent = value;
   }
 
   get children() {
@@ -68,37 +65,16 @@ export default abstract class Pattern {
 
   set children(value) {
     this._children = value;
-    this._cloneChildren();
-    this._assertChildren();
-    this._assignAsParent();
-  }
-
-  protected _assertChildren() {
-    // Empty,can be overridden by subclasses.
-  }
-
-  private _cloneChildren() {
-    // We need to clone the patterns so nested patterns can be parsed.
-    this._children = this._children.map((pattern) => {
-      if (!(pattern instanceof Pattern)) {
-        throw new Error(
-          `The ${this.name} pattern has an invalid child pattern.`
-        );
-      }
-      return pattern.clone();
-    });
-
-    // We need to freeze the children so they aren't modified.
-    Object.freeze(this._children);
-  }
-
-  private _assignAsParent() {
-    this._children.forEach((child) => (child.parent = this));
+    this.cloneChildren();
+    this.assignAsParent();
   }
 
   abstract clone(name?: string): Pattern;
-
   abstract getTokens(): string[];
+
+  getTokenValue(): string | null {
+    return null;
+  }
 
   getNextTokens(): string[] {
     const parent = this._parent;
@@ -124,14 +100,14 @@ export default abstract class Pattern {
       if (
         this._parent?.type?.indexOf("and") === 0 &&
         nextSibling != null &&
-        nextSibling?.type?.indexOf("optional") === 0
+        nextSibling.isOptional
       ) {
         let tokens: string[] = [];
 
         for (let x = index + 1; x < siblings.length; x++) {
           const child = siblings[x];
 
-          if (child.type.indexOf("optional") === 0) {
+          if (child.isOptional) {
             tokens = tokens.concat(child.getTokens());
           } else {
             tokens = tokens.concat(child.getTokens());
@@ -161,7 +137,15 @@ export default abstract class Pattern {
     return [];
   }
 
-  getTokenValue(): string | null {
-    return null;
+  private cloneChildren() {
+    this._children = this._children.map((pattern) => {
+      return pattern.clone();
+    });
+
+    Object.freeze(this._children);
+  }
+
+  private assignAsParent() {
+    this._children.forEach((child) => (child.parent = this));
   }
 }

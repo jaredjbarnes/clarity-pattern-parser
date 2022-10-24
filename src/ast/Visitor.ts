@@ -11,11 +11,11 @@ export default class Visitor {
 
   flatten() {
     this.selectedNodes.forEach((node) => {
-      if (node.isComposite) {
+      if (node.children.length > 0) {
         const children: Node[] = [];
 
         Visitor.walkUp(node, (descendant: Node) => {
-          if (!descendant.isComposite) {
+          if (descendant.children.length === 0) {
             children.push(descendant);
           }
         });
@@ -38,14 +38,12 @@ export default class Visitor {
 
   private recursiveRemove(node: Node) {
     const nodesToRemove = this.selectedNodes;
-    if (node.isComposite && Array.isArray(node.children)) {
-      for (let x = 0; x < node.children.length; x++) {
-        if (nodesToRemove.indexOf(node.children[x]) > -1) {
-          node.children.splice(x, 1);
-          x--;
-        } else {
-          this.recursiveRemove(node.children[x]);
-        }
+    for (let x = 0; x < node.children.length; x++) {
+      if (nodesToRemove.indexOf(node.children[x]) > -1) {
+        node.children.splice(x, 1);
+        x--;
+      } else {
+        this.recursiveRemove(node.children[x]);
       }
     }
   }
@@ -136,12 +134,10 @@ export default class Visitor {
   }
 
   private recursiveTransform(node: Node, callback: (node: Node) => Node) {
-    if (node.isComposite && Array.isArray(node.children)) {
-      const length = node.children.length;
+    const length = node.children.length;
 
-      for (let x = 0; x < length; x++) {
-        node.children[x] = this.recursiveTransform(node.children[x], callback);
-      }
+    for (let x = 0; x < length; x++) {
+      node.children[x] = this.recursiveTransform(node.children[x], callback);
     }
 
     return callback(node);
@@ -168,7 +164,7 @@ export default class Visitor {
     const node = this.root;
     const selectedNodes: Node[] = [];
 
-    if (node.isComposite) {
+    if (node.children.length > 0) {
       Visitor.walkDown(node, (descendant: Node) => {
         if (callback(descendant)) {
           selectedNodes.push(descendant);
@@ -245,7 +241,7 @@ export default class Visitor {
   ) {
     ancestors.push(node);
 
-    if (node.isComposite && Array.isArray(node.children)) {
+    if (node.children.length > 0) {
       const children = node.children.slice();
       children.forEach((c) => this.walkUp(c, callback, ancestors));
     }
@@ -264,7 +260,7 @@ export default class Visitor {
     callback(node, ancestors);
     ancestors.push(node);
 
-    if (node.isComposite && Array.isArray(node.children)) {
+    if (node.children.length > 0) {
       const children = node.children.slice();
       children.forEach((c) => this.walkDown(c, callback, ancestors));
     }

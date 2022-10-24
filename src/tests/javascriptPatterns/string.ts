@@ -1,30 +1,26 @@
-import Literal from "../../patterns/value/Literal";
-import NotValue from "../../patterns/value/NotValue";
-import OrValue from "../../patterns/value/OrValue";
-import RepeatValue from "../../patterns/value/RepeatValue";
-import AndValue from "../../patterns/value/AndValue";
+import { Literal, Not, Or, Repeat, And, Regex } from "../../index";
 
 const singleQuote = new Literal("single-quote", "'");
 const doubleQuote = new Literal("double-quote", '"');
 const backslash = new Literal("double-quote", "\\");
 
-const singleQuoteOrBackslash = new OrValue("single-quote-or-backslash", [
+const singleQuoteOrBackslash = new Or("single-quote-or-backslash", [
   singleQuote,
-  backslash
+  backslash,
 ]);
 
-const doubleQuoteOrBackslash = new OrValue("single-quote-or-backslash", [
+const doubleQuoteOrBackslash = new Or("single-quote-or-backslash", [
   doubleQuote,
-  backslash
+  backslash,
 ]);
 
-const unescapedSingleCharacter = new NotValue(
+const unescapedSingleCharacter = new Regex(
   "unescaped-single-character",
-  singleQuoteOrBackslash
+  "[^'\\\\]"
 );
-const unescapedDoubleCharacter = new NotValue(
+const unescapedDoubleCharacter = new Regex(
   "unescaped-double-character",
-  doubleQuoteOrBackslash
+  `[^"\\\\]`
 );
 const escapedSingleQuote = new Literal("escaped-single-quote", "\\'");
 const escapedDoubleQuote = new Literal("escaped-double-quote", '\\"');
@@ -36,7 +32,7 @@ const escapedNewLine = new Literal("escaped-new-line", "\\n");
 const escapedCarriageReturn = new Literal("escaped-carriage-return", "\\r");
 const escapedTab = new Literal("escaped-tab", "\\t");
 
-const singleQuoteCharacter = new OrValue("character", [
+const singleQuoteCharacter = new Or("character", [
   escapedSingleQuote,
   escapedDoubleQuote,
   escapedBackslash,
@@ -46,10 +42,10 @@ const singleQuoteCharacter = new OrValue("character", [
   escapedNewLine,
   escapedCarriageReturn,
   escapedTab,
-  unescapedSingleCharacter
+  unescapedSingleCharacter,
 ]);
 
-const doubleQuoteCharacter = new OrValue("character", [
+const doubleQuoteCharacter = new Or("character", [
   escapedSingleQuote,
   escapedDoubleQuote,
   escapedBackslash,
@@ -59,24 +55,30 @@ const doubleQuoteCharacter = new OrValue("character", [
   escapedNewLine,
   escapedCarriageReturn,
   escapedTab,
-  unescapedDoubleCharacter
+  unescapedDoubleCharacter,
 ]);
 
-const singleCharacterSequence = new RepeatValue("string-content", singleQuoteCharacter);
-const doubleCharacterSequence = new RepeatValue("string-content", doubleQuoteCharacter);
+const singleCharacterSequence = new Repeat(
+  "string-content",
+  singleQuoteCharacter
+);
+const doubleCharacterSequence = new Repeat(
+  "string-content",
+  doubleQuoteCharacter
+);
 
-const singleQuoteString = new AndValue("single-quote-string", [
+const singleQuoteString = new And("single-quote-string", [
   singleQuote,
   singleCharacterSequence,
-  singleQuote
+  singleQuote,
 ]);
 
-const doubleQuoteString = new AndValue("double-quote-string", [
+const doubleQuoteString = new And("double-quote-string", [
   doubleQuote,
   doubleCharacterSequence,
-  doubleQuote
+  doubleQuote,
 ]);
 
-const string = new OrValue("string", [singleQuoteString, doubleQuoteString]);
+const string = new Or("string", [singleQuoteString, doubleQuoteString]);
 
 export default string;

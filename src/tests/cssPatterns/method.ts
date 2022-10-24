@@ -1,9 +1,8 @@
 import {
   Literal,
-  AndComposite,
-  RepeatComposite,
-  RecursivePattern,
-  OptionalComposite
+  And,
+  Repeat,
+  Recursive,
 } from "../../index";
 
 import name from "./name";
@@ -12,15 +11,14 @@ import divider from "./divider";
 
 const openParen = new Literal("open-paren", "(");
 const closeParen = new Literal("close-paren", ")");
-const values = new RecursivePattern("values");
-const args = new RepeatComposite("arguments", values, divider);
-const optionalArgs = new OptionalComposite(args);
+const values = new Recursive("values");
+const args = new Repeat("arguments", values, divider, true);
 
-const method = new AndComposite("method", [
+const method = new And("method", [
   name.clone("[Method Name]"),
   openParen,
   optionalSpaces,
-  optionalArgs,
+  args,
   optionalSpaces,
   closeParen
 ]);

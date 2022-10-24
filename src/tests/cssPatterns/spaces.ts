@@ -1,5 +1,5 @@
-import { RegexValue } from "../../index";
+import { Regex } from "../../index";
 
-const spaces = new RegexValue(" ", "\\s+");
+const spaces = new Regex(" ", "\\s+");
 
 export default spaces;

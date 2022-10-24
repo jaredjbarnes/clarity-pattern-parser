@@ -1,8 +1,8 @@
-import { AndComposite, RegexValue } from "../../index";
+import { And, Regex } from "../../index";
 
 import number from "./number";
 
-const unitType = new RegexValue("[unit]", "[a-zA-Z%]+");
-const unit = new AndComposite("unit", [number, unitType]);
+const unitType = new Regex("[unit]", "[a-zA-Z%]+");
+const unit = new And("unit", [number, unitType]);
 
 export default unit;

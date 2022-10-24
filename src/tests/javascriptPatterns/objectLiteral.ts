@@ -1,29 +1,22 @@
-import Literal from "../../patterns/value/Literal";
-import AndComposite from "../../patterns/composite/AndComposite";
-import RepeatComposite from "../../patterns/composite/RepeatComposite";
-import OptionalComposite from "../../patterns/composite/OptionalComposite";
-import OrValue from "../../patterns/value/OrValue";
-import OptionalValue from "../../patterns/value/OptionalValue";
-import RecursivePattern from "../../patterns/RecursivePattern";
+import {Literal, And, Repeat, Or, Recursive} from "../../index";
 import name from "./name";
 import string from "./string";
 import whitespace from "./whitespace";
-import AndValue from "../../patterns/value/AndValue";
 
-const expression = new RecursivePattern("expression");
-const optionalWhitespace = new OptionalValue(whitespace);
+const expression = new Recursive("expression");
+const optionalWhitespace = whitespace.clone("optional-whitespaces", true);
 const comma = new Literal(",", ",");
 const colon = new Literal(":", ":");
 
-const separator = new AndValue("separator", [
+const separator = new And("separator", [
   optionalWhitespace,
   comma,
   optionalWhitespace,
 ]);
 
-const property = new OrValue("property", [name, string]);
+const property = new Or("property", [name, string]);
 
-const keyValue = new AndComposite("key-value", [
+const keyValue = new And("key-value", [
   property,
   optionalWhitespace,
   colon,
@@ -31,12 +24,12 @@ const keyValue = new AndComposite("key-value", [
   expression,
 ]);
 
-const keyValues = new RepeatComposite("key-values", keyValue, separator);
-const optionalKeyValues = new OptionalComposite(keyValues);
+const keyValues = new Repeat("key-values", keyValue, separator);
+const optionalKeyValues = keyValues.clone("optional-key-values", true);
 const openBracket = new Literal("{", "}");
 const closeBracket = new Literal("}", "}");
 
-const objectLiteral = new AndComposite("object-literal", [
+const objectLiteral = new And("object-literal", [
   openBracket,
   optionalWhitespace,
   optionalKeyValues,

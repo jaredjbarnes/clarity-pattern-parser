@@ -3,11 +3,8 @@ import ParserError from "./ParseError";
 import Cursor from "../Cursor";
 
 export default class Reference extends Pattern {
-  private isRecursing: boolean;
-
   constructor(name: string, isOptional = false) {
     super("reference", name, [], isOptional);
-    this.isRecursing = false;
   }
 
   private getRoot() {
@@ -105,10 +102,6 @@ export default class Reference extends Pattern {
     return new Reference(name, isOptional);
   }
 
-  getTokenValue() {
-    return this.safelyGetPattern().getTokenValue();
-  }
-
   private safelyGetPattern() {
     let pattern = this.children[0];
     const hasNoPattern = pattern == null;
@@ -129,13 +122,6 @@ export default class Reference extends Pattern {
   }
 
   getTokens() {
-    if (!this.isRecursing) {
-      this.isRecursing = true;
-      let pattern = this.safelyGetPattern();
-      const tokens = pattern.getTokens();
-      this.isRecursing = false;
-      return tokens;
-    }
-    return [];
+    return this.safelyGetPattern().getTokens();
   }
 }

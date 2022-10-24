@@ -16,7 +16,10 @@ export default class Recursive extends Pattern {
       if (pattern == null) {
         return false;
       }
-      return pattern.name === this.name;
+      return (
+        pattern.type !== "recursive" &&
+        pattern.name === this.name
+      );
     });
   }
 
@@ -39,7 +42,7 @@ export default class Recursive extends Pattern {
       const pattern = this.getPattern();
 
       if (pattern == null) {
-        if (!this._isOptional){
+        if (!this._isOptional) {
           cursor.throwError(
             new ParserError(
               `Couldn't find parent pattern to recursively parse, with the name ${this.name}.`,
@@ -83,18 +86,7 @@ export default class Recursive extends Pattern {
     return new Recursive(name, isOptional);
   }
 
-  getTokenValue() {
-    return this.getPattern()?.getTokenValue() || null;
-  }
-
   getTokens() {
-    if (!this.isRecursing) {
-      this.isRecursing = true;
-      const tokens = this.getPattern()?.getTokens() || [];
-      this.isRecursing = false;
-
-      return tokens;
-    }
-    return [];
+    return this.getPattern()?.getTokens() || [];
   }
 }

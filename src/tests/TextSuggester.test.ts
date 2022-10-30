@@ -284,4 +284,14 @@ describe("TextInspector", () => {
     expect(result.options.values[2]).toBe("FlagZ");
     expect(result.options.values[3]).toBe("(");
   });
+
+  test("Do not match on first partial token.", () => {
+    const expression = generateExpression(["FlagX", "FlagY", "FlagZ"]);
+    const result = TextSuggester.suggest("l", expression);
+
+    expect(result.options).toBe(null);
+    expect(result.error?.startIndex).toBe(0);
+    expect(result.error?.endIndex).toBe(0);
+    expect(result.error?.text).toBe("l");
+  });
 });

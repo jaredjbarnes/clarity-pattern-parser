@@ -187,7 +187,7 @@ export default class TextSuggester {
       let options = this.rootPattern?.getTokens();
 
       options = options?.filter((option: any) => {
-        return option.indexOf(this.text) > -1;
+        return option.indexOf(this.text) === 0;
       });
 
       if (options?.length === 0) {

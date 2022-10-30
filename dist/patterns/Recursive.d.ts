@@ -8,6 +8,5 @@ export default class Recursive extends Pattern {
     private climb;
     parse(cursor: Cursor): import("..").Node | null;
     clone(name?: string, isOptional?: boolean): Recursive;
-    getTokenValue(): string | null;
     getTokens(): string[];
 }

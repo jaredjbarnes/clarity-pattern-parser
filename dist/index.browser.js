@@ -900,7 +900,8 @@
               if (pattern == null) {
                   return false;
               }
-              return pattern.name === this.name;
+              return (pattern.type !== "recursive" &&
+                  pattern.name === this.name);
           });
       }
       climb(pattern, isMatch) {
@@ -946,26 +947,15 @@
           }
           return new Recursive(name, isOptional);
       }
-      getTokenValue() {
-          var _a;
-          return ((_a = this.getPattern()) === null || _a === void 0 ? void 0 : _a.getTokenValue()) || null;
-      }
       getTokens() {
           var _a;
-          if (!this.isRecursing) {
-              this.isRecursing = true;
-              const tokens = ((_a = this.getPattern()) === null || _a === void 0 ? void 0 : _a.getTokens()) || [];
-              this.isRecursing = false;
-              return tokens;
-          }
-          return [];
+          return ((_a = this.getPattern()) === null || _a === void 0 ? void 0 : _a.getTokens()) || [];
       }
   }
 
   class Reference extends Pattern {
       constructor(name, isOptional = false) {
           super("reference", name, [], isOptional);
-          this.isRecursing = false;
       }
       getRoot() {
           let node = this.parent;
@@ -1036,9 +1026,6 @@
           }
           return new Reference(name, isOptional);
       }
-      getTokenValue() {
-          return this.safelyGetPattern().getTokenValue();
-      }
       safelyGetPattern() {
           let pattern = this.children[0];
           const hasNoPattern = pattern == null;
@@ -1053,14 +1040,7 @@
           return pattern;
       }
       getTokens() {
-          if (!this.isRecursing) {
-              this.isRecursing = true;
-              let pattern = this.safelyGetPattern();
-              const tokens = pattern.getTokens();
-              this.isRecursing = false;
-              return tokens;
-          }
-          return [];
+          return this.safelyGetPattern().getTokens();
       }
   }
 
@@ -1207,7 +1187,7 @@
           if (noMatch) {
               let options = (_d = this.rootPattern) === null || _d === void 0 ? void 0 : _d.getTokens();
               options = options === null || options === void 0 ? void 0 : options.filter((option) => {
-                  return option.indexOf(this.text) > -1;
+                  return option.indexOf(this.text) === 0;
               });
               if ((options === null || options === void 0 ? void 0 : options.length) === 0) {
                   this.tokens = null;

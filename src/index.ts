@@ -11,8 +11,14 @@ import ParseError from "./patterns/ParseError";
 import Pattern from "./patterns/Pattern";
 import Recursive from "./patterns/Recursive";
 import Reference from "./patterns/Reference";
-import TextSuggester from "./TextSuggester";
 import Visitor from "./ast/Visitor";
+export { default as TextSuggester } from "./TextSuggester";
+export type {
+  SuggestionError,
+  SuggestionMatch,
+  SuggestionResult,
+  Token,
+} from "./TextSuggester";
 
 export {
   Node,
@@ -27,7 +33,6 @@ export {
   Pattern,
   Recursive,
   Reference,
-  TextSuggester,
   Visitor,
   LookAhead,
 };

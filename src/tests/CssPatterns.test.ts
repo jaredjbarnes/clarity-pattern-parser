@@ -19,6 +19,18 @@ describe("Css", () => {
     expect(cursor.text).toBe(result?.toString());
   });
 
+  test("Css: All known unit values spaced", () => {
+    const cursor = new Cursor(
+      "10 linear-gradient(to left, #333, #333 50%, #eee 75%, #333 75%) rgba(0,0,0,1) #333 #555555 0px 0% 0deg 1em radial-gradient(at 40% 40%, rgba(187,202,218,1) 0%, rgba(187,202,218,1) 20%, rgba(187,202,218,1) 100%)"
+    );
+
+    const now = Date.now();
+    for (let i = 0; i < 10000; i++) {
+      cssValue.parse(cursor);
+    }
+    console.log((Date.now() - now));
+  });
+
   test("Css: radial-gradient", () => {
     const cursor = new Cursor(
       "radial-gradient(at 40% 40%, rgba(187,202,218,1) 0%, rgba(187,202,218,1) 20%, rgba(187,202,218,1) 100%)"
@@ -86,5 +98,4 @@ describe("Css", () => {
     const result = cssValue.parse(cursor);
     expect(result?.endIndex).toBe(cursor.text.length - 1);
   });
-
 });

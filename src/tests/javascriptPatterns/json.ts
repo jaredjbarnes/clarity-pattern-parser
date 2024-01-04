@@ -1,4 +1,4 @@
-import { Literal, And, Repeat, Or, Recursive } from "../../index";
+import { Literal, And, Repeat, Or, Reference } from "../../index";
 
 import string from "./string";
 import number from "./number";
@@ -23,7 +23,7 @@ const divider = new And("divider", [
 
 const arrayValues = new Repeat(
   "values",
-  new Recursive("literals"),
+  new Reference("literals"),
   divider
 );
 const optionalArrayValues = arrayValues.clone("optional-values", true);
@@ -41,7 +41,7 @@ const keyValue = new And("key-value", [
   optionalSpaces,
   colon,
   optionalSpaces,
-  new Recursive("literals"),
+  new Reference("literals"),
 ]);
 
 const keyValues = new Repeat("key-values", keyValue, divider);

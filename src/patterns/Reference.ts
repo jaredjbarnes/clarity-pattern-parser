@@ -1,6 +1,6 @@
 import Pattern from "./Pattern";
 import ParserError from "./ParseError";
-import Cursor from "../Cursor";
+import Cursor from "./Cursor";
 
 export default class Reference extends Pattern {
   constructor(name: string, isOptional = false) {
@@ -90,16 +90,10 @@ export default class Reference extends Pattern {
     }
   }
 
-  clone(name?: string, isOptional?: boolean) {
-    if (name == null) {
-      name = this.name;
-    }
+  clone(name = this._name, isOptional = this._isOptional) {
+    const pattern = new Reference(name, isOptional);
 
-    if (isOptional == null) {
-      isOptional = this._isOptional;
-    }
-
-    return new Reference(name, isOptional);
+    return pattern;
   }
 
   private safelyGetPattern() {
@@ -123,5 +117,15 @@ export default class Reference extends Pattern {
 
   getTokens() {
     return this.safelyGetPattern().getTokens();
+  }
+
+  getNextTokens(reference: Pattern): string[] {
+    const parent = this._parent;
+
+    if (parent == null) {
+      return [];
+    }
+
+    return parent.getNextTokens(this);
   }
 }

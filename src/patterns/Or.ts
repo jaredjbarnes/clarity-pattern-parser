@@ -1,15 +1,14 @@
 import Pattern from "./Pattern";
 import ParseError from "./ParseError";
-import Cursor from "../Cursor";
+import Cursor from "./Cursor";
 import Node from "../ast/Node";
 
 export default class Or extends Pattern {
-  public patternIndex: number = 0;
-  public errors: ParseError[] = [];
-  public node: Node | null = null;
-  public cursor: Cursor | null = null;
-  public mark: number = 0;
-  public parseError: ParseError | null = null;
+  private _patternIndex: number = 0;
+  private _node: Node | null = null;
+  private _cursor: Cursor | null = null;
+  private _mark: number = 0;
+  private _reduceAst = false;
 
   constructor(name: string, patterns: Pattern[], isOptional = false) {
     super("or", name, patterns, isOptional);
@@ -33,15 +32,14 @@ export default class Or extends Pattern {
   }
 
   private resetState(cursor: Cursor) {
-    this.patternIndex = 0;
-    this.errors = [];
-    this.node = null;
-    this.cursor = cursor;
-    this.mark = cursor.mark();
+    this._patternIndex = 0;
+    this._node = null;
+    this._cursor = cursor;
+    this._mark = cursor.mark();
   }
 
   private safelyGetCursor() {
-    const cursor = this.cursor;
+    const cursor = this._cursor;
 
     if (cursor == null) {
       throw new Error("Couldn't find cursor.");
@@ -53,14 +51,14 @@ export default class Or extends Pattern {
     this.resetState(cursor);
     this.tryToParse();
 
-    return this.node;
+    return this._node;
   }
 
   private tryToParse() {
     const cursor = this.safelyGetCursor();
 
     while (true) {
-      const pattern = this._children[this.patternIndex];
+      const pattern = this._children[this._patternIndex];
       const node = pattern.parse(cursor);
       const hasError = cursor.hasUnresolvedError();
 
@@ -78,49 +76,48 @@ export default class Or extends Pattern {
 
   private processError() {
     const cursor = this.safelyGetCursor();
-    const isLastPattern = this.patternIndex + 1 === this._children.length;
+    const isLastPattern = this._patternIndex + 1 === this._children.length;
 
     if (!isLastPattern) {
-      this.patternIndex++;
+      this._patternIndex++;
       cursor.resolveError();
-      cursor.moveToMark(this.mark);
+      cursor.moveToMark(this._mark);
       return false;
     } else {
       if (this._isOptional) {
         cursor.resolveError();
-        cursor.moveToMark(this.mark);
+        cursor.moveToMark(this._mark);
       }
-      this.node = null;
+      this._node = null;
       return true;
     }
   }
 
   private processResult(node: Node) {
     const cursor = this.safelyGetCursor();
+    const children = [];
 
-    this.node = new Node(
+    if (!this._reduceAst) {
+      children.push(node);
+    }
+
+    this._node = new Node(
       "or",
       this.name,
-      node.startIndex,
-      node.endIndex,
-      [node],
+      node.firstIndex,
+      node.lastIndex,
+      children,
       node.value
     );
 
-    cursor.index = this.node.endIndex;
-    cursor.addMatch(this, this.node);
+    cursor.index = this._node.lastIndex;
+    cursor.addMatch(this, this._node);
   }
 
-  clone(name?: string, isOptional?: boolean) {
-    if (name == null) {
-      name = this.name;
-    }
-
-    if (isOptional == null) {
-      isOptional = this._isOptional;
-    }
-
-    return new Or(name, this._children, isOptional);
+  clone(name = this._name, isOptional = this._isOptional) {
+    const pattern = new Or(name, this._children, isOptional);
+    pattern._reduceAst = this._reduceAst;
+    return pattern;
   }
 
   getTokens() {
@@ -128,5 +125,22 @@ export default class Or extends Pattern {
       (acc, c) => acc.concat(c.getTokens()),
       []
     );
+  }
+
+  getNextTokens(reference: Pattern): string[] {
+    const parent = this._parent;
+    if (parent == null) {
+      return [];
+    }
+
+    return parent.getNextTokens(this);
+  }
+
+  reduceAst() {
+    this._reduceAst = true;
+  }
+
+  expandAst() {
+    this._reduceAst = false;
   }
 }

@@ -1,6 +1,6 @@
 import Pattern from "./Pattern";
 import ParseError from "./ParseError";
-import Cursor from "../Cursor";
+import Cursor from "./Cursor";
 
 export default class Not extends Pattern {
   public cursor!: Cursor;
@@ -36,15 +36,15 @@ export default class Not extends Pattern {
     }
   }
 
-  clone(name?: string) {
-    if (name == null) {
-      name = this.name;
-    }
-
+  clone() {
     return new Not(this.children[0]);
   }
 
   getTokens() {
+    return [];
+  }
+
+  getNextTokens(reference: Pattern): string[] {
     return [];
   }
 }

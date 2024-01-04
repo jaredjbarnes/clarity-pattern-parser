@@ -1,6 +1,6 @@
 /** @jest-environment node */
 import unit from "./javascriptPatterns/unit";
-import Cursor from "../Cursor";
+import Cursor from "../patterns/Cursor";
 
 const unitRegex = /(\\d*\\.?\\d+)\\s?(px|em|ex|%|in|cn|mm|pt|pc+)/gim;
 

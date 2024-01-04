@@ -1,7 +1,7 @@
 /** @jest-environment node */
 import And from "../patterns/And";
 import Literal from "../patterns/Literal";
-import Cursor from "../Cursor";
+import Cursor from "../patterns/Cursor";
 import Regex from "../patterns/Regex";
 import Repeat from "../patterns/Repeat";
 import LookAhead from "../patterns/LookAhead";
@@ -18,8 +18,8 @@ describe("And", () => {
 
     expect(node?.name).toBe("full-name");
     expect(node?.value).toBe("JohnDoe");
-    expect(node?.startIndex).toBe(0);
-    expect(node?.endIndex).toBe(6);
+    expect(node?.firstIndex).toBe(0);
+    expect(node?.lastIndex).toBe(6);
   });
 
   test("First Part Match with optional Second part.", () => {
@@ -31,8 +31,8 @@ describe("And", () => {
 
     expect(node?.name).toBe("full-name");
     expect(node?.value).toBe("John");
-    expect(node?.startIndex).toBe(0);
-    expect(node?.endIndex).toBe(3);
+    expect(node?.firstIndex).toBe(0);
+    expect(node?.lastIndex).toBe(3);
   });
 
   test("First Part Match, but run out for second part.", () => {
@@ -74,8 +74,8 @@ describe("And", () => {
 
     expect(node?.name).toBe("full-name");
     expect(node?.value).toBe("JohnDoe");
-    expect(node?.startIndex).toBe(0);
-    expect(node?.endIndex).toBe(6);
+    expect(node?.firstIndex).toBe(0);
+    expect(node?.lastIndex).toBe(6);
   });
 
   test("Clone.", () => {

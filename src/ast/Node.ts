@@ -1,23 +1,23 @@
 export default class Node {
   public type: string;
   public name: string;
-  public startIndex: number;
-  public endIndex: number;
+  public firstIndex: number;
+  public lastIndex: number;
   public children: Node[];
   public value: string;
 
   constructor(
     type: string,
     name: string,
-    startIndex: number,
-    endIndex: number,
+    firstIndex: number,
+    lastIndex: number,
     children: Node[] = [],
     value: string = ""
   ) {
     this.type = type;
     this.name = name;
-    this.startIndex = startIndex;
-    this.endIndex = endIndex;
+    this.firstIndex = firstIndex;
+    this.lastIndex = lastIndex;
     this.children = children;
     this.value = value;
   }
@@ -26,8 +26,8 @@ export default class Node {
     return new Node(
       this.type,
       this.name,
-      this.startIndex,
-      this.endIndex,
+      this.firstIndex,
+      this.lastIndex,
       this.children.map((c) => c.clone()),
       this.value
     );

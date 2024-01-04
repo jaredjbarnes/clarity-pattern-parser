@@ -1,7 +1,7 @@
 import ParseError from "./ParseError";
 import Node from "../ast/Node";
 import Pattern from "./Pattern";
-import Cursor from "../Cursor";
+import Cursor from "./Cursor";
 
 export default class Regex extends Pattern {
   private regexString: string;
@@ -9,6 +9,8 @@ export default class Regex extends Pattern {
   private node: Node | null = null;
   private cursor: Cursor | null = null;
   private substring: string = "";
+  private _tokens: string[] = [];
+  private _hasContextualTokenAggregation = false;
 
   constructor(name: string, regex: string, isOptional = false) {
     super("regex", name, [], isOptional);
@@ -101,23 +103,48 @@ export default class Regex extends Pattern {
     return cursor;
   }
 
-  clone(name?: string, isOptional?: boolean) {
-    if (name == null) {
-      name = this.name;
-    }
-
-    if (isOptional == null) {
-      isOptional = this._isOptional;
-    }
-
-    return new Regex(name, this.regexString, isOptional);
-  }
-
-  getTokenValue() {
-    return this.name;
+  clone(name = this._name, isOptional = this._isOptional) {
+    const pattern = new Regex(name, this.regexString, isOptional);
+    pattern._tokens = this._tokens.slice();
+    pattern._hasContextualTokenAggregation =
+      this._hasContextualTokenAggregation;
+    return pattern;
   }
 
   getTokens() {
-    return [this.name];
+    const parent = this._parent;
+    const hasParent = parent != null;
+
+    if (this._hasContextualTokenAggregation && hasParent) {
+      const tokens = this._tokens;
+      const aggregateTokens: string[] = [];
+      const nextTokens = parent.getNextTokens(this);
+
+      for (let nextToken of nextTokens) {
+        for (let token of tokens) {
+          aggregateTokens.push(token + nextToken);
+        }
+      }
+
+      return aggregateTokens;
+    }
+
+    return this._tokens;
+  }
+
+  setTokens(tokens: string[]) {
+    this._tokens = tokens;
+  }
+
+  enableContextTokenAggregation() {
+    this._hasContextualTokenAggregation = true;
+  }
+
+  disableContextTokenAggregation() {
+    this._hasContextualTokenAggregation = false;
+  }
+
+  getNextTokens(_reference: Pattern): string[] {
+    return [];
   }
 }

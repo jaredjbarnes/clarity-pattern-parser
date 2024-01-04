@@ -1,5 +1,5 @@
 import Node from "./ast/Node";
-import Cursor from "./Cursor";
+import Cursor from "./patterns/Cursor";
 import Regex from "./patterns/Regex";
 import And from "./patterns/And";
 import Literal from "./patterns/Literal";
@@ -9,16 +9,8 @@ import Or from "./patterns/Or";
 import Repeat from "./patterns/Repeat";
 import ParseError from "./patterns/ParseError";
 import Pattern from "./patterns/Pattern";
-import Recursive from "./patterns/Recursive";
 import Reference from "./patterns/Reference";
 import Visitor from "./ast/Visitor";
-export { default as TextSuggester } from "./TextSuggester";
-export type {
-  SuggestionError,
-  SuggestionMatch,
-  SuggestionResult,
-  Token,
-} from "./TextSuggester";
 
 export {
   Node,
@@ -31,7 +23,6 @@ export {
   Repeat,
   ParseError,
   Pattern,
-  Recursive,
   Reference,
   Visitor,
   LookAhead,

@@ -1,3 +1,4 @@
+/** @jest-environment node */
 import { Cursor, Reference, And, Literal, Or } from "../index";
 
 describe("ReferencePattern", () => {

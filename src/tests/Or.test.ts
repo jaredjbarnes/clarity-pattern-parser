@@ -1,7 +1,7 @@
 /** @jest-environment node */
 import Or from "../patterns/Or";
 import Literal from "../patterns/Literal";
-import Cursor from "../Cursor";
+import Cursor from "../patterns/Cursor";
 
 describe("Or", () => {
   test("Or: Empty array parser.", () => {

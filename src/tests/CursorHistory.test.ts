@@ -1,5 +1,5 @@
 /** @jest-environment node */
-import CursorHistory from "../CursorHistory";
+import CursorHistory from "../patterns/CursorHistory";
 import { Literal, Node, Cursor, ParseError } from "../index";
 import sentence from "./patterns/sentence";
 describe("CursorHistory", () => {
@@ -10,7 +10,7 @@ describe("CursorHistory", () => {
 
     cursorHistory.addMatch(pattern, node);
     expect(cursorHistory.getFurthestMatch().pattern).toBe(pattern);
-    expect(cursorHistory.getFurthestMatch().astNode).toBe(node);
+    expect(cursorHistory.getFurthestMatch().node).toBe(node);
   });
 
   test("addMatch with Recording", () => {
@@ -22,9 +22,9 @@ describe("CursorHistory", () => {
     cursorHistory.addMatch(pattern, node);
 
     expect(cursorHistory.getFurthestMatch().pattern).toBe(pattern);
-    expect(cursorHistory.getFurthestMatch().astNode).toBe(node);
+    expect(cursorHistory.getFurthestMatch().node).toBe(node);
     expect(cursorHistory.getLastMatch().pattern).toBe(pattern);
-    expect(cursorHistory.getLastMatch().astNode).toBe(node);
+    expect(cursorHistory.getLastMatch().node).toBe(node);
   });
 
   test("addError", () => {
@@ -64,9 +64,9 @@ describe("CursorHistory", () => {
     const cursorHistory = new CursorHistory();
 
     expect(cursorHistory.getLastMatch().pattern).toBe(null);
-    expect(cursorHistory.getLastMatch().astNode).toBe(null);
+    expect(cursorHistory.getLastMatch().node).toBe(null);
     expect(cursorHistory.getFurthestMatch().pattern).toBe(null);
-    expect(cursorHistory.getFurthestMatch().astNode).toBe(null);
+    expect(cursorHistory.getFurthestMatch().node).toBe(null);
   });
 
   test("getFurthestMatch without an matches while recording.", () => {
@@ -74,9 +74,9 @@ describe("CursorHistory", () => {
     cursorHistory.startRecording();
 
     expect(cursorHistory.getLastMatch().pattern).toBe(null);
-    expect(cursorHistory.getLastMatch().astNode).toBe(null);
+    expect(cursorHistory.getLastMatch().node).toBe(null);
     expect(cursorHistory.getFurthestMatch().pattern).toBe(null);
-    expect(cursorHistory.getFurthestMatch().astNode).toBe(null);
+    expect(cursorHistory.getFurthestMatch().node).toBe(null);
   });
 
   test("getAllParseStacks.", () => {

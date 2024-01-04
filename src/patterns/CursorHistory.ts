@@ -1,47 +1,57 @@
-import Pattern from "./patterns/Pattern";
-import Node from "./ast/Node";
-import ParseError from "./patterns/ParseError";
+import Pattern from "./Pattern";
+import Node from "../ast/Node";
+import ParseError from "./ParseError";
 
 export interface Match {
   pattern: Pattern | null;
-  astNode: Node | null;
+  node: Node | null;
 }
 
 export default class CursorHistory {
   public isRecording: boolean;
-  public furthestMatch: Match;
-  public furthestError: ParseError | null;
+  public rootMatch: Match;
+  public leafMatch: Match;
+  public error: ParseError | null;
   public patterns: Pattern[];
-  public astNodes: Node[];
+  public nodes: Node[];
   public errors: ParseError[];
 
   constructor() {
     this.isRecording = false;
 
-    this.furthestMatch = {
+    this.leafMatch = {
       pattern: null,
-      astNode: null,
+      node: null,
     };
 
-    this.furthestError = null;
+    this.rootMatch = {
+      pattern: null,
+      node: null,
+    };
+
+    this.error = null;
 
     this.patterns = [];
-    this.astNodes = [];
+    this.nodes = [];
     this.errors = [];
   }
 
-  addMatch(pattern: Pattern, astNode: Node) {
+  addMatch(pattern: Pattern, node: Node) {
     if (this.isRecording) {
       this.patterns.push(pattern);
-      this.astNodes.push(astNode);
+      this.nodes.push(node);
     }
 
-    if (
-      this.furthestMatch.astNode == null ||
-      astNode.endIndex >= this.furthestMatch.astNode.endIndex
-    ) {
-      this.furthestMatch.pattern = pattern;
-      this.furthestMatch.astNode = astNode;
+    this.rootMatch.pattern = pattern;
+    this.rootMatch.node = node;
+
+    const isFurthestMatch =
+      this.leafMatch.node == null ||
+      node.lastIndex > this.leafMatch.node.lastIndex;
+
+    if (isFurthestMatch) {
+      this.leafMatch.pattern = pattern;
+      this.leafMatch.node = node;
     }
   }
 
@@ -50,8 +60,8 @@ export default class CursorHistory {
       this.errors.push(error);
     }
 
-    if (this.furthestError == null || error.index >= this.furthestError.index) {
-      this.furthestError = error;
+    if (this.error == null || error.index >= this.error.index) {
+      this.error = error;
     }
   }
 
@@ -66,26 +76,26 @@ export default class CursorHistory {
 
   clear() {
     this.patterns.length = 0;
-    this.astNodes.length = 0;
+    this.nodes.length = 0;
     this.errors.length = 0;
   }
 
   getFurthestError() {
-    return this.furthestError;
+    return this.error;
   }
 
   getFurthestMatch() {
-    return this.furthestMatch;
+    return this.leafMatch;
   }
 
   getLastMatch() {
     if (this.isRecording) {
       return {
         pattern: this.patterns[this.patterns.length - 1] || null,
-        astNode: this.astNodes[this.astNodes.length - 1] || null,
+        node: this.nodes[this.nodes.length - 1] || null,
       } as Match;
     } else {
-      return this.furthestMatch as Match;
+      return this.leafMatch as Match;
     }
   }
 
@@ -94,10 +104,10 @@ export default class CursorHistory {
   }
 
   getAllParseStacks() {
-    const stacks = this.astNodes.reduce((acc: Node[][], node) => {
+    const stacks = this.nodes.reduce((acc: Node[][], node) => {
       let container: Node[] = acc[acc.length - 1];
 
-      if (node.startIndex === 0) {
+      if (node.firstIndex === 0) {
         container = [];
         acc.push(container);
       }
@@ -122,10 +132,10 @@ export default class CursorHistory {
           cleanedStack.unshift(currentNode);
         } else {
           const left = Math.max(
-            currentNode.startIndex,
-            previousNode.startIndex
+            currentNode.firstIndex,
+            previousNode.firstIndex
           );
-          const right = Math.min(currentNode.endIndex, previousNode.endIndex);
+          const right = Math.min(currentNode.lastIndex, previousNode.lastIndex);
           const isOverlapping = left <= right;
 
           if (!isOverlapping) {

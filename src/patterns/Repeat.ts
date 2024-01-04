@@ -1,7 +1,7 @@
 import Pattern from "./Pattern";
 import Node from "../ast/Node";
 import ParseError from "./ParseError";
-import Cursor from "../Cursor";
+import Cursor from "./Cursor";
 
 export default class Repeat extends Pattern {
   public _pattern: Pattern;
@@ -10,6 +10,7 @@ export default class Repeat extends Pattern {
   public cursor!: Cursor;
   public mark: number = 0;
   public node: Node | null = null;
+  private _reduceAst = false;
 
   constructor(
     name: string,
@@ -62,7 +63,7 @@ export default class Repeat extends Pattern {
       } else if (node != null) {
         this.nodes.push(node);
 
-        if (node.endIndex === cursor.lastIndex()) {
+        if (node.lastIndex === cursor.lastIndex()) {
           this.processResult();
           break;
         }
@@ -80,7 +81,7 @@ export default class Repeat extends Pattern {
           } else if (node != null) {
             this.nodes.push(node);
 
-            if (node.endIndex === cursor.lastIndex()) {
+            if (node.lastIndex === cursor.lastIndex()) {
               this.processResult();
               break;
             }
@@ -102,7 +103,7 @@ export default class Repeat extends Pattern {
     if ((hasDivider && endsOnDivider) || noMatch) {
       if (this._isOptional) {
         this.cursor.moveToMark(this.mark);
-      } else  {
+      } else {
         const parseError = new ParseError(
           `Did not find a repeating match of ${this.name}.`,
           this.mark,
@@ -113,17 +114,20 @@ export default class Repeat extends Pattern {
       this.node = null;
     } else {
       const value = this.nodes.map((node) => node.value).join("");
+      const firstIndex = this.nodes[0].firstIndex;
+      const lastIndex = this.nodes[this.nodes.length - 1].lastIndex;
+      const children = this._reduceAst ? [] : this.nodes;
 
       this.node = new Node(
         "repeat",
         this.name,
-        this.nodes[0].startIndex,
-        this.nodes[this.nodes.length - 1].endIndex,
-        this.nodes,
+        firstIndex,
+        lastIndex,
+        children,
         value
       );
 
-      this.cursor.index = this.node.endIndex;
+      this.cursor.index = this.node.lastIndex;
       this.cursor.addMatch(this, this.node);
     }
   }
@@ -137,19 +141,59 @@ export default class Repeat extends Pattern {
     return cursor;
   }
 
-  clone(name?: string, isOptional?: boolean) {
-    if (name == null) {
-      name = this.name;
-    }
-
-    if (isOptional == null) {
-      isOptional = this._isOptional;
-    }
-
-    return new Repeat(name, this._pattern, this._divider, isOptional);
+  clone(name = this._name, isOptional = this._isOptional) {
+    const pattern = new Repeat(name, this._pattern, this._divider, isOptional);
+    pattern._reduceAst = this._reduceAst;
+    return pattern;
   }
 
   getTokens() {
     return this._pattern.getTokens();
+  }
+
+  getNextTokens(reference: Pattern): string[] {
+    let index = -1;
+    const tokens: string[] = [];
+    const parent = this._parent;
+
+    for (let i = 0; i < this._children.length; i++) {
+      const child = this._children[i];
+      if (child == reference) {
+        index = i;
+      }
+    }
+
+    // If the last match isn't a child of this pattern.
+    if (index === -1) {
+      return [];
+    }
+
+    // If the last match was the repeated patterns, then suggest the divider.
+    if (index === 0 && this._divider != null) {
+      tokens.push(...this.children[1].getTokens());
+
+      if (parent != null) {
+        tokens.push(...parent.getNextTokens(this));
+      }
+    }
+
+    if (index === 1) {
+      // Suggest the pattern because the divider was the last match.
+      tokens.push(...this._children[0].getTokens());
+    }
+
+    if (index === 0 && this._divider == null && parent != null) {
+      tokens.push(...parent.getNextTokens(this));
+    }
+
+    return tokens;
+  }
+
+  shouldReduceAst() {
+    this._reduceAst = true;
+  }
+
+  shouldNotReduceAst() {
+    this._reduceAst = false;
   }
 }

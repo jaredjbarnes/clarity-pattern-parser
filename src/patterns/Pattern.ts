@@ -1,4 +1,4 @@
-import Cursor from "../Cursor";
+import Cursor from "./Cursor";
 import Node from "../ast/Node";
 
 export default abstract class Pattern {
@@ -71,71 +71,7 @@ export default abstract class Pattern {
 
   abstract clone(name?: string): Pattern;
   abstract getTokens(): string[];
-
-  getTokenValue(): string | null {
-    return null;
-  }
-
-  getNextTokens(): string[] {
-    const parent = this._parent;
-
-    if (parent != null) {
-      const siblings = parent.children;
-      const index = siblings.findIndex((c) => c === this);
-      const nextSibling = siblings[index + 1];
-
-      // I don't like this, so I think we need to rethink this.
-      if (parent.type.indexOf("repeat") === 0) {
-        const tokens = parent.getNextTokens();
-        if (index === 0 && siblings.length > 1) {
-          return nextSibling.getTokens().concat(tokens);
-        } else if (index === 1) {
-          return siblings[0].getTokens();
-        } else {
-          return this.getTokens().concat(tokens);
-        }
-      }
-
-      // Another thing I don't like.
-      if (
-        this._parent?.type?.indexOf("and") === 0 &&
-        nextSibling != null &&
-        nextSibling.isOptional
-      ) {
-        let tokens: string[] = [];
-
-        for (let x = index + 1; x < siblings.length; x++) {
-          const child = siblings[x];
-
-          if (child.isOptional) {
-            tokens = tokens.concat(child.getTokens());
-          } else {
-            tokens = tokens.concat(child.getTokens());
-            break;
-          }
-
-          if (x === siblings.length - 1) {
-            tokens = tokens.concat(this._parent.getNextTokens());
-          }
-        }
-
-        return tokens;
-      }
-
-      // If you are an or you have already qualified.
-      if (parent.type.indexOf("or") === 0) {
-        return parent.getNextTokens();
-      }
-
-      if (nextSibling != null) {
-        return nextSibling.getTokens();
-      } else {
-        return parent.getNextTokens();
-      }
-    }
-
-    return [];
-  }
+  abstract getNextTokens(reference: Pattern): string[];
 
   private cloneChildren() {
     this._children = this._children.map((pattern) => {

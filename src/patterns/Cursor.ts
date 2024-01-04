@@ -1,7 +1,7 @@
-import Pattern from "./patterns/Pattern";
-import Node from "./ast/Node";
+import Pattern from "./Pattern";
+import Node from "../ast/Node";
 import CursorHistory from "./CursorHistory";
-import ParseError from "./patterns/ParseError";
+import ParseError from "./ParseError";
 
 export default class Cursor {
   public text: string;
@@ -107,6 +107,17 @@ export default class Cursor {
 
   getChar() {
     return this.text.charAt(this.index);
+  }
+
+  getChars(firstIndex: number, lastIndex: number) {
+    return this.text.substring(firstIndex, lastIndex - 1);
+  }
+
+  safelyGetChars(firstIndex: number, lastIndex: number) {
+    firstIndex = Math.max(firstIndex, 0);
+    lastIndex = Math.min(lastIndex, this.text.length - 1);
+
+    return this.getChars(firstIndex, lastIndex);
   }
 
   getIndex() {

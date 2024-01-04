@@ -7,7 +7,7 @@ export default class Or extends Pattern {
   private _patternIndex: number = 0;
   private _node: Node | null = null;
   private _cursor: Cursor | null = null;
-  private _mark: number = 0;
+  private _firstIndex: number = 0;
   private _reduceAst = false;
 
   constructor(name: string, patterns: Pattern[], isOptional = false) {
@@ -35,7 +35,7 @@ export default class Or extends Pattern {
     this._patternIndex = 0;
     this._node = null;
     this._cursor = cursor;
-    this._mark = cursor.mark();
+    this._firstIndex = cursor.getIndex();
   }
 
   private safelyGetCursor() {
@@ -81,12 +81,12 @@ export default class Or extends Pattern {
     if (!isLastPattern) {
       this._patternIndex++;
       cursor.resolveError();
-      cursor.moveToMark(this._mark);
+      cursor.moveTo(this._firstIndex);
       return false;
     } else {
       if (this._isOptional) {
         cursor.resolveError();
-        cursor.moveToMark(this._mark);
+        cursor.moveTo(this._firstIndex);
       }
       this._node = null;
       return true;

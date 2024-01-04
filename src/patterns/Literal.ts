@@ -34,7 +34,7 @@ export default class Literal extends Pattern {
 
   private resetState(cursor: Cursor) {
     this._cursor = cursor;
-    this._firstIndex = this._cursor.mark();
+    this._firstIndex = this._cursor.getIndex();
     this._substring = this._cursor.text.substring(
       this._firstIndex,
       this._firstIndex + this._literal.length

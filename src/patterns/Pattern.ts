@@ -23,10 +23,15 @@ export default abstract class Pattern {
     this._children = [];
     this._parent = null;
     this._isOptional = isOptional;
+
+    // Go through the setter.
     this.children = children;
   }
 
   abstract parse(cursor: Cursor): Node | null;
+  abstract clone(name?: string): Pattern;
+  abstract getTokens(): string[];
+  abstract getNextTokens(reference: Pattern): string[];
 
   exec(text: string) {
     const cursor = new Cursor(text);
@@ -68,10 +73,6 @@ export default abstract class Pattern {
     this.cloneChildren();
     this.assignAsParent();
   }
-
-  abstract clone(name?: string): Pattern;
-  abstract getTokens(): string[];
-  abstract getNextTokens(reference: Pattern): string[];
 
   private cloneChildren() {
     this._children = this._children.map((pattern) => {

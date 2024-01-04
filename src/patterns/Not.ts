@@ -3,8 +3,8 @@ import ParseError from "./ParseError";
 import Cursor from "./Cursor";
 
 export default class Not extends Pattern {
-  public cursor!: Cursor;
-  public mark: number = 0;
+  private _cursor!: Cursor;
+  private _firstIndex: number = 0;
 
   constructor(pattern: Pattern) {
     super("not", `not-${pattern.name}`, [pattern]);
@@ -12,27 +12,27 @@ export default class Not extends Pattern {
   }
 
   parse(cursor: Cursor) {
-    this.cursor = cursor;
-    this.mark = cursor.mark();
+    this._cursor = cursor;
+    this._firstIndex = cursor.getIndex();
     this.tryToParse();
     return null;
   }
 
   private tryToParse() {
-    const mark = this.cursor.mark();
-    this.children[0].parse(this.cursor);
+    const firstIndex = this._cursor.getIndex();
+    this.children[0].parse(this._cursor);
 
-    if (this.cursor.hasUnresolvedError()) {
-      this.cursor.resolveError();
-      this.cursor.moveToMark(mark);
+    if (this._cursor.hasUnresolvedError()) {
+      this._cursor.resolveError();
+      this._cursor.moveTo(firstIndex);
     } else {
-      this.cursor.moveToMark(mark);
+      this._cursor.moveTo(firstIndex);
       const parseError = new ParseError(
         `Match invalid pattern: ${this.children[0].name}.`,
-        this.mark,
+        this._firstIndex,
         this
       );
-      this.cursor.throwError(parseError);
+      this._cursor.throwError(parseError);
     }
   }
 

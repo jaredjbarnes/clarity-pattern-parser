@@ -27,7 +27,7 @@ export default class And extends Pattern {
     this._nodes = [];
     this._node = null;
     this._cursor = cursor;
-    this._firstIndex = this._cursor.mark();
+    this._firstIndex = this._cursor.getIndex();
   }
 
   private tryToParse() {
@@ -74,7 +74,7 @@ export default class And extends Pattern {
     const cursor = this.safelyGetCursor();
 
     if (this.isOptional) {
-      cursor.moveToMark(this._firstIndex);
+      cursor.moveTo(this._firstIndex);
       cursor.resolveError();
     }
     this._node = null;

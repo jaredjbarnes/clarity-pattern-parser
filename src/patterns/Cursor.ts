@@ -89,11 +89,11 @@ export default class Cursor {
     }
   }
 
-  mark() {
+  getIndex() {
     return this.index;
   }
 
-  moveToMark(mark: number) {
+  moveTo(mark: number) {
     this.index = mark;
   }
 

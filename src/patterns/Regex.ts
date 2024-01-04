@@ -4,35 +4,35 @@ import Pattern from "./Pattern";
 import Cursor from "./Cursor";
 
 export default class Regex extends Pattern {
-  private regexString: string;
-  private regex: RegExp;
-  private node: Node | null = null;
-  private cursor: Cursor | null = null;
-  private substring: string = "";
+  private _regexString: string;
+  private _regex: RegExp;
+  private _node: Node | null = null;
+  private _cursor: Cursor | null = null;
+  private _substring: string = "";
   private _tokens: string[] = [];
   private _hasContextualTokenAggregation = false;
 
   constructor(name: string, regex: string, isOptional = false) {
     super("regex", name, [], isOptional);
-    this.regexString = regex;
-    this.regex = new RegExp(`^${regex}`, "g");
+    this._regexString = regex;
+    this._regex = new RegExp(`^${regex}`, "g");
     this.assertArguments();
   }
 
   private assertArguments() {
-    if (this.regexString.length < 1) {
+    if (this._regexString.length < 1) {
       throw new Error(
         "Invalid Arguments: The regex string argument needs to be at least one character long."
       );
     }
 
-    if (this.regexString.charAt(0) === "^") {
+    if (this._regexString.charAt(0) === "^") {
       throw new Error(
         "Invalid Arguments: The regex string cannot start with a '^' because it is expected to be in the middle of a string."
       );
     }
 
-    if (this.regexString.charAt(this.regexString.length - 1) === "$") {
+    if (this._regexString.charAt(this._regexString.length - 1) === "$") {
       throw new Error(
         "Invalid Arguments: The regex string cannot end with a '$' because it is expected to be in the middle of a string."
       );
@@ -43,18 +43,18 @@ export default class Regex extends Pattern {
     this.resetState(cursor);
     this.tryToParse();
 
-    return this.node;
+    return this._node;
   }
 
   private resetState(cursor: Cursor) {
-    this.cursor = cursor;
-    this.regex.lastIndex = 0;
-    this.substring = this.cursor.text.substr(this.cursor.getIndex());
-    this.node = null;
+    this._cursor = cursor;
+    this._regex.lastIndex = 0;
+    this._substring = this._cursor.text.substr(this._cursor.getIndex());
+    this._node = null;
   }
 
   private tryToParse() {
-    const result = this.regex.exec(this.substring);
+    const result = this._regex.exec(this._substring);
 
     if (result != null && result.index === 0) {
       this.processResult(result);
@@ -68,7 +68,7 @@ export default class Regex extends Pattern {
     const currentIndex = cursor.getIndex();
     const newIndex = currentIndex + result[0].length - 1;
 
-    this.node = new Node(
+    this._node = new Node(
       "regex",
       this.name,
       currentIndex,
@@ -77,25 +77,25 @@ export default class Regex extends Pattern {
       result[0]
     );
 
-    cursor.moveToMark(newIndex);
-    cursor.addMatch(this, this.node);
+    cursor.moveTo(newIndex);
+    cursor.addMatch(this, this._node);
   }
 
   private processError() {
     const cursor = this.safelyGetCursor();
 
     if (!this._isOptional) {
-      const message = `ParseError: Expected regex pattern of '${this.regexString}' but found '${this.substring}'.`;
+      const message = `ParseError: Expected regex pattern of '${this._regexString}' but found '${this._substring}'.`;
       const parseError = new ParseError(message, cursor.getIndex(), this);
 
       cursor.throwError(parseError);
     }
 
-    this.node = null;
+    this._node = null;
   }
 
   private safelyGetCursor() {
-    const cursor = this.cursor;
+    const cursor = this._cursor;
 
     if (cursor == null) {
       throw new Error("Couldn't find cursor.");
@@ -104,7 +104,7 @@ export default class Regex extends Pattern {
   }
 
   clone(name = this._name, isOptional = this._isOptional) {
-    const pattern = new Regex(name, this.regexString, isOptional);
+    const pattern = new Regex(name, this._regexString, isOptional);
     pattern._tokens = this._tokens.slice();
     pattern._hasContextualTokenAggregation =
       this._hasContextualTokenAggregation;

@@ -58,7 +58,7 @@ export default class Reference extends Pattern {
   }
 
   parse(cursor: Cursor) {
-    const mark = cursor.mark();
+    const firstIndex = cursor.getIndex();
 
     try {
       const node = this.safelyGetPattern().parse(cursor);
@@ -69,13 +69,13 @@ export default class Reference extends Pattern {
 
       if (cursor.hasUnresolvedError() && this._isOptional) {
         cursor.resolveError();
-        cursor.moveToMark(mark);
+        cursor.moveTo(firstIndex);
       }
 
       return node;
     } catch (error) {
       if (this._isOptional) {
-        cursor.moveToMark(mark);
+        cursor.moveTo(firstIndex);
       } else {
         cursor.throwError(
           new ParserError(
@@ -119,7 +119,7 @@ export default class Reference extends Pattern {
     return this.safelyGetPattern().getTokens();
   }
 
-  getNextTokens(reference: Pattern): string[] {
+  getNextTokens(_reference: Pattern): string[] {
     const parent = this._parent;
 
     if (parent == null) {

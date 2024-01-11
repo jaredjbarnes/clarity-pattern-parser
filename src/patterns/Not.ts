@@ -1,50 +1,71 @@
-import Pattern from "./Pattern";
-import ParseError from "./ParseError";
-import Cursor from "./Cursor";
+import { Node } from "../ast/Node";
+import { Cursor } from "./Cursor";
+import { Pattern } from "./Pattern";
 
-export default class Not extends Pattern {
-  private _cursor!: Cursor;
-  private _firstIndex: number = 0;
+export class Not implements Pattern {
+  private _type: string;
+  private _name: string;
+  private _parent: Pattern | null;
+  private _children: Pattern[];
 
-  constructor(pattern: Pattern) {
-    super("not", `not-${pattern.name}`, [pattern]);
-    this._isOptional = true;
+  get type(): string {
+    return this._type;
   }
 
-  parse(cursor: Cursor) {
-    this._cursor = cursor;
-    this._firstIndex = cursor.getIndex();
-    this.tryToParse();
+  get name(): string {
+    return this._name;
+  }
+
+  get isOptional(): boolean {
+    return false;
+  }
+
+  get parent(): Pattern | null {
+    return this._parent;
+  }
+
+  set parent(pattern: Pattern) {
+    this._parent = pattern;
+  }
+
+  get children(): Pattern[] {
+    return this._children;
+  }
+
+  constructor(pattern: Pattern) {
+    this._type = "not";
+    this._name = `not-${pattern.name}`;
+    this._parent = null;
+    this._children = [pattern.clone(pattern.name, false)];
+  }
+
+  parse(cursor: Cursor): Node | null {
+    const firstIndex = cursor.index;
+    this._children[0].parse(cursor);
+
+    if (cursor.hasUnresolvedError) {
+      cursor.resolveError();
+      cursor.moveTo(firstIndex);
+    } else {
+      cursor.moveTo(firstIndex);
+      cursor.resolveError();
+      cursor.throwError(firstIndex, this);
+    }
+
     return null;
   }
 
-  private tryToParse() {
-    const firstIndex = this._cursor.getIndex();
-    this.children[0].parse(this._cursor);
-
-    if (this._cursor.hasUnresolvedError()) {
-      this._cursor.resolveError();
-      this._cursor.moveTo(firstIndex);
-    } else {
-      this._cursor.moveTo(firstIndex);
-      const parseError = new ParseError(
-        `Match invalid pattern: ${this.children[0].name}.`,
-        this._firstIndex,
-        this
-      );
-      this._cursor.throwError(parseError);
-    }
+  clone(): Pattern {
+    const not = new Not(this._children[0]);
+    return not;
   }
 
-  clone() {
-    return new Not(this.children[0]);
-  }
-
-  getTokens() {
+  getTokens(): string[] {
     return [];
   }
 
-  getNextTokens(reference: Pattern): string[] {
+  getNextTokens(_lastMatched: Pattern): string[] {
     return [];
   }
+
 }

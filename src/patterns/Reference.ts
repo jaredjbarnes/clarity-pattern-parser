@@ -1,131 +1,101 @@
-import Pattern from "./Pattern";
-import ParserError from "./ParseError";
-import Cursor from "./Cursor";
+import { Node } from "../ast/Node";
+import { Cursor } from "./Cursor";
+import { Pattern } from "./Pattern";
+import { findPattern } from "./findPattern";
 
-export default class Reference extends Pattern {
-  constructor(name: string, isOptional = false) {
-    super("reference", name, [], isOptional);
+export class Reference implements Pattern {
+  private _type: string;
+  private _name: string;
+  private _parent: Pattern | null;
+  private _isOptional: boolean;
+  private _pattern: Pattern | null;
+
+  get type(): string {
+    return this._type;
   }
 
-  private getRoot() {
-    let node = this.parent;
-    while (node != null) {
-      if (node.parent == null) {
-        return node;
-      }
-      node = node.parent;
-    }
-    return node;
+  get name(): string {
+    return this._name;
   }
 
-  private findPattern(): Pattern | null {
-    const root = this.getRoot();
-    let result: Pattern | null = null;
+  get isOptional(): boolean {
+    return this._isOptional;
+  }
 
-    if (root == null) {
-      return null;
+  get parent(): Pattern | null {
+    return this._parent;
+  }
+
+  get children(): Pattern[] {
+    return this._getPatternSafely().children;
+  }
+
+  constructor(name: string, isOptional: boolean = false) {
+    this._type = "reference";
+    this._name = name;
+    this._parent = null;
+    this._isOptional = isOptional;
+    this._pattern = null;
+  }
+
+  parse(cursor: Cursor): Node | null {
+    return this._getPatternSafely().parse(cursor);
+  }
+
+  clone(name = this._name, isOptional = this._isOptional): Pattern {
+    return new Reference(name, isOptional);
+  }
+
+  getTokens(): string[] {
+    return this._getPatternSafely().getTokens();
+  }
+
+  getNextTokens(_lastMatched: Pattern): string[] {
+    return this.parent!.getNextTokens(this);
+  }
+
+  assignParent(parent: Pattern): void {
+    this._parent = parent;
+  }
+
+  private _getPatternSafely(): Pattern {
+    if (this._pattern === null) {
+      const pattern = this._findPattern();
+
+      if (pattern === null) {
+        throw new Error(`Couldn't find '${this._name}' pattern within tree.`);
+      }
+
+      const clonedPattern = pattern.clone(this._name, this._isOptional);
+      clonedPattern.parent = this;
+
+      this._pattern = clonedPattern;
     }
 
-    this.walkTheTree(root, (pattern) => {
-      if (
-        pattern.name === this.name &&
-        pattern != this &&
-        pattern.type != "reference"
-      ) {
-        result = pattern;
-        return false;
-      }
-      return true;
+    return this._pattern;
+  }
+
+  private _findPattern(): Pattern | null {
+    const root = this._getRoot();
+
+    return findPattern(root, (pattern: Pattern) => {
+      return pattern.name === this._name && pattern.type !== "reference";
     });
-
-    return result;
   }
 
-  private walkTheTree(
-    pattern: Pattern,
-    callback: (pattern: Pattern) => boolean
-  ) {
-    for (let x = 0; x < pattern.children.length; x++) {
-      const p = pattern.children[x];
-      const continueWalking = this.walkTheTree(p, callback);
+  private _getRoot(): Pattern {
+    let node: Pattern = this;
 
-      if (!continueWalking) {
-        return false;
-      }
-    }
+    while (true) {
+      const parent = this._parent;
 
-    return callback(pattern);
-  }
-
-  parse(cursor: Cursor) {
-    const firstIndex = cursor.getIndex();
-
-    try {
-      const node = this.safelyGetPattern().parse(cursor);
-
-      if (!cursor.hasUnresolvedError() && node != null) {
-        cursor.addMatch(this, node);
-      }
-
-      if (cursor.hasUnresolvedError() && this._isOptional) {
-        cursor.resolveError();
-        cursor.moveTo(firstIndex);
-      }
-
-      return node;
-    } catch (error) {
-      if (this._isOptional) {
-        cursor.moveTo(firstIndex);
+      if (parent == null) {
+        break;
       } else {
-        cursor.throwError(
-          new ParserError(
-            `Couldn't find reference pattern to parse, with the name ${this.name}.`,
-            cursor.index,
-            this as Pattern
-          )
-        );
+        node = parent
       }
-
-      return null;
-    }
-  }
-
-  clone(name = this._name, isOptional = this._isOptional) {
-    const pattern = new Reference(name, isOptional);
-
-    return pattern;
-  }
-
-  private safelyGetPattern() {
-    let pattern = this.children[0];
-    const hasNoPattern = pattern == null;
-
-    if (hasNoPattern) {
-      const reference = this.findPattern();
-      if (reference == null) {
-        throw new Error(
-          `Couldn't find reference pattern, with the name ${this.name}.`
-        );
-      }
-
-      pattern = reference;
-      this.children = [pattern];
     }
 
-    return pattern;
-  }
-
-  getTokens() {
-    return this.safelyGetPattern().getTokens();
-  }
-
-  getNextTokens(_reference: Pattern): string[] {
-    const parent = this._parent;
-
-    if (parent == null) {
-      return [];
-    }
-
-    return parent.getNextTokens(this);
+    return node;
   }
 }

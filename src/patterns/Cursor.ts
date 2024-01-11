@@ -1,152 +1,136 @@
-import Pattern from "./Pattern";
-import Node from "../ast/Node";
-import CursorHistory from "./CursorHistory";
-import ParseError from "./ParseError";
+import { Pattern, Node, ParseError } from "..";
+import { CursorHistory, Match } from "./CursorHistory";
 
-export default class Cursor {
-  public text: string;
-  public index: number;
-  public length: number;
-  public history: CursorHistory;
-  public isInErrorState: boolean;
+export class Cursor {
+  private _text: string;
+  private _index: number;
+  private _length: number;
+  private _isInErrorState: boolean;
+  private _history: CursorHistory;
 
+  get text(): string {
+    return this._text;
+  }
+
+  get isAtBeginning(): boolean {
+    return this._index === 0;
+  }
+
+  get isAtEnd(): boolean {
+    return this._index === this._getLastIndex();
+  }
+
+  get isRecording(): boolean {
+    return this._history.isRecording;
+  }
+
+  get leafMatch(): Match {
+    return this._history.leafMatch;
+  }
+
+  get rootMatch(): Match {
+    return this._history.rootMatch;
+  }
+
+  get error(): ParseError | null {
+    return this._history.error;
+  }
+
+  get index(): number {
+    return this._index;
+  }
+
+  get length(): number {
+    return this._length;
+  }
+
+  get hasUnresolvedError(): boolean {
+    return this._isInErrorState;
+  }
+
+  get currentChar(): string {
+    return this._text[this._index]
+  }
+  
   constructor(text: string) {
-    this.text = text;
-    this.assertValidity();
-
-    this.index = 0;
-    this.length = text.length;
-    this.history = new CursorHistory();
-    this.isInErrorState = false;
+    this._text = text;
+    this._index = 0;
+    this._length = text.length;
+    this._isInErrorState = false;
+    this._history = new CursorHistory();
   }
 
-  assertValidity() {
-    if (this.isNullOrEmpty(this.text)) {
-      throw new Error(
-        "Illegal Argument: Cursor needs to have a string that has a length greater than 0."
-      );
-    }
+  hasNext(): boolean {
+    return this._index + 1 < this._length;
   }
 
-  startRecording() {
-    this.history.startRecording();
+  hasPrevious(): boolean {
+    return this._index - 1 >= 0;
   }
 
-  stopRecording() {
-    this.history.stopRecording();
-  }
-
-  get parseError() {
-    return this.history.getFurthestError();
-  }
-
-  get lastMatch() {
-    return this.history.getFurthestMatch();
-  }
-
-  throwError(parseError: ParseError) {
-    this.isInErrorState = true;
-    this.history.addError(parseError);
-  }
-
-  addMatch(pattern: Pattern, astNode: Node) {
-    this.history.addMatch(pattern, astNode);
-  }
-
-  resolveError() {
-    this.isInErrorState = false;
-  }
-
-  hasUnresolvedError() {
-    return this.isInErrorState;
-  }
-
-  isNullOrEmpty(value: string | null) {
-    return value == null || (typeof value === "string" && value.length === 0);
-  }
-
-  hasNext() {
-    return this.index + 1 < this.text.length;
-  }
-
-  hasPrevious() {
-    return this.index - 1 >= 0;
-  }
-
-  next() {
+  next(): void {
     if (this.hasNext()) {
-      this.index++;
-    } else {
-      throw new Error("Cursor: Out of Bounds Exception.");
+      this._index++;
     }
   }
 
-  previous() {
+  previous(): void {
     if (this.hasPrevious()) {
-      this.index--;
-    } else {
-      throw new Error("Cursor: Out of Bounds Exception.");
+      this._index--;
     }
   }
 
-  getIndex() {
-    return this.index;
-  }
-
-  moveTo(mark: number) {
-    this.index = mark;
-  }
-
-  moveToBeginning() {
-    this.index = 0;
-  }
-
-  moveToEnd() {
-    this.index = this.text.length - 1;
-  }
-
-  getChar() {
-    return this.text.charAt(this.index);
-  }
-
-  getChars(firstIndex: number, lastIndex: number) {
-    return this.text.substring(firstIndex, lastIndex - 1);
-  }
-
-  safelyGetChars(firstIndex: number, lastIndex: number) {
-    firstIndex = Math.max(firstIndex, 0);
-    lastIndex = Math.min(lastIndex, this.text.length - 1);
-
-    return this.getChars(firstIndex, lastIndex);
-  }
-
-  getIndex() {
-    return this.index;
-  }
-
-  setIndex(index: number) {
-    if (typeof index === "number") {
-      if (index < 0 || index > this.lastIndex()) {
-        throw new Error("Cursor: Out of Bounds Exception.");
-      }
-
-      this.index = index;
+  moveTo(position: number): void {
+    if (position >= 0 && position < this._length) {
+      this._index = position;
     }
   }
 
-  isAtBeginning() {
-    return this.index === 0;
+  moveToBeginning(): void {
+    this._index = 0;
   }
 
-  isAtEnd() {
-    return this.index === this.text.length - 1;
+  moveToEnd(): void {
+    this._index = this._getLastIndex();
   }
 
-  lastIndex() {
-    return this.length - 1;
+  getChars(first: number, last: number): string {
+    return this._text.slice(first, last + 1);
   }
 
-  didSuccessfullyParse() {
-    return !this.hasUnresolvedError() && this.isAtEnd();
+  safelyGetChars(first: number, last: number): string {
+    const safeStart = Math.max(0, first);
+    const safeEnd = Math.min(this._getLastIndex(), last);
+
+    return this.getChars(safeStart, safeEnd);
+  }
+
+  throwError(index: number, onPattern: Pattern): void {
+    this._isInErrorState = true;
+    this._history.addErrorAt(index, onPattern);
+  }
+
+  addMatch(pattern: Pattern, node: Node): void {
+    this._history.addMatch(pattern, node);
+  }
+
+  resolveError(): void {
+    this._isInErrorState = false;
+  }
+
+  startRecording(): void {
+    this._history.startRecording();
+  }
+
+  stopRecording(): void {
+    this._history.stopRecording();
+  }
+
+  didSuccessfullyParse(): boolean {
+    return !this.hasUnresolvedError && this.isAtEnd;
+  }
+
+  private _getLastIndex(): number {
+    return this._length - 1;
   }
 }

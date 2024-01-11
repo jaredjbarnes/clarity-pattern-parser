@@ -1,183 +1,201 @@
-import ParseError from "../patterns/ParseError";
-import Cursor from "./Cursor";
-import Pattern from "./Pattern";
-import Node from "../ast/Node";
+import { Cursor } from "./Cursor";
+import { Pattern } from "./Pattern";
+import { Node } from "../ast/Node";
+import { clonePatterns } from "./clonePatterns"
+import { filterOutNull } from "./filterOutNull"
 
-export default class And extends Pattern {
-  private _onPatternIndex: number = 0;
-  private _nodes: (Node | null)[] = [];
-  private _node: Node | null = null;
-  private _cursor: Cursor | null = null;
-  private _firstIndex: number = 0;
-  private _reduceAst = false;
+export class And implements Pattern {
+  private _type: string;
+  private _name: string;
+  private _parent: Pattern | null;
+  private _children: Pattern[];
+  private _isOptional: boolean;
+  private _nodes: (Node | null)[];
+  private _firstIndex: number;
+  private _shouldReduceAst: boolean;
 
-  constructor(name: string, patterns: Pattern[], isOptional = false) {
-    super("and", name, patterns, isOptional);
+  get type(): string {
+    return this._type;
   }
 
-  parse(cursor: Cursor) {
-    this.resetState(cursor);
-    this.tryToParse();
-
-    return this._node;
+  get name(): string {
+    return this._name;
   }
 
-  private resetState(cursor: Cursor) {
-    this._onPatternIndex = 0;
+  get parent(): Pattern | null {
+    return this._parent;
+  }
+
+  set parent(pattern: Pattern) {
+    this._parent = pattern;
+  }
+
+  get children(): Pattern[] {
+    return this._children;
+  }
+
+  get isOptional(): boolean {
+    return this._isOptional;
+  }
+
+  constructor(name: string, sequence: Pattern[], isOptional = false) {
+    if (sequence.length === 0) {
+      throw new Error("Need at least one pattern with an 'and' pattern.");
+    }
+
+    const children = clonePatterns(sequence);
+    this._assignChildrenToParent(children)
+
+    this._type = "and";
+    this._name = name;
+    this._isOptional = isOptional;
+    this._parent = null;
+    this._children = children;
+    this._firstIndex = -1
+    this._shouldReduceAst = false;
     this._nodes = [];
-    this._node = null;
-    this._cursor = cursor;
-    this._firstIndex = this._cursor.getIndex();
   }
 
-  private tryToParse() {
-    const cursor = this.safelyGetCursor();
+  private _assignChildrenToParent(children: Pattern[]): void {
+    for (const child of children) {
+      child.parent = this;
+    }
+  }
 
-    while (true) {
-      const pattern = this._children[this._onPatternIndex];
-      const node = pattern.parse(cursor);
+  parse(cursor: Cursor): Node | null {
+    this._firstIndex = cursor.index;
+    this._nodes = [];
 
-      if (cursor.hasUnresolvedError()) {
-        this.processError();
-        break;
-      } else {
-        this._nodes.push(node);
+    const passed = this.tryToParse(cursor);
+
+    if (passed) {
+      const node = this.createNode(cursor);
+
+      if (node !== null) {
+        cursor.addMatch(this, node);
       }
 
-      if (!this.shouldProceed()) {
-        this.processResult();
-        break;
-      }
+      return node;
     }
-  }
 
-  private safelyGetCursor() {
-    const cursor = this._cursor;
-
-    if (cursor == null) {
-      throw new Error("Couldn't find cursor.");
-    }
-    return cursor;
-  }
-
-  private processResult() {
-    const cursor = this.safelyGetCursor();
-
-    if (cursor.hasUnresolvedError()) {
-      this.processError();
-    } else {
-      this.processSuccess();
-    }
-  }
-
-  private processError() {
-    const cursor = this.safelyGetCursor();
-
-    if (this.isOptional) {
-      cursor.moveTo(this._firstIndex);
+    if (this._isOptional) {
       cursor.resolveError();
     }
-    this._node = null;
+
+    return null;
   }
 
-  private shouldProceed() {
-    const cursor = this.safelyGetCursor();
+  private tryToParse(cursor: Cursor): boolean {
+    let passed = false;
 
-    if (this.hasMorePatterns()) {
-      const lastNode = this._nodes[this._nodes.length - 1];
-      const wasOptional = lastNode == null;
+    for (let i = 0; i < this._children.length; i++) {
+      const runningCursorIndex = cursor.index;
+      const nextPatternIndex = i + 1;
+      const hasMorePatterns = nextPatternIndex < this._children.length;
 
-      if (cursor.hasNext()) {
-        if (!wasOptional) {
-          cursor.next();
+      const node = this._children[i].parse(cursor);
+      const hasNoError = !cursor.hasUnresolvedError;
+      const hadMatch = node !== null;
+
+      if (hasNoError) {
+        this._nodes.push(node);
+
+        if (hasMorePatterns) {
+          if (hadMatch) {
+            if (cursor.hasNext()) {
+              cursor.next();
+              continue;
+            } else {
+              if (this.areRemainingPatternsOptional(i)) {
+                passed = true;
+                break;
+              }
+
+              cursor.throwError(cursor.index + 1, this);
+              break;
+            }
+          } else {
+            cursor.moveTo(runningCursorIndex);
+            continue;
+          }
+        } else {
+          const lastNode = this.getLastValidNode();
+          if (lastNode === null) {
+            cursor.throwError(cursor.index + 1, this);
+            break;
+          }
+
+          passed = true;
+          break;
         }
-
-        this._onPatternIndex++;
-        return true;
-      } else if (wasOptional) {
-        this._onPatternIndex++;
-        return true;
+      } else {
+        cursor.moveTo(this._firstIndex);
+        break;
       }
-
-      this.assertRestOfPatternsAreOptional();
-      return false;
-    } else {
-      return false;
     }
+
+    return passed;
   }
 
-  private hasMorePatterns() {
-    return this._onPatternIndex + 1 < this._children.length;
-  }
+  private getLastValidNode(): Node | null {
+    const nodes = filterOutNull(this._nodes);
 
-  private assertRestOfPatternsAreOptional() {
-    const cursor = this.safelyGetCursor();
-    const areTheRestOptional = this.areTheRemainingPatternsOptional();
-
-    if (!areTheRestOptional) {
-      const parseError = new ParseError(
-        `Could not match ${this.name} before string ran out.`,
-        this._onPatternIndex,
-        this
-      );
-
-      cursor.throwError(parseError);
+    if (nodes.length === 0) {
+      return null;
     }
+
+    return nodes[nodes.length - 1];
   }
 
-  private areTheRemainingPatternsOptional() {
-    return this.children
-      .slice(this._onPatternIndex + 1)
-      .map((p) => p.isOptional)
-      .every((r) => r);
+  private areRemainingPatternsOptional(fromIndex: number): boolean {
+    const startOnIndex = fromIndex + 1;
+    const length = this._children.length;
+
+    for (let i = startOnIndex; i < length; i++) {
+      const pattern = this._children[i];
+      if (!pattern.isOptional) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
-  private processSuccess() {
-    const cursor = this.safelyGetCursor();
-    const nodes = this._nodes.filter((node) => node != null) as Node[];
-    this._nodes = nodes;
+  private createNode(cursor: Cursor): Node | null {
+    const children = filterOutNull(this._nodes);
 
-    const lastNode = nodes[this._nodes.length - 1];
-    const startIndex = this._firstIndex;
-    const endIndex = lastNode.lastIndex;
-    const value = nodes.map((node) => node.value).join("");
+    const lastIndex = children[children.length - 1].lastIndex;
+    const value = cursor.getChars(this._firstIndex, lastIndex);
 
-    const children = this._reduceAst ? [] : nodes;
-    this._node = new Node(
+    if (this._shouldReduceAst) {
+      children.length = 0;
+    }
+
+    return new Node(
       "and",
-      this.name,
-      startIndex,
-      endIndex,
+      this._name,
+      this._firstIndex,
+      lastIndex,
       children,
       value
     );
-
-    cursor.index = this._node.lastIndex;
-    cursor.addMatch(this, this._node);
   }
 
-  clone(name?: string, isOptional?: boolean) {
-    if (name == null) {
-      name = this.name;
-    }
-
-    if (isOptional == null) {
-      isOptional = this._isOptional;
-    }
-
-    return new And(name, this._children, isOptional);
+  enableAstReduction(): void {
+    this._shouldReduceAst = true;
   }
 
-  getTokens() {
-    let tokens: string[] = [];
+  disableAstReduction(): void {
+    this._shouldReduceAst = false;
+  }
 
-    for (let x = 0; x < this._children.length; x++) {
-      const child = this._children[x];
+  getTokens(): string[] {
+    const tokens: string[] = [];
 
-      if (child.isOptional) {
-        tokens = tokens.concat(child.getTokens());
-      } else {
-        tokens = tokens.concat(child.getTokens());
+    for (const child of this._children) {
+      tokens.push(...child.getTokens());
+
+      if (!child.isOptional) {
         break;
       }
     }
@@ -185,15 +203,14 @@ export default class And extends Pattern {
     return tokens;
   }
 
-  getNextTokens(reference: Pattern): string[] {
+  getNextTokens(lastMatched: Pattern): string[] {
     let nextSibling: Pattern | null = null;
     let nextSiblingIndex = -1;
     let index = -1;
     const tokens: string[] = [];
 
     for (let i = 0; i < this._children.length; i++) {
-      const child = this._children[i];
-      if (child === reference) {
+      if (this._children[i] === lastMatched) {
         if (i + 1 < this._children.length) {
           nextSibling = this._children[i + 1];
         }
@@ -203,34 +220,29 @@ export default class And extends Pattern {
       }
     }
 
-    // If the last match isn't a child of this pattern.
     if (index === -1) {
       return [];
     }
 
-    // If the last match was on our last child, then go to the next pattern.
-    if (nextSiblingIndex === this._children.length && this._parent != null) {
+    if (nextSiblingIndex === this._children.length && this._parent !== null) {
       return this._parent.getNextTokens(this);
     }
 
-    // If the next child isn't optional then send back those options.
-    if (nextSibling != null && !nextSibling.isOptional) {
+    if (nextSibling !== null && !nextSibling.isOptional) {
       return nextSibling.getTokens();
     }
 
-    // We can accumulate all the optional patterns that are consecutive here.
-    if (nextSibling != null && nextSibling.isOptional) {
+    if (nextSibling !== null && nextSibling.isOptional) {
       for (let i = nextSiblingIndex; i < this._children.length; i++) {
         const child = this._children[i];
-        const parent = this._parent;
         tokens.push(...child.getTokens());
 
         if (!child.isOptional) {
           break;
         }
 
-        if (i === this._children.length - 1 && parent != null) {
-          tokens.push(...parent.getNextTokens(this));
+        if (i === this._children.length - 1 && this._parent !== null) {
+          tokens.push(...this._parent.getNextTokens(this));
         }
       }
     }
@@ -238,11 +250,10 @@ export default class And extends Pattern {
     return tokens;
   }
 
-  shouldReduceAst() {
-    this._reduceAst = true;
-  }
+  clone(name = this._name, isOptional = this._isOptional): Pattern {
+    const and = new And(name, this._children, isOptional)
+    and._shouldReduceAst = this._shouldReduceAst;
 
-  shouldNotReduceAst() {
-    this._reduceAst = false;
+    return and
   }
 }

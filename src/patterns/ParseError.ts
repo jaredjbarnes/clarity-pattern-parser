@@ -1,14 +1,10 @@
-import Pattern from "./Pattern";
+import { Pattern } from "./Pattern";
 
-export default class ParseError {
-  public message: string;
-  public name: string;
+export class ParseError {
   public index: number;
   public pattern: Pattern;
 
-  constructor(message: string, index: number, pattern: Pattern) {
-    this.name = "ParseError";
-    this.message = message;
+  constructor(index: number, pattern: Pattern) {
     this.index = index;
     this.pattern = pattern;
   }

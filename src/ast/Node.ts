@@ -1,4 +1,4 @@
-export default class Node {
+export class Node {
   public type: string;
   public name: string;
   public firstIndex: number;

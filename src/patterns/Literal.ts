@@ -1,113 +1,161 @@
-import ParseError from "./ParseError";
-import Node from "../ast/Node";
-import Pattern from "./Pattern";
-import Cursor from "./Cursor";
+import { Node } from "../ast/Node";
+import { Cursor } from "./Cursor";
+import { Pattern } from "./Pattern";
 
-export default class Literal extends Pattern {
+export class Literal implements Pattern {
+  private _patternType: string;
+  private _name: string;
+  private _parent: Pattern | null;
+  private _isOptional: boolean;
   private _literal: string;
-  private _node: Node | null = null;
-  private _cursor!: Cursor;
-  private _firstIndex: number = 0;
-  private _substring: string = "";
-  private _hasContextualTokenAggregation = false;
+  private _runes: string[];
+  private _firstIndex: number;
+  private _lastIndex: number;
+  private _hasContextualTokenAggregation: boolean;
+  private _isRetrievingContextualTokens: boolean;
 
-  constructor(name: string, literal: string, isOptional = false) {
-    super("literal", name, [], isOptional);
-    this._literal = literal;
-    this.assertArguments();
+  get type(): string {
+    return this._patternType;
   }
 
-  private assertArguments() {
-    if (this._literal.length < 1) {
-      throw new Error(
-        "Invalid Arguments: The `literal` argument needs to be at least one character long."
-      );
-    }
+  get name(): string {
+    return this._name;
   }
 
-  parse(cursor: Cursor) {
-    this.resetState(cursor);
-    this.tryToParse();
-
-    return this._node;
+  get parent(): Pattern | null {
+    return this._parent;
   }
 
-  private resetState(cursor: Cursor) {
-    this._cursor = cursor;
-    this._firstIndex = this._cursor.getIndex();
-    this._substring = this._cursor.text.substring(
-      this._firstIndex,
-      this._firstIndex + this._literal.length
-    );
-    this._node = null;
+  set parent(pattern: Pattern) {
+    this._parent = pattern;
   }
 
-  private tryToParse() {
-    if (this._substring === this._literal) {
-      this.processResult();
-    } else {
-      this.processError();
-    }
-  }
-
-  private processError() {
-    this._node = null;
-
-    if (!this._isOptional) {
-      const message = `ParseError: Expected '${this._literal}' but found '${this._substring}'.`;
-      const parseError = new ParseError(message, this._cursor.getIndex(), this);
-      this._cursor.throwError(parseError);
-    }
-  }
-
-  private processResult() {
-    this._node = new Node(
-      "literal",
-      this.name,
-      this._firstIndex,
-      this._firstIndex + this._literal.length - 1,
-      [],
-      this._substring
-    );
-
-    this._cursor.index = this._node.lastIndex;
-    this._cursor.addMatch(this, this._node);
-  }
-
-  clone(name = this._name, isOptional = this._isOptional) {
-    const pattern = new Literal(name, this._literal, isOptional);
-    pattern._hasContextualTokenAggregation =
-      this._hasContextualTokenAggregation;
-    return pattern;
-  }
-
-  getTokens() {
-    const parent = this._parent;
-    const hasParent = parent != null;
-
-    if (this._hasContextualTokenAggregation && hasParent) {
-      const aggregateTokens = [];
-      const nextTokens = parent.getNextTokens(this);
-
-      for (let nextToken of nextTokens) {
-        aggregateTokens.push(this._literal + nextToken);
-      }
-
-      return aggregateTokens;
-    }
-
-    return [this._literal];
-  }
-
-  getNextTokens(_reference: Pattern): string[] {
+  get children(): Pattern[] {
     return [];
   }
 
-  enableContextTokenAggregation() {
+  get isOptional(): boolean {
+    return this._isOptional;
+  }
+
+  constructor(name: string, value: string, isOptional = false) {
+    this._patternType = "literal";
+    this._name = name;
+    this._literal = value;
+    this._runes = Array.from(value);
+    this._isOptional = isOptional;
+    this._parent = null;
+    this._firstIndex = 0;
+    this._lastIndex = 0;
+    this._hasContextualTokenAggregation = false;
+    this._isRetrievingContextualTokens = false;
+  }
+
+  parse(cursor: Cursor): Node | null {
+    this._firstIndex = cursor.index;
+
+    const passed = this._tryToParse(cursor);
+
+    if (passed) {
+      cursor.resolveError();
+      const node = this._createNode(cursor);
+      cursor.addMatch(this, node);
+
+      return node;
+    }
+
+    if (!this._isOptional) {
+      cursor.throwError(cursor.index, this)
+      return null;
+    }
+
+    cursor.resolveError();
+    cursor.moveTo(this._firstIndex);
+    return null;
+  }
+
+  private _tryToParse(cursor: Cursor): boolean {
+    let passed = false;
+    const literalRuneLength = this._runes.length;
+
+    for (let i = 0; i < literalRuneLength; i++) {
+      const literalRune = this._runes[i];
+      const cursorRune = cursor.currentChar;
+
+      if (literalRune !== cursorRune) {
+        break
+      }
+
+      if (i + 1 === literalRuneLength) {
+        this._lastIndex = this._firstIndex + this._literal.length - 1;
+        passed = true;
+        break;
+      }
+
+      if (!cursor.hasNext()) {
+        break;
+      }
+
+      cursor.next();
+    }
+
+    return passed
+  }
+
+  private _createNode(cursor: Cursor): Node | null {
+    if (cursor === null) {
+      return null;
+    }
+
+    return new Node(
+      "literal",
+      this._name,
+      this._firstIndex,
+      this._lastIndex,
+      [],
+      this._literal
+    );
+  }
+
+  clone(name = this._name, isOptional = this._isOptional): Pattern {
+    return new Literal(name, this._literal, isOptional);
+  }
+
+  getTokens(): string[] {
+    const parent = this._parent;
+    const hasParent = parent !== null;
+
+    if (
+      this._hasContextualTokenAggregation &&
+      hasParent &&
+      !this._isRetrievingContextualTokens
+    ) {
+      this._isRetrievingContextualTokens = true;
+
+      const aggregateTokens: string[] = [];
+      const nextTokens = parent.getNextTokens(this);
+
+      for (const nextToken of nextTokens) {
+        aggregateTokens.push(this._literal + nextToken);
+      }
+
+      this._isRetrievingContextualTokens = false;
+      return aggregateTokens;
+    } else {
+      return [this._literal];
+    }
+  }
+
+  getNextTokens(_lastMatched: Pattern): string[] {
+    return [];
+  }
+
+  enableContextualTokenAggregation(): void {
     this._hasContextualTokenAggregation = true;
   }
 
-  disableContextTokenAggregation() {
+  disableContextualTokenAggregation(): void {
     this._hasContextualTokenAggregation = false;
   }
+
 }

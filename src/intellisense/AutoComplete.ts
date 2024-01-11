@@ -1,6 +1,5 @@
-import Cursor from "../patterns/Cursor";
-import Node from "../ast/Node";
-import Pattern from "../patterns/Pattern";
+import { Cursor } from "../patterns/Cursor";
+import { Pattern } from "../patterns/Pattern";
 import { Suggestion } from "./Suggestion";
 import { SuggestionOption } from "./SuggestionOption";
 

@@ -1,6 +1,6 @@
-import Node from "./Node";
+import { Node } from "./Node";
 
-export default class Visitor {
+export class Visitor {
   public root: Node | null;
   public selectedNodes: Node[];
 

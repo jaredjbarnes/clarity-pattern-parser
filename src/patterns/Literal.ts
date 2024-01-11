@@ -26,7 +26,7 @@ export class Literal implements Pattern {
     return this._parent;
   }
 
-  set parent(pattern: Pattern) {
+  set parent(pattern: Pattern | null) {
     this._parent = pattern;
   }
 
@@ -58,7 +58,7 @@ export class Literal implements Pattern {
 
     if (passed) {
       cursor.resolveError();
-      const node = this._createNode(cursor);
+      const node = this._createNode();
       cursor.addMatch(this, node);
 
       return node;
@@ -102,11 +102,7 @@ export class Literal implements Pattern {
     return passed
   }
 
-  private _createNode(cursor: Cursor): Node | null {
-    if (cursor === null) {
-      return null;
-    }
-
+  private _createNode(): Node {
     return new Node(
       "literal",
       this._name,

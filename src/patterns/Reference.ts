@@ -26,6 +26,10 @@ export class Reference implements Pattern {
     return this._parent;
   }
 
+  set parent(pattern: Pattern | null) {
+    this._parent = pattern;
+  }
+
   get children(): Pattern[] {
     return this._getPatternSafely().children;
   }

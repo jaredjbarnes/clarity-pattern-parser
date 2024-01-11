@@ -26,7 +26,7 @@ export class And implements Pattern {
     return this._parent;
   }
 
-  set parent(pattern: Pattern) {
+  set parent(pattern: Pattern | null) {
     this._parent = pattern;
   }
 
@@ -94,7 +94,7 @@ export class And implements Pattern {
       const hasMorePatterns = nextPatternIndex < this._children.length;
 
       const node = this._children[i].parse(cursor);
-      const hasNoError = !cursor.hasUnresolvedError;
+      const hasNoError = !cursor.hasError;
       const hadMatch = node !== null;
 
       if (hasNoError) {

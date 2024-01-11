@@ -27,6 +27,10 @@ export class Repeat implements Pattern {
     return this._parent;
   }
 
+  set parent(pattern: Pattern | null) {
+    this._parent = pattern;
+  }
+
   get children(): Pattern[] {
     return this._children;
   }
@@ -91,7 +95,7 @@ export class Repeat implements Pattern {
       const runningCursorIndex = cursor.index;
       const repeatedNode = this._pattern.parse(cursor);
 
-      if (cursor.hasUnresolvedError) {
+      if (cursor.hasError) {
         const lastValidNode = this.getLastValidNode();
 
         if (lastValidNode) {
@@ -116,7 +120,7 @@ export class Repeat implements Pattern {
         if (this._divider) {
           const dividerNode = this._divider.parse(cursor);
 
-          if (cursor.hasUnresolvedError) {
+          if (cursor.hasError) {
             passed = true;
             break;
           } else if (dividerNode) {

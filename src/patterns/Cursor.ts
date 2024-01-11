@@ -5,7 +5,6 @@ export class Cursor {
   private _text: string;
   private _index: number;
   private _length: number;
-  private _isInErrorState: boolean;
   private _history: CursorHistory;
 
   get text(): string {
@@ -32,7 +31,11 @@ export class Cursor {
     return this._history.rootMatch;
   }
 
-  get error(): ParseError | null {
+  get furthestError(): ParseError | null {
+    return this._history.furthestError;
+  }
+
+  get error() {
     return this._history.error;
   }
 
@@ -44,19 +47,18 @@ export class Cursor {
     return this._length;
   }
 
-  get hasUnresolvedError(): boolean {
-    return this._isInErrorState;
+  get hasError(): boolean {
+    return this._history.error != null
   }
 
   get currentChar(): string {
     return this._text[this._index]
   }
-  
+
   constructor(text: string) {
     this._text = text;
     this._index = 0;
     this._length = text.length;
-    this._isInErrorState = false;
     this._history = new CursorHistory();
   }
 
@@ -106,7 +108,6 @@ export class Cursor {
   }
 
   throwError(index: number, onPattern: Pattern): void {
-    this._isInErrorState = true;
     this._history.addErrorAt(index, onPattern);
   }
 
@@ -115,7 +116,7 @@ export class Cursor {
   }
 
   resolveError(): void {
-    this._isInErrorState = false;
+    this._history.resolveError()
   }
 
   startRecording(): void {
@@ -127,7 +128,7 @@ export class Cursor {
   }
 
   didSuccessfullyParse(): boolean {
-    return !this.hasUnresolvedError && this.isAtEnd;
+    return !this.hasError && this.isAtEnd;
   }
 
   private _getLastIndex(): number {

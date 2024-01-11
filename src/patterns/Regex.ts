@@ -2,7 +2,7 @@ import { Node } from "../ast/Node";
 import { Pattern } from "./Pattern";
 import { Cursor } from "./Cursor";
 
-export default class Regex implements Pattern {
+export class Regex implements Pattern {
   private _type: string;
   private _name: string;
   private _isOptional: boolean;
@@ -28,7 +28,7 @@ export default class Regex implements Pattern {
     return this._parent;
   }
 
-  set parent(pattern: Pattern) {
+  set parent(pattern: Pattern | null) {
     this._parent = pattern;
   }
 

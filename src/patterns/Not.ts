@@ -24,7 +24,7 @@ export class Not implements Pattern {
     return this._parent;
   }
 
-  set parent(pattern: Pattern) {
+  set parent(pattern: Pattern | null) {
     this._parent = pattern;
   }
 
@@ -43,7 +43,7 @@ export class Not implements Pattern {
     const firstIndex = cursor.index;
     this._children[0].parse(cursor);
 
-    if (cursor.hasUnresolvedError) {
+    if (cursor.hasError) {
       cursor.resolveError();
       cursor.moveTo(firstIndex);
     } else {

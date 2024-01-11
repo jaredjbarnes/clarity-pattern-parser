@@ -1,6 +1,7 @@
 import { Node } from "../ast/Node";
 import { Cursor } from "./Cursor";
 import { Pattern } from "./Pattern";
+import { clonePatterns } from "./clonePatterns";
 
 export class Or implements Pattern {
   private _type: string;
@@ -10,7 +11,6 @@ export class Or implements Pattern {
   private _isOptional: boolean;
   private _node: Node | null;
   private _firstIndex: number;
-  private _lastIndex: number;
   private _shouldReduceAst: boolean;
 
   get type(): string {
@@ -23,6 +23,10 @@ export class Or implements Pattern {
 
   get parent(): Pattern | null {
     return this._parent;
+  }
+
+  set parent(pattern: Pattern | null) {
+    this._parent = pattern;
   }
 
   get children(): Pattern[] {
@@ -38,7 +42,7 @@ export class Or implements Pattern {
       throw new Error("Need at least one pattern with an 'or' pattern.");
     }
 
-    const children = this._clonePatterns(options);
+    const children = clonePatterns(options);
     this._assignChildrenToParent(children);
 
     this._type = "or";
@@ -48,7 +52,6 @@ export class Or implements Pattern {
     this._isOptional = isOptional;
     this._node = null;
     this._firstIndex = 0;
-    this._lastIndex = 0;
     this._shouldReduceAst = false;
   }
 
@@ -87,7 +90,7 @@ export class Or implements Pattern {
       cursor.moveTo(this._firstIndex);
       const result = pattern.parse(cursor);
 
-      if (!cursor!.hasUnresolvedError) {
+      if (!cursor!.hasError) {
         this._node = result;
 
         return true;
@@ -99,7 +102,7 @@ export class Or implements Pattern {
     return false
   }
 
-  private _createNode(): Node | null {
+  private _createNode(): Node {
     let children: Node[] = [];
 
     if (!this._shouldReduceAst) {
@@ -125,12 +128,6 @@ export class Or implements Pattern {
     this._shouldReduceAst = false;
   }
 
-  clone(name = this._name, isOptional = this._isOptional): Pattern {
-    const or = new Or(name, this._children, isOptional);
-    or._shouldReduceAst = this._shouldReduceAst;
-    return or;
-  }
-
   getTokens(): string[] {
     const tokens: string[] = [];
 
@@ -141,7 +138,7 @@ export class Or implements Pattern {
     return tokens;
   }
 
-  getNextTokens(lastMatched: Pattern): string[] {
+  getNextTokens(_lastMatched: Pattern): string[] {
     if (this._parent === null) {
       return [];
     }
@@ -149,7 +146,9 @@ export class Or implements Pattern {
     return this._parent.getNextTokens(this);
   }
 
-  private _clonePatterns(patterns: Pattern[]): Pattern[] {
-    return patterns.map((pattern) => pattern.clone());
+  clone(name = this._name, isOptional = this._isOptional): Pattern {
+    const or = new Or(name, this._children, isOptional);
+    or._shouldReduceAst = this._shouldReduceAst;
+    return or;
   }
 }

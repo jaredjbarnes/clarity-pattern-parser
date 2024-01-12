@@ -106,12 +106,18 @@ describe("Literal", () => {
         expect(tokens).toEqual(expected)
     });
 
-    test("Properties", ()=>{
+    test("Properties", () => {
         const literal = new Literal("a", "A");
 
         expect(literal.type).toBe("literal");
         expect(literal.name).toBe("a");
         expect(literal.parent).toBeNull();
         expect(literal.children).toEqual([]);
+    });
+
+    test("Parse Text", () => {
+        const literal = new Literal("a", "A");
+        const { ast: result } = literal.parseText("B");
+        expect(result).toBeNull()
     });
 });

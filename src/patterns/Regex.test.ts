@@ -27,7 +27,7 @@ describe("Regex", () => {
         expect(cursor.hasError).toBeFalsy()
     })
 
-    test("Failed Parse", ()=>{
+    test("Failed Parse", () => {
         const number = new Regex("number", "\\d");
         const cursor = new Cursor("F");
         const result = number.parse(cursor);
@@ -77,12 +77,18 @@ describe("Regex", () => {
         expect(tokens).toEqual(expected)
     });
 
-    test("Properties", ()=>{
+    test("Properties", () => {
         const regex = new Regex("a", "A");
 
         expect(regex.type).toBe("regex");
         expect(regex.name).toBe("a");
         expect(regex.parent).toBeNull();
         expect(regex.children).toEqual([]);
+    });
+
+    test("Parse Text", () => {
+        const regex = new Regex("a", "A");
+        const { ast: result } = regex.parseText("B");
+        expect(result).toBeNull();
     });
 });

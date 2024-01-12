@@ -62,6 +62,16 @@ export class And implements Pattern {
     }
   }
 
+  parseText(text: string) {
+    const cursor = new Cursor(text);
+    const ast = this.parse(cursor)
+
+    return {
+      ast,
+      cursor
+    };
+  }
+
   parse(cursor: Cursor): Node | null {
     this._firstIndex = cursor.index;
     this._nodes = [];

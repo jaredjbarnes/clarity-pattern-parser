@@ -40,6 +40,16 @@ export class Not implements Pattern {
     this._children[0].parent = this;
   }
 
+  parseText(text: string) {
+    const cursor = new Cursor(text);
+    const ast = this.parse(cursor)
+
+    return {
+      ast,
+      cursor
+    };
+  }
+
   parse(cursor: Cursor): Node | null {
     const firstIndex = cursor.index;
     this._children[0].parse(cursor);

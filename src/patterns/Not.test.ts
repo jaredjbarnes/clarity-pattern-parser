@@ -65,4 +65,12 @@ describe("Not", () => {
         expect(result).toBeNull();
         expect(cursor.hasError).toBeFalsy();
     });
+
+    test("Parse Text", ()=>{
+        const a = new Literal("a", "A");
+        const notA = new Not(a);
+        const { ast: result } = notA.parseText("A");
+
+        expect(result).toBeNull();
+    });
 });

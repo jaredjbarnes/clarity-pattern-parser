@@ -113,4 +113,10 @@ describe("Or", () => {
         expect(a.parent).toBeNull();
         expect(a.children[0].name).toBe("a");
     });
+
+    test("Parse Text", () => {
+        const a = new Or("a", [new Literal("a", "A")]);
+        const { ast: result } = a.parseText("B");
+        expect(result).toBeNull();
+    });
 });

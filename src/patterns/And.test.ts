@@ -273,4 +273,14 @@ describe("And", () => {
 
         expect(tokens).toEqual(["B", "C"]);
     });
+
+    test("Parse Text", () => {
+        const sequence = new And("sequence", [new Literal("a", "A")]);
+        sequence.enableAstReduction();
+
+        const { ast: result } = sequence.parseText("A");
+        const expected = new Node("and", "sequence", 0, 0, [], "A");
+
+        expect(result).toEqual(expected)
+    });
 });

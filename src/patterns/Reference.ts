@@ -44,6 +44,16 @@ export class Reference implements Pattern {
     this._children = [];
   }
 
+  parseText(text: string) {
+    const cursor = new Cursor(text);
+    const ast = this.parse(cursor)
+
+    return {
+      ast,
+      cursor
+    };
+  }
+
   parse(cursor: Cursor): Node | null {
     return this._getPatternSafely().parse(cursor);
   }

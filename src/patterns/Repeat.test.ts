@@ -171,7 +171,7 @@ describe("Repeat", () => {
         expect(tokens).toEqual(expected)
     });
 
-    test("Properties", ()=>{
+    test("Properties", () => {
         const integer = new Repeat("integer", new Regex("digit", "\\d"));
 
         expect(integer.type).toBe("repeat");
@@ -179,5 +179,11 @@ describe("Repeat", () => {
         expect(integer.isOptional).toBeFalsy()
         expect(integer.parent).toBeNull();
         expect(integer.children[0].name).toBe("digit");
+    });
+
+    test("Parse Text", () => {
+        const integer = new Repeat("integer", new Regex("digit", "\\d"));
+        const { ast: result } = integer.parseText("B");
+        expect(result).toBeNull()
     });
 });

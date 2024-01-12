@@ -70,6 +70,16 @@ export class Regex implements Pattern {
     }
   }
 
+  parseText(text: string) {
+    const cursor = new Cursor(text);
+    const ast = this.parse(cursor)
+
+    return {
+      ast,
+      cursor
+    };
+  }
+
   parse(cursor: Cursor) {
     this.resetState(cursor);
     this.tryToParse(cursor);

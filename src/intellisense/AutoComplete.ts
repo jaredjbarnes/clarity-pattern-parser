@@ -1,4 +1,6 @@
+import { Node } from "../ast/Node";
 import { Cursor } from "../patterns/Cursor";
+import { ParseError } from "../patterns/ParseError";
 import { Pattern } from "../patterns/Pattern";
 import { Suggestion } from "./Suggestion";
 import { SuggestionOption } from "./SuggestionOption";
@@ -10,114 +12,132 @@ export class AutoComplete {
 
   constructor(pattern: Pattern) {
     this._pattern = pattern;
+    this._text = "";
   }
 
   suggest(text: string): Suggestion {
     if (text.length === 0) {
       return {
         isComplete: false,
-        options: this._createOptionsFromRoot(),
-        hasError: false,
-        error: null,
-        leafMatch: {
-          pattern: null,
-          node: null,
-        },
-        rootMatch: {
-          pattern: null,
-          node: null,
-        },
-        cursor: null
-      };
+        options: this.createSuggestionsFromRoot(),
+        cursor: null,
+        error: new ParseError(0, this._pattern)
+      }
     }
 
     this._text = text;
     this._cursor = new Cursor(text);
     this._pattern.parse(this._cursor);
 
-    const rootPattern = this._cursor.rootMatch.pattern;
-    const isComplete = this._cursor.isOnLast && rootPattern === this._pattern;
+    const rootMatch = this._cursor.rootMatch.pattern;
+    const isComplete = this._cursor.isOnLast && rootMatch === this._pattern;
+    const options = this.createSuggestionsFromTokens();
 
     return {
-      isComplete,
-      options: this._createOptionsFromTokens(),
-      hasError: this._cursor.hasError,
-      error: this._cursor.error,
-      leafMatch: this._cursor.leafMatch,
-      rootMatch: this._cursor.rootMatch,
-      cursor: this._cursor
-    };
+      isComplete: isComplete,
+      options: options,
+      cursor: this._cursor,
+      error: this._cursor.furthestError
+    }
   }
 
-  private _createOptionsFromRoot() {
+  private createSuggestionsFromRoot(): SuggestionOption[] {
+    const suggestions: SuggestionOption[] = [];
     const tokens = this._pattern.getTokens();
-    const fullText = this._cursor.text;
 
-    return tokens.map((token) => {
-      return this._createOption(fullText, token);
-    });
-  }
-
-  private _createOption(
-    fullText: string,
-    suggestion: string
-  ): SuggestionOption {
-    const startsWith = suggestion.startsWith(fullText);
-
-    if (startsWith) {
-      const startIndex = fullText.length - 1;
-      const text = suggestion.substring(startIndex);
-
-      return {
-        text,
-        startIndex,
-      };
-    } else {
-      return {
-        text: suggestion,
-        startIndex: 0,
-      };
+    for (const token of tokens) {
+      suggestions.push(this.createSuggestion("", token));
     }
+
+    return suggestions;
   }
 
-  private _createOptionsFromTokens() {
+  private createSuggestionsFromTokens(): SuggestionOption[] {
     const leafMatch = this._cursor.leafMatch;
+
+    if (!leafMatch.pattern) {
+      return this.createSuggestions(-1, this._pattern.getTokens());
+    }
+
     const leafPattern = leafMatch.pattern;
-    const leafNode = leafMatch.node;
+    const parent = leafMatch.pattern.parent;
 
-    if (leafPattern == null || leafNode == null) {
-      return this._createSuggestions(0, this._pattern.getTokens());
-    }
-
-    const parent = leafPattern.parent;
-    let tokens: string[] = [];
-
-    if (parent != null) {
-      tokens = parent.getNextTokens(leafPattern);
+    if (parent !== null && leafMatch.node != null) {
+      const tokens = parent.getNextTokens(leafPattern);
+      return this.createSuggestions(leafMatch.node.lastIndex, tokens);
     } else {
-      tokens = leafPattern.getTokens();
+      return [];
     }
-
-    return this._createSuggestions(leafNode.lastIndex, tokens);
   }
 
-  private _createSuggestions(endIndex: number, tokens: string[]) {
-    const substring = this._cursor.getChars(0, endIndex);
-    const optionStrings: string[] = [];
+  private createSuggestions(lastIndex: number, tokens: string[]): SuggestionOption[] {
+    let substring = lastIndex === -1 ? "" : this._cursor.getChars(0, lastIndex);
+    const suggestionStrings: string[] = [];
     const options: SuggestionOption[] = [];
 
-    tokens.forEach((token) => {
+    for (const token of tokens) {
       const suggestion = substring + token;
       const startsWith = suggestion.startsWith(substring);
-      const alreadyExist = optionStrings.includes(suggestion);
-      const isSameAsText = suggestion == this._text;
+      const alreadyExist = suggestionStrings.includes(suggestion);
+      const isSameAsText = suggestion === this._text;
 
       if (startsWith && !alreadyExist && !isSameAsText) {
-        optionStrings.push(suggestion);
-        options.push(this._createOption(this._text, suggestion));
+        suggestionStrings.push(suggestion);
+        options.push(this.createSuggestion(this._cursor.text, suggestion));
       }
-    });
+    }
 
-    return options;
+    const reducedOptions = getFurthestOptions(options);
+    reducedOptions.sort((a, b) => a.text.localeCompare(b.text));
+
+    return reducedOptions;
+  }
+
+  private createSuggestion(fullText: string, suggestion: string): SuggestionOption {
+    const furthestMatch = findMatchIndex(suggestion, fullText);
+    const text = suggestion.slice(furthestMatch);
+
+    return {
+      text: text,
+      startIndex: furthestMatch,
+    }
   }
 }
+
+function findMatchIndex(str1: string, str2: string): number {
+  let matchCount = 0;
+  let minLength = str1.length;
+
+  if (str2.length < minLength) {
+    minLength = str2.length;
+  }
+
+  for (let i = 0; i < minLength; i++) {
+    if (str1[i] === str2[i]) {
+      matchCount++;
+    } else {
+      break;
+    }
+  }
+
+  return matchCount;
+}
+
+function getFurthestOptions(options: SuggestionOption[]): SuggestionOption[] {
+  let furthestOptions: SuggestionOption[] = [];
+  let furthestIndex = -1;
+
+  for (const option of options) {
+    if (option.startIndex > furthestIndex) {
+      furthestIndex = option.startIndex;
+      furthestOptions = [];
+    }
+
+    if (option.startIndex === furthestIndex) {
+      furthestOptions.push(option);
+    }
+  }
+
+  return furthestOptions;
+}
+

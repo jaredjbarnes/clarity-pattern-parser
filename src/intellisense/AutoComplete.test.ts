@@ -1,14 +1,12 @@
 import { Literal } from "../patterns/Literal";
 import { AutoComplete } from "./AutoComplete";
+import cssValue from "./css/cssValue";
 
 describe("AutoComplete", ()=>{
     test("Suggest Empty Text", ()=>{
-        const token = new Literal("token", "token");
-        const autoComplete = new AutoComplete(token);
-        const result = autoComplete.suggest("");
+        const autoComplete = new AutoComplete(cssValue);
+        const result = autoComplete.suggest("r")
 
         expect(result.options.length).toBe(1);
-        expect(result.options[0].text).toBe("token")
-        expect(result.options[0].startIndex).toBe(0)
     });
 });

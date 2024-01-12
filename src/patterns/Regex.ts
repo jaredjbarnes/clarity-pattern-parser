@@ -142,10 +142,9 @@ export class Regex implements Pattern {
 
   getTokens() {
     const parent = this._parent;
-    const hasParent = parent != null;
 
     if (this._hasContextualTokenAggregation &&
-      hasParent &&
+      parent != null &&
       !this._isRetrievingContextualTokens
     ) {
       this._isRetrievingContextualTokens = true;

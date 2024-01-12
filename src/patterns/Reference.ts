@@ -91,7 +91,7 @@ export class Reference implements Pattern {
     let node: Pattern = this;
 
     while (true) {
-      const parent = this._parent;
+      const parent = node.parent;
 
       if (parent == null) {
         break;

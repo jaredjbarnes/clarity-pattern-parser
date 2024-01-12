@@ -2,6 +2,7 @@ import { Cursor } from "./Cursor";
 import { Node } from "../ast/Node";
 import { Literal } from "./Literal";
 import { Or } from "./Or";
+import { And } from "./And";
 
 describe("Or", () => {
     test("Empty Options", () => {
@@ -76,5 +77,40 @@ describe("Or", () => {
         ], "A");
 
         expect(result).toEqual(expected);
+    });
+
+    test("Get Tokens", () => {
+        const aOrB = new Or("a-b", [new Literal("a", "A"), new Literal("b", "B")]);
+        const tokens = aOrB.getTokens();
+        const expected = ["A", "B"];
+
+        expect(tokens).toEqual(expected);
+    });
+
+    test("Get Next Tokens", () => {
+        const a = new Or("a", [new Literal("a", "A")]);
+        const parent = new And("parent", [a, new Literal("b", "B")]);
+        const tokens = parent.children[0].getNextTokens(parent.children[0].children[0]);
+        const expected = ["B"];
+
+        expect(tokens).toEqual(expected);
+    });
+
+    test("Get Next Tokens Without A Parent", () => {
+        const a = new Or("a", [new Literal("a", "A")]);
+        const tokens = a.getNextTokens(a.children[0]);
+        const expected: string[] = [];
+
+        expect(tokens).toEqual(expected);
+    });
+
+    test("Properties", () => {
+        const a = new Or("a", [new Literal("a", "A")]);
+
+        expect(a.type).toBe("or");
+        expect(a.name).toBe("a");
+        expect(a.isOptional).toBeFalsy();
+        expect(a.parent).toBeNull();
+        expect(a.children[0].name).toBe("a");
     });
 });

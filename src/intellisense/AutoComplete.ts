@@ -35,16 +35,16 @@ export class AutoComplete {
     this._cursor = new Cursor(text);
     this._pattern.parse(this._cursor);
 
-    const rootPattern = this._cursor.history.rootMatch.pattern;
-    const isComplete = this._cursor.isAtEnd() && rootPattern === this._pattern;
+    const rootPattern = this._cursor.rootMatch.pattern;
+    const isComplete = this._cursor.isOnLast && rootPattern === this._pattern;
 
     return {
       isComplete,
       options: this._createOptionsFromTokens(),
-      hasError: this._cursor.hasUnresolvedError(),
-      error: this._cursor.history.error,
-      leafMatch: this._cursor.history.leafMatch,
-      rootMatch: this._cursor.history.rootMatch,
+      hasError: this._cursor.hasError,
+      error: this._cursor.error,
+      leafMatch: this._cursor.leafMatch,
+      rootMatch: this._cursor.rootMatch,
       cursor: this._cursor
     };
   }
@@ -81,7 +81,7 @@ export class AutoComplete {
   }
 
   private _createOptionsFromTokens() {
-    const leafMatch = this._cursor.history.leafMatch;
+    const leafMatch = this._cursor.leafMatch;
     const leafPattern = leafMatch.pattern;
     const leafNode = leafMatch.node;
 
@@ -90,10 +90,9 @@ export class AutoComplete {
     }
 
     const parent = leafPattern.parent;
-    const hasParent = parent != null;
     let tokens: string[] = [];
 
-    if (hasParent) {
+    if (parent != null) {
       tokens = parent.getNextTokens(leafPattern);
     } else {
       tokens = leafPattern.getTokens();

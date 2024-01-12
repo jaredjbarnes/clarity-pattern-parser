@@ -121,7 +121,7 @@ export class And implements Pattern {
         } else {
           const lastNode = this.getLastValidNode();
           if (lastNode === null) {
-            cursor.throwError(cursor.index + 1, this);
+            cursor.throwError(cursor.index, this);
             break;
           }
 
@@ -166,6 +166,8 @@ export class And implements Pattern {
 
     const lastIndex = children[children.length - 1].lastIndex;
     const value = cursor.getChars(this._firstIndex, lastIndex);
+
+    cursor.moveTo(lastIndex)
 
     if (this._shouldReduceAst) {
       children.length = 0;

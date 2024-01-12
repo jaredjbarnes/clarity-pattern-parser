@@ -42,7 +42,7 @@ export class Or implements Pattern {
       throw new Error("Need at least one pattern with an 'or' pattern.");
     }
 
-    const children = clonePatterns(options);
+    const children = clonePatterns(options, false);
     this._assignChildrenToParent(children);
 
     this._type = "or";

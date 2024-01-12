@@ -37,6 +37,7 @@ export class Not implements Pattern {
     this._name = `not-${pattern.name}`;
     this._parent = null;
     this._children = [pattern.clone(pattern.name, false)];
+    this._children[0].parent = this;
   }
 
   parse(cursor: Cursor): Node | null {

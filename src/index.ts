@@ -21,7 +21,7 @@ export {
   Or,
   Repeat,
   ParseError,
-  type Pattern,
+  Pattern,
   Reference,
   Visitor,
 };

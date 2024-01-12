@@ -3,7 +3,7 @@ import { Cursor } from "./Cursor";
 import { Pattern } from "./Pattern";
 
 export class Literal implements Pattern {
-  private _patternType: string;
+  private _type: string;
   private _name: string;
   private _parent: Pattern | null;
   private _isOptional: boolean;
@@ -15,7 +15,7 @@ export class Literal implements Pattern {
   private _isRetrievingContextualTokens: boolean;
 
   get type(): string {
-    return this._patternType;
+    return this._type;
   }
 
   get name(): string {
@@ -39,7 +39,11 @@ export class Literal implements Pattern {
   }
 
   constructor(name: string, value: string, isOptional = false) {
-    this._patternType = "literal";
+    if (value.length === 0){
+      throw new Error("Value Cannot be empty.");
+    }
+    
+    this._type = "literal";
     this._name = name;
     this._literal = value;
     this._runes = Array.from(value);
@@ -119,11 +123,10 @@ export class Literal implements Pattern {
 
   getTokens(): string[] {
     const parent = this._parent;
-    const hasParent = parent !== null;
 
     if (
       this._hasContextualTokenAggregation &&
-      hasParent &&
+      parent != null &&
       !this._isRetrievingContextualTokens
     ) {
       this._isRetrievingContextualTokens = true;

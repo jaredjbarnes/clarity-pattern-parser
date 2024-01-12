@@ -11,11 +11,11 @@ export class Cursor {
     return this._text;
   }
 
-  get isAtBeginning(): boolean {
+  get isOnFirst(): boolean {
     return this._index === 0;
   }
 
-  get isAtEnd(): boolean {
+  get isOnLast(): boolean {
     return this._index === this._getLastIndex();
   }
 
@@ -56,6 +56,10 @@ export class Cursor {
   }
 
   constructor(text: string) {
+    if (text.length === 0) {
+      throw new Error("Cannot have a empty string.");
+    }
+
     this._text = text;
     this._index = 0;
     this._length = text.length;
@@ -100,19 +104,12 @@ export class Cursor {
     return this._text.slice(first, last + 1);
   }
 
-  safelyGetChars(first: number, last: number): string {
-    const safeStart = Math.max(0, first);
-    const safeEnd = Math.min(this._getLastIndex(), last);
-
-    return this.getChars(safeStart, safeEnd);
+  addMatch(pattern: Pattern, node: Node): void {
+    this._history.addMatch(pattern, node);
   }
 
   throwError(index: number, onPattern: Pattern): void {
     this._history.addErrorAt(index, onPattern);
-  }
-
-  addMatch(pattern: Pattern, node: Node): void {
-    this._history.addMatch(pattern, node);
   }
 
   resolveError(): void {
@@ -125,10 +122,6 @@ export class Cursor {
 
   stopRecording(): void {
     this._history.stopRecording();
-  }
-
-  didSuccessfullyParse(): boolean {
-    return !this.hasError && this.isAtEnd;
   }
 
   private _getLastIndex(): number {

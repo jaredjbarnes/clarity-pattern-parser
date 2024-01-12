@@ -223,4 +223,54 @@ describe("And", () => {
 
         expect(tokens).toEqual(expected);
     });
+
+    test("Get Next Tokens", () => {
+        const sequence = new And("sequence", [
+            new Literal("a", "A"),
+            new Literal("b", "B", true),
+            new Literal("c", "C"),
+        ], true);
+
+        const tokens = sequence.getNextTokens(sequence.children[0])
+        const expected = ["B", "C"];
+
+        expect(tokens).toEqual(expected);
+    });
+
+    test("Get Next Tokens With Invalid Pattern", () => {
+        const sequence = new And("sequence", [
+            new Literal("a", "A"),
+            new Literal("b", "B", true),
+            new Literal("c", "C"),
+        ], true);
+
+        const tokens = sequence.getNextTokens(new Literal("not-child", "not-child"))
+
+        expect(tokens).toEqual([]);
+    });
+
+    test("Get Next Tokens With Last Child", () => {
+        const sequence = new And("sequence", [
+            new Literal("a", "A"),
+        ], true);
+        const parent = new And("parent", [sequence, new Literal("b", "B")]);
+
+
+        const tokens = parent.children[0].getNextTokens(parent.children[0].children[0])
+
+        expect(tokens).toEqual(["B"]);
+    });
+
+    test("Get Next Tokens With Last Optional Child", () => {
+        const sequence = new And("sequence", [
+            new Literal("a", "A"),
+            new Literal("b", "B", true),
+        ], true);
+        const parent = new And("parent", [sequence, new Literal("c", "C")]);
+
+
+        const tokens = parent.children[0].getNextTokens(parent.children[0].children[0])
+
+        expect(tokens).toEqual(["B", "C"]);
+    });
 });

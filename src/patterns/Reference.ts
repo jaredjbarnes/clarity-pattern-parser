@@ -9,6 +9,7 @@ export class Reference implements Pattern {
   private _parent: Pattern | null;
   private _isOptional: boolean;
   private _pattern: Pattern | null;
+  private _children: Pattern[];
 
   get type(): string {
     return this._type;
@@ -31,7 +32,7 @@ export class Reference implements Pattern {
   }
 
   get children(): Pattern[] {
-    return this._getPatternSafely().children;
+    return this._children
   }
 
   constructor(name: string, isOptional: boolean = false) {
@@ -40,6 +41,7 @@ export class Reference implements Pattern {
     this._parent = null;
     this._isOptional = isOptional;
     this._pattern = null;
+    this._children = [];
   }
 
   parse(cursor: Cursor): Node | null {
@@ -55,11 +57,11 @@ export class Reference implements Pattern {
   }
 
   getNextTokens(_lastMatched: Pattern): string[] {
-    return this.parent!.getNextTokens(this);
-  }
+    if (this.parent == null) {
+      return [];
+    }
 
-  assignParent(parent: Pattern): void {
-    this._parent = parent;
+    return this.parent.getNextTokens(this);
   }
 
   private _getPatternSafely(): Pattern {
@@ -74,6 +76,7 @@ export class Reference implements Pattern {
       clonedPattern.parent = this;
 
       this._pattern = clonedPattern;
+      this._children = [this._pattern];
     }
 
     return this._pattern;

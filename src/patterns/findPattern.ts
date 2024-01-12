@@ -1,10 +1,6 @@
 import { Pattern } from "./Pattern";
 
-export function findPattern(pattern: Pattern | null, predicate: (pattern: Pattern) => boolean): Pattern | null {
-    if (pattern === null) {
-        return null;
-    }
-
+export function findPattern(pattern: Pattern, predicate: (pattern: Pattern) => boolean): Pattern | null {
     let children: Pattern[] = [];
 
     if (pattern.type === "reference") {

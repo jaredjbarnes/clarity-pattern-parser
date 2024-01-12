@@ -72,7 +72,7 @@ export class Regex implements Pattern {
 
   parse(cursor: Cursor) {
     this.resetState(cursor);
-    this.tryToParse();
+    this.tryToParse(cursor);
 
     return this._node;
   }
@@ -84,18 +84,17 @@ export class Regex implements Pattern {
     this._node = null;
   }
 
-  private tryToParse() {
+  private tryToParse(cursor: Cursor) {
     const result = this._regex.exec(this._substring);
 
     if (result != null && result.index === 0) {
-      this.processResult(result);
+      this.processResult(cursor, result);
     } else {
-      this.processError();
+      this.processError(cursor);
     }
   }
 
-  private processResult(result: RegExpExecArray) {
-    const cursor = this.safelyGetCursor();
+  private processResult(cursor: Cursor, result: RegExpExecArray) {
     const currentIndex = cursor.index;
     const newIndex = currentIndex + result[0].length - 1;
 
@@ -112,23 +111,12 @@ export class Regex implements Pattern {
     cursor.addMatch(this, this._node);
   }
 
-  private processError() {
-    const cursor = this.safelyGetCursor();
-
+  private processError(cursor: Cursor) {
     if (!this._isOptional) {
       cursor.throwError(cursor.index, this);
     }
 
     this._node = null;
-  }
-
-  private safelyGetCursor() {
-    const cursor = this._cursor;
-
-    if (cursor == null) {
-      throw new Error("Couldn't find cursor.");
-    }
-    return cursor;
   }
 
   clone(name = this._name, isOptional = this._isOptional) {

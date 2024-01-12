@@ -39,9 +39,9 @@ export class Repeat implements Pattern {
     return this._isOptional;
   }
 
-  constructor(name: string, pattern: Pattern, divider: Pattern | null = null, isOptional = false) {
+  constructor(name: string, pattern: Pattern, divider?: Pattern, isOptional = false) {
     const patterns = divider != null ? [pattern, divider] : [pattern];
-    const children: Pattern[] = clonePatterns(patterns);
+    const children: Pattern[] = clonePatterns(patterns, false);
     this._assignChildrenToParent(children);
 
     this._type = "repeat";

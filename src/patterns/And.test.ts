@@ -212,4 +212,15 @@ describe("And", () => {
         expect(cursor.error).toBe(null)
         expect(cursor.index).toBe(0);
     });
+
+    test("Get Tokens", () => {
+        const sequence = new And("sequence", [
+            new Literal("a", "A", true),
+            new Literal("b", "B"),
+        ], true);
+        const tokens = sequence.getTokens()
+        const expected = ["A", "B"];
+
+        expect(tokens).toEqual(expected);
+    });
 });

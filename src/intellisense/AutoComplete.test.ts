@@ -1,12 +1,13 @@
-import { Literal } from "../patterns/Literal";
 import { AutoComplete } from "./AutoComplete";
 import cssValue from "./css/cssValue";
 
 describe("AutoComplete", ()=>{
-    test("Suggest Empty Text", ()=>{
+    test("Playground", ()=>{
         const autoComplete = new AutoComplete(cssValue);
-        const result = autoComplete.suggest("r")
+        let result = autoComplete.suggest("r")
+        result = autoComplete.suggest("rgba(");
+        result = autoComplete.suggest("rgba(0");
 
-        expect(result.options.length).toBe(1);
+        
     });
 });

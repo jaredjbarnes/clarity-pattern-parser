@@ -15,7 +15,7 @@ describe("Cursor", () => {
 
         expect(cursor.currentChar).toBe("W")
 
-        cursor.moveToBeginning();
+        cursor.moveToFirstChar();
         cursor.previous();
 
         expect(cursor.isOnFirst).toBeTruthy();
@@ -25,7 +25,7 @@ describe("Cursor", () => {
 
         expect(cursor.currentChar).toBe("e");
 
-        cursor.moveToEnd();
+        cursor.moveToLastChar();
         cursor.next();
 
         expect(cursor.isOnLast).toBeTruthy()

@@ -92,11 +92,11 @@ export class Cursor {
     }
   }
 
-  moveToBeginning(): void {
+  moveToFirstChar(): void {
     this._index = 0;
   }
 
-  moveToEnd(): void {
+  moveToLastChar(): void {
     this._index = this._getLastIndex();
   }
 

@@ -1,9 +1,11 @@
 import { escapedCharacter } from "./escapedCharacter";
 import { exponent } from "./exponent";
+import { expression } from "./expression";
 import { infixOperator } from "./infixOperator";
 import { integer } from "./integer";
 import { name } from "./name";
 import { parameters } from "./parameters";
+import { prefixOperator } from "./prefixOperator";
 
 describe("Ecmascript 3", () => {
     test("Escaped Character", () => {
@@ -108,7 +110,7 @@ describe("Ecmascript 3", () => {
     });
 
 
-    test("name", () => {
+    test("Name", () => {
         let result = name.parseText("p_0");
         expect(result.ast?.value).toBe("p_0");
 
@@ -122,7 +124,7 @@ describe("Ecmascript 3", () => {
         expect(result.ast?.value).toBe("_");
     });
 
-    test("parameters", ()=>{
+    test("Parameters", () => {
         let result = parameters.parseText("(param1)");
         expect(result.ast?.value).toBe("(param1)");
 
@@ -132,4 +134,42 @@ describe("Ecmascript 3", () => {
         result = parameters.parseText("(param1, param2,)");
         expect(result.ast).toBeNull();
     });
+
+    test("Prefix Operator", () => {
+        let result = prefixOperator.parseText("typeof");
+        expect(result.ast?.value).toBe("typeof");
+
+        result = prefixOperator.parseText("+");
+        expect(result.ast?.value).toBe("+");
+
+        result = prefixOperator.parseText("-");
+        expect(result.ast?.value).toBe("-");
+
+        result = prefixOperator.parseText("!");
+        expect(result.ast?.value).toBe("!");
+
+        result = prefixOperator.parseText("a");
+        expect(result.ast).toBeNull();
+    });
+
+    test("object-literal", () => {
+        let result = expression.parseText(`{}`)
+        expect(result.ast?.value).toBe("{}");
+
+        result = expression.parseText(`{prop:{}}`)
+        expect(result.ast?.value).toBe("{prop:{}}");
+
+        result = expression.parseText(`{prop:"value"}`)
+        expect(result.ast?.value).toBe(`{prop:"value"}`);
+
+        result = expression.parseText(`{prop:0.9}`)
+        expect(result.ast?.value).toBe(`{prop:0.9}`);
+
+        result = expression.parseText(`{prop:1}`)
+        expect(result.ast?.value).toBe(`{prop:1}`);
+
+        result = expression.parseText(`{"prop":1}`)
+        expect(result.ast?.value).toBe(`{"prop":1}`);
+
+    })
 });

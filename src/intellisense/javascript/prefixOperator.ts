@@ -9,7 +9,5 @@ const prefixOperator = new Or("prefix-operator", [
     new Literal("logical-not", "!"),
 ]);
 
-prefixOperator.enableAstReduction();
-
 export { prefixOperator }
 

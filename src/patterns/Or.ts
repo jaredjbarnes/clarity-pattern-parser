@@ -11,7 +11,6 @@ export class Or implements Pattern {
   private _isOptional: boolean;
   private _node: Node | null;
   private _firstIndex: number;
-  private _shouldReduceAst: boolean;
 
   get type(): string {
     return this._type;
@@ -52,7 +51,6 @@ export class Or implements Pattern {
     this._isOptional = isOptional;
     this._node = null;
     this._firstIndex = 0;
-    this._shouldReduceAst = false;
   }
 
   private _assignChildrenToParent(children: Pattern[]): void {
@@ -75,14 +73,12 @@ export class Or implements Pattern {
     this._firstIndex = cursor.index;
     this._node = null;
 
-    const passed = this._tryToParse(cursor);
+    const node = this._tryToParse(cursor);
 
-    if (passed) {
+    if (node != null) {
       cursor.resolveError();
-      const node = this._createNode();
-      cursor.addMatch(this, node);
-
-      return node;
+      this._addMatch(cursor, node);
+      return node
     }
 
     if (!this._isOptional) {
@@ -95,47 +91,32 @@ export class Or implements Pattern {
     return null;
   }
 
-  private _tryToParse(cursor: Cursor): boolean {
+  private _tryToParse(cursor: Cursor): Node | null {
     for (const pattern of this._children) {
       cursor.moveTo(this._firstIndex);
       const result = pattern.parse(cursor);
 
       if (!cursor!.hasError) {
-        this._node = result;
-
-        return true;
+        return result;
       }
 
       cursor.resolveError();
     }
 
-    return false
+    return null
   }
 
-  private _createNode(): Node {
-    let children: Node[] = [];
-
-    if (!this._shouldReduceAst) {
-      children = this._node !== null ? [this._node] : children;
-    }
-
-    return new Node(
+  private _addMatch(cursor: Cursor, match: Node) {
+    const node = new Node(
       this._type,
       this._name,
       this._node !== null ? this._node.firstIndex : 0,
       this._node !== null ? this._node.lastIndex : 0,
-      children,
+      [match],
       this._node !== null ? this._node.value : ""
     );
-  }
 
-
-  enableAstReduction(): void {
-    this._shouldReduceAst = true;
-  }
-
-  disableAstReduction(): void {
-    this._shouldReduceAst = false;
+    cursor.addMatch(this, node);
   }
 
   getTokens(): string[] {
@@ -158,7 +139,6 @@ export class Or implements Pattern {
 
   clone(name = this._name, isOptional = this._isOptional): Pattern {
     const or = new Or(name, this._children, isOptional);
-    or._shouldReduceAst = this._shouldReduceAst;
     return or;
   }
 }

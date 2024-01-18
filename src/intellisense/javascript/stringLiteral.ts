@@ -24,6 +24,5 @@ const singleQuoteStringLiteral = new And("single-string-literal", [
 ]);
 
 const stringLiteral = new Or("string-literal", [doubleQuoteStringLiteral, singleQuoteStringLiteral]);
-stringLiteral.enableAstReduction();
 
 export { stringLiteral }

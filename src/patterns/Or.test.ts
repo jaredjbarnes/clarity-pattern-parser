@@ -59,26 +59,6 @@ describe("Or", () => {
         expect(cursor.hasError).toBeFalsy();
     });
 
-    test("Ast Reduction", () => {
-        const a = new Or("a", [new Literal("a", "A")], true);
-        const cursor = new Cursor("A");
-        a.enableAstReduction();
-
-        let result = a.parse(cursor);
-        let expected = new Node("or", "a", 0, 0, [], "A");
-
-        expect(result).toEqual(expected);
-
-        a.disableAstReduction();
-
-        result = a.parse(cursor);
-        expected = new Node("or", "a", 0, 0, [
-            new Node("literal", "a", 0, 0, [], "A")
-        ], "A");
-
-        expect(result).toEqual(expected);
-    });
-
     test("Get Tokens", () => {
         const aOrB = new Or("a-b", [new Literal("a", "A"), new Literal("b", "B")]);
         const tokens = aOrB.getTokens();

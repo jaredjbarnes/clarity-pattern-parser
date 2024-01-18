@@ -4,9 +4,11 @@ import { numberLiteral } from "./numberLiteral";
 import { objectLiteral } from "./objectLiteral";
 import { stringLiteral } from "./stringLiteral";
 
-export const literal = new Or("literal", [
+const literal = new Or("literal", [
     numberLiteral,
     stringLiteral,
+    arrayLiteral,
     objectLiteral,
-    arrayLiteral
 ]);
+
+export { literal }

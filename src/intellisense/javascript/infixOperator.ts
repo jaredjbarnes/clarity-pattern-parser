@@ -31,8 +31,6 @@ const infixOperator = new Or("infix-operator", [
     logicalAnd
 ]);
 
-infixOperator.enableAstReduction();
-
 export { infixOperator }
 
 

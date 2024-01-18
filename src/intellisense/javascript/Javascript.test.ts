@@ -1,6 +1,7 @@
 import { escapedCharacter } from "./escapedCharacter";
 import { exponent } from "./exponent";
 import { expression } from "./expression";
+import { expressionStatement } from "./expressionStatement";
 import { infixOperator } from "./infixOperator";
 import { integer } from "./integer";
 import { name } from "./name";
@@ -136,8 +137,8 @@ describe("Ecmascript 3", () => {
     });
 
     test("Prefix Operator", () => {
-        let result = prefixOperator.parseText("typeof");
-        expect(result.ast?.value).toBe("typeof");
+        let result = prefixOperator.parseText("typeof ");
+        expect(result.ast?.value).toBe("typeof ");
 
         result = prefixOperator.parseText("+");
         expect(result.ast?.value).toBe("+");
@@ -152,7 +153,7 @@ describe("Ecmascript 3", () => {
         expect(result.ast).toBeNull();
     });
 
-    test("object-literal", () => {
+    test("Object Literal", () => {
         let result = expression.parseText(`{}`)
         expect(result.ast?.value).toBe("{}");
 
@@ -170,6 +171,33 @@ describe("Ecmascript 3", () => {
 
         result = expression.parseText(`{"prop":1}`)
         expect(result.ast?.value).toBe(`{"prop":1}`);
+    });
 
-    })
+    test("Array Literal", () => {
+        let result = expression.parseText("[]")
+        expect(result.ast?.value).toBe("[]");
+
+        result = expression.parseText("[{}, 9, 0.9e-10, [1, 2]]")
+        expect(result.ast?.value).toBe("[{}, 9, 0.9e-10, [1, 2]]");
+    });
+
+    test("Expression Statement", () => {
+        let result = expressionStatement.parseText(`name = "John"`);
+        expect(result.ast?.value).toBe(`name = "John"`);
+
+        result = expressionStatement.parseText(`name = othername = "John"`)
+        expect(result.ast?.value).toBe(`name = othername = "John"`);
+
+        result = expressionStatement.parseText(`name = othername.prop = "John"`)
+        expect(result.ast?.value).toBe(`name = othername.prop = "John"`);
+
+        result = expressionStatement.parseText(`name = othername.prop += 2`)
+        expect(result.ast?.value).toBe(`name = othername.prop += 2`);
+    
+        result = expressionStatement.parseText(`name.prop().method(blah) = blah.prop()`)
+        expect(result.ast?.value).toBe(`name.prop().method(blah) = blah.prop()`);
+    
+    });
+
+
 });

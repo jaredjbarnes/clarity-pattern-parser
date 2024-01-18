@@ -4,20 +4,20 @@ import { Or } from "../../patterns/Or";
 import { Reference } from "../../patterns/Reference";
 import { name } from "./name";
 
-const dotNotation = new And("dot-notation", [
+const dotPropertyAccess = new And("dot-property-access", [
     new Literal("period", "."),
     name
 ]);
 
-const bracketNotation = new And("bracket-notation", [
+const bracketPropertyAccess = new And("bracket-property-access", [
     new Literal("open-square-bracket", "["),
     new Reference("expression"),
     new Literal("close-square-bracket", "]"),
 ]);
 
-const refinement = new Or("refinement", [
-    dotNotation,
-    bracketNotation,
+const propertyAccess = new Or("property-access", [
+    dotPropertyAccess,
+    bracketPropertyAccess,
 ]);
 
-export { refinement }
+export { propertyAccess }

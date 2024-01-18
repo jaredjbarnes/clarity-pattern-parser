@@ -15,9 +15,7 @@ describe("Or", () => {
         const a = new Or("a", [new Literal("a", "A")]);
         const cursor = new Cursor("A");
         const result = a.parse(cursor);
-        const expected = new Node("or", "a", 0, 0, [
-            new Node("literal", "a", 0, 0, [], "A")
-        ], "A");
+        const expected = new Node("literal", "a", 0, 0, [], "A")
 
         expect(result).toEqual(expected);
     });
@@ -36,9 +34,7 @@ describe("Or", () => {
         const a = new Or("a-b", [new Literal("a", "A"), new Literal("b", "B")]);
         const cursor = new Cursor("AB");
         let result = a.parse(cursor);
-        let expected = new Node("or", "a-b", 0, 0, [
-            new Node("literal", "a", 0, 0, [], "A")
-        ], "A");
+        let expected = new Node("literal", "a", 0, 0, [], "A")
 
         expect(result).toEqual(expected);
 

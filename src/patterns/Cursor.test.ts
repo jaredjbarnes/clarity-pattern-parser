@@ -40,7 +40,7 @@ describe("Cursor", () => {
         const pattern = new Literal("a", "A");
         const cursor = new Cursor("Hello World!");
 
-        cursor.throwError(0, pattern);
+        cursor.recordErrorAt(0, pattern);
 
         expect(cursor.hasError).toBeTruthy();
         expect(cursor.error?.index).toBe(0);
@@ -60,7 +60,7 @@ describe("Cursor", () => {
 
         const cursor = new Cursor("Hello World!");
 
-        cursor.addMatch(pattern, node)
+        cursor.recordMatch(pattern, node)
 
         expect(cursor.leafMatch.node).toBe(node);
         expect(cursor.leafMatch.pattern).toBe(pattern);

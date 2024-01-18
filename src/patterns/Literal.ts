@@ -79,7 +79,7 @@ export class Literal implements Pattern {
     }
 
     if (!this._isOptional) {
-      cursor.throwError(cursor.index, this)
+      cursor.recordErrorAt(cursor.index, this)
       return null;
     }
 

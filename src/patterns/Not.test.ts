@@ -5,7 +5,7 @@ import { Not } from "./Not";
 describe("Not", () => {
     test("Parse Successfully", () => {
         const a = new Literal("a", "A");
-        const notA = new Not(a);
+        const notA = new Not("not-a", a);
         const cursor = new Cursor("B");
         const result = notA.parse(cursor);
 
@@ -15,7 +15,7 @@ describe("Not", () => {
 
     test("Parse Failed", () => {
         const a = new Literal("a", "A");
-        const notA = new Not(a);
+        const notA = new Not("not-a", a);
         const cursor = new Cursor("A");
         const result = notA.parse(cursor);
 
@@ -25,7 +25,7 @@ describe("Not", () => {
 
     test("Clone", () => {
         const a = new Literal("a", "A");
-        const notA = new Not(a);
+        const notA = new Not("not-a", a);
         const clone = notA.clone();
 
         expect(clone.name).toBe("not-a");
@@ -34,7 +34,7 @@ describe("Not", () => {
 
     test("Tokens", () => {
         const a = new Literal("a", "A");
-        const notA = new Not(a);
+        const notA = new Not("not-a", a);
         const tokens = notA.getTokens();
         const nextTokens = notA.getNextTokens(new Literal("bogus", "bogus"))
         const emptyArray: string[] = [];
@@ -45,7 +45,7 @@ describe("Not", () => {
 
     test("Properties", () => {
         const a = new Literal("a", "A");
-        const notA = new Not(a);
+        const notA = new Not("not-a", a);
 
         expect(notA.type).toBe("not");
         expect(notA.name).toBe("not-a");
@@ -54,10 +54,10 @@ describe("Not", () => {
         expect(notA.isOptional).toBeFalsy();
     });
 
-    test("Not A Not", ()=>{
+    test("Not A Not", () => {
         const a = new Literal("a", "A");
-        const notA = new Not(a);
-        const notnotA = new Not(notA);
+        const notA = new Not("not-a", a);
+        const notnotA = new Not("not-not-a", notA);
 
         const cursor = new Cursor("A");
         const result = notnotA.parse(cursor);
@@ -66,9 +66,9 @@ describe("Not", () => {
         expect(cursor.hasError).toBeFalsy();
     });
 
-    test("Parse Text", ()=>{
+    test("Parse Text", () => {
         const a = new Literal("a", "A");
-        const notA = new Not(a);
+        const notA = new Not("not-a", a);
         const { ast: result } = notA.parseText("A");
 
         expect(result).toBeNull();

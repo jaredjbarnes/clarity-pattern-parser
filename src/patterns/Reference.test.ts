@@ -29,21 +29,15 @@ describe("Reference", () => {
         const cursor = new Cursor("[1, 2]");
         const result = value.parse(cursor);
 
-        const expected = new Node("or", "value", 0, 5, [
-            new Node("and", "array", 0, 5, [
-                new Node("literal", "open-bracket", 0, 0, [], "["),
-                new Node("repeat", "values", 1, 4, [
-                    new Node("or", "value", 1, 1, [
-                        new Node("regex", "number", 1, 1, [], "1")
-                    ], "1"),
-                    new Node("regex", "divider", 2, 3, [], ", "),
-                    new Node("or", "value", 4, 4, [
-                        new Node("regex", "number", 4, 4, [], "2"),
-                    ], "2"),
-                ], "1, 2"),
-                new Node("literal", "close-bracket", 5, 5, [], "]"),
-            ], "[1, 2]")
-        ], "[1, 2]");
+        const expected = new Node("and", "array", 0, 5, [
+            new Node("literal", "open-bracket", 0, 0, [], "["),
+            new Node("repeat", "values", 1, 4, [
+                new Node("regex", "number", 1, 1, [], "1"),
+                new Node("regex", "divider", 2, 3, [], ", "),
+                new Node("regex", "number", 4, 4, [], "2")
+            ], "1, 2"),
+            new Node("literal", "close-bracket", 5, 5, [], "]"),
+        ], "[1, 2]")
 
         expect(result).toEqual(expected);
     });

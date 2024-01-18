@@ -82,7 +82,7 @@ export class Or implements Pattern {
     }
 
     if (!this._isOptional) {
-      cursor.throwError(this._firstIndex, this)
+      cursor.recordErrorAt(this._firstIndex, this)
       return null;
     }
 

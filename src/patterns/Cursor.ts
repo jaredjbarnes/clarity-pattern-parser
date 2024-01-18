@@ -108,7 +108,7 @@ export class Cursor {
     this._history.recordMatch(pattern, node);
   }
 
-  throwError(index: number, onPattern: Pattern): void {
+  recordErrorAt(index: number, onPattern: Pattern): void {
     this._history.recordErrorAt(index, onPattern);
   }
 

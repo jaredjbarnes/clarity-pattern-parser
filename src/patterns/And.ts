@@ -121,7 +121,7 @@ export class And implements Pattern {
                 break;
               }
 
-              cursor.throwError(cursor.index + 1, this);
+              cursor.recordErrorAt(cursor.index + 1, this);
               break;
             }
           } else {
@@ -131,7 +131,7 @@ export class And implements Pattern {
         } else {
           const lastNode = this.getLastValidNode();
           if (lastNode === null) {
-            cursor.throwError(cursor.index, this);
+            cursor.recordErrorAt(cursor.index, this);
             break;
           }
 

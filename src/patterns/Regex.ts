@@ -123,7 +123,7 @@ export class Regex implements Pattern {
 
   private processError(cursor: Cursor) {
     if (!this._isOptional) {
-      cursor.throwError(cursor.index, this);
+      cursor.recordErrorAt(cursor.index, this);
     }
 
     this._node = null;

@@ -32,9 +32,9 @@ export class Not implements Pattern {
     return this._children;
   }
 
-  constructor(pattern: Pattern) {
+  constructor(name: string, pattern: Pattern) {
     this._type = "not";
-    this._name = `not-${pattern.name}`;
+    this._name = name;
     this._parent = null;
     this._children = [pattern.clone(pattern.name, false)];
     this._children[0].parent = this;
@@ -60,14 +60,14 @@ export class Not implements Pattern {
     } else {
       cursor.moveTo(firstIndex);
       cursor.resolveError();
-      cursor.throwError(firstIndex, this);
+      cursor.recordErrorAt(firstIndex, this);
     }
 
     return null;
   }
 
-  clone(): Pattern {
-    const not = new Not(this._children[0]);
+  clone(name = this._name): Pattern {
+    const not = new Not(name, this._children[0]);
     return not;
   }
 

@@ -112,7 +112,7 @@ export class Repeat implements Pattern {
           passed = true;
         } else {
           cursor.moveTo(runningCursorIndex);
-          cursor.throwError(runningCursorIndex, this._pattern);
+          cursor.recordErrorAt(runningCursorIndex, this._pattern);
           passed = false;
         }
 

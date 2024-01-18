@@ -1,22 +1,30 @@
-import Pattern from "./Pattern";
-import ParseError from "./ParseError";
-import Cursor from "../Cursor";
-import Node from "../ast/Node";
-export default class Or extends Pattern {
-    patternIndex: number;
-    errors: ParseError[];
-    node: Node | null;
-    cursor: Cursor | null;
-    mark: number;
-    parseError: ParseError | null;
-    constructor(name: string, patterns: Pattern[], isOptional?: boolean);
-    private assertArguments;
-    private resetState;
-    private safelyGetCursor;
+import { Node } from "../ast/Node";
+import { Cursor } from "./Cursor";
+import { Pattern } from "./Pattern";
+export declare class Or implements Pattern {
+    private _type;
+    private _name;
+    private _parent;
+    private _children;
+    private _isOptional;
+    private _node;
+    private _firstIndex;
+    get type(): string;
+    get name(): string;
+    get parent(): Pattern | null;
+    set parent(pattern: Pattern | null);
+    get children(): Pattern[];
+    get isOptional(): boolean;
+    constructor(name: string, options: Pattern[], isOptional?: boolean);
+    private _assignChildrenToParent;
+    parseText(text: string): {
+        ast: Node | null;
+        cursor: Cursor;
+    };
     parse(cursor: Cursor): Node | null;
-    private tryToParse;
-    private processError;
-    private processResult;
-    clone(name?: string, isOptional?: boolean): Or;
+    private _tryToParse;
+    private _addMatch;
     getTokens(): string[];
+    getNextTokens(_lastMatched: Pattern): string[];
+    clone(name?: string, isOptional?: boolean): Pattern;
 }

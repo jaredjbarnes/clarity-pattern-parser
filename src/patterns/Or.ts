@@ -96,7 +96,7 @@ export class Or implements Pattern {
       cursor.moveTo(this._firstIndex);
       const result = pattern.parse(cursor);
 
-      if (!cursor!.hasError) {
+      if (!cursor.hasError) {
         return result;
       }
 

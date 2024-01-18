@@ -1,24 +1,35 @@
-import Cursor from "../Cursor";
-import Pattern from "./Pattern";
-import Node from "../ast/Node";
-export default class And extends Pattern {
-    onPatternIndex: number;
-    nodes: (Node | null)[];
-    node: Node | null;
-    cursor: Cursor | null;
-    mark: number;
-    constructor(name: string, patterns: Pattern[], isOptional?: boolean);
+import { Cursor } from "./Cursor";
+import { Pattern } from "./Pattern";
+import { Node } from "../ast/Node";
+export declare class And implements Pattern {
+    private _type;
+    private _name;
+    private _parent;
+    private _children;
+    private _isOptional;
+    private _nodes;
+    private _firstIndex;
+    private _shouldReduceAst;
+    get type(): string;
+    get name(): string;
+    get parent(): Pattern | null;
+    set parent(pattern: Pattern | null);
+    get children(): Pattern[];
+    get isOptional(): boolean;
+    constructor(name: string, sequence: Pattern[], isOptional?: boolean);
+    private _assignChildrenToParent;
+    parseText(text: string): {
+        ast: Node | null;
+        cursor: Cursor;
+    };
     parse(cursor: Cursor): Node | null;
-    clone(name?: string, isOptional?: boolean): And;
-    getTokens(): string[];
-    private resetState;
     private tryToParse;
-    private safelyGetCursor;
-    private processResult;
-    private processError;
-    private shouldProceed;
-    private hasMorePatterns;
-    private assertRestOfPatternsAreOptional;
-    private areTheRemainingPatternsOptional;
-    private processSuccess;
+    private getLastValidNode;
+    private areRemainingPatternsOptional;
+    private createNode;
+    enableAstReduction(): void;
+    disableAstReduction(): void;
+    getTokens(): string[];
+    getNextTokens(lastMatched: Pattern): string[];
+    clone(name?: string, isOptional?: boolean): Pattern;
 }

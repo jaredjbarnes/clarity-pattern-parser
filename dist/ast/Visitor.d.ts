@@ -1,5 +1,5 @@
-import Node from "./Node";
-export default class Visitor {
+import { Node } from "./Node";
+export declare class Visitor {
     root: Node | null;
     selectedNodes: Node[];
     constructor(root?: Node | null, selectedNodes?: Node[]);

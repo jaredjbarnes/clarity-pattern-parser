@@ -7,7 +7,5 @@ describe("AutoComplete", ()=>{
         let result = autoComplete.suggest("r")
         result = autoComplete.suggest("rgba(");
         result = autoComplete.suggest("rgba(0");
-
-        
     });
 });

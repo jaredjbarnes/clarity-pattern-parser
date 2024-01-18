@@ -1,21 +1,40 @@
-import Node from "../ast/Node";
-import Pattern from "./Pattern";
-import Cursor from "../Cursor";
-export default class Regex extends Pattern {
-    private regexString;
-    private regex;
-    private node;
-    private cursor;
-    private substring;
+import { Node } from "../ast/Node";
+import { Pattern } from "./Pattern";
+import { Cursor } from "./Cursor";
+export declare class Regex implements Pattern {
+    private _type;
+    private _name;
+    private _isOptional;
+    private _parent;
+    private _originalRegexString;
+    private _regex;
+    private _node;
+    private _cursor;
+    private _substring;
+    private _tokens;
+    private _hasContextualTokenAggregation;
+    private _isRetrievingContextualTokens;
+    get type(): string;
+    get name(): string;
+    get parent(): Pattern | null;
+    set parent(pattern: Pattern | null);
+    get children(): Pattern[];
+    get isOptional(): boolean;
     constructor(name: string, regex: string, isOptional?: boolean);
     private assertArguments;
+    parseText(text: string): {
+        ast: Node | null;
+        cursor: Cursor;
+    };
     parse(cursor: Cursor): Node | null;
     private resetState;
     private tryToParse;
     private processResult;
     private processError;
-    private safelyGetCursor;
     clone(name?: string, isOptional?: boolean): Regex;
-    getTokenValue(): string;
     getTokens(): string[];
+    getNextTokens(_reference: Pattern): string[];
+    setTokens(tokens: string[]): void;
+    enableContextualTokenAggregation(): void;
+    disableContextualTokenAggregation(): void;
 }

@@ -1,8 +1,6 @@
-import Pattern from "./Pattern";
-export default class ParseError {
-    message: string;
-    name: string;
+import { Pattern } from "./Pattern";
+export declare class ParseError {
     index: number;
     pattern: Pattern;
-    constructor(message: string, index: number, pattern: Pattern);
+    constructor(index: number, pattern: Pattern);
 }

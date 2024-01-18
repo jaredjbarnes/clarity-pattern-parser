@@ -1,11 +1,11 @@
-export default class Node {
+export declare class Node {
     type: string;
     name: string;
-    startIndex: number;
-    endIndex: number;
+    firstIndex: number;
+    lastIndex: number;
     children: Node[];
     value: string;
-    constructor(type: string, name: string, startIndex: number, endIndex: number, children?: Node[], value?: string);
+    constructor(type: string, name: string, firstIndex: number, lastIndex: number, children?: Node[], value?: string);
     clone(): Node;
     toString(): string;
 }

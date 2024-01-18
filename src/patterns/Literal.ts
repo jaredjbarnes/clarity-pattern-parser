@@ -73,7 +73,7 @@ export class Literal implements Pattern {
     if (passed) {
       cursor.resolveError();
       const node = this._createNode();
-      cursor.addMatch(this, node);
+      cursor.recordMatch(this, node);
 
       return node;
     }

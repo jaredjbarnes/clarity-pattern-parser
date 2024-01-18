@@ -49,7 +49,7 @@ export class CursorHistory {
     return this._rootMatch;
   }
 
-  addMatch(pattern: Pattern, node: Node): void {
+  recordMatch(pattern: Pattern, node: Node): void {
     if (this._isRecording) {
       this._patterns.push(pattern);
       this._nodes.push(node);
@@ -67,7 +67,7 @@ export class CursorHistory {
     }
   }
 
-  addErrorAt(index: number, pattern: Pattern): void {
+  recordErrorAt(index: number, pattern: Pattern): void {
     const error = new ParseError(index, pattern);
     this._currentError = error;
 

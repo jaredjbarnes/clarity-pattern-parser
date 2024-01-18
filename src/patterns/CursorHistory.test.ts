@@ -9,7 +9,7 @@ describe("CursorHistory", () => {
         const node = new Node("literal", "a", 0, 0, [], "A");
 
         history.startRecording();
-        history.addMatch(pattern, node);
+        history.recordMatch(pattern, node);
 
         expect(history.isRecording).toBeTruthy();
 
@@ -32,7 +32,7 @@ describe("CursorHistory", () => {
         const pattern = new Literal("a", "A");
         
         history.startRecording();
-        history.addErrorAt(0, pattern);
+        history.recordErrorAt(0, pattern);
 
         expect(history.error?.index).toBe(0);
         expect(history.error?.pattern).toBe(pattern);

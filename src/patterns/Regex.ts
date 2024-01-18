@@ -118,7 +118,7 @@ export class Regex implements Pattern {
     );
 
     cursor.moveTo(newIndex);
-    cursor.addMatch(this, this._node);
+    cursor.recordMatch(this, this._node);
   }
 
   private processError(cursor: Cursor) {

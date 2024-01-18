@@ -104,12 +104,12 @@ export class Cursor {
     return this._text.slice(first, last + 1);
   }
 
-  addMatch(pattern: Pattern, node: Node): void {
-    this._history.addMatch(pattern, node);
+  recordMatch(pattern: Pattern, node: Node): void {
+    this._history.recordMatch(pattern, node);
   }
 
   throwError(index: number, onPattern: Pattern): void {
-    this._history.addErrorAt(index, onPattern);
+    this._history.recordErrorAt(index, onPattern);
   }
 
   resolveError(): void {

@@ -116,7 +116,7 @@ export class Or implements Pattern {
       this._node !== null ? this._node.value : ""
     );
 
-    cursor.addMatch(this, node);
+    cursor.recordMatch(this, node);
   }
 
   getTokens(): string[] {

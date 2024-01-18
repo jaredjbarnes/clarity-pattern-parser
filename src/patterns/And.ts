@@ -82,7 +82,7 @@ export class And implements Pattern {
       const node = this.createNode(cursor);
 
       if (node !== null) {
-        cursor.addMatch(this, node);
+        cursor.recordMatch(this, node);
       }
 
       return node;

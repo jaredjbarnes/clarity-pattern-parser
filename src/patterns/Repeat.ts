@@ -83,7 +83,7 @@ export class Repeat implements Pattern {
       const node = this.createNode(cursor);
 
       if (node) {
-        cursor.addMatch(this, node);
+        cursor.recordMatch(this, node);
       }
 
       return node;

@@ -43,7 +43,7 @@ describe("AutoComplete", () => {
         expect(result.options[0].startIndex).toBe(2);
     });
 
-    test("No Match", () => {
+    test("Partial Match With Bad Characters", () => {
         const name = new Literal("name", "Name");
         const autoComplete = new AutoComplete(name);
         let result = autoComplete.suggest("Ni");

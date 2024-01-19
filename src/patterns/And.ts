@@ -4,6 +4,7 @@ import { Node } from "../ast/Node";
 import { clonePatterns } from "./clonePatterns";
 import { filterOutNull } from "./filterOutNull";
 import { getNextPattern } from "./getNextPattern";
+import { findPattern } from "./findPattern";
 
 export class And implements Pattern {
   private _type: string;
@@ -265,6 +266,10 @@ export class And implements Pattern {
 
   getNextPattern(): Pattern | null {
     return getNextPattern(this)
+  }
+
+  findPattern(isMatch: (p: Pattern)=>boolean): Pattern | null{
+    return findPattern(this, isMatch);
   }
 
   clone(name = this._name, isOptional = this._isOptional): Pattern {

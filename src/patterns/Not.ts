@@ -84,4 +84,8 @@ export class Not implements Pattern {
     return [];
   }
 
+  findPattern(isMatch: (p: Pattern) => boolean): Pattern | null {
+    return isMatch(this._children[0]) ? this._children[0] : null;
+  }
+
 }

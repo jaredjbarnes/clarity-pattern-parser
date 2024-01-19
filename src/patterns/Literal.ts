@@ -166,6 +166,10 @@ export class Literal implements Pattern {
     return getNextPattern(this)
   }
 
+  findPattern(_isMatch: (p: Pattern) => boolean): Pattern | null {
+    return null;
+  }
+
   enableContextualTokenAggregation(): void {
     this._hasContextualTokenAggregation = true;
   }

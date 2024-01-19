@@ -3,6 +3,7 @@ import { Cursor } from "./Cursor";
 import { Pattern } from "./Pattern";
 import { clonePatterns } from "./clonePatterns";
 import { getNextPattern } from "./getNextPattern";
+import { findPattern } from "./findPattern";
 
 export class Or implements Pattern {
   private _type: string;
@@ -126,6 +127,10 @@ export class Or implements Pattern {
 
   getNextPattern(): Pattern | null {
     return getNextPattern(this)
+  }
+
+  findPattern(isMatch: (p: Pattern)=>boolean): Pattern | null{
+    return findPattern(this, isMatch);
   }
 
   clone(name = this._name, isOptional = this._isOptional): Pattern {

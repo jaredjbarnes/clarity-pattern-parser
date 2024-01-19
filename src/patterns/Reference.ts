@@ -79,6 +79,10 @@ export class Reference implements Pattern {
     return getNextPattern(this)
   }
 
+  findPattern(_isMatch: (p: Pattern)=>boolean): Pattern | null{
+    return null;
+  }
+
   private _getPatternSafely(): Pattern {
     if (this._pattern === null) {
       const pattern = this._findPattern();

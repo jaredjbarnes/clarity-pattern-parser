@@ -172,6 +172,10 @@ export class Regex implements Pattern {
   getNextPattern(): Pattern | null {
     return getNextPattern(this)
   }
+  
+  findPattern(_isMatch: (p: Pattern)=>boolean): Pattern | null{
+    return null;
+  }
 
   setTokens(tokens: string[]) {
     this._tokens = tokens;

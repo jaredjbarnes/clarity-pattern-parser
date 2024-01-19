@@ -3,6 +3,7 @@ import { Cursor } from "./Cursor";
 import { Pattern } from "./Pattern";
 import { clonePatterns } from "./clonePatterns";
 import { getNextPattern } from "./getNextPattern";
+import { findPattern } from "./findPattern";
 
 export class Repeat implements Pattern {
   private _type: string;
@@ -202,13 +203,6 @@ export class Repeat implements Pattern {
     this._shouldReduceAst = false;
   }
 
-  clone(name = this._name, isOptional = this._isOptional): Pattern {
-    const repeat = new Repeat(name, this._pattern, this._divider, isOptional);
-    repeat._shouldReduceAst = this._shouldReduceAst;
-
-    return repeat;
-  }
-
   getTokens(): string[] {
     return this._pattern.getTokens();
   }
@@ -251,5 +245,15 @@ export class Repeat implements Pattern {
     return getNextPattern(this)
   }
 
+  findPattern(isMatch: (p: Pattern) => boolean): Pattern | null {
+    return findPattern(this, isMatch);
+  }
+
+  clone(name = this._name, isOptional = this._isOptional): Pattern {
+    const repeat = new Repeat(name, this._pattern, this._divider, isOptional);
+    repeat._shouldReduceAst = this._shouldReduceAst;
+
+    return repeat;
+  }
 }
 

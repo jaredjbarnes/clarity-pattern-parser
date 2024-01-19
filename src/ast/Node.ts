@@ -1,3 +1,14 @@
+export interface CycleFreeNode {
+  type: string;
+  name: string;
+  firstIndex: number;
+  lastIndex: number;
+  startIndex: number;
+  endIndex: number;
+  value: string;
+  children: CycleFreeNode[];
+}
+
 export class Node {
   private _type: string;
   private _name: string;
@@ -157,12 +168,20 @@ export class Node {
     return this._children.map(c => c.toString()).join("")
   }
 
-  toJson(space?: number) {
-    return JSON.stringify(this, (key, value) => {
-      if (key === "parent" || key === "_parent") {
-        return undefined;
-      }
-      return value;
-    }, space)
+  toCycleFreeObject(): CycleFreeNode {
+    return {
+      type: this._type,
+      name: this._name,
+      value: this.toString(),
+      children: this._children.map(c => c.toCycleFreeObject()),
+      startIndex: this.startIndex,
+      endIndex: this.endIndex,
+      firstIndex: this._firstIndex,
+      lastIndex: this._lastIndex,
+    }
+  }
+
+  toJson(space?: number): string {
+    return JSON.stringify(this.toCycleFreeObject(), null, space)
   }
 }

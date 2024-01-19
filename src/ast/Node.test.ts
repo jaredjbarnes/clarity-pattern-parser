@@ -219,11 +219,34 @@ describe("Node", () => {
         const b = new Node("b", "b", 0, 0, [], "B");
         const parent = new Node("parent", "parent", 0, 0, [a, b]);
         const result = parent.toJson();
-        const expected = JSON.stringify(parent, (key, value) => {
-            if (key === "parent" || key === "_parent") {
-                return undefined;
-            }
-            return value;
+        const expected = JSON.stringify({
+            type: "parent",
+            name: "parent",
+            value: "AB",
+            children: [{
+                type: "a",
+                name: "a",
+                value: "A",
+                children: [],
+                startIndex: 0,
+                endIndex: 1,
+                firstIndex: 0,
+                lastIndex: 0,
+            }, {
+                type: "b",
+                name: "b",
+                value: "B",
+                children: [],
+                startIndex: 0,
+                endIndex: 1,
+                firstIndex: 0,
+                lastIndex: 0,
+            }],
+            startIndex: 0,
+            endIndex: 1,
+            firstIndex: 0,
+            lastIndex: 0,
+
         });
 
         expect(result).toEqual(expected)

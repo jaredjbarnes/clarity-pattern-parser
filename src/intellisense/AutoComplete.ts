@@ -34,11 +34,12 @@ export class AutoComplete {
     const rootMatch = this._cursor.rootMatch.pattern;
     const isComplete = this._cursor.isOnLast && rootMatch === this._pattern;
     const options = this.createSuggestionsFromTokens();
+    const nextPattern = isComplete ? null : leafPattern?.getNextPattern() || this._pattern;
 
     return {
       isComplete: isComplete,
       options: options,
-      nextPattern: leafPattern?.getNextPattern() || this._pattern,
+      nextPattern,
       cursor: this._cursor,
       error: this._cursor.furthestError
     }

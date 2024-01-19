@@ -1,8 +1,8 @@
 import { And } from "../patterns/And";
+import { findPattern } from "../patterns/findPattern";
 import { Literal } from "../patterns/Literal";
 import { Or } from "../patterns/Or";
 import { AutoComplete } from "./AutoComplete";
-import cssValue from "./css/cssValue";
 
 describe("AutoComplete", () => {
     test("No Text", () => {
@@ -12,6 +12,8 @@ describe("AutoComplete", () => {
 
         expect(result.options[0].text).toBe("Name");
         expect(result.options[0].startIndex).toBe(0);
+        expect(result.nextPattern).toBe(name);
+        expect(result.isComplete).toBeFalsy();
     });
 
     test("Full Pattern Match", () => {
@@ -28,10 +30,12 @@ describe("AutoComplete", () => {
         let result = autoComplete.suggest("John");
 
         expect(result.options.length).toBe(2);
+        expect(result.nextPattern).toBe(findPattern(name, p=>p.name === "space"));
         expect(result.options[0].text).toBe(" Doe");
         expect(result.options[0].startIndex).toBe(4);
         expect(result.options[1].text).toBe(" Smith");
         expect(result.options[1].startIndex).toBe(4);
+        expect(result.isComplete).toBeFalsy();
     });
 
     test("Partial", () => {
@@ -41,6 +45,8 @@ describe("AutoComplete", () => {
 
         expect(result.options[0].text).toBe("me");
         expect(result.options[0].startIndex).toBe(2);
+        expect(result.nextPattern).toBe(name);
+        expect(result.isComplete).toBeFalsy();
     });
 
     test("Partial Match With Bad Characters", () => {
@@ -50,13 +56,17 @@ describe("AutoComplete", () => {
 
         expect(result.options[0].text).toBe("ame");
         expect(result.options[0].startIndex).toBe(1);
+        expect(result.nextPattern).toBe(name);
+        expect(result.isComplete).toBeFalsy();
     });
 
-    test("No Suggestions", () => {
+    test("Complete", () => {
         const name = new Literal("name", "Name");
         const autoComplete = new AutoComplete(name);
         let result = autoComplete.suggest("Name");
 
         expect(result.options.length).toBe(0);
+        expect(result.nextPattern).toBe(null);
+        expect(result.isComplete).toBeTruthy();
     });
 });

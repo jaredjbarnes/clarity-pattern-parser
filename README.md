@@ -7,7 +7,7 @@ npm install clarity-pattern-parser
 All patterns will either return an AST node or null. If the pattern returns null, it didn't find the pattern. If the pattern returned null and the cursor has an error, then something is wrong with the text you are parsing. If the pattern returned null and the cursor doesn't have an error then the pattern is optional. 
 
 ## Literal
-Literal uses a string literal to match patterns.
+The "Literal" pattern uses a string literal to match patterns.
 ```ts
 import { Literal } from "clarity-pattern-parser";
 
@@ -20,7 +20,7 @@ ast.value // ==> "John"
 ```
 
 ## Regex
-Regex uses regular expressions to match patterns 
+The "Regex" pattern uses regular expressions to match patterns 
 ```ts
 import { Regex } from "clarity-pattern-parser";
 
@@ -36,7 +36,7 @@ ast.value // ==> "12"
 Do not use "^" at the beginning or "$" at the end of your regular expression. If you are creating a regular expression that is concerned about the beginning and end of the text you should probably just use a regular expression. 
 
 ## And
-And is a way to make a sequence pattern. And accepts any other patterns as children, even other and patterns. 
+The "And" pattern is a way to make a sequence pattern. And accepts any other patterns as children, even other "And" patterns. 
 ```ts
 import { And, Literal } from "clarity-pattern-parser";
 
@@ -96,7 +96,7 @@ ast.toJson(); // Look Below for output
 ```
 
 ## Or
-
+The "Or" pattern mathes any of the patterns given to the constructor. 
 ```ts
 import { Or, Literal } from "clarity-pattern-parser";
 
@@ -117,4 +117,54 @@ ast.name // ==> "john"
 ast.value // ==> "John"
 ```
 
+## Repeat
+The "Repeat" patterns allows you to match repeating patterns with, or without a divider.
+
+For example you may want to match a pattern like so.
+```
+1,2,3
+```
+Here is the code to do so. 
+```ts
+import { Repeat, Literal, Regex } from "clarity-pattern-parser";
+
+const digit = new Regex("digit", "\\d+");
+const comma = new Literal("comma", ",");
+const numberList = new Repeat("number-list", digit, comma);
+
+const ast = numberList.parseText("1,2,3").ast;
+
+ast.type // ==> "repeat"
+ast.name // ==> "number-list"
+ast.value // ==> "1,2,3
+
+ast.children[0].value // ==> "1"
+ast.children[1].value // ==> ","
+ast.children[2].value // ==> "2"
+ast.children[3].value // ==> ","
+ast.children[4].value // ==> "3"
+```
+
+If there is a trailing divider without a the repeating pattern, it will not include the trailing divider as part of the result. Here is an example.
+
+```ts
+import { Repeat, Literal, Regex } from "clarity-pattern-parser";
+
+const digit = new Regex("digit", "\\d+");
+const comma = new Literal("comma", ",");
+const numberList = new Repeat("number-list", digit, comma);
+
+const ast = numberList.parseText("1,2,").ast;
+
+ast.type // ==> "repeat"
+ast.name // ==> "number-list"
+ast.value // ==> "1,2
+
+ast.children[0].value // ==> "1"
+ast.children[1].value // ==> ","
+ast.children[2].value // ==> "2"
+ast.children.length // ==> 3
+```
+
+T
 ## Error Handling

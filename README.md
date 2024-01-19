@@ -68,9 +68,9 @@ Do not use "^" at the beginning or "$" at the end of your regular expression. If
 ```ts
 import { And, Literal } from "clarity-pattern-parser";
 
-const jane = new Literal("jane", "Jane");
+const jane = new Literal("first-name", "Jane");
 const space = new Literal("space", " ");
-const doe = new Literal("doe", "Doe");
+const doe = new Literal("last-name", "Doe");
 
 const fullName = new And("full-name", [jane, space, doe]);
 
@@ -84,7 +84,41 @@ ast.toJson(); // Look Below for output
     "type": "and",
     "name": "full-name",
     "value": "Jane Doe",
-    "children"
-
+    "firstIndex": 0,
+    "lastIndex": 7,
+    "startIndex": 0,
+    "endIndex": 8,
+    "children": [
+        {
+            "type": "literal",
+            "name": "first-name",
+            "value": "Jane",
+            "firstIndex": 0,
+            "lastIndex": 3,
+            "startIndex": 0,
+            "endIndex": 4,
+            "children": []
+        },
+        {
+            "type": "and",
+            "name": "space",
+            "value": " ",
+            "firstIndex": 4,
+            "lastIndex": 4,
+            "startIndex": 4,
+            "endIndex": 5,
+            "children": []
+        },
+        {
+            "type": "and",
+            "name": "last-name",
+            "value": "Doe",
+            "firstIndex": 5,
+            "lastIndex": 7,
+            "startIndex": 5,
+            "endIndex": 8,
+            "children": []
+        }         
+    ]
 }
 ```

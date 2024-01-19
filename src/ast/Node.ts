@@ -173,11 +173,11 @@ export class Node {
       type: this._type,
       name: this._name,
       value: this.toString(),
-      children: this._children.map(c => c.toCycleFreeObject()),
-      startIndex: this.startIndex,
-      endIndex: this.endIndex,
       firstIndex: this._firstIndex,
       lastIndex: this._lastIndex,
+      startIndex: this.startIndex,
+      endIndex: this.endIndex,
+      children: this._children.map(c => c.toCycleFreeObject()),
     }
   }
 

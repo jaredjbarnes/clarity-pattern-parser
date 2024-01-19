@@ -1,4 +1,3 @@
-import { Node } from "../ast/Node";
 import { Cursor } from "../patterns/Cursor";
 import { ParseError } from "../patterns/ParseError";
 import { Pattern } from "../patterns/Pattern";

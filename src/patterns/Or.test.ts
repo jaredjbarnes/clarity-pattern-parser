@@ -80,6 +80,13 @@ describe("Or", () => {
         expect(tokens).toEqual(expected);
     });
 
+    test("Get Next Pattern", () => {
+        const a = new Or("a", [new Literal("a", "A")]);
+        const nextToken = a.getNextPattern();
+
+        expect(nextToken).toBeNull();
+    });
+
     test("Properties", () => {
         const a = new Or("a", [new Literal("a", "A")]);
 

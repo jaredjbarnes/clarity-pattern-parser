@@ -1,3 +1,4 @@
+import { And } from "./And";
 import { Cursor } from "./Cursor";
 import { Literal } from "./Literal";
 import { Not } from "./Not";
@@ -72,5 +73,16 @@ describe("Not", () => {
         const { ast: result } = notA.parseText("A");
 
         expect(result).toBeNull();
+    });
+
+    test("Get Next Pattern", () => {
+        const a = new Literal("a", "A");
+        const b = new Literal("b", "B");
+        const notA = new Not("not-a", a);
+
+        const parent = new And("parent", [notA, b]);
+        const nextPattern = parent.children[0].getNextPattern();
+
+        expect(nextPattern?.name).toBe("b");
     });
 });

@@ -16,7 +16,7 @@ describe("Repeat", () => {
             new Node("regex", "digit", 0, 0, [], "3"),
             new Node("regex", "digit", 1, 1, [], "3"),
             new Node("regex", "digit", 2, 2, [], "7"),
-        ], "337");
+        ]);
 
         expect(result).toEqual(expected)
         expect(cursor.hasError).toBeFalsy()
@@ -44,7 +44,7 @@ describe("Repeat", () => {
             new Node("regex", "digit", 2, 2, [], "3"),
             new Node("literal", "divider", 3, 3, [], ","),
             new Node("regex", "digit", 4, 4, [], "7"),
-        ], "3,3,7");
+        ]);
 
         expect(result).toEqual(expected)
         expect(cursor.hasError).toBeFalsy()
@@ -62,7 +62,7 @@ describe("Repeat", () => {
             new Node("regex", "digit", 2, 2, [], "3"),
             new Node("literal", "divider", 3, 3, [], ","),
             new Node("regex", "digit", 4, 4, [], "7"),
-        ], "3,3,7");
+        ]);
 
         expect(result).toEqual(expected)
         expect(cursor.hasError).toBeFalsy()
@@ -80,7 +80,7 @@ describe("Repeat", () => {
             new Node("regex", "digit", 2, 2, [], "3"),
             new Node("literal", "divider", 3, 3, [], ","),
             new Node("regex", "digit", 4, 4, [], "7"),
-        ], "3,3,7");
+        ]);
 
         expect(result).toEqual(expected)
         expect(cursor.hasError).toBeFalsy()
@@ -116,7 +116,7 @@ describe("Repeat", () => {
             new Node("regex", "digit", 0, 0, [], "3"),
             new Node("regex", "digit", 1, 1, [], "3"),
             new Node("regex", "digit", 2, 2, [], "7"),
-        ], "337");
+        ]);
 
         expect(result).toEqual(expected)
     });
@@ -169,6 +169,13 @@ describe("Repeat", () => {
         const expected = ["A", "B"];
 
         expect(tokens).toEqual(expected)
+    });
+
+    test("Get Next Pattern", () => {
+        const repeat = new Repeat("many-a", new Literal("a", "A"));
+        const nextPattern = repeat.getNextPattern();
+
+        expect(nextPattern).toBeNull()
     });
 
     test("Properties", () => {

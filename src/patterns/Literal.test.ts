@@ -106,6 +106,17 @@ describe("Literal", () => {
         expect(tokens).toEqual(expected)
     });
 
+    test("Get Next Pattern", () => {
+        const parent = new And("parent", [
+            new Literal("a", "A"),
+            new Literal("b", "B")
+        ]);
+
+        const nextPattern = parent.children[0].getNextPattern();
+
+        expect(nextPattern?.name).toBe("b")
+    });
+
     test("Properties", () => {
         const literal = new Literal("a", "A");
 

@@ -129,7 +129,9 @@ export class Literal implements Pattern {
   }
 
   clone(name = this._name, isOptional = this._isOptional): Pattern {
-    return new Literal(name, this._literal, isOptional);
+    const clone = new Literal(name, this._literal, isOptional);
+    clone._hasContextualTokenAggregation = this._hasContextualTokenAggregation;
+    return clone;
   }
 
   getTokens(): string[] {

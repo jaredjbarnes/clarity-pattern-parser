@@ -190,7 +190,7 @@ export class And implements Pattern {
       this._firstIndex,
       lastIndex,
       children,
-      value
+      this._shouldReduceAst ? value : undefined
     );
   }
 

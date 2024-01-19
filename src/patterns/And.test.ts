@@ -16,7 +16,7 @@ describe("And", () => {
         const result = sequence.parse(cursor);
         const expected = new Node("and", "sequence", 0, 0, [
             new Node("literal", "a", 0, 0, [], "A")
-        ], "A");
+        ]);
 
         expect(result).toEqual(expected);
         expect(cursor.furthestError).toBe(null);
@@ -43,7 +43,7 @@ describe("And", () => {
         const expected = new Node("and", "sequence", 0, 1, [
             new Node("literal", "a", 0, 0, [], "A"),
             new Node("literal", "b", 1, 1, [], "B")
-        ], "AB");
+        ]);
 
         expect(result).toEqual(expected);
         expect(cursor.error).toBe(null)
@@ -82,7 +82,7 @@ describe("And", () => {
         const result = sequence.parse(cursor);
         const expected = new Node("and", "sequence", 0, 0, [
             new Node("literal", "a", 0, 0, [], "A")
-        ], "A");
+        ]);
 
         expect(result).toEqual(expected);
         expect(cursor.error).toBe(null)
@@ -98,7 +98,7 @@ describe("And", () => {
         const result = sequence.parse(cursor);
         const expected = new Node("and", "sequence", 0, 0, [
             new Node("literal", "a", 0, 0, [], "A")
-        ], "A");
+        ]);
 
         expect(result).toEqual(expected);
         expect(cursor.error).toBe(null)
@@ -129,7 +129,7 @@ describe("And", () => {
         const expected = new Node("and", "sequence", 0, 1, [
             new Node("literal", "b", 0, 0, [], "B"),
             new Node("literal", "c", 1, 1, [], "C"),
-        ], "BC");
+        ]);
 
         expect(result).toEqual(expected);
         expect(cursor.error).toBe(null)
@@ -206,7 +206,7 @@ describe("And", () => {
         result = sequence.parse(cursor);
         expected = new Node("and", "sequence", 0, 0, [
             new Node("literal", "a", 0, 0, [], "A"),
-        ], "A");
+        ]);
 
         expect(result).toEqual(expected);
         expect(cursor.error).toBe(null)
@@ -282,5 +282,18 @@ describe("And", () => {
         const expected = new Node("and", "sequence", 0, 0, [], "A");
 
         expect(result).toEqual(expected)
+    });
+
+    test("Get Next Pattern", () => {
+        const sequence = new And("sequence", [
+            new Literal("a", "A"),
+            new Literal("b", "B", true),
+        ], true);
+        const parent = new And("parent", [sequence, new Literal("c", "C")]);
+
+
+        const nextPattern = parent.children[0].getNextPattern()
+
+        expect(nextPattern?.name).toBe("c");
     });
 });

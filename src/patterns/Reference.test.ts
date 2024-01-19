@@ -35,9 +35,9 @@ describe("Reference", () => {
                 new Node("regex", "number", 1, 1, [], "1"),
                 new Node("regex", "divider", 2, 3, [], ", "),
                 new Node("regex", "number", 4, 4, [], "2")
-            ], "1, 2"),
+            ]),
             new Node("literal", "close-bracket", 5, 5, [], "]"),
-        ], "[1, 2]")
+        ])
 
         expect(result).toEqual(expected);
     });
@@ -78,6 +78,13 @@ describe("Reference", () => {
         expect(tokens).toEqual([]);
     });
 
+    test("Get Next Pattern", () => {
+        const ref = new Reference("ref");
+        const nextPattern = ref.getNextPattern();
+
+        expect(nextPattern).toBeNull()
+    });
+
     test("Properties", () => {
         const ref = new Reference("ref");
 
@@ -90,7 +97,7 @@ describe("Reference", () => {
 
     test("Parse Text", () => {
         const value = createValuePattern();
-        const reference = findPattern(value, p=>p.type === "reference") as Reference
+        const reference = findPattern(value, p => p.type === "reference") as Reference
         const { ast: result } = reference.parseText("B");
         expect(result).toBeNull()
     });

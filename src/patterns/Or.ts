@@ -78,7 +78,6 @@ export class Or implements Pattern {
 
     if (node != null) {
       cursor.resolveError();
-      this._addMatch(cursor, node);
       return node
     }
 
@@ -105,19 +104,6 @@ export class Or implements Pattern {
     }
 
     return null
-  }
-
-  private _addMatch(cursor: Cursor, match: Node) {
-    const node = new Node(
-      this._type,
-      this._name,
-      this._node !== null ? this._node.firstIndex : 0,
-      this._node !== null ? this._node.lastIndex : 0,
-      [match],
-      this._node !== null ? this._node.value : ""
-    );
-
-    cursor.recordMatch(this, node);
   }
 
   getTokens(): string[] {

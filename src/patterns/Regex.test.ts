@@ -2,7 +2,7 @@ import { Cursor } from "./Cursor";
 import { Regex } from "./Regex";
 import { Node } from "../ast/Node"
 import { And } from "./And";
-import { Literal } from "..";
+import { Literal } from "./Literal";
 
 describe("Regex", () => {
     test("Empty String", () => {
@@ -75,6 +75,13 @@ describe("Regex", () => {
         const expected: string[] = [];
 
         expect(tokens).toEqual(expected)
+    });
+
+    test("Get Next Pattern", () => {
+        const regex = new Regex("a", "A");
+        const nextPattern = regex.getNextPattern();
+
+        expect(nextPattern).toBeNull()
     });
 
     test("Properties", () => {

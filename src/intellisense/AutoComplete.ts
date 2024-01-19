@@ -20,8 +20,9 @@ export class AutoComplete {
       return {
         isComplete: false,
         options: this.createSuggestionsFromRoot(),
+        nextPattern: this._pattern,
         cursor: null,
-        error: new ParseError(0, this._pattern)
+        error: new ParseError(0, this._pattern),
       }
     }
 
@@ -29,6 +30,7 @@ export class AutoComplete {
     this._cursor = new Cursor(text);
     this._pattern.parse(this._cursor);
 
+    const leafPattern = this._cursor.leafMatch.pattern;
     const rootMatch = this._cursor.rootMatch.pattern;
     const isComplete = this._cursor.isOnLast && rootMatch === this._pattern;
     const options = this.createSuggestionsFromTokens();
@@ -36,6 +38,7 @@ export class AutoComplete {
     return {
       isComplete: isComplete,
       options: options,
+      nextPattern: leafPattern?.getNextPattern() || this._pattern,
       cursor: this._cursor,
       error: this._cursor.furthestError
     }

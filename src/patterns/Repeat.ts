@@ -2,6 +2,7 @@ import { Node } from "../ast/Node";
 import { Cursor } from "./Cursor";
 import { Pattern } from "./Pattern";
 import { clonePatterns } from "./clonePatterns";
+import { getNextPattern } from "./getNextPattern";
 
 export class Repeat implements Pattern {
   private _type: string;
@@ -244,6 +245,10 @@ export class Repeat implements Pattern {
     }
 
     return tokens;
+  }
+
+  getNextPattern(): Pattern | null {
+    return getNextPattern(this)
   }
 
 }

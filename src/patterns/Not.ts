@@ -1,5 +1,6 @@
 import { Node } from "../ast/Node";
 import { Cursor } from "./Cursor";
+import { getNextPattern } from "./getNextPattern";
 import { Pattern } from "./Pattern";
 
 export class Not implements Pattern {
@@ -69,6 +70,10 @@ export class Not implements Pattern {
   clone(name = this._name): Pattern {
     const not = new Not(name, this._children[0]);
     return not;
+  }
+
+  getNextPattern(): Pattern | null {
+    return getNextPattern(this)
   }
 
   getTokens(): string[] {

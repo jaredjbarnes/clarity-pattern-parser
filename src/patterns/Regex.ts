@@ -1,6 +1,7 @@
 import { Node } from "../ast/Node";
 import { Pattern } from "./Pattern";
 import { Cursor } from "./Cursor";
+import { getNextPattern } from "./getNextPattern";
 
 export class Regex implements Pattern {
   private _type: string;
@@ -166,6 +167,10 @@ export class Regex implements Pattern {
 
   getNextTokens(_reference: Pattern): string[] {
     return [];
+  }
+
+  getNextPattern(): Pattern | null {
+    return getNextPattern(this)
   }
 
   setTokens(tokens: string[]) {

@@ -2,6 +2,7 @@ import { Node } from "../ast/Node";
 import { Cursor } from "./Cursor";
 import { Pattern } from "./Pattern";
 import { clonePatterns } from "./clonePatterns";
+import { getNextPattern } from "./getNextPattern";
 
 export class Or implements Pattern {
   private _type: string;
@@ -135,6 +136,10 @@ export class Or implements Pattern {
     }
 
     return this._parent.getNextTokens(this);
+  }
+
+  getNextPattern(): Pattern | null {
+    return getNextPattern(this)
   }
 
   clone(name = this._name, isOptional = this._isOptional): Pattern {

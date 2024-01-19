@@ -1,8 +1,9 @@
 import { Cursor } from "./Cursor";
 import { Pattern } from "./Pattern";
 import { Node } from "../ast/Node";
-import { clonePatterns } from "./clonePatterns"
-import { filterOutNull } from "./filterOutNull"
+import { clonePatterns } from "./clonePatterns";
+import { filterOutNull } from "./filterOutNull";
+import { getNextPattern } from "./getNextPattern";
 
 export class And implements Pattern {
   private _type: string;
@@ -260,6 +261,10 @@ export class And implements Pattern {
     }
 
     return tokens;
+  }
+
+  getNextPattern(): Pattern | null {
+    return getNextPattern(this)
   }
 
   clone(name = this._name, isOptional = this._isOptional): Pattern {

@@ -10,9 +10,11 @@ const openParen = new Literal("open-paren", "(");
 const closeParen = new Literal("close-paren", ")");
 const values = new Reference("values");
 const args = new Repeat("arguments", values, divider, true);
+const methodName = name.clone("method-name");
+methodName.setTokens(["rgba", "radial-gradient", "linear-gradient"]);
 
 const method = new And("method", [
-  name.clone("[Method Name]"),
+  methodName,
   openParen,
   optionalSpaces,
   args,

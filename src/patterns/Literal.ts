@@ -1,5 +1,6 @@
 import { Node } from "../ast/Node";
 import { Cursor } from "./Cursor";
+import { getNextPattern } from "./getNextPattern";
 import { Pattern } from "./Pattern";
 
 export class Literal implements Pattern {
@@ -157,6 +158,10 @@ export class Literal implements Pattern {
 
   getNextTokens(_lastMatched: Pattern): string[] {
     return [];
+  }
+
+  getNextPattern(): Pattern | null {
+    return getNextPattern(this)
   }
 
   enableContextualTokenAggregation(): void {

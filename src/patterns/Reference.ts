@@ -2,6 +2,7 @@ import { Node } from "../ast/Node";
 import { Cursor } from "./Cursor";
 import { Pattern } from "./Pattern";
 import { findPattern } from "./findPattern";
+import { getNextPattern } from "./getNextPattern";
 
 export class Reference implements Pattern {
   private _type: string;
@@ -72,6 +73,10 @@ export class Reference implements Pattern {
     }
 
     return this.parent.getNextTokens(this);
+  }
+
+  getNextPattern(): Pattern | null {
+    return getNextPattern(this)
   }
 
   private _getPatternSafely(): Pattern {

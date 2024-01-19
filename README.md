@@ -4,7 +4,19 @@
 npm install clarity-pattern-parser
 ```
 ## Overview
-All patterns will either return an AST node or null. If the pattern returns null, it didn't find the pattern. If the pattern returned null and the cursor has an error, then something is wrong with the text you are parsing. If the pattern returned null and the cursor doesn't have an error then the pattern is optional. 
+
+### Leaf Patterns
+* Literal
+* Regex
+
+### Composing Patterns
+* And
+* Or
+* Repeat
+* Reference
+
+The "Not" pattern is a negative look ahead and mostly used with the "And" pattern. This will be illustrated in more detail within the "Not" pattern section.
+
 
 ## Literal
 The "Literal" pattern uses a string literal to match patterns.

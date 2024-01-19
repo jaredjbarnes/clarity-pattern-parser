@@ -43,6 +43,15 @@ describe("AutoComplete", () => {
         expect(result.options[0].startIndex).toBe(2);
     });
 
+    test("No Match", () => {
+        const name = new Literal("name", "Name");
+        const autoComplete = new AutoComplete(name);
+        let result = autoComplete.suggest("Ni");
+
+        expect(result.options[0].text).toBe("ame");
+        expect(result.options[0].startIndex).toBe(1);
+    });
+
     test("No Suggestions", () => {
         const name = new Literal("name", "Name");
         const autoComplete = new AutoComplete(name);

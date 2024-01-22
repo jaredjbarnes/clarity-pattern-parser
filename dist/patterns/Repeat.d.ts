@@ -30,7 +30,9 @@ export declare class Repeat implements Pattern {
     private getLastValidNode;
     enableAstReduction(): void;
     disableAstReduction(): void;
-    clone(name?: string, isOptional?: boolean): Pattern;
     getTokens(): string[];
     getNextTokens(lastMatched: Pattern): string[];
+    getNextPattern(): Pattern | null;
+    findPattern(isMatch: (p: Pattern) => boolean): Pattern | null;
+    clone(name?: string, isOptional?: boolean): Pattern;
 }

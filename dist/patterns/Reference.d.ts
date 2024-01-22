@@ -23,6 +23,8 @@ export declare class Reference implements Pattern {
     clone(name?: string, isOptional?: boolean): Pattern;
     getTokens(): string[];
     getNextTokens(_lastMatched: Pattern): string[];
+    getNextPattern(): Pattern | null;
+    findPattern(_isMatch: (p: Pattern) => boolean): Pattern | null;
     private _getPatternSafely;
     private _findPattern;
     private _getRoot;

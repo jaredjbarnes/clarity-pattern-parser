@@ -34,6 +34,8 @@ export declare class Regex implements Pattern {
     clone(name?: string, isOptional?: boolean): Regex;
     getTokens(): string[];
     getNextTokens(_reference: Pattern): string[];
+    getNextPattern(): Pattern | null;
+    findPattern(_isMatch: (p: Pattern) => boolean): Pattern | null;
     setTokens(tokens: string[]): void;
     enableContextualTokenAggregation(): void;
     disableContextualTokenAggregation(): void;

@@ -19,6 +19,8 @@ export declare class Not implements Pattern {
     };
     parse(cursor: Cursor): Node | null;
     clone(name?: string): Pattern;
+    getNextPattern(): Pattern | null;
     getTokens(): string[];
     getNextTokens(_lastMatched: Pattern): string[];
+    findPattern(isMatch: (p: Pattern) => boolean): Pattern | null;
 }

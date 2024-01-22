@@ -1,5 +1,4 @@
 import { Node } from "./ast/Node";
-import { Visitor } from "./ast/Visitor";
 import { Cursor } from "./patterns/Cursor";
 import { Regex } from "./patterns/Regex";
 import { And } from "./patterns/And";
@@ -10,4 +9,4 @@ import { Repeat } from "./patterns/Repeat";
 import { ParseError } from "./patterns/ParseError";
 import { Pattern } from "./patterns/Pattern";
 import { Reference } from "./patterns/Reference";
-export { Node, Cursor, Regex, And, Literal, Not, Or, Repeat, ParseError, Pattern, Reference, Visitor, };
+export { Node, Cursor, Regex, And, Literal, Not, Or, Repeat, ParseError, Pattern, Reference, };

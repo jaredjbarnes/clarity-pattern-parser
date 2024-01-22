@@ -23,8 +23,9 @@ export declare class Or implements Pattern {
     };
     parse(cursor: Cursor): Node | null;
     private _tryToParse;
-    private _addMatch;
     getTokens(): string[];
     getNextTokens(_lastMatched: Pattern): string[];
+    getNextPattern(): Pattern | null;
+    findPattern(isMatch: (p: Pattern) => boolean): Pattern | null;
     clone(name?: string, isOptional?: boolean): Pattern;
 }

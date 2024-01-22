@@ -5,224 +5,126 @@
 })(this, (function (exports) { 'use strict';
 
     class Node {
+        get type() {
+            return this._type;
+        }
+        get name() {
+            return this._name;
+        }
+        get firstIndex() {
+            return this._firstIndex;
+        }
+        get lastIndex() {
+            return this._lastIndex;
+        }
+        get startIndex() {
+            return this._firstIndex;
+        }
+        get endIndex() {
+            return this._lastIndex + 1;
+        }
+        get parent() {
+            return this._parent;
+        }
+        get children() {
+            return this._children;
+        }
+        get value() {
+            return this.toString();
+        }
         constructor(type, name, firstIndex, lastIndex, children = [], value = "") {
-            this.type = type;
-            this.name = name;
-            this.firstIndex = firstIndex;
-            this.lastIndex = lastIndex;
-            this.children = children;
-            this.value = value;
+            this._type = type;
+            this._name = name;
+            this._firstIndex = firstIndex;
+            this._lastIndex = lastIndex;
+            this._parent = null;
+            this._children = children;
+            this._value = value;
+            this._children.forEach(c => c._parent = this);
+        }
+        removeChild(node) {
+            const index = this._children.indexOf(node);
+            if (index > -1) {
+                this._children.splice(index, 1);
+                node._parent = null;
+            }
+        }
+        removeAllChildren() {
+            this._children.forEach(c => c._parent = null);
+            this._children.length = 0;
+        }
+        replaceChild(newNode, referenceNode) {
+            const index = this._children.indexOf(referenceNode);
+            if (index > -1) {
+                this._children.splice(index, 1, newNode);
+                newNode._parent = this;
+                referenceNode._parent = null;
+            }
+        }
+        insertBefore(newNode, referenceNode) {
+            newNode._parent = this;
+            if (referenceNode == null) {
+                this._children.push(newNode);
+                return;
+            }
+            const index = this._children.indexOf(referenceNode);
+            if (index > -1) {
+                this._children.splice(index, 0, newNode);
+            }
+        }
+        appendChild(newNode) {
+            newNode._parent = this;
+            this._children.push(newNode);
+        }
+        spliceChildren(index, deleteCount, ...items) {
+            const removedItems = this._children.splice(index, deleteCount, ...items);
+            items.forEach(i => i._parent = this);
+            removedItems.forEach(i => i._parent = null);
+            return removedItems;
+        }
+        find(isMatch) {
+            return this.findAll(isMatch)[0] || null;
+        }
+        findAll(isMatch) {
+            const matches = [];
+            this.walkUp(n => {
+                if (isMatch(n)) {
+                    matches.push(n);
+                }
+            });
+            return matches;
+        }
+        walkUp(callback) {
+            this.children.forEach(c => c.walkUp(callback));
+            callback(this);
+        }
+        walkDown(callback) {
+            callback(this);
+            this.children.forEach(c => c.walkDown(callback));
         }
         clone() {
-            return new Node(this.type, this.name, this.firstIndex, this.lastIndex, this.children.map((c) => c.clone()), this.value);
+            return new Node(this._type, this._name, this._firstIndex, this._lastIndex, this._children.map((c) => c.clone()), this._value);
         }
         toString() {
-            return this.value;
-        }
-    }
-
-    class Visitor {
-        constructor(root = null, selectedNodes = []) {
-            this.root = root;
-            this.selectedNodes = selectedNodes;
-        }
-        flatten() {
-            this.selectedNodes.forEach((node) => {
-                if (node.children.length > 0) {
-                    const children = [];
-                    Visitor.walkUp(node, (descendant) => {
-                        if (descendant.children.length === 0) {
-                            children.push(descendant);
-                        }
-                    });
-                    node.children = children;
-                }
-            });
-            return this;
-        }
-        remove() {
-            if (this.root == null) {
-                return this;
+            if (this._children.length === 0) {
+                return this._value;
             }
-            this.recursiveRemove(this.root);
-            return this;
+            return this._children.map(c => c.toString()).join("");
         }
-        recursiveRemove(node) {
-            const nodesToRemove = this.selectedNodes;
-            for (let x = 0; x < node.children.length; x++) {
-                if (nodesToRemove.indexOf(node.children[x]) > -1) {
-                    node.children.splice(x, 1);
-                    x--;
-                }
-                else {
-                    this.recursiveRemove(node.children[x]);
-                }
-            }
+        toCycleFreeObject() {
+            return {
+                type: this._type,
+                name: this._name,
+                value: this.toString(),
+                firstIndex: this._firstIndex,
+                lastIndex: this._lastIndex,
+                startIndex: this.startIndex,
+                endIndex: this.endIndex,
+                children: this._children.map(c => c.toCycleFreeObject()),
+            };
         }
-        wrap(callback) {
-            const visitor = new Visitor(this.root);
-            visitor.selectRoot().transform((node) => {
-                if (this.selectedNodes.includes(node)) {
-                    return callback(node);
-                }
-                return node;
-            });
-            return this;
-        }
-        unwrap() {
-            if (this.root == null) {
-                return this;
-            }
-            Visitor.walkDown(this.root, (node, stack) => {
-                if (this.selectedNodes.includes(node)) {
-                    const parent = stack[stack.length - 1];
-                    const grandParent = stack[stack.length - 2];
-                    if (parent != null && grandParent != null) {
-                        const index = grandParent.children.indexOf(parent);
-                        if (index > -1) {
-                            grandParent.children.splice(index, 1, ...parent.children);
-                        }
-                    }
-                }
-            });
-            return this;
-        }
-        prepend(callback) {
-            if (this.root == null) {
-                return this;
-            }
-            Visitor.walkUp(this.root, (node, stack) => {
-                if (this.selectedNodes.includes(node)) {
-                    const parent = stack[stack.length - 1];
-                    if (parent != null) {
-                        const index = parent.children.indexOf(node);
-                        if (index > -1) {
-                            parent.children.splice(index, 0, callback(node));
-                        }
-                    }
-                }
-            });
-            return this;
-        }
-        append(callback) {
-            if (this.root == null) {
-                return this;
-            }
-            Visitor.walkDown(this.root, (node, stack) => {
-                if (this.selectedNodes.includes(node)) {
-                    const parent = stack[stack.length - 1];
-                    if (parent != null) {
-                        const index = parent.children.indexOf(node);
-                        if (index > -1) {
-                            parent.children.splice(index + 1, 0, callback(node));
-                        }
-                    }
-                }
-            });
-            return this;
-        }
-        transform(callback) {
-            this.selectedNodes.forEach((node) => {
-                return this.recursiveTransform(node, callback);
-            });
-            return this;
-        }
-        recursiveTransform(node, callback) {
-            const length = node.children.length;
-            for (let x = 0; x < length; x++) {
-                node.children[x] = this.recursiveTransform(node.children[x], callback);
-            }
-            return callback(node);
-        }
-        selectAll() {
-            return this.select((n) => true);
-        }
-        selectNode(node) {
-            return new Visitor(this.root, [...this.selectedNodes, node]);
-        }
-        deselectNode(node) {
-            const visitor = new Visitor(this.root, this.selectedNodes.slice());
-            return visitor.filter((n) => n !== node);
-        }
-        select(callback) {
-            if (this.root == null) {
-                return this;
-            }
-            const node = this.root;
-            const selectedNodes = [];
-            if (node.children.length > 0) {
-                Visitor.walkDown(node, (descendant) => {
-                    if (callback(descendant)) {
-                        selectedNodes.push(descendant);
-                    }
-                });
-            }
-            return new Visitor(this.root, selectedNodes);
-        }
-        forEach(callback) {
-            this.selectedNodes.forEach(callback);
-            return this;
-        }
-        filter(callback) {
-            return new Visitor(this.root, this.selectedNodes.filter(callback));
-        }
-        map(callback) {
-            return new Visitor(this.root, this.selectedNodes.map(callback));
-        }
-        selectRoot() {
-            if (this.root == null) {
-                return this;
-            }
-            return new Visitor(this.root, [this.root]);
-        }
-        first() {
-            return this.get(0);
-        }
-        last() {
-            return this.get(this.selectedNodes.length - 1);
-        }
-        get(index) {
-            const node = this.selectedNodes[index];
-            if (node == null) {
-                throw new Error(`Couldn't find node at index: ${index}, out of ${this.selectedNodes.length}.`);
-            }
-            return new Visitor(node, []);
-        }
-        clear() {
-            this.selectedNodes = [];
-            return this;
-        }
-        setRoot(root) {
-            this.root = root;
-            return this;
-        }
-        static select(root, callback) {
-            if (callback != null) {
-                return new Visitor(root).select(callback);
-            }
-            else {
-                return new Visitor(root);
-            }
-        }
-        static walkUp(node, callback, ancestors = []) {
-            ancestors.push(node);
-            if (node.children.length > 0) {
-                const children = node.children.slice();
-                children.forEach((c) => this.walkUp(c, callback, ancestors));
-            }
-            ancestors.pop();
-            callback(node, ancestors);
-            return this;
-        }
-        static walkDown(node, callback, ancestors = []) {
-            callback(node, ancestors);
-            ancestors.push(node);
-            if (node.children.length > 0) {
-                const children = node.children.slice();
-                children.forEach((c) => this.walkDown(c, callback, ancestors));
-            }
-            ancestors.pop();
-            return this;
+        toJson(space) {
+            return JSON.stringify(this.toCycleFreeObject(), null, space);
         }
     }
 
@@ -398,6 +300,19 @@
         }
     }
 
+    function getNextPattern(pattern) {
+        const parent = pattern.parent;
+        if (parent == null) {
+            return null;
+        }
+        const patternIndex = parent.children.indexOf(pattern);
+        const nextPattern = parent.children[patternIndex + 1] || null;
+        if (nextPattern == null) {
+            return parent.getNextPattern();
+        }
+        return nextPattern;
+    }
+
     class Regex {
         get type() {
             return this._type;
@@ -513,6 +428,12 @@
         getNextTokens(_reference) {
             return [];
         }
+        getNextPattern() {
+            return getNextPattern(this);
+        }
+        findPattern(_isMatch) {
+            return null;
+        }
         setTokens(tokens) {
             this._tokens = tokens;
         }
@@ -536,6 +457,28 @@
             }
         }
         return filteredNodes;
+    }
+
+    function findPattern(pattern, predicate) {
+        let children = [];
+        if (pattern.type === "reference") {
+            children = [];
+        }
+        else {
+            children = pattern.children;
+        }
+        for (const child of children) {
+            const result = findPattern(child, predicate);
+            if (result !== null) {
+                return result;
+            }
+        }
+        if (predicate(pattern)) {
+            return pattern;
+        }
+        else {
+            return null;
+        }
     }
 
     class And {
@@ -675,7 +618,7 @@
             if (this._shouldReduceAst) {
                 children.length = 0;
             }
-            return new Node("and", this._name, this._firstIndex, lastIndex, children, value);
+            return new Node("and", this._name, this._firstIndex, lastIndex, children, this._shouldReduceAst ? value : undefined);
         }
         enableAstReduction() {
             this._shouldReduceAst = true;
@@ -730,6 +673,12 @@
                 }
             }
             return tokens;
+        }
+        getNextPattern() {
+            return getNextPattern(this);
+        }
+        findPattern(isMatch) {
+            return findPattern(this, isMatch);
         }
         clone(name = this._name, isOptional = this._isOptional) {
             const and = new And(name, this._children, isOptional);
@@ -822,7 +771,9 @@
             return new Node("literal", this._name, this._firstIndex, this._lastIndex, [], this._literal);
         }
         clone(name = this._name, isOptional = this._isOptional) {
-            return new Literal(name, this._literal, isOptional);
+            const clone = new Literal(name, this._literal, isOptional);
+            clone._hasContextualTokenAggregation = this._hasContextualTokenAggregation;
+            return clone;
         }
         getTokens() {
             const parent = this._parent;
@@ -844,6 +795,12 @@
         }
         getNextTokens(_lastMatched) {
             return [];
+        }
+        getNextPattern() {
+            return getNextPattern(this);
+        }
+        findPattern(_isMatch) {
+            return null;
         }
         enableContextualTokenAggregation() {
             this._hasContextualTokenAggregation = true;
@@ -905,11 +862,17 @@
             const not = new Not(name, this._children[0]);
             return not;
         }
+        getNextPattern() {
+            return getNextPattern(this);
+        }
         getTokens() {
             return [];
         }
         getNextTokens(_lastMatched) {
             return [];
+        }
+        findPattern(isMatch) {
+            return isMatch(this._children[0]) ? this._children[0] : null;
         }
     }
 
@@ -965,7 +928,6 @@
             const node = this._tryToParse(cursor);
             if (node != null) {
                 cursor.resolveError();
-                this._addMatch(cursor, node);
                 return node;
             }
             if (!this._isOptional) {
@@ -987,10 +949,6 @@
             }
             return null;
         }
-        _addMatch(cursor, match) {
-            const node = new Node(this._type, this._name, this._node !== null ? this._node.firstIndex : 0, this._node !== null ? this._node.lastIndex : 0, [match], this._node !== null ? this._node.value : "");
-            cursor.recordMatch(this, node);
-        }
         getTokens() {
             const tokens = [];
             for (const child of this._children) {
@@ -1003,6 +961,12 @@
                 return [];
             }
             return this._parent.getNextTokens(this);
+        }
+        getNextPattern() {
+            return getNextPattern(this);
+        }
+        findPattern(isMatch) {
+            return findPattern(this, isMatch);
         }
         clone(name = this._name, isOptional = this._isOptional) {
             const or = new Or(name, this._children, isOptional);
@@ -1140,7 +1104,7 @@
             if (this._shouldReduceAst) {
                 children = [];
             }
-            return new Node("repeat", this._name, this._firstIndex, lastIndex, children, value);
+            return new Node("repeat", this._name, this._firstIndex, lastIndex, children, this._shouldReduceAst ? value : undefined);
         }
         getLastValidNode() {
             const nodes = this._nodes.filter((node) => node !== null);
@@ -1154,11 +1118,6 @@
         }
         disableAstReduction() {
             this._shouldReduceAst = false;
-        }
-        clone(name = this._name, isOptional = this._isOptional) {
-            const repeat = new Repeat(name, this._pattern, this._divider, isOptional);
-            repeat._shouldReduceAst = this._shouldReduceAst;
-            return repeat;
         }
         getTokens() {
             return this._pattern.getTokens();
@@ -1189,27 +1148,16 @@
             }
             return tokens;
         }
-    }
-
-    function findPattern(pattern, predicate) {
-        let children = [];
-        if (pattern.type === "reference") {
-            children = [];
+        getNextPattern() {
+            return getNextPattern(this);
         }
-        else {
-            children = pattern.children;
+        findPattern(isMatch) {
+            return findPattern(this, isMatch);
         }
-        for (const child of children) {
-            const result = findPattern(child, predicate);
-            if (result !== null) {
-                return result;
-            }
-        }
-        if (predicate(pattern)) {
-            return pattern;
-        }
-        else {
-            return null;
+        clone(name = this._name, isOptional = this._isOptional) {
+            const repeat = new Repeat(name, this._pattern, this._divider, isOptional);
+            repeat._shouldReduceAst = this._shouldReduceAst;
+            return repeat;
         }
     }
 
@@ -1263,6 +1211,12 @@
             }
             return this.parent.getNextTokens(this);
         }
+        getNextPattern() {
+            return getNextPattern(this);
+        }
+        findPattern(_isMatch) {
+            return null;
+        }
         _getPatternSafely() {
             if (this._pattern === null) {
                 const pattern = this._findPattern();
@@ -1307,7 +1261,6 @@
     exports.Reference = Reference;
     exports.Regex = Regex;
     exports.Repeat = Repeat;
-    exports.Visitor = Visitor;
 
     Object.defineProperty(exports, '__esModule', { value: true });
 

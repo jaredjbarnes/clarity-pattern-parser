@@ -11,7 +11,6 @@ export class Or implements Pattern {
   private _parent: Pattern | null;
   private _children: Pattern[];
   private _isOptional: boolean;
-  private _node: Node | null;
   private _firstIndex: number;
 
   get type(): string {
@@ -51,7 +50,6 @@ export class Or implements Pattern {
     this._parent = null;
     this._children = children;
     this._isOptional = isOptional;
-    this._node = null;
     this._firstIndex = 0;
   }
 
@@ -73,7 +71,6 @@ export class Or implements Pattern {
 
   parse(cursor: Cursor): Node | null {
     this._firstIndex = cursor.index;
-    this._node = null;
 
     const node = this._tryToParse(cursor);
 

@@ -20,10 +20,6 @@ export class Reference implements Pattern {
     return this._name;
   }
 
-  get isOptional(): boolean {
-    return this._isOptional;
-  }
-
   get parent(): Pattern | null {
     return this._parent;
   }
@@ -34,6 +30,10 @@ export class Reference implements Pattern {
 
   get children(): Pattern[] {
     return this._children
+  }
+
+  get isOptional(): boolean {
+    return this._isOptional;
   }
 
   constructor(name: string, isOptional: boolean = false) {
@@ -57,30 +57,6 @@ export class Reference implements Pattern {
 
   parse(cursor: Cursor): Node | null {
     return this._getPatternSafely().parse(cursor);
-  }
-
-  clone(name = this._name, isOptional = this._isOptional): Pattern {
-    return new Reference(name, isOptional);
-  }
-
-  getTokens(): string[] {
-    return this._getPatternSafely().getTokens();
-  }
-
-  getNextTokens(_lastMatched: Pattern): string[] {
-    if (this.parent == null) {
-      return [];
-    }
-
-    return this.parent.getNextTokens(this);
-  }
-
-  getNextPattern(): Pattern | null {
-    return getNextPattern(this)
-  }
-
-  findPattern(_predicate: (p: Pattern)=>boolean): Pattern | null{
-    return null;
   }
 
   private _getPatternSafely(): Pattern {
@@ -123,5 +99,29 @@ export class Reference implements Pattern {
     }
 
     return node;
+  }
+
+  getTokens(): string[] {
+    return this._getPatternSafely().getTokens();
+  }
+
+  getNextTokens(_lastMatched: Pattern): string[] {
+    if (this.parent == null) {
+      return [];
+    }
+
+    return this.parent.getNextTokens(this);
+  }
+
+  getNextPattern(): Pattern | null {
+    return getNextPattern(this)
+  }
+
+  findPattern(_predicate: (p: Pattern) => boolean): Pattern | null {
+    return null;
+  }
+
+  clone(name = this._name, isOptional = this._isOptional): Pattern {
+    return new Reference(name, isOptional);
   }
 }

@@ -17,10 +17,6 @@ export class Not implements Pattern {
     return this._name;
   }
 
-  get isOptional(): boolean {
-    return false;
-  }
-
   get parent(): Pattern | null {
     return this._parent;
   }
@@ -31,6 +27,10 @@ export class Not implements Pattern {
 
   get children(): Pattern[] {
     return this._children;
+  }
+
+  get isOptional(): boolean {
+    return false;
   }
 
   constructor(name: string, pattern: Pattern) {
@@ -81,6 +81,12 @@ export class Not implements Pattern {
   }
 
   getNextTokens(_lastMatched: Pattern): string[] {
+    const parent = this._parent;
+
+    if (parent != null) {
+      parent.getNextTokens(this);
+    }
+
     return [];
   }
 

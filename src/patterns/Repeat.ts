@@ -84,7 +84,7 @@ export class Repeat implements Pattern {
       cursor.resolveError();
       const node = this.createNode(cursor);
 
-      if (node) {
+      if (node != null) {
         cursor.recordMatch(this, node);
       }
 
@@ -110,7 +110,7 @@ export class Repeat implements Pattern {
       if (cursor.hasError) {
         const lastValidNode = this.getLastValidNode();
 
-        if (lastValidNode) {
+        if (lastValidNode != null) {
           passed = true;
         } else {
           cursor.moveTo(runningCursorIndex);
@@ -129,13 +129,13 @@ export class Repeat implements Pattern {
 
         cursor.next();
 
-        if (this._divider) {
+        if (this._divider != null) {
           const dividerNode = this._divider.parse(cursor);
 
           if (cursor.hasError) {
             passed = true;
             break;
-          } else if (dividerNode) {
+          } else if (dividerNode != null) {
             this._nodes.push(dividerNode);
 
             if (!cursor.hasNext()) {
@@ -217,10 +217,12 @@ export class Repeat implements Pattern {
       }
     }
 
+    // If the last match isn't a child of this pattern.
     if (index === -1) {
       return [];
     }
 
+    // If the last match was the repeated patterns, then suggest the divider.
     if (index === 0 && this._divider) {
       tokens.push(...this._children[1].getTokens());
 
@@ -229,6 +231,7 @@ export class Repeat implements Pattern {
       }
     }
 
+    // Suggest the pattern because the divider was the last match.
     if (index === 1) {
       tokens.push(...this._children[0].getTokens());
     }

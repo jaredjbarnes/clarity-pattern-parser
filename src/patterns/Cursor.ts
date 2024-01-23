@@ -16,19 +16,19 @@ export class Cursor {
   }
 
   get isOnLast(): boolean {
-    return this._index === this._getLastIndex();
+    return this._index === this.getLastIndex();
   }
 
   get isRecording(): boolean {
     return this._history.isRecording;
   }
 
-  get leafMatch(): Match {
-    return this._history.leafMatch;
-  }
-
   get rootMatch(): Match {
     return this._history.rootMatch;
+  }
+
+  get leafMatch(): Match {
+    return this._history.leafMatch;
   }
 
   get furthestError(): ParseError | null {
@@ -70,14 +70,14 @@ export class Cursor {
     return this._index + 1 < this._length;
   }
 
-  hasPrevious(): boolean {
-    return this._index - 1 >= 0;
-  }
-
   next(): void {
     if (this.hasNext()) {
       this._index++;
     }
+  }
+
+  hasPrevious(): boolean {
+    return this._index - 1 >= 0;
   }
 
   previous(): void {
@@ -97,7 +97,11 @@ export class Cursor {
   }
 
   moveToLastChar(): void {
-    this._index = this._getLastIndex();
+    this._index = this.getLastIndex();
+  }
+
+  getLastIndex(): number {
+    return this._length - 1;
   }
 
   getChars(first: number, last: number): string {
@@ -124,7 +128,4 @@ export class Cursor {
     this._history.stopRecording();
   }
 
-  private _getLastIndex(): number {
-    return this._length - 1;
-  }
 }

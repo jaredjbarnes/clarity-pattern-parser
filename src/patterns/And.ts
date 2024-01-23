@@ -268,8 +268,8 @@ export class And implements Pattern {
     return getNextPattern(this)
   }
 
-  findPattern(isMatch: (p: Pattern)=>boolean): Pattern | null{
-    return findPattern(this, isMatch);
+  findPattern(predicate: (p: Pattern)=>boolean): Pattern | null{
+    return findPattern(this, predicate);
   }
 
   clone(name = this._name, isOptional = this._isOptional): Pattern {

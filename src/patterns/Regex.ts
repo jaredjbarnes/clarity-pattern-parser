@@ -173,7 +173,7 @@ export class Regex implements Pattern {
     return getNextPattern(this)
   }
   
-  findPattern(_isMatch: (p: Pattern)=>boolean): Pattern | null{
+  findPattern(_predicate: (p: Pattern)=>boolean): Pattern | null{
     return null;
   }
 

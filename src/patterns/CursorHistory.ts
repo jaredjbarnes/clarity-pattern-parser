@@ -17,16 +17,20 @@ export class CursorHistory {
   private _nodes: Node[] = [];
   private _errors: ParseError[] = [];
 
+  get isRecording(): boolean {
+    return this._isRecording;
+  }
+
+  get rootMatch(): Match {
+    return this._rootMatch;
+  }
+
   get leafMatch(): Match {
     return this._leafMatch;
   }
 
   get furthestError(): ParseError | null {
     return this._furthestError;
-  }
-
-  get isRecording(): boolean {
-    return this._isRecording;
   }
 
   get errors(): ParseError[] {
@@ -43,10 +47,6 @@ export class CursorHistory {
 
   get patterns(): Pattern[] {
     return this._patterns;
-  }
-
-  get rootMatch(): Match {
-    return this._rootMatch;
   }
 
   recordMatch(pattern: Pattern, node: Node): void {

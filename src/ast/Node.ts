@@ -126,14 +126,44 @@ export class Node {
     return removedItems;
   }
 
-  find(isMatch: (node: Node) => boolean): Node | null {
-    return this.findAll(isMatch)[0] || null
+  nextSibling() {
+    if (this._parent == null) {
+      return null;
+    }
+
+    const children = this._parent._children;
+    const index = children.indexOf(this);
+
+    if (index > -1 && index < children.length - 1) {
+      return children[index + 1]
+    }
+
+    return null
   }
 
-  findAll(isMatch: (node: Node) => boolean): Node[] {
+  previousSibling(){
+    if (this._parent == null) {
+      return null;
+    }
+
+    const children = this._parent._children;
+    const index = children.indexOf(this);
+
+    if (index > -1 && index > 0) {
+      return children[index - 1]
+    }
+
+    return null
+  }
+
+  find(predicate: (node: Node) => boolean): Node | null {
+    return this.findAll(predicate)[0] || null
+  }
+
+  findAll(predicate: (node: Node) => boolean): Node[] {
     const matches: Node[] = [];
     this.walkUp(n => {
-      if (isMatch(n)) { matches.push(n); }
+      if (predicate(n)) { matches.push(n); }
     })
 
     return matches;

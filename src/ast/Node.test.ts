@@ -164,6 +164,56 @@ describe("Node", () => {
         expect(b.value).toBe("B");
     });
 
+    test("Next Sibling", () => {
+        const a = new Node("a", "a", 0, 0, [], "A");
+        const b = new Node("b", "b", 0, 0, [], "B");
+        new Node("parent", "parent", 0, 0, [a, b]);
+
+        const nextSibling = a.nextSibling()
+
+        expect(nextSibling).toBe(b);
+    });
+
+    test("Next Sibling (No Parent)", () => {
+        const a = new Node("a", "a", 0, 0, [], "A");
+
+        const nextSibling = a.nextSibling()
+        expect(nextSibling).toBeNull;
+    });
+
+    test("Next Sibling (Last Child)", () => {
+        const a = new Node("a", "a", 0, 0, [], "A");
+        const b = new Node("b", "b", 0, 0, [], "B");
+        new Node("parent", "parent", 0, 0, [a, b]);
+
+        const nextSibling = b.nextSibling()
+        expect(nextSibling).toBeNull;
+    });
+
+    test("Previous Sibling", () => {
+        const a = new Node("a", "a", 0, 0, [], "A");
+        const b = new Node("b", "b", 0, 0, [], "B");
+        new Node("parent", "parent", 0, 0, [a, b]);
+
+        const previousSibling = b.previousSibling()
+
+        expect(previousSibling).toBe(a);
+    });
+
+    test("Previous Sibling (No Parent)", () => {
+        const a = new Node("a", "a", 0, 0, [], "A");
+        const previousSibling = a.previousSibling()
+        expect(previousSibling).toBeNull();
+    });
+
+    test("Previous Sibling (First Child)", () => {
+        const a = new Node("a", "a", 0, 0, [], "A");
+        const b = new Node("b", "b", 0, 0, [], "B");
+        new Node("parent", "parent", 0, 0, [a, b]);
+
+        const previousSibling = a.previousSibling()
+        expect(previousSibling).toBeNull;
+    });
 
     test("Find", () => {
         const a = new Node("a", "a", 0, 0, [], "A");

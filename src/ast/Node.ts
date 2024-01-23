@@ -120,8 +120,8 @@ export class Node {
   spliceChildren(index: number, deleteCount: number, ...items: Node[]) {
     const removedItems = this._children.splice(index, deleteCount, ...items);
 
-    items.forEach(i => i._parent = this);
     removedItems.forEach(i => i._parent = null);
+    items.forEach(i => i._parent = this);
 
     return removedItems;
   }

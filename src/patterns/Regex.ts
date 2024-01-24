@@ -72,9 +72,12 @@ export class Regex implements Pattern {
   }
 
   testText(text: string) {
-    const { ast, cursor } = this.parseText(text);
-    return !cursor.hasError &&
-      (ast?.value.length === text.length || this.isOptional)
+    if (this.isOptional) {
+      return true;
+    }
+
+    const { ast } = this.parseText(text);
+    return ast?.value.length === text.length
   }
 
   parseText(text: string) {
@@ -178,8 +181,8 @@ export class Regex implements Pattern {
   getNextPattern(): Pattern | null {
     return getNextPattern(this)
   }
-  
-  findPattern(_predicate: (p: Pattern)=>boolean): Pattern | null{
+
+  findPattern(_predicate: (p: Pattern) => boolean): Pattern | null {
     return null;
   }
 

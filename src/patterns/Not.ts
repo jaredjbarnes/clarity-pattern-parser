@@ -42,9 +42,12 @@ export class Not implements Pattern {
   }
 
   testText(text: string) {
-    const { ast, cursor } = this.parseText(text);
-    return !cursor.hasError &&
-      (ast?.value.length === text.length || this.isOptional)
+    if (this.isOptional){
+      return true;
+    }
+    
+    const { ast } = this.parseText(text);
+    return ast?.value.length === text.length
   }
 
   parseText(text: string) {

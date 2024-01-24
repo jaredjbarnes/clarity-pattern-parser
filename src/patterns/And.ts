@@ -123,32 +123,41 @@ export class And implements Pattern {
         if (hasMorePatterns) {
           if (hadMatch) {
             if (cursor.hasNext()) {
+              // We had a match. Increment the cursor and use the next pattern.
               cursor.next();
               continue;
             } else {
+              // We are at the end of the text, it may still be valid, if all the
+              // following patterns are optional.
               if (this.areRemainingPatternsOptional(i)) {
                 passed = true;
                 break;
               }
 
+              // We didn't finish the parsing sequence.
               cursor.recordErrorAt(cursor.index + 1, this);
               break;
             }
           } else {
+            // An optional pattern did not matched, try from the same spot on the next
+            // pattern.
             cursor.moveTo(runningCursorIndex);
             continue;
           }
         } else {
+          // If we don't have any results from what we parsed then record error.
           const lastNode = this.getLastValidNode();
           if (lastNode === null) {
             cursor.recordErrorAt(cursor.index, this);
             break;
           }
 
+          // The sequence was parsed fully.
           passed = true;
           break;
         }
       } else {
+        // The pattern failed.
         cursor.moveTo(this._firstIndex);
         break;
       }
@@ -259,18 +268,22 @@ export class And implements Pattern {
       }
     }
 
+    // The child reference isn't one of the child patterns.
     if (index === -1) {
       return [];
     }
 
+    // The reference pattern is the last child. So ask the parent for the next pattern.
     if (nextSiblingIndex === this._children.length && this._parent !== null) {
       return this._parent.getPatternsAfter(this);
     }
 
+    // Next pattern isn't optional so send it back as the next patterns.
     if (nextSibling !== null && !nextSibling.isOptional) {
       return [nextSibling];
     }
 
+    // Send back as many optional patterns as possible.
     if (nextSibling !== null && nextSibling.isOptional) {
       for (let i = nextSiblingIndex; i < this._children.length; i++) {
         const child = this._children[i];

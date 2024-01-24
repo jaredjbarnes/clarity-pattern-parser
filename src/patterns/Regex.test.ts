@@ -69,19 +69,12 @@ describe("Regex", () => {
         expect(tokens).toEqual(expectedTokens);
     });
 
-    test("Get Next Tokens", () => {
+    test("Get Tokens After", () => {
         const regex = new Regex("a", "A");
-        const tokens = regex.getNextTokens(new Literal("bogus", "bogus"));
+        const tokens = regex.getTokensAfter(new Literal("bogus", "bogus"));
         const expected: string[] = [];
 
         expect(tokens).toEqual(expected)
-    });
-
-    test("Get Next Pattern", () => {
-        const regex = new Regex("a", "A");
-        const nextPattern = regex.getNextPattern();
-
-        expect(nextPattern).toBeNull()
     });
 
     test("Properties", () => {

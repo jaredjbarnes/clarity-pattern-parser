@@ -98,23 +98,12 @@ describe("Literal", () => {
         expect(tokens).toEqual(expectedTokens);
     });
 
-    test("Get Next Tokens", () => {
+    test("Get Tokens After", () => {
         const literal = new Literal("a", "A");
-        const tokens = literal.getNextTokens(new Literal("bogus", "bogus"));
+        const tokens = literal.getTokensAfter(new Literal("bogus", "bogus"));
         const expected: string[] = [];
 
         expect(tokens).toEqual(expected)
-    });
-
-    test("Get Next Pattern", () => {
-        const parent = new And("parent", [
-            new Literal("a", "A"),
-            new Literal("b", "B")
-        ]);
-
-        const nextPattern = parent.children[0].getNextPattern();
-
-        expect(nextPattern?.name).toBe("b")
     });
 
     test("Properties", () => {

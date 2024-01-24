@@ -1,6 +1,5 @@
 import { Node } from "../ast/Node";
 import { Cursor } from "./Cursor";
-import { getNextPattern } from "./getNextPattern";
 import { Pattern } from "./Pattern";
 
 export class Literal implements Pattern {
@@ -57,10 +56,10 @@ export class Literal implements Pattern {
   }
 
   testText(text: string) {
-    if (this.isOptional){
+    if (this.isOptional) {
       return true;
     }
-    
+
     const { ast } = this.parseText(text);
     return ast?.value.length === text.length
   }
@@ -154,7 +153,7 @@ export class Literal implements Pattern {
       this._isRetrievingContextualTokens = true;
 
       const aggregateTokens: string[] = [];
-      const nextTokens = parent.getNextTokens(this);
+      const nextTokens = parent.getTokensAfter(this);
 
       for (const nextToken of nextTokens) {
         aggregateTokens.push(this._literal + nextToken);
@@ -167,12 +166,28 @@ export class Literal implements Pattern {
     }
   }
 
-  getNextTokens(_lastMatched: Pattern): string[] {
+  getTokensAfter(_lastMatched: Pattern): string[] {
     return [];
   }
 
-  getNextPattern(): Pattern | null {
-    return getNextPattern(this)
+  getNextTokens(): string[]{
+    if (this.parent == null){
+      return []
+    }
+
+    return this.parent.getTokensAfter(this);
+  }
+
+  getPatternsAfter(): Pattern[] {
+    return []
+  }
+
+  getNextPatterns(): Pattern[]{
+    if (this.parent == null){
+      return [];
+    }
+
+    return this.parent.getPatternsAfter(this)
   }
 
   findPattern(_predicate: (p: Pattern) => boolean): Pattern | null {

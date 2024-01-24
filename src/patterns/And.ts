@@ -3,7 +3,6 @@ import { Pattern } from "./Pattern";
 import { Node } from "../ast/Node";
 import { clonePatterns } from "./clonePatterns";
 import { filterOutNull } from "./filterOutNull";
-import { getNextPattern } from "./getNextPattern";
 import { findPattern } from "./findPattern";
 
 export class And implements Pattern {
@@ -65,10 +64,10 @@ export class And implements Pattern {
   }
 
   testText(text: string) {
-    if (this.isOptional){
+    if (this.isOptional) {
       return true;
     }
-    
+
     const { ast } = this.parseText(text);
     return ast?.value.length === text.length
   }
@@ -226,14 +225,31 @@ export class And implements Pattern {
     return tokens;
   }
 
-  getNextTokens(lastMatched: Pattern): string[] {
+  getTokensAfter(childReference: Pattern): string[] {
+    const patterns = this.getPatternsAfter(childReference);
+    const tokens: string[] = [];
+
+    patterns.forEach(p => tokens.push(...p.getTokens()));
+
+    return tokens;
+  }
+
+  getNextTokens(): string[]{
+    if (this.parent == null){
+      return []
+    }
+
+    return this.parent.getTokensAfter(this);
+  }
+
+  getPatternsAfter(childReference: Pattern): Pattern[] {
     let nextSibling: Pattern | null = null;
     let nextSiblingIndex = -1;
     let index = -1;
-    const tokens: string[] = [];
+    const patterns: Pattern[] = [];
 
     for (let i = 0; i < this._children.length; i++) {
-      if (this._children[i] === lastMatched) {
+      if (this._children[i] === childReference) {
         if (i + 1 < this._children.length) {
           nextSibling = this._children[i + 1];
         }
@@ -248,33 +264,37 @@ export class And implements Pattern {
     }
 
     if (nextSiblingIndex === this._children.length && this._parent !== null) {
-      return this._parent.getNextTokens(this);
+      return this._parent.getPatternsAfter(this);
     }
 
     if (nextSibling !== null && !nextSibling.isOptional) {
-      return nextSibling.getTokens();
+      return [nextSibling];
     }
 
     if (nextSibling !== null && nextSibling.isOptional) {
       for (let i = nextSiblingIndex; i < this._children.length; i++) {
         const child = this._children[i];
-        tokens.push(...child.getTokens());
+        patterns.push(child);
 
         if (!child.isOptional) {
           break;
         }
 
         if (i === this._children.length - 1 && this._parent !== null) {
-          tokens.push(...this._parent.getNextTokens(this));
+          patterns.push(...this._parent.getPatternsAfter(this));
         }
       }
     }
 
-    return tokens;
+    return patterns;
   }
 
-  getNextPattern(): Pattern | null {
-    return getNextPattern(this)
+  getNextPatterns(): Pattern[]{
+    if (this.parent == null){
+      return [];
+    }
+
+    return this.parent.getPatternsAfter(this)
   }
 
   findPattern(predicate: (p: Pattern) => boolean): Pattern | null {

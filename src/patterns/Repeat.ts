@@ -2,7 +2,6 @@ import { Node } from "../ast/Node";
 import { Cursor } from "./Cursor";
 import { Pattern } from "./Pattern";
 import { clonePatterns } from "./clonePatterns";
-import { getNextPattern } from "./getNextPattern";
 import { findPattern } from "./findPattern";
 
 export class Repeat implements Pattern {
@@ -65,10 +64,10 @@ export class Repeat implements Pattern {
   }
 
   testText(text: string) {
-    if (this.isOptional){
+    if (this.isOptional) {
       return true;
     }
-    
+
     const { ast } = this.parseText(text);
     return ast?.value.length === text.length
   }
@@ -216,12 +215,29 @@ export class Repeat implements Pattern {
     return this._pattern.getTokens();
   }
 
-  getNextTokens(lastMatched: Pattern): string[] {
-    let index = -1;
+  getTokensAfter(childReference: Pattern): string[] {
+    const patterns = this.getPatternsAfter(childReference);
     const tokens: string[] = [];
 
+    patterns.forEach(p => tokens.push(...p.getTokens()));
+
+    return tokens;
+  }
+
+  getNextTokens(): string[] {
+    if (this.parent == null) {
+      return []
+    }
+
+    return this.parent.getTokensAfter(this);
+  }
+
+  getPatternsAfter(childReference: Pattern): Pattern[] {
+    let index = -1;
+    const patterns: Pattern[] = [];
+
     for (let i = 0; i < this._children.length; i++) {
-      if (this._children[i] === lastMatched) {
+      if (this._children[i] === childReference) {
         index = i;
       }
     }
@@ -233,28 +249,32 @@ export class Repeat implements Pattern {
 
     // If the last match was the repeated patterns, then suggest the divider.
     if (index === 0 && this._divider) {
-      tokens.push(...this._children[1].getTokens());
+      patterns.push(this._children[1]);
 
       if (this._parent) {
-        tokens.push(...this._parent.getNextTokens(this));
+        patterns.push(...this._parent.getPatternsAfter(this));
       }
     }
 
     // Suggest the pattern because the divider was the last match.
     if (index === 1) {
-      tokens.push(...this._children[0].getTokens());
+      patterns.push(this._children[0]);
     }
 
     if (index === 0 && !this._divider && this._parent) {
-      tokens.push(...this._children[0].getTokens());
-      tokens.push(...this._parent.getNextTokens(this));
+      patterns.push(this._children[0]);
+      patterns.push(...this._parent.getPatternsAfter(this));
     }
 
-    return tokens;
+    return patterns;
   }
 
-  getNextPattern(): Pattern | null {
-    return getNextPattern(this)
+  getNextPatterns(): Pattern[] {
+    if (this.parent == null) {
+      return [];
+    }
+
+    return this.parent.getPatternsAfter(this)
   }
 
   findPattern(predicate: (p: Pattern) => boolean): Pattern | null {

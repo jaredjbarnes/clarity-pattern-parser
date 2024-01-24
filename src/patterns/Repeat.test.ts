@@ -130,16 +130,16 @@ describe("Repeat", () => {
         expect(tokens).toEqual(expected)
     });
 
-    test("Get Next Tokens With Bogus Pattern", () => {
+    test("Get Tokens After With Bogus Pattern", () => {
         const a = new Literal("a", "A");
         const manyA = new Repeat("many-a", a);
-        const tokens = manyA.getNextTokens(new Literal("bogus", "bogus"));
+        const tokens = manyA.getTokensAfter(new Literal("bogus", "bogus"));
         const expected: string[] = [];
 
         expect(tokens).toEqual(expected)
     });
 
-    test("Get Next Tokens With Divider", () => {
+    test("Get Tokens After With Divider", () => {
         const a = new Literal("a", "A");
         const b = new Literal("b", "B");
         const divider = new Literal("divider", ",");
@@ -147,35 +147,28 @@ describe("Repeat", () => {
         const parent = new And("parent", [manyA, b]);
 
         const clonedManyA = findPattern(parent, p => p.name == "many-a");
-        let tokens = clonedManyA?.getNextTokens(clonedManyA.children[0]);
+        let tokens = clonedManyA?.getTokensAfter(clonedManyA.children[0]);
         let expected = [",", "B"];
 
         expect(tokens).toEqual(expected)
 
-        tokens = clonedManyA?.getNextTokens(clonedManyA.children[1]);
+        tokens = clonedManyA?.getTokensAfter(clonedManyA.children[1]);
         expected = ["A"];
 
         expect(tokens).toEqual(expected)
     });
 
-    test("Get Next Tokens Without Divider", () => {
+    test("Get Tokens After Without Divider", () => {
         const a = new Literal("a", "A");
         const b = new Literal("b", "B");
         const manyA = new Repeat("many-a", a);
         const parent = new And("parent", [manyA, b]);
 
         const clonedManyA = findPattern(parent, p => p.name == "many-a");
-        const tokens = clonedManyA?.getNextTokens(clonedManyA.children[0]);
+        const tokens = clonedManyA?.getTokensAfter(clonedManyA.children[0]);
         const expected = ["A", "B"];
 
         expect(tokens).toEqual(expected)
-    });
-
-    test("Get Next Pattern", () => {
-        const repeat = new Repeat("many-a", new Literal("a", "A"));
-        const nextPattern = repeat.getNextPattern();
-
-        expect(nextPattern).toBeNull()
     });
 
     test("Properties", () => {

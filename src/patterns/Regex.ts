@@ -1,7 +1,6 @@
 import { Node } from "../ast/Node";
 import { Pattern } from "./Pattern";
 import { Cursor } from "./Cursor";
-import { getNextPattern } from "./getNextPattern";
 
 export class Regex implements Pattern {
   private _type: string;
@@ -159,7 +158,7 @@ export class Regex implements Pattern {
 
       const tokens = this._tokens;
       const aggregateTokens: string[] = [];
-      const nextTokens = parent.getNextTokens(this);
+      const nextTokens = parent.getTokensAfter(this);
 
       for (let nextToken of nextTokens) {
         for (let token of tokens) {
@@ -174,12 +173,28 @@ export class Regex implements Pattern {
     return this._tokens;
   }
 
-  getNextTokens(_reference: Pattern): string[] {
+  getTokensAfter(_childReference: Pattern): string[] {
     return [];
   }
 
-  getNextPattern(): Pattern | null {
-    return getNextPattern(this)
+  getNextTokens(): string[] {
+    if (this.parent == null) {
+      return []
+    }
+
+    return this.parent.getTokensAfter(this);
+  }
+
+  getPatternsAfter(_childReference: Pattern): Pattern[] {
+    return [];
+  }
+
+  getNextPatterns(): Pattern[] {
+    if (this.parent == null) {
+      return [];
+    }
+
+    return this.parent.getPatternsAfter(this)
   }
 
   findPattern(_predicate: (p: Pattern) => boolean): Pattern | null {

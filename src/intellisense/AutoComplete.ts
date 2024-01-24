@@ -19,7 +19,7 @@ export class AutoComplete {
       return {
         isComplete: false,
         options: this.createSuggestionsFromRoot(),
-        nextPattern: this._pattern,
+        nextPatterns: [this._pattern],
         cursor: null,
         error: new ParseError(0, this._pattern),
       }
@@ -33,12 +33,12 @@ export class AutoComplete {
     const rootMatch = this._cursor.rootMatch.pattern;
     const isComplete = this._cursor.isOnLast && rootMatch === this._pattern;
     const options = this.createSuggestionsFromTokens();
-    const nextPattern = isComplete ? null : leafPattern?.getNextPattern() || this._pattern;
+    const nextPatterns = isComplete ? [] : leafPattern?.parent?.getPatternsAfter(leafPattern) || [this._pattern];
 
     return {
       isComplete: isComplete,
       options: options,
-      nextPattern,
+      nextPatterns,
       cursor: this._cursor,
       error: this._cursor.furthestError
     }
@@ -66,7 +66,7 @@ export class AutoComplete {
     const parent = leafMatch.pattern.parent;
 
     if (parent !== null && leafMatch.node != null) {
-      const tokens = parent.getNextTokens(leafPattern);
+      const tokens = parent.getTokensAfter(leafPattern);
       return this.createSuggestions(leafMatch.node.lastIndex, tokens);
     } else {
       return [];

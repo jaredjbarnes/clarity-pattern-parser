@@ -2,7 +2,6 @@ import { Node } from "../ast/Node";
 import { Cursor } from "./Cursor";
 import { Pattern } from "./Pattern";
 import { findPattern } from "./findPattern";
-import { getNextPattern } from "./getNextPattern";
 
 export class Reference implements Pattern {
   private _type: string;
@@ -46,10 +45,10 @@ export class Reference implements Pattern {
   }
 
   testText(text: string) {
-    if (this.isOptional){
+    if (this.isOptional) {
       return true;
     }
-    
+
     const { ast } = this.parseText(text);
     return ast?.value.length === text.length
   }
@@ -114,16 +113,36 @@ export class Reference implements Pattern {
     return this._getPatternSafely().getTokens();
   }
 
-  getNextTokens(_lastMatched: Pattern): string[] {
+  getTokensAfter(_lastMatched: Pattern): string[] {
+    if (this._parent == null) {
+      return [];
+    }
+
+    return this._parent.getTokensAfter(this);
+  }
+
+  getNextTokens(): string[] {
+    if (this.parent == null) {
+      return []
+    }
+
+    return this.parent.getTokensAfter(this);
+  }
+
+  getPatternsAfter(): Pattern[] {
+    if (this._parent == null) {
+      return [];
+    }
+
+    return this._parent.getPatternsAfter(this);
+  }
+
+  getNextPatterns(): Pattern[] {
     if (this.parent == null) {
       return [];
     }
 
-    return this.parent.getNextTokens(this);
-  }
-
-  getNextPattern(): Pattern | null {
-    return getNextPattern(this)
+    return this.parent.getPatternsAfter(this)
   }
 
   findPattern(_predicate: (p: Pattern) => boolean): Pattern | null {

@@ -63,28 +63,21 @@ describe("Or", () => {
         expect(tokens).toEqual(expected);
     });
 
-    test("Get Next Tokens", () => {
+    test("Get Tokens After", () => {
         const a = new Or("a", [new Literal("a", "A")]);
         const parent = new And("parent", [a, new Literal("b", "B")]);
-        const tokens = parent.children[0].getNextTokens(parent.children[0].children[0]);
+        const tokens = parent.children[0].getTokensAfter(parent.children[0].children[0]);
         const expected = ["B"];
 
         expect(tokens).toEqual(expected);
     });
 
-    test("Get Next Tokens Without A Parent", () => {
+    test("Get Tokens After Without A Parent", () => {
         const a = new Or("a", [new Literal("a", "A")]);
-        const tokens = a.getNextTokens(a.children[0]);
+        const tokens = a.getTokensAfter(a.children[0]);
         const expected: string[] = [];
 
         expect(tokens).toEqual(expected);
-    });
-
-    test("Get Next Pattern", () => {
-        const a = new Or("a", [new Literal("a", "A")]);
-        const nextToken = a.getNextPattern();
-
-        expect(nextToken).toBeNull();
     });
 
     test("Properties", () => {

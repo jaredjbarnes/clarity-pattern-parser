@@ -1,6 +1,5 @@
 import { Node } from "../ast/Node";
 import { Cursor } from "./Cursor";
-import { getNextPattern } from "./getNextPattern";
 import { Pattern } from "./Pattern";
 
 export class Not implements Pattern {
@@ -42,10 +41,10 @@ export class Not implements Pattern {
   }
 
   testText(text: string) {
-    if (this.isOptional){
+    if (this.isOptional) {
       return true;
     }
-    
+
     const { ast } = this.parseText(text);
     return ast?.value.length === text.length
   }
@@ -81,22 +80,44 @@ export class Not implements Pattern {
     return not;
   }
 
-  getNextPattern(): Pattern | null {
-    return getNextPattern(this)
-  }
-
   getTokens(): string[] {
     return [];
   }
 
-  getNextTokens(_lastMatched: Pattern): string[] {
+  getTokensAfter(_lastMatched: Pattern): string[] {
     const parent = this._parent;
 
     if (parent != null) {
-      parent.getNextTokens(this);
+      return parent.getTokensAfter(this);
     }
 
     return [];
+  }
+
+  getNextTokens(): string[] {
+    if (this.parent == null) {
+      return []
+    }
+
+    return this.parent.getTokensAfter(this);
+  }
+
+  getPatternsAfter(): Pattern[] {
+    const parent = this._parent;
+
+    if (parent != null) {
+      return parent.getPatternsAfter(this);
+    }
+
+    return []
+  }
+
+  getNextPatterns(): Pattern[] {
+    if (this.parent == null) {
+      return [];
+    }
+
+    return this.parent.getPatternsAfter(this)
   }
 
   findPattern(predicate: (p: Pattern) => boolean): Pattern | null {

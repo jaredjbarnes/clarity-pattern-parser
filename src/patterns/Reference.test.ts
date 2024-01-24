@@ -59,30 +59,27 @@ describe("Reference", () => {
         expect(tokens).toEqual(expected);
     });
 
-    test("Get Next Tokens", () => {
+    test("Get Tokens After", () => {
         const value = createValuePattern();
         const ref = findPattern(value, (p) => p.type === "reference");
 
         // The value passed to getNextTokens doesn't matter.
         // I just needed it to be a pattern.
-        const tokens = ref?.getNextTokens(value);
+        const tokens = ref?.getTokensAfter(value);
         const expected = ["]"];
 
         expect(tokens).toEqual(expected);
     });
 
-    test("Get Next Tokens With No Parent", () => {
+    test("Get Tokens After With No Parent", () => {
         const ref = new Reference("bad-reference");
-        const tokens = ref.getNextTokens(new Literal("bogus", "bogus"))
+        const tokens = ref.getTokensAfter(new Literal("bogus", "bogus"))
 
         expect(tokens).toEqual([]);
     });
 
-    test("Get Next Pattern", () => {
-        const ref = new Reference("ref");
-        const nextPattern = ref.getNextPattern();
-
-        expect(nextPattern).toBeNull()
+    test("Get Next Patterns", () => {
+    
     });
 
     test("Properties", () => {

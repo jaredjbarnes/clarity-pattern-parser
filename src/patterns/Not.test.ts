@@ -37,7 +37,7 @@ describe("Not", () => {
         const a = new Literal("a", "A");
         const notA = new Not("not-a", a);
         const tokens = notA.getTokens();
-        const nextTokens = notA.getNextTokens(new Literal("bogus", "bogus"))
+        const nextTokens = notA.getTokensAfter(new Literal("bogus", "bogus"))
         const emptyArray: string[] = [];
 
         expect(tokens).toEqual(emptyArray);
@@ -75,14 +75,4 @@ describe("Not", () => {
         expect(result).toBeNull();
     });
 
-    test("Get Next Pattern", () => {
-        const a = new Literal("a", "A");
-        const b = new Literal("b", "B");
-        const notA = new Not("not-a", a);
-
-        const parent = new And("parent", [notA, b]);
-        const nextPattern = parent.children[0].getNextPattern();
-
-        expect(nextPattern?.name).toBe("b");
-    });
 });

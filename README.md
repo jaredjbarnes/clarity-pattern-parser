@@ -16,10 +16,10 @@ npm install clarity-pattern-parser
 * Reference
 * Not
 
-The "Not" pattern is a negative look ahead and mostly used with the "And" pattern. This will be illustrated in more detail within the "Not" pattern section.
+The `Not` pattern is a negative look ahead and used with the `And` pattern. This will be illustrated in more detail within the `Not` pattern section.
 
 ## Literal
-The "Literal" pattern uses a string literal to match patterns.
+The `Literal` pattern uses a string literal to match patterns.
 ```ts
 import { Literal } from "clarity-pattern-parser";
 
@@ -43,7 +43,7 @@ ast.toJson(2)
 ```
 
 ## Regex
-The "Regex" pattern uses regular expressions to match patterns 
+The `Regex` pattern uses regular expressions to match patterns.
 ```ts
 import { Regex } from "clarity-pattern-parser";
 
@@ -70,7 +70,7 @@ ast.toJson(2);
 Do not use "^" at the beginning or "$" at the end of your regular expression. If you are creating a regular expression that is concerned about the beginning and end of the text you should probably just use a regular expression. 
 
 ## And
-The "And" pattern is a way to make a sequence pattern. And accepts all other patterns as children. 
+The `And` pattern is a way to make a sequence pattern. `And` accepts all other patterns as children. 
 ```ts
 import { And, Literal } from "clarity-pattern-parser";
 
@@ -129,7 +129,7 @@ ast.toJson(2); // Look Below for output
 ```
 
 ## Or
-The "Or" pattern mathes any of the patterns given to the constructor. 
+The `Or` pattern mathes any of the patterns given to the constructor. 
 ```ts
 import { Or, Literal } from "clarity-pattern-parser";
 
@@ -153,7 +153,7 @@ ast.toJson(2)
 }
 ```
 ## Repeat
-The "Repeat" patterns allows you to match repeating patterns with, or without a divider.
+The `Repeat` patterns allows you to match repeating patterns with, or without a divider.
 
 For example you may want to match a pattern like so.
 ```

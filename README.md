@@ -18,18 +18,28 @@ npm install clarity-pattern-parser
 
 The "Not" pattern is a negative look ahead and mostly used with the "And" pattern. This will be illustrated in more detail within the "Not" pattern section.
 
-
 ## Literal
 The "Literal" pattern uses a string literal to match patterns.
 ```ts
 import { Literal } from "clarity-pattern-parser";
 
 const firstName = new Literal("first-name", "John");
+
 const { ast } = firstName.parseText("John");
 
-ast.type // ==> "literal"
-ast.name // ==> "first-name"
-ast.value // ==> "John"
+ast.toJson(2)
+```
+```json
+{
+  "type": "literal",
+  "name": "first-name",
+  "value": "John",
+  "firstIndex": 0,
+  "lastIndex": 3,
+  "startIndex": 0,
+  "endIndex": 4,
+  "children": []
+}
 ```
 
 ## Regex
@@ -38,11 +48,22 @@ The "Regex" pattern uses regular expressions to match patterns
 import { Regex } from "clarity-pattern-parser";
 
 const digits = new Regex("digits", "\\d+");
-const { ast } = digit.parseText("12");
 
-ast.type // ==> "regex"
-ast.name // ==> "digits"
-ast.value // ==> "12"
+const { ast } = digits.parseText("12");
+
+ast.toJson(2);
+```
+```json
+{
+  "type": "regex",
+  "name": "digits",
+  "value": "12",
+  "firstIndex": 0,
+  "lastIndex": 1,
+  "startIndex": 0,
+  "endIndex": 2,
+  "children": []
+}
 ```
 
 ### Regex Caveats
@@ -56,12 +77,11 @@ import { And, Literal } from "clarity-pattern-parser";
 const jane = new Literal("first-name", "Jane");
 const space = new Literal("space", " ");
 const doe = new Literal("last-name", "Doe");
-
 const fullName = new And("full-name", [jane, space, doe]);
 
 const { ast } = fullName.parseText("Jane Doe");
 
-ast.toJson(); // Look Below for output
+ast.toJson(2); // Look Below for output
 ```
 
 ```json
@@ -116,20 +136,22 @@ import { Or, Literal } from "clarity-pattern-parser";
 const jane = new Literal("jane", "Jane");
 const john = new Literal("john", "John");
 const firstName = new Or("first-name", [jane, john]);
+const { ast }= firstName.parseText("Jane");
 
-let ast= firstName.parseText("Jane").ast;
-
-ast.type // ==> "literal"
-ast.name // ==> "jane"
-ast.value // ==> "Jane"
-
-ast = firstName.parseText("John").ast;
-
-ast.type // ==> "literal"
-ast.name // ==> "john"
-ast.value // ==> "John"
+ast.toJson(2)
 ```
-
+```json
+{
+  "type": "literal",
+  "name": "jane",
+  "value": "Jane",
+  "firstIndex": 0,
+  "lastIndex": 3,
+  "startIndex": 0,
+  "endIndex": 4,
+  "children": []
+}
+```
 ## Repeat
 The "Repeat" patterns allows you to match repeating patterns with, or without a divider.
 
@@ -419,8 +441,32 @@ ast.toJson();
   ]
 }
 ```
-
+The `Reference` pattern traverses the pattern composition to find the pattern that matches the one given to it at construction. It will then clone that pattern and tell that pattern to parse the text. If it cannot find the pattern with the given name, it will throw a runtime error.
 ## Not
 
+## Intellisense
+Because the patterns are composed in a tree and the cursor remembers what patterns matched last, we can ask what tokens are next. We will discuss how you can use clarity-pattern-parser for text auto complete and other interesting approaches for intellisense.
+
+## GetTokens
+The `getTokens` method allow you to ask the pattern what tokens it is looking for. The Regex pattern was the only pattern that didn't already intrinsically know what patterns it was looking for, and we solved this by adding a `setTokens` to its class. This allows you to define a regexp that can capture infinitely many patterns, but suggest a finite set. We will discuss this further in the setTokens section. For now we will demonstrate what `getTokens` does.
+
+```ts
+import { Or, Literal } from "clarity-pattern-parser";
+
+const jane = new Literal("jane", "Jane");
+const john = new Literal("john", "John");
+const jack = new Literal("jack", "Jack");
+const jill = new Literal("jill", "Jill");
+
+const names = new Or("names", [jane, john, jack, jill]);
+
+names.getTokens();
+```
+```json
+["Jane", "John", "Jack", "Jill"]
+```
+## GetNextTokens
+
+## SetTokens
 
 ## Error Handling

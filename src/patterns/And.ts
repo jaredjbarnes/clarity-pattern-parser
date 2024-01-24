@@ -63,21 +63,19 @@ export class And implements Pattern {
     }
   }
 
-  testText(text: string) {
-    if (this.isOptional) {
-      return true;
-    }
+  test(text: string) {
+    const cursor = new Cursor(text);
+    const ast = this.parse(cursor);
 
-    const { ast } = this.parseText(text);
-    return ast?.value.length === text.length
+    return ast?.value === text;
   }
 
-  parseText(text: string) {
+  exec(text: string) {
     const cursor = new Cursor(text);
-    const ast = this.parse(cursor)
+    const ast = this.parse(cursor);
 
     return {
-      ast,
+      ast: ast?.value === text ? ast : null,
       cursor
     };
   }
@@ -243,8 +241,8 @@ export class And implements Pattern {
     return tokens;
   }
 
-  getNextTokens(): string[]{
-    if (this.parent == null){
+  getNextTokens(): string[] {
+    if (this.parent == null) {
       return []
     }
 
@@ -302,8 +300,8 @@ export class And implements Pattern {
     return patterns;
   }
 
-  getNextPatterns(): Pattern[]{
-    if (this.parent == null){
+  getNextPatterns(): Pattern[] {
+    if (this.parent == null) {
       return [];
     }
 

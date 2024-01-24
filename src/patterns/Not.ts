@@ -40,18 +40,16 @@ export class Not implements Pattern {
     this._children[0].parent = this;
   }
 
-  testText(text: string) {
-    if (this.isOptional) {
-      return true;
-    }
+  test(text: string) {
+    const cursor = new Cursor(text);
+    this.parse(cursor);
 
-    const { ast } = this.parseText(text);
-    return ast?.value.length === text.length
+    return !cursor.hasError;
   }
 
-  parseText(text: string) {
+  exec(text: string) {
     const cursor = new Cursor(text);
-    const ast = this.parse(cursor)
+    const ast = this.parse(cursor);
 
     return {
       ast,

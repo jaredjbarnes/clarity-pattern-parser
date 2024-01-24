@@ -10,8 +10,8 @@ export interface Pattern {
   isOptional: boolean;
 
   parse(cursor: Cursor): Node | null;
-  parseText(text: string): ParseResult;
-  testText(text: string): boolean;
+  exec(text: string): ParseResult;
+  test(text: string): boolean;
   clone(name?: string, isOptional?: boolean): Pattern;
   getTokens(): string[];
   getTokensAfter(childReference: Pattern): string[];

@@ -25,7 +25,7 @@ import { Literal } from "clarity-pattern-parser";
 
 const firstName = new Literal("first-name", "John");
 
-const { ast } = firstName.parseText("John");
+const { ast } = firstName.exec("John");
 
 ast.toJson(2)
 ```
@@ -49,7 +49,7 @@ import { Regex } from "clarity-pattern-parser";
 
 const digits = new Regex("digits", "\\d+");
 
-const { ast } = digits.parseText("12");
+const { ast } = digits.exec("12");
 
 ast.toJson(2);
 ```
@@ -79,7 +79,7 @@ const space = new Literal("space", " ");
 const doe = new Literal("last-name", "Doe");
 const fullName = new And("full-name", [jane, space, doe]);
 
-const { ast } = fullName.parseText("Jane Doe");
+const { ast } = fullName.exec("Jane Doe");
 
 ast.toJson(2); // Look Below for output
 ```
@@ -136,7 +136,7 @@ import { Or, Literal } from "clarity-pattern-parser";
 const jane = new Literal("jane", "Jane");
 const john = new Literal("john", "John");
 const firstName = new Or("first-name", [jane, john]);
-const { ast }= firstName.parseText("Jane");
+const { ast }= firstName.exec("Jane");
 
 ast.toJson(2)
 ```
@@ -167,7 +167,7 @@ const digit = new Regex("digit", "\\d+");
 const commaDivider = new Literal("comma", ",");
 const numberList = new Repeat("number-list", digit, commaDivider);
 
-const ast = numberList.parseText("1,2,3").ast;
+const ast = numberList.exec("1,2,3").ast;
 
 ast.type // ==> "repeat"
 ast.name // ==> "number-list"
@@ -189,7 +189,7 @@ const digit = new Regex("digit", "\\d+");
 const commaDivider = new Literal("comma", ",");
 const numberList = new Repeat("number-list", digit, commaDivider);
 
-const ast = numberList.parseText("1,2,").ast;
+const ast = numberList.exec("1,2,").ast;
 
 ast.type // ==> "repeat"
 ast.name // ==> "number-list"
@@ -219,7 +219,7 @@ const item = new Or("item", [integer, new Reference("array")]);
 const items = new Repeat("items", item, commaDivider);
 
 const array = new And("array", [openBracket, items, closeBracket]);
-const { ast } = array.parseText("[[1, [1]], 1, 2, 3]");
+const { ast } = array.exec("[[1, [1]], 1, 2, 3]");
 
 ast.toJson();
 ```

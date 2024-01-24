@@ -35,7 +35,7 @@ export declare class Regex implements Pattern {
     getTokens(): string[];
     getNextTokens(_reference: Pattern): string[];
     getNextPattern(): Pattern | null;
-    findPattern(_isMatch: (p: Pattern) => boolean): Pattern | null;
+    findPattern(_predicate: (p: Pattern) => boolean): Pattern | null;
     setTokens(tokens: string[]): void;
     enableContextualTokenAggregation(): void;
     disableContextualTokenAggregation(): void;

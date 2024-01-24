@@ -30,7 +30,7 @@ export declare class Literal implements Pattern {
     getTokens(): string[];
     getNextTokens(_lastMatched: Pattern): string[];
     getNextPattern(): Pattern | null;
-    findPattern(_isMatch: (p: Pattern) => boolean): Pattern | null;
+    findPattern(_predicate: (p: Pattern) => boolean): Pattern | null;
     enableContextualTokenAggregation(): void;
     disableContextualTokenAggregation(): void;
 }

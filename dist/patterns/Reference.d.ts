@@ -10,22 +10,22 @@ export declare class Reference implements Pattern {
     private _children;
     get type(): string;
     get name(): string;
-    get isOptional(): boolean;
     get parent(): Pattern | null;
     set parent(pattern: Pattern | null);
     get children(): Pattern[];
+    get isOptional(): boolean;
     constructor(name: string, isOptional?: boolean);
     parseText(text: string): {
         ast: Node | null;
         cursor: Cursor;
     };
     parse(cursor: Cursor): Node | null;
-    clone(name?: string, isOptional?: boolean): Pattern;
-    getTokens(): string[];
-    getNextTokens(_lastMatched: Pattern): string[];
-    getNextPattern(): Pattern | null;
-    findPattern(_isMatch: (p: Pattern) => boolean): Pattern | null;
     private _getPatternSafely;
     private _findPattern;
     private _getRoot;
+    getTokens(): string[];
+    getNextTokens(_lastMatched: Pattern): string[];
+    getNextPattern(): Pattern | null;
+    findPattern(_predicate: (p: Pattern) => boolean): Pattern | null;
+    clone(name?: string, isOptional?: boolean): Pattern;
 }

@@ -76,17 +76,39 @@ class Node {
     }
     spliceChildren(index, deleteCount, ...items) {
         const removedItems = this._children.splice(index, deleteCount, ...items);
-        items.forEach(i => i._parent = this);
         removedItems.forEach(i => i._parent = null);
+        items.forEach(i => i._parent = this);
         return removedItems;
     }
-    find(isMatch) {
-        return this.findAll(isMatch)[0] || null;
+    nextSibling() {
+        if (this._parent == null) {
+            return null;
+        }
+        const children = this._parent._children;
+        const index = children.indexOf(this);
+        if (index > -1 && index < children.length - 1) {
+            return children[index + 1];
+        }
+        return null;
     }
-    findAll(isMatch) {
+    previousSibling() {
+        if (this._parent == null) {
+            return null;
+        }
+        const children = this._parent._children;
+        const index = children.indexOf(this);
+        if (index > -1 && index > 0) {
+            return children[index - 1];
+        }
+        return null;
+    }
+    find(predicate) {
+        return this.findAll(predicate)[0] || null;
+    }
+    findAll(predicate) {
         const matches = [];
         this.walkUp(n => {
-            if (isMatch(n)) {
+            if (predicate(n)) {
                 matches.push(n);
             }
         });
@@ -144,14 +166,17 @@ class CursorHistory {
         this._nodes = [];
         this._errors = [];
     }
+    get isRecording() {
+        return this._isRecording;
+    }
+    get rootMatch() {
+        return this._rootMatch;
+    }
     get leafMatch() {
         return this._leafMatch;
     }
     get furthestError() {
         return this._furthestError;
-    }
-    get isRecording() {
-        return this._isRecording;
     }
     get errors() {
         return this._errors;
@@ -164,9 +189,6 @@ class CursorHistory {
     }
     get patterns() {
         return this._patterns;
-    }
-    get rootMatch() {
-        return this._rootMatch;
     }
     recordMatch(pattern, node) {
         if (this._isRecording) {
@@ -210,16 +232,16 @@ class Cursor {
         return this._index === 0;
     }
     get isOnLast() {
-        return this._index === this._getLastIndex();
+        return this._index === this.getLastIndex();
     }
     get isRecording() {
         return this._history.isRecording;
     }
-    get leafMatch() {
-        return this._history.leafMatch;
-    }
     get rootMatch() {
         return this._history.rootMatch;
+    }
+    get leafMatch() {
+        return this._history.leafMatch;
     }
     get furthestError() {
         return this._history.furthestError;
@@ -251,13 +273,13 @@ class Cursor {
     hasNext() {
         return this._index + 1 < this._length;
     }
-    hasPrevious() {
-        return this._index - 1 >= 0;
-    }
     next() {
         if (this.hasNext()) {
             this._index++;
         }
+    }
+    hasPrevious() {
+        return this._index - 1 >= 0;
     }
     previous() {
         if (this.hasPrevious()) {
@@ -273,7 +295,10 @@ class Cursor {
         this._index = 0;
     }
     moveToLastChar() {
-        this._index = this._getLastIndex();
+        this._index = this.getLastIndex();
+    }
+    getLastIndex() {
+        return this._length - 1;
     }
     getChars(first, last) {
         return this._text.slice(first, last + 1);
@@ -292,9 +317,6 @@ class Cursor {
     }
     stopRecording() {
         this._history.stopRecording();
-    }
-    _getLastIndex() {
-        return this._length - 1;
     }
 }
 
@@ -429,7 +451,7 @@ class Regex {
     getNextPattern() {
         return getNextPattern(this);
     }
-    findPattern(_isMatch) {
+    findPattern(_predicate) {
         return null;
     }
     setTokens(tokens) {
@@ -675,8 +697,8 @@ class And {
     getNextPattern() {
         return getNextPattern(this);
     }
-    findPattern(isMatch) {
-        return findPattern(this, isMatch);
+    findPattern(predicate) {
+        return findPattern(this, predicate);
     }
     clone(name = this._name, isOptional = this._isOptional) {
         const and = new And(name, this._children, isOptional);
@@ -797,7 +819,7 @@ class Literal {
     getNextPattern() {
         return getNextPattern(this);
     }
-    findPattern(_isMatch) {
+    findPattern(_predicate) {
         return null;
     }
     enableContextualTokenAggregation() {
@@ -815,9 +837,6 @@ class Not {
     get name() {
         return this._name;
     }
-    get isOptional() {
-        return false;
-    }
     get parent() {
         return this._parent;
     }
@@ -826,6 +845,9 @@ class Not {
     }
     get children() {
         return this._children;
+    }
+    get isOptional() {
+        return false;
     }
     constructor(name, pattern) {
         this._type = "not";
@@ -867,10 +889,14 @@ class Not {
         return [];
     }
     getNextTokens(_lastMatched) {
+        const parent = this._parent;
+        if (parent != null) {
+            parent.getNextTokens(this);
+        }
         return [];
     }
-    findPattern(isMatch) {
-        return isMatch(this._children[0]) ? this._children[0] : null;
+    findPattern(predicate) {
+        return predicate(this._children[0]) ? this._children[0] : null;
     }
 }
 
@@ -904,7 +930,6 @@ class Or {
         this._parent = null;
         this._children = children;
         this._isOptional = isOptional;
-        this._node = null;
         this._firstIndex = 0;
     }
     _assignChildrenToParent(children) {
@@ -922,7 +947,6 @@ class Or {
     }
     parse(cursor) {
         this._firstIndex = cursor.index;
-        this._node = null;
         const node = this._tryToParse(cursor);
         if (node != null) {
             cursor.resolveError();
@@ -963,8 +987,8 @@ class Or {
     getNextPattern() {
         return getNextPattern(this);
     }
-    findPattern(isMatch) {
-        return findPattern(this, isMatch);
+    findPattern(predicate) {
+        return findPattern(this, predicate);
     }
     clone(name = this._name, isOptional = this._isOptional) {
         const or = new Or(name, this._children, isOptional);
@@ -1026,7 +1050,7 @@ class Repeat {
         if (passed) {
             cursor.resolveError();
             const node = this.createNode(cursor);
-            if (node) {
+            if (node != null) {
                 cursor.recordMatch(this, node);
             }
             return node;
@@ -1045,7 +1069,7 @@ class Repeat {
             const repeatedNode = this._pattern.parse(cursor);
             if (cursor.hasError) {
                 const lastValidNode = this.getLastValidNode();
-                if (lastValidNode) {
+                if (lastValidNode != null) {
                     passed = true;
                 }
                 else {
@@ -1062,13 +1086,13 @@ class Repeat {
                     break;
                 }
                 cursor.next();
-                if (this._divider) {
+                if (this._divider != null) {
                     const dividerNode = this._divider.parse(cursor);
                     if (cursor.hasError) {
                         passed = true;
                         break;
                     }
-                    else if (dividerNode) {
+                    else if (dividerNode != null) {
                         this._nodes.push(dividerNode);
                         if (!cursor.hasNext()) {
                             passed = true;
@@ -1128,15 +1152,18 @@ class Repeat {
                 index = i;
             }
         }
+        // If the last match isn't a child of this pattern.
         if (index === -1) {
             return [];
         }
+        // If the last match was the repeated patterns, then suggest the divider.
         if (index === 0 && this._divider) {
             tokens.push(...this._children[1].getTokens());
             if (this._parent) {
                 tokens.push(...this._parent.getNextTokens(this));
             }
         }
+        // Suggest the pattern because the divider was the last match.
         if (index === 1) {
             tokens.push(...this._children[0].getTokens());
         }
@@ -1149,8 +1176,8 @@ class Repeat {
     getNextPattern() {
         return getNextPattern(this);
     }
-    findPattern(isMatch) {
-        return findPattern(this, isMatch);
+    findPattern(predicate) {
+        return findPattern(this, predicate);
     }
     clone(name = this._name, isOptional = this._isOptional) {
         const repeat = new Repeat(name, this._pattern, this._divider, isOptional);
@@ -1166,9 +1193,6 @@ class Reference {
     get name() {
         return this._name;
     }
-    get isOptional() {
-        return this._isOptional;
-    }
     get parent() {
         return this._parent;
     }
@@ -1177,6 +1201,9 @@ class Reference {
     }
     get children() {
         return this._children;
+    }
+    get isOptional() {
+        return this._isOptional;
     }
     constructor(name, isOptional = false) {
         this._type = "reference";
@@ -1196,24 +1223,6 @@ class Reference {
     }
     parse(cursor) {
         return this._getPatternSafely().parse(cursor);
-    }
-    clone(name = this._name, isOptional = this._isOptional) {
-        return new Reference(name, isOptional);
-    }
-    getTokens() {
-        return this._getPatternSafely().getTokens();
-    }
-    getNextTokens(_lastMatched) {
-        if (this.parent == null) {
-            return [];
-        }
-        return this.parent.getNextTokens(this);
-    }
-    getNextPattern() {
-        return getNextPattern(this);
-    }
-    findPattern(_isMatch) {
-        return null;
     }
     _getPatternSafely() {
         if (this._pattern === null) {
@@ -1246,6 +1255,24 @@ class Reference {
             }
         }
         return node;
+    }
+    getTokens() {
+        return this._getPatternSafely().getTokens();
+    }
+    getNextTokens(_lastMatched) {
+        if (this.parent == null) {
+            return [];
+        }
+        return this.parent.getNextTokens(this);
+    }
+    getNextPattern() {
+        return getNextPattern(this);
+    }
+    findPattern(_predicate) {
+        return null;
+    }
+    clone(name = this._name, isOptional = this._isOptional) {
+        return new Reference(name, isOptional);
     }
 }
 

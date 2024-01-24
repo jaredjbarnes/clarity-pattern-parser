@@ -14,14 +14,14 @@ export declare class CursorHistory {
     private _patterns;
     private _nodes;
     private _errors;
+    get isRecording(): boolean;
+    get rootMatch(): Match;
     get leafMatch(): Match;
     get furthestError(): ParseError | null;
-    get isRecording(): boolean;
     get errors(): ParseError[];
     get error(): ParseError | null;
     get nodes(): Node[];
     get patterns(): Pattern[];
-    get rootMatch(): Match;
     recordMatch(pattern: Pattern, node: Node): void;
     recordErrorAt(index: number, pattern: Pattern): void;
     startRecording(): void;

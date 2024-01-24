@@ -7,7 +7,6 @@ export declare class Or implements Pattern {
     private _parent;
     private _children;
     private _isOptional;
-    private _node;
     private _firstIndex;
     get type(): string;
     get name(): string;
@@ -26,6 +25,6 @@ export declare class Or implements Pattern {
     getTokens(): string[];
     getNextTokens(_lastMatched: Pattern): string[];
     getNextPattern(): Pattern | null;
-    findPattern(isMatch: (p: Pattern) => boolean): Pattern | null;
+    findPattern(predicate: (p: Pattern) => boolean): Pattern | null;
     clone(name?: string, isOptional?: boolean): Pattern;
 }

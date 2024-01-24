@@ -13,5 +13,5 @@ export interface Pattern {
     getTokens(): string[];
     getNextTokens(lastMatched: Pattern): string[];
     getNextPattern(): Pattern | null;
-    findPattern(isMatch: (p: Pattern) => boolean): Pattern | null;
+    findPattern(predicate: (p: Pattern) => boolean): Pattern | null;
 }

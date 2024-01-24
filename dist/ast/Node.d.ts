@@ -32,8 +32,10 @@ export declare class Node {
     insertBefore(newNode: Node, referenceNode: Node | null): void;
     appendChild(newNode: Node): void;
     spliceChildren(index: number, deleteCount: number, ...items: Node[]): Node[];
-    find(isMatch: (node: Node) => boolean): Node | null;
-    findAll(isMatch: (node: Node) => boolean): Node[];
+    nextSibling(): Node | null;
+    previousSibling(): Node | null;
+    find(predicate: (node: Node) => boolean): Node | null;
+    findAll(predicate: (node: Node) => boolean): Node[];
     walkUp(callback: (node: Node) => void): void;
     walkDown(callback: (node: Node) => void): void;
     clone(): Node;

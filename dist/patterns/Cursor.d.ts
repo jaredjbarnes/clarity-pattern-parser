@@ -9,8 +9,8 @@ export declare class Cursor {
     get isOnFirst(): boolean;
     get isOnLast(): boolean;
     get isRecording(): boolean;
-    get leafMatch(): Match;
     get rootMatch(): Match;
+    get leafMatch(): Match;
     get furthestError(): ParseError | null;
     get error(): ParseError | null;
     get index(): number;
@@ -19,17 +19,17 @@ export declare class Cursor {
     get currentChar(): string;
     constructor(text: string);
     hasNext(): boolean;
-    hasPrevious(): boolean;
     next(): void;
+    hasPrevious(): boolean;
     previous(): void;
     moveTo(position: number): void;
     moveToFirstChar(): void;
     moveToLastChar(): void;
+    getLastIndex(): number;
     getChars(first: number, last: number): string;
     recordMatch(pattern: Pattern, node: Node): void;
     recordErrorAt(index: number, onPattern: Pattern): void;
     resolveError(): void;
     startRecording(): void;
     stopRecording(): void;
-    private _getLastIndex;
 }

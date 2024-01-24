@@ -8,10 +8,10 @@ export declare class Not implements Pattern {
     private _children;
     get type(): string;
     get name(): string;
-    get isOptional(): boolean;
     get parent(): Pattern | null;
     set parent(pattern: Pattern | null);
     get children(): Pattern[];
+    get isOptional(): boolean;
     constructor(name: string, pattern: Pattern);
     parseText(text: string): {
         ast: Node | null;
@@ -22,5 +22,5 @@ export declare class Not implements Pattern {
     getNextPattern(): Pattern | null;
     getTokens(): string[];
     getNextTokens(_lastMatched: Pattern): string[];
-    findPattern(isMatch: (p: Pattern) => boolean): Pattern | null;
+    findPattern(predicate: (p: Pattern) => boolean): Pattern | null;
 }

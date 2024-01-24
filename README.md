@@ -14,6 +14,7 @@ npm install clarity-pattern-parser
 * Or
 * Repeat
 * Reference
+* Not
 
 The "Not" pattern is a negative look ahead and mostly used with the "And" pattern. This will be illustrated in more detail within the "Not" pattern section.
 
@@ -48,7 +49,7 @@ ast.value // ==> "12"
 Do not use "^" at the beginning or "$" at the end of your regular expression. If you are creating a regular expression that is concerned about the beginning and end of the text you should probably just use a regular expression. 
 
 ## And
-The "And" pattern is a way to make a sequence pattern. And accepts any other patterns as children, even other "And" patterns. 
+The "And" pattern is a way to make a sequence pattern. And accepts all other patterns as children. 
 ```ts
 import { And, Literal } from "clarity-pattern-parser";
 
@@ -141,8 +142,8 @@ Here is the code to do so.
 import { Repeat, Literal, Regex } from "clarity-pattern-parser";
 
 const digit = new Regex("digit", "\\d+");
-const comma = new Literal("comma", ",");
-const numberList = new Repeat("number-list", digit, comma);
+const commaDivider = new Literal("comma", ",");
+const numberList = new Repeat("number-list", digit, commaDivider);
 
 const ast = numberList.parseText("1,2,3").ast;
 
@@ -157,14 +158,14 @@ ast.children[3].value // ==> ","
 ast.children[4].value // ==> "3"
 ```
 
-If there is a trailing divider without a the repeating pattern, it will not include the trailing divider as part of the result. Here is an example.
+If there is a trailing divider without the repeating pattern, it will not include the trailing divider as part of the result. Here is an example.
 
 ```ts
 import { Repeat, Literal, Regex } from "clarity-pattern-parser";
 
 const digit = new Regex("digit", "\\d+");
-const comma = new Literal("comma", ",");
-const numberList = new Repeat("number-list", digit, comma);
+const commaDivider = new Literal("comma", ",");
+const numberList = new Repeat("number-list", digit, commaDivider);
 
 const ast = numberList.parseText("1,2,").ast;
 
@@ -178,5 +179,248 @@ ast.children[2].value // ==> "2"
 ast.children.length // ==> 3
 ```
 
-T
+## Reference
+Reference is a way to handle cyclical patterns. An example of this would be arrays within arrays. Lets say we want to make a pattern that matches an array that can store numbers and arrays.
+```
+[[1, [1]], 1, 2, 3]
+```
+Here is an example of using `Reference` to parse this pattern.
+```ts
+import { Regex, Literal, Or, Repeat, And, Reference } from "clarity-pattern-parser";
+
+const integer = new Regex("integer", "\\d+");
+const commaDivider = new Regex("comma-divider", "\\s*,\\s*");
+
+const openBracket = new Literal("open-bracket", "[");
+const closeBracket = new Literal("close-bracket", "]");
+const item = new Or("item", [integer, new Reference("array")]);
+const items = new Repeat("items", item, commaDivider);
+
+const array = new And("array", [openBracket, items, closeBracket]);
+const { ast } = array.parseText("[[1, [1]], 1, 2, 3]");
+
+ast.toJson();
+```
+```json
+{
+  "type": "and",
+  "name": "array",
+  "value": "[[1, [1]], 1, 2, 3]",
+  "firstIndex": 0,
+  "lastIndex": 18,
+  "startIndex": 0,
+  "endIndex": 19,
+  "children": [
+    {
+      "type": "literal",
+      "name": "open-bracket",
+      "value": "[",
+      "firstIndex": 0,
+      "lastIndex": 0,
+      "startIndex": 0,
+      "endIndex": 1,
+      "children": []
+    },
+    {
+      "type": "repeat",
+      "name": "items",
+      "value": "[1, [1]], 1, 2, 3",
+      "firstIndex": 1,
+      "lastIndex": 17,
+      "startIndex": 1,
+      "endIndex": 18,
+      "children": [
+        {
+          "type": "and",
+          "name": "array",
+          "value": "[1, [1]]",
+          "firstIndex": 1,
+          "lastIndex": 8,
+          "startIndex": 1,
+          "endIndex": 9,
+          "children": [
+            {
+              "type": "literal",
+              "name": "open-bracket",
+              "value": "[",
+              "firstIndex": 1,
+              "lastIndex": 1,
+              "startIndex": 1,
+              "endIndex": 2,
+              "children": []
+            },
+            {
+              "type": "repeat",
+              "name": "items",
+              "value": "1, [1]",
+              "firstIndex": 2,
+              "lastIndex": 7,
+              "startIndex": 2,
+              "endIndex": 8,
+              "children": [
+                {
+                  "type": "regex",
+                  "name": "integer",
+                  "value": "1",
+                  "firstIndex": 2,
+                  "lastIndex": 2,
+                  "startIndex": 2,
+                  "endIndex": 3,
+                  "children": []
+                },
+                {
+                  "type": "regex",
+                  "name": "comma-divider",
+                  "value": ", ",
+                  "firstIndex": 3,
+                  "lastIndex": 4,
+                  "startIndex": 3,
+                  "endIndex": 5,
+                  "children": []
+                },
+                {
+                  "type": "and",
+                  "name": "array",
+                  "value": "[1]",
+                  "firstIndex": 5,
+                  "lastIndex": 7,
+                  "startIndex": 5,
+                  "endIndex": 8,
+                  "children": [
+                    {
+                      "type": "literal",
+                      "name": "open-bracket",
+                      "value": "[",
+                      "firstIndex": 5,
+                      "lastIndex": 5,
+                      "startIndex": 5,
+                      "endIndex": 6,
+                      "children": []
+                    },
+                    {
+                      "type": "repeat",
+                      "name": "items",
+                      "value": "1",
+                      "firstIndex": 6,
+                      "lastIndex": 6,
+                      "startIndex": 6,
+                      "endIndex": 7,
+                      "children": [
+                        {
+                          "type": "regex",
+                          "name": "integer",
+                          "value": "1",
+                          "firstIndex": 6,
+                          "lastIndex": 6,
+                          "startIndex": 6,
+                          "endIndex": 7,
+                          "children": []
+                        }
+                      ]
+                    },
+                    {
+                      "type": "literal",
+                      "name": "close-bracket",
+                      "value": "]",
+                      "firstIndex": 7,
+                      "lastIndex": 7,
+                      "startIndex": 7,
+                      "endIndex": 8,
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "literal",
+              "name": "close-bracket",
+              "value": "]",
+              "firstIndex": 8,
+              "lastIndex": 8,
+              "startIndex": 8,
+              "endIndex": 9,
+              "children": []
+            }
+          ]
+        },
+        {
+          "type": "regex",
+          "name": "comma-divider",
+          "value": ", ",
+          "firstIndex": 9,
+          "lastIndex": 10,
+          "startIndex": 9,
+          "endIndex": 11,
+          "children": []
+        },
+        {
+          "type": "regex",
+          "name": "integer",
+          "value": "1",
+          "firstIndex": 11,
+          "lastIndex": 11,
+          "startIndex": 11,
+          "endIndex": 12,
+          "children": []
+        },
+        {
+          "type": "regex",
+          "name": "comma-divider",
+          "value": ", ",
+          "firstIndex": 12,
+          "lastIndex": 13,
+          "startIndex": 12,
+          "endIndex": 14,
+          "children": []
+        },
+        {
+          "type": "regex",
+          "name": "integer",
+          "value": "2",
+          "firstIndex": 14,
+          "lastIndex": 14,
+          "startIndex": 14,
+          "endIndex": 15,
+          "children": []
+        },
+        {
+          "type": "regex",
+          "name": "comma-divider",
+          "value": ", ",
+          "firstIndex": 15,
+          "lastIndex": 16,
+          "startIndex": 15,
+          "endIndex": 17,
+          "children": []
+        },
+        {
+          "type": "regex",
+          "name": "integer",
+          "value": "3",
+          "firstIndex": 17,
+          "lastIndex": 17,
+          "startIndex": 17,
+          "endIndex": 18,
+          "children": []
+        }
+      ]
+    },
+    {
+      "type": "literal",
+      "name": "close-bracket",
+      "value": "]",
+      "firstIndex": 18,
+      "lastIndex": 18,
+      "startIndex": 18,
+      "endIndex": 19,
+      "children": []
+    }
+  ]
+}
+```
+
+## Not
+
+
 ## Error Handling

@@ -77,7 +77,7 @@ describe("And", () => {
         const sequence = new And("sequence", [
             new Literal("a", "A"),
             new Literal("b", "B", true)
-        ], true);
+        ]);
         const cursor = new Cursor("AD");
         const result = sequence.parse(cursor);
         const expected = new Node("and", "sequence", 0, 0, [
@@ -93,7 +93,7 @@ describe("And", () => {
         const sequence = new And("sequence", [
             new Literal("a", "A"),
             new Literal("b", "B", true)
-        ], true);
+        ]);
         const cursor = new Cursor("A");
         const result = sequence.parse(cursor);
         const expected = new Node("and", "sequence", 0, 0, [
@@ -105,7 +105,7 @@ describe("And", () => {
         expect(cursor.index).toBe(0);
     });
 
-    test("Incomplete Parse", () => {
+    test("Incomplete Parse (Optional)", () => {
         const sequence = new And("sequence", [
             new Literal("a", "A"),
             new Literal("b", "B")
@@ -278,20 +278,19 @@ describe("And", () => {
         const sequence = new And("sequence", [new Literal("a", "A")]);
         sequence.enableAstReduction();
 
-        const { ast: result } = sequence.parseText("A");
+        const { ast: result, cursor } = sequence.parseText("A");
         const expected = new Node("and", "sequence", 0, 0, [], "A");
 
         expect(result).toEqual(expected)
+        expect(cursor).not.toBeNull();
     });
 
     test("Get Next Pattern", () => {
         const sequence = new And("sequence", [
             new Literal("a", "A"),
             new Literal("b", "B", true),
-        ], true);
+        ]);
         const parent = new And("parent", [sequence, new Literal("c", "C")]);
-
-
         const nextPattern = parent.children[0].getNextPattern()
 
         expect(nextPattern?.name).toBe("c");

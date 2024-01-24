@@ -40,10 +40,10 @@ export class Literal implements Pattern {
   }
 
   constructor(name: string, value: string, isOptional = false) {
-    if (value.length === 0){
+    if (value.length === 0) {
       throw new Error("Value Cannot be empty.");
     }
-    
+
     this._type = "literal";
     this._name = name;
     this._literal = value;
@@ -54,6 +54,12 @@ export class Literal implements Pattern {
     this._lastIndex = 0;
     this._hasContextualTokenAggregation = false;
     this._isRetrievingContextualTokens = false;
+  }
+
+  testText(text: string) {
+    const { ast, cursor } = this.parseText(text);
+    return !cursor.hasError &&
+      (ast?.value.length === text.length || this.isOptional)
   }
 
   parseText(text: string) {

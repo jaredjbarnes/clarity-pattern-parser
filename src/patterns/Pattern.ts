@@ -11,6 +11,7 @@ export interface Pattern {
 
   parse(cursor: Cursor): Node | null;
   parseText(text: string): ParseResult;
+  testText(text: string): boolean;
   clone(name?: string, isOptional?: boolean): Pattern;
   getTokens(): string[];
   getNextTokens(lastMatched: Pattern): string[];

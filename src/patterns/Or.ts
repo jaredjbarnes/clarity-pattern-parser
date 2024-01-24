@@ -59,6 +59,12 @@ export class Or implements Pattern {
     }
   }
 
+  testText(text: string) {
+    const { ast, cursor } = this.parseText(text);
+    return !cursor.hasError &&
+      (ast?.value.length === text.length || this.isOptional)
+  }
+
   parseText(text: string) {
     const cursor = new Cursor(text);
     const ast = this.parse(cursor)
@@ -126,7 +132,7 @@ export class Or implements Pattern {
     return getNextPattern(this)
   }
 
-  findPattern(predicate: (p: Pattern)=>boolean): Pattern | null{
+  findPattern(predicate: (p: Pattern) => boolean): Pattern | null {
     return findPattern(this, predicate);
   }
 

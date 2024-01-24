@@ -64,6 +64,12 @@ export class Repeat implements Pattern {
     }
   }
 
+  testText(text: string) {
+    const { ast, cursor } = this.parseText(text);
+    return !cursor.hasError &&
+      (ast?.value.length === text.length || this.isOptional)
+  }
+
   parseText(text: string) {
     const cursor = new Cursor(text);
     const ast = this.parse(cursor)

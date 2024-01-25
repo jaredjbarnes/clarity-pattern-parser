@@ -3,6 +3,7 @@ import { Regex } from "./Regex";
 import { Node } from "../ast/Node"
 import { And } from "./And";
 import { Literal } from "./Literal";
+import { Pattern } from "./Pattern";
 
 describe("Regex", () => {
     test("Empty String", () => {
@@ -70,4 +71,63 @@ describe("Regex", () => {
         const { ast: result } = regex.exec("B");
         expect(result).toBeNull();
     });
+
+    test("Test With Match", () => {
+        const regex = new Regex("a", "A");
+        const result = regex.test("A");
+        expect(result).toBeTruthy();
+    });
+
+    test("Test With No Match", () => {
+        const regex = new Regex("a", "A");
+        const result = regex.test("B");
+        expect(result).toBeFalsy();
+    });
+
+    test("Get Next Tokens", () => {
+        const parent = new And("parent", [new Regex("a", "A"), new Literal("b", "B")]);
+        const aClone = parent.findPattern(p => p.name === "a") as Pattern;
+        const tokens = aClone.getNextTokens();
+
+        expect(tokens).toEqual(["B"]);
+    });
+
+    test("Get Next Tokens With Null Parent", () => {
+        const a = new Regex("a", "A")
+        const tokens = a.getNextTokens();
+
+        expect(tokens).toEqual([]);
+    });
+
+    test("Get Patterns After", () => {
+        const a = new Regex("a", "A")
+        const patterns = a.getPatternsAfter(new Literal("bogus", "bogus"));
+
+        expect(patterns).toEqual([]);
+    });
+
+    test("Find Pattern", () => {
+        const a = new Regex("a", "A")
+        const pattern = a.findPattern(p => p.name === "other");
+
+        expect(pattern).toBeNull();
+    });
+
+    test("Get Next Patterns", () => {
+        const parent = new And("parent", [new Regex("a", "A"), new Literal("b", "B")]);
+        const aClone = parent.findPattern(p => p.name === "a") as Pattern;
+        const bClone = parent.findPattern(p => p.name === "b") as Pattern;
+        const patterns = aClone.getNextPatterns();
+
+        expect(patterns.length).toBe(1);
+        expect(patterns[0]).toBe(bClone);
+    });
+
+    test("Get Next Patterns With Null Parent", () => {
+        const a = new Regex("a", "A")
+        const patterns = a.getNextPatterns();
+
+        expect(patterns).toEqual([])
+    });
+
 });

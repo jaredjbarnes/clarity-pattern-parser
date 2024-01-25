@@ -19,7 +19,7 @@ arguments.shouldReduceAst
 export (method, arguments)
 ```
 
-Using Grammer for a simple JSON Parser
+Using Grammar for a simple JSON Parser
 ```
 # Number Integer
 integer = /([1-9][0-9])*|0/ 

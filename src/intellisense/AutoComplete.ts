@@ -1,5 +1,4 @@
 import { Cursor } from "../patterns/Cursor";
-import { ParseError } from "../patterns/ParseError";
 import { Pattern } from "../patterns/Pattern";
 import { Suggestion } from "./Suggestion";
 import { SuggestionOption } from "./SuggestionOption";
@@ -21,26 +20,30 @@ export class AutoComplete {
         options: this.createSuggestionsFromRoot(),
         nextPatterns: [this._pattern],
         cursor: null,
-        error: new ParseError(0, this._pattern),
+        ast: null
       }
     }
 
     this._text = text;
     this._cursor = new Cursor(text);
-    this._pattern.parse(this._cursor);
+    const ast = this._pattern.parse(this._cursor);
 
     const leafPattern = this._cursor.leafMatch.pattern;
-    const rootMatch = this._cursor.rootMatch.pattern;
-    const isComplete = this._cursor.isOnLast && rootMatch === this._pattern;
+    const isComplete = ast?.value === text;
     const options = this.createSuggestionsFromTokens();
-    const nextPatterns = isComplete ? [] : leafPattern?.parent?.getPatternsAfter(leafPattern) || [this._pattern];
+
+    let nextPatterns = [this._pattern];
+
+    if (leafPattern != null) {
+      nextPatterns = leafPattern.getNextPatterns();
+    }
 
     return {
       isComplete: isComplete,
       options: options,
       nextPatterns,
       cursor: this._cursor,
-      error: this._cursor.furthestError
+      ast,
     }
   }
 

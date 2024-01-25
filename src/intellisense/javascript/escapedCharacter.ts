@@ -42,7 +42,6 @@ const specialCharacter = new Or("special-character", [
 ]);
 
 const escapedCharacter = new And("escaped-character", [backslash, specialCharacter])
-escapedCharacter.enableAstReduction();
 
 export {
     escapedCharacter

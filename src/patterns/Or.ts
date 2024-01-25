@@ -129,11 +129,11 @@ export class Or implements Pattern {
   }
 
   getNextTokens(): string[] {
-    if (this.parent == null) {
+    if (this._parent == null) {
       return []
     }
 
-    return this.parent.getTokensAfter(this);
+    return this._parent.getTokensAfter(this);
   }
 
   getPatternsAfter(_childReference: Pattern): Pattern[] {

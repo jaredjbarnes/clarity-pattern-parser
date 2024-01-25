@@ -127,7 +127,7 @@ export class Reference implements Pattern {
     return this.parent.getTokensAfter(this);
   }
 
-  getPatternsAfter(): Pattern[] {
+  getPatternsAfter(_childReference: Pattern): Pattern[] {
     if (this._parent == null) {
       return [];
     }

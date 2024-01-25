@@ -13,8 +13,6 @@ export class Regex implements Pattern {
   private _cursor: Cursor | null = null;
   private _substring: string = "";
   private _tokens: string[] = [];
-  private _hasContextualTokenAggregation = false;
-  private _isRetrievingContextualTokens: boolean = false;
 
   get type(): string {
     return this._type;
@@ -120,7 +118,7 @@ export class Regex implements Pattern {
       this._name,
       currentIndex,
       newIndex,
-      [],
+      undefined,
       result[0]
     );
 
@@ -139,35 +137,11 @@ export class Regex implements Pattern {
   clone(name = this._name, isOptional = this._isOptional) {
     const pattern = new Regex(name, this._originalRegexString, isOptional);
     pattern._tokens = this._tokens.slice();
-    pattern._hasContextualTokenAggregation =
-      this._hasContextualTokenAggregation;
 
     return pattern;
   }
 
   getTokens() {
-    const parent = this._parent;
-
-    if (this._hasContextualTokenAggregation &&
-      parent != null &&
-      !this._isRetrievingContextualTokens
-    ) {
-      this._isRetrievingContextualTokens = true;
-
-      const tokens = this._tokens;
-      const aggregateTokens: string[] = [];
-      const nextTokens = parent.getTokensAfter(this);
-
-      for (let nextToken of nextTokens) {
-        for (let token of tokens) {
-          aggregateTokens.push(token + nextToken);
-        }
-      }
-
-      this._isRetrievingContextualTokens = false
-      return aggregateTokens;
-    }
-
     return this._tokens;
   }
 
@@ -201,14 +175,6 @@ export class Regex implements Pattern {
 
   setTokens(tokens: string[]) {
     this._tokens = tokens;
-  }
-
-  enableContextualTokenAggregation() {
-    this._hasContextualTokenAggregation = true;
-  }
-
-  disableContextualTokenAggregation() {
-    this._hasContextualTokenAggregation = false;
   }
 
 }

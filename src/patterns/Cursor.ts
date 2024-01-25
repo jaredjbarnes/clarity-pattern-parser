@@ -1,5 +1,7 @@
-import { Pattern, Node, ParseError } from "..";
+import { Node } from "../ast/Node";
 import { CursorHistory, Match } from "./CursorHistory";
+import { ParseError } from "./ParseError";
+import { Pattern } from "./Pattern";
 
 export class Cursor {
   private _text: string;

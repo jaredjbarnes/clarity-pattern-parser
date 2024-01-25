@@ -14,7 +14,6 @@ export class Repeat implements Pattern {
   private _isOptional: boolean;
   private _nodes: Node[];
   private _firstIndex: number;
-  private _shouldReduceAst: boolean;
 
   get type(): string {
     return this._type;
@@ -53,7 +52,6 @@ export class Repeat implements Pattern {
     this._pattern = children[0];
     this._divider = children[1];
     this._firstIndex = -1
-    this._shouldReduceAst = false
     this._nodes = [];
   }
 
@@ -177,17 +175,13 @@ export class Repeat implements Pattern {
     const value = cursor.getChars(this._firstIndex, lastIndex);
     cursor.moveTo(lastIndex);
 
-    if (this._shouldReduceAst) {
-      children = [];
-    }
-
     return new Node(
       "repeat",
       this._name,
       this._firstIndex,
       lastIndex,
       children,
-      this._shouldReduceAst ? value : undefined
+      undefined
     );
   }
 
@@ -199,14 +193,6 @@ export class Repeat implements Pattern {
     }
 
     return nodes[nodes.length - 1];
-  }
-
-  enableAstReduction(): void {
-    this._shouldReduceAst = true;
-  }
-
-  disableAstReduction(): void {
-    this._shouldReduceAst = false;
   }
 
   getTokens(): string[] {
@@ -280,10 +266,7 @@ export class Repeat implements Pattern {
   }
 
   clone(name = this._name, isOptional = this._isOptional): Pattern {
-    const repeat = new Repeat(name, this._pattern, this._divider, isOptional);
-    repeat._shouldReduceAst = this._shouldReduceAst;
-
-    return repeat;
+    return new Repeat(name, this._pattern, this._divider, isOptional);
   }
 }
 

@@ -175,6 +175,32 @@ describe("And", () => {
         expect(sequence.children[0].name).toBe("a");
     });
 
+    test("Exec", () => {
+        const sequence = new And("sequence", [new Literal("a", "A")]);
+
+        const { ast: result, cursor } = sequence.exec("A");
+        const expected = new Node("and", "sequence", 0, 0, [
+            new Node("literal", "a", 0, 0, undefined, "A")
+        ]);
+
+        expect(result).toEqual(expected)
+        expect(cursor).not.toBeNull();
+    });
+
+    test("Test With Match", () => {
+        const sequence = new And("sequence", [new Literal("a", "A")]);
+        const hasMatch = sequence.test("A");
+
+        expect(hasMatch).toBeTruthy();
+    });
+
+    test("Test With No Match", () => {
+        const sequence = new And("sequence", [new Literal("a", "A")]);
+        const hasMatch = sequence.test("B");
+
+        expect(hasMatch).toBeFalsy();
+    });
+
     test("Set Parent", () => {
         const a = new Literal("a", "A", true)
         const sequence = new And("sequence", [
@@ -184,33 +210,6 @@ describe("And", () => {
 
         expect(parent.type).toBe("and");
         expect(parent.children[0].type).toBe("and");
-    });
-
-    test("Reduce Ast", () => {
-        const sequence = new And("sequence", [
-            new Literal("a", "A"),
-        ], true);
-        sequence.enableAstReduction();
-
-        const cursor = new Cursor("A");
-        let result = sequence.parse(cursor);
-        let expected = new Node("and", "sequence", 0, 0, [], "A");
-
-        expect(result).toEqual(expected);
-        expect(cursor.error).toBe(null)
-        expect(cursor.index).toBe(0);
-
-        sequence.disableAstReduction()
-
-        cursor.moveTo(0)
-        result = sequence.parse(cursor);
-        expected = new Node("and", "sequence", 0, 0, [
-            new Node("literal", "a", 0, 0, [], "A"),
-        ]);
-
-        expect(result).toEqual(expected);
-        expect(cursor.error).toBe(null)
-        expect(cursor.index).toBe(0);
     });
 
     test("Get Tokens", () => {
@@ -268,24 +267,44 @@ describe("And", () => {
         ], true);
         const parent = new And("parent", [sequence, new Literal("c", "C")]);
 
-
         const tokens = parent.children[0].getTokensAfter(parent.children[0].children[0])
 
         expect(tokens).toEqual(["B", "C"]);
     });
 
-    test("Parse Text", () => {
+    test("Get Next Tokens", () => {
         const sequence = new And("sequence", [new Literal("a", "A")]);
-        sequence.enableAstReduction();
+        const parent = new And("parent", [sequence, new Literal("b", "B")]);
 
-        const { ast: result, cursor } = sequence.parseText("A");
-        const expected = new Node("and", "sequence", 0, 0, [], "A");
+        const sequenceClone = parent.findPattern(p => p.name === "sequence");
+        const tokens = sequenceClone?.getNextTokens() || [];
 
-        expect(result).toEqual(expected)
-        expect(cursor).not.toBeNull();
+        expect(tokens[0]).toBe("B");
+    });
+
+    test("Get Next Tokens With Null Parent", () => {
+        const sequence = new And("sequence", [new Literal("a", "A")]);
+        const tokens = sequence.getNextTokens();
+
+        expect(tokens.length).toBe(0);
     });
 
     test("Get Next Patterns", () => {
-       
+        const sequence = new And("sequence", [new Literal("a", "A")]);
+        const parent = new And("parent", [sequence, new Literal("b", "B")]);
+
+        const sequenceClone = parent.findPattern(p => p.name === "sequence");
+        const nextPatterns = sequenceClone?.getNextPatterns() || [];
+        const b = parent.findPattern(p => p.name === "b")
+
+        expect(nextPatterns[0]).toBe(b);
     });
+
+    test("Get Next Patterns With Null Parent", () => {
+        const sequence = new And("sequence", [new Literal("a", "A")]);
+        const nextPatterns = sequence.getNextPatterns()
+
+        expect(nextPatterns.length).toBe(0);
+    });
+
 });

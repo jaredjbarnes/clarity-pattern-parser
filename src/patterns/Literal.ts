@@ -11,8 +11,6 @@ export class Literal implements Pattern {
   private _runes: string[];
   private _firstIndex: number;
   private _lastIndex: number;
-  private _hasContextualTokenAggregation: boolean;
-  private _isRetrievingContextualTokens: boolean;
 
   get type(): string {
     return this._type;
@@ -51,8 +49,6 @@ export class Literal implements Pattern {
     this._parent = null;
     this._firstIndex = 0;
     this._lastIndex = 0;
-    this._hasContextualTokenAggregation = false;
-    this._isRetrievingContextualTokens = false;
   }
 
   test(text: string) {
@@ -129,47 +125,26 @@ export class Literal implements Pattern {
       this._name,
       this._firstIndex,
       this._lastIndex,
-      [],
+      undefined,
       this._literal
     );
   }
 
   clone(name = this._name, isOptional = this._isOptional): Pattern {
     const clone = new Literal(name, this._literal, isOptional);
-    clone._hasContextualTokenAggregation = this._hasContextualTokenAggregation;
     return clone;
   }
 
   getTokens(): string[] {
-    const parent = this._parent;
-
-    if (
-      this._hasContextualTokenAggregation &&
-      parent != null &&
-      !this._isRetrievingContextualTokens
-    ) {
-      this._isRetrievingContextualTokens = true;
-
-      const aggregateTokens: string[] = [];
-      const nextTokens = parent.getTokensAfter(this);
-
-      for (const nextToken of nextTokens) {
-        aggregateTokens.push(this._literal + nextToken);
-      }
-
-      this._isRetrievingContextualTokens = false;
-      return aggregateTokens;
-    } else {
-      return [this._literal];
-    }
+    return [this._literal];
   }
 
   getTokensAfter(_lastMatched: Pattern): string[] {
     return [];
   }
 
-  getNextTokens(): string[]{
-    if (this.parent == null){
+  getNextTokens(): string[] {
+    if (this.parent == null) {
       return []
     }
 
@@ -180,8 +155,8 @@ export class Literal implements Pattern {
     return []
   }
 
-  getNextPatterns(): Pattern[]{
-    if (this.parent == null){
+  getNextPatterns(): Pattern[] {
+    if (this.parent == null) {
       return [];
     }
 
@@ -190,14 +165,6 @@ export class Literal implements Pattern {
 
   findPattern(_predicate: (p: Pattern) => boolean): Pattern | null {
     return null;
-  }
-
-  enableContextualTokenAggregation(): void {
-    this._hasContextualTokenAggregation = true;
-  }
-
-  disableContextualTokenAggregation(): void {
-    this._hasContextualTokenAggregation = false;
   }
 
 }

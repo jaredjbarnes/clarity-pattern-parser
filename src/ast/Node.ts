@@ -50,6 +50,10 @@ export class Node {
     return this._children;
   }
 
+  get hasChildren(): boolean {
+    return this._children.length > 0;
+  }
+
   get value() {
     return this.toString();
   }
@@ -141,7 +145,7 @@ export class Node {
     return null
   }
 
-  previousSibling(){
+  previousSibling() {
     if (this._parent == null) {
       return null;
     }
@@ -177,6 +181,12 @@ export class Node {
   walkDown(callback: (node: Node) => void) {
     callback(this);
     this.children.forEach(c => c.walkDown(callback))
+  }
+
+  reduce() {
+    const value = this.toString();
+    this.removeAllChildren();
+    this._value = value;
   }
 
   clone(): Node {

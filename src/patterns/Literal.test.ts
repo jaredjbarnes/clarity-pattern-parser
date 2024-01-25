@@ -70,30 +70,10 @@ describe("Literal", () => {
     });
 
     test("Get Tokens", () => {
-        const parent = new And("parent", [
-            new Literal("a", "A"),
-            new Literal("b", "B")
-        ]);
+        const a = new Literal("a", "A");
 
-        const a = parent.children[0] as Literal;
-        const b = parent.children[1];
-
-        let tokens = a.getTokens();
-        let expectedTokens = ["A"];
-
-        expect(tokens).toEqual(expectedTokens);
-
-        a.enableContextualTokenAggregation();
-
-        tokens = a.getTokens();
-        expectedTokens = ["AB"];
-
-        expect(tokens).toEqual(expectedTokens);
-
-        a.disableContextualTokenAggregation();
-
-        tokens = a.getTokens();
-        expectedTokens = ["A"];
+        const tokens = a.getTokens();
+        const expectedTokens = ["A"];
 
         expect(tokens).toEqual(expectedTokens);
     });
@@ -115,9 +95,72 @@ describe("Literal", () => {
         expect(literal.children).toEqual([]);
     });
 
-    test("Parse Text", () => {
+    test("Exec", () => {
         const literal = new Literal("a", "A");
-        const { ast: result } = literal.parseText("B");
+        const { ast: result } = literal.exec("B");
         expect(result).toBeNull()
+    });
+
+    test("Test With No Match", () => {
+        const literal = new Literal("a", "A");
+        const isMatch = literal.test("B");
+
+        expect(isMatch).toBeFalsy();
+    });
+
+    test("Test With Match", () => {
+        const literal = new Literal("a", "A");
+        const isMatch = literal.test("A");
+
+        expect(isMatch).toBeTruthy();
+    });
+
+    test("Get Next Tokens", () => {
+        const sequence = new And("sequence", [new Literal("a", "A")]);
+        const parent = new And("parent", [sequence, new Literal("b", "B")]);
+
+        const a = parent.findPattern(p => p.name === "a");
+        const tokens = a?.getNextTokens() || [];
+
+        expect(tokens[0]).toBe("B");
+    });
+
+    test("Get Next Tokens With Null Parent", () => {
+        const a = new Literal("a", "A");
+        const tokens = a.getNextTokens();
+
+        expect(tokens.length).toBe(0);
+    });
+
+    test("Get Next Patterns", () => {
+        const sequence = new And("sequence", [new Literal("a", "A")]);
+        const parent = new And("parent", [sequence, new Literal("b", "B")]);
+
+        const a = parent.findPattern(p => p.name === "a");
+        const nextPatterns = a?.getNextPatterns() || [];
+        const b = parent.findPattern(p => p.name === "b")
+
+        expect(nextPatterns[0]).toBe(b);
+    });
+
+    test("Get Next Patterns With Null Parent", () => {
+        const a = new Literal("a", "A");
+        const nextPatterns = a.getNextPatterns();
+
+        expect(nextPatterns.length).toBe(0);
+    });
+
+    test("Get Patterns After", () => {
+        const a = new Literal("a", "A");
+        const patterns = a.getPatternsAfter();
+
+        expect(patterns.length).toBe(0);
+    });
+
+    test("Find Pattern", () => {
+        const a = new Literal("a", "A");
+        const pattern = a.findPattern(p => p.name === "nada");
+
+        expect(pattern).toBeNull();
     });
 });

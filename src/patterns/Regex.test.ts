@@ -38,33 +38,12 @@ describe("Regex", () => {
 
 
     test("Get Tokens", () => {
-        const parent = new And("parent", [
-            new Regex("a", "A"),
-            new Regex("b", "B")
-        ]);
-
-        const a = parent.children[0] as Regex;
-        const b = parent.children[1] as Regex;
+        const a = new Regex("a", "A");
 
         a.setTokens(["A"]);
-        b.setTokens(["B"]);
 
-        let tokens = a.getTokens();
-        let expectedTokens = ["A"];
-
-        expect(tokens).toEqual(expectedTokens);
-
-        a.enableContextualTokenAggregation();
-
-        tokens = a.getTokens();
-        expectedTokens = ["AB"];
-
-        expect(tokens).toEqual(expectedTokens);
-
-        a.disableContextualTokenAggregation();
-
-        tokens = a.getTokens();
-        expectedTokens = ["A"];
+        const tokens = a.getTokens();
+        const expectedTokens = ["A"];
 
         expect(tokens).toEqual(expectedTokens);
     });
@@ -86,9 +65,9 @@ describe("Regex", () => {
         expect(regex.children).toEqual([]);
     });
 
-    test("Parse Text", () => {
+    test("Exec", () => {
         const regex = new Regex("a", "A");
-        const { ast: result } = regex.parseText("B");
+        const { ast: result } = regex.exec("B");
         expect(result).toBeNull();
     });
 });

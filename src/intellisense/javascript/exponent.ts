@@ -21,6 +21,4 @@ const exponent = new And("exponent", [
     digit,
 ]);
 
-exponent.enableAstReduction();
-
 export { exponent }

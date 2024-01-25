@@ -2,6 +2,8 @@ import { And } from "../patterns/And";
 import { findPattern } from "../patterns/findPattern";
 import { Literal } from "../patterns/Literal";
 import { Or } from "../patterns/Or";
+import { Regex } from "../patterns/Regex";
+import { Repeat } from "../patterns/Repeat";
 import { AutoComplete } from "./AutoComplete";
 
 describe("AutoComplete", () => {
@@ -12,7 +14,7 @@ describe("AutoComplete", () => {
 
         expect(result.options[0].text).toBe("Name");
         expect(result.options[0].startIndex).toBe(0);
-        //expect(result.nextPatterns).toBe(name);
+        expect(result.nextPatterns[0]).toBe(name);
         expect(result.isComplete).toBeFalsy();
     });
 
@@ -21,21 +23,55 @@ describe("AutoComplete", () => {
         const space = new Literal("space", " ");
         const doe = new Literal("doe", "Doe");
         const smith = new Literal("smith", "Smith");
-
-        space.enableContextualTokenAggregation();
-
         const name = new And("name", [john, space, new Or("last-name", [smith, doe])]);
 
         const autoComplete = new AutoComplete(name);
-        let result = autoComplete.suggest("John");
+        const result = autoComplete.suggest("John Doe");
 
+        expect(result.ast?.value).toBe("John Doe");
+        expect(result.options.length).toBe(0);
+        expect(result.nextPatterns.length).toBe(0);
+        expect(result.isComplete).toBeTruthy();
+        expect(result.cursor).not.toBeNull();
+    });
+
+    test("More Than One Option", () => {
+        const john = new Literal("john", "John");
+        const space = new Literal("space", " ");
+        const doe = new Literal("doe", "Doe");
+        const smith = new Literal("smith", "Smith");
+        const name = new And("name", [john, space, new Or("last-name", [smith, doe])]);
+
+        const autoComplete = new AutoComplete(name);
+        const result = autoComplete.suggest("John ");
+
+        expect(result.ast).toBeNull();
         expect(result.options.length).toBe(2);
-        //expect(result.nextPatterns).toBe(findPattern(name, p=>p.name === "space"));
-        expect(result.options[0].text).toBe(" Doe");
-        expect(result.options[0].startIndex).toBe(4);
-        expect(result.options[1].text).toBe(" Smith");
-        expect(result.options[1].startIndex).toBe(4);
+        expect(result.nextPatterns.length).toBe(1);
+        expect(result.nextPatterns[0].type).toBe("or");
+        expect(result.nextPatterns[0].name).toBe("last-name");
         expect(result.isComplete).toBeFalsy();
+        expect(result.cursor).not.toBeNull();
+    });
+
+    test("Full Pattern Match With Root Repeat", () => {
+        const john = new Literal("john", "John");
+        const space = new Literal("space", " ");
+        const doe = new Literal("doe", "Doe");
+        const smith = new Literal("smith", "Smith");
+        const name = new And("name", [john, space, new Or("last-name", [smith, doe])]);
+        const divider = new Regex("divider", "\\s+,\\s+");
+
+        divider.setTokens([", "])
+
+        const autoComplete = new AutoComplete(new Repeat("last-names", name, divider));
+        const result = autoComplete.suggest("John Doe");
+
+        expect(result.ast?.value).toBe("John Doe");
+        expect(result.options.length).toBe(1);
+        expect(result.nextPatterns.length).toBe(result.options.length);
+        expect(result.isComplete).toBeTruthy();
+        expect(result.cursor).not.toBeNull();
     });
 
     test("Partial", () => {
@@ -45,7 +81,7 @@ describe("AutoComplete", () => {
 
         expect(result.options[0].text).toBe("me");
         expect(result.options[0].startIndex).toBe(2);
-        //expect(result.nextPattern).toBe(name);
+        expect(result.nextPatterns[0]).toBe(name);
         expect(result.isComplete).toBeFalsy();
     });
 

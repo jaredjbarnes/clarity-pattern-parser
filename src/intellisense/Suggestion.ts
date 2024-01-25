@@ -1,3 +1,4 @@
+import { Node } from "../ast/Node";
 import { Cursor } from "../patterns/Cursor";
 import { Match } from "../patterns/CursorHistory";
 import { ParseError } from "../patterns/ParseError";
@@ -9,5 +10,5 @@ export interface Suggestion {
   options: SuggestionOption[];
   nextPatterns: Pattern[];
   cursor: Cursor | null;
-  error: ParseError | null;
+  ast: Node | null;
 }

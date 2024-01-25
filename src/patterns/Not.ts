@@ -79,10 +79,16 @@ export class Not implements Pattern {
   }
 
   getTokens(): string[] {
+    const parent = this._parent;
+
+    if (parent != null) {
+      return parent.getTokensAfter(this);
+    }
+
     return [];
   }
 
-  getTokensAfter(_lastMatched: Pattern): string[] {
+  getTokensAfter(_childReference: Pattern): string[] {
     const parent = this._parent;
 
     if (parent != null) {
@@ -100,7 +106,7 @@ export class Not implements Pattern {
     return this.parent.getTokensAfter(this);
   }
 
-  getPatternsAfter(): Pattern[] {
+  getPatternsAfter(_childReference: Pattern): Pattern[] {
     const parent = this._parent;
 
     if (parent != null) {

@@ -96,31 +96,6 @@ describe("Repeat", () => {
         expect(cursor.hasError).toBeFalsy()
     });
 
-    test("Ast Reduction", () => {
-        const digit = new Regex("digit", "\\d");
-        const integer = new Repeat("number", digit);
-        const cursor = new Cursor("337");
-
-        integer.enableAstReduction();
-
-        let result = integer.parse(cursor);
-        let expected = new Node("repeat", "number", 0, 2, [], "337");
-
-        expect(result).toEqual(expected)
-
-        integer.disableAstReduction()
-        cursor.moveTo(0)
-
-        result = integer.parse(cursor);
-        expected = new Node("repeat", "number", 0, 2, [
-            new Node("regex", "digit", 0, 0, [], "3"),
-            new Node("regex", "digit", 1, 1, [], "3"),
-            new Node("regex", "digit", 2, 2, [], "7"),
-        ]);
-
-        expect(result).toEqual(expected)
-    });
-
     test("Get Tokens", () => {
         const a = new Literal("a", "A");
         const manyA = new Repeat("number", a);
@@ -181,9 +156,9 @@ describe("Repeat", () => {
         expect(integer.children[0].name).toBe("digit");
     });
 
-    test("Parse Text", () => {
+    test("Exec", () => {
         const integer = new Repeat("integer", new Regex("digit", "\\d"));
-        const { ast: result } = integer.parseText("B");
+        const { ast: result } = integer.exec("B");
         expect(result).toBeNull()
     });
 });

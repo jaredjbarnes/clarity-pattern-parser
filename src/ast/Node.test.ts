@@ -15,6 +15,25 @@ describe("Node", () => {
         expect(node.children.length).toBe(0);
     });
 
+    test("Properties", () => {
+        const child = new Node("child", "child", 0, 0, undefined, "Content")
+        const parent = new Node("parent", "parent", 0, 0, [
+            child,
+        ]);
+
+        expect(parent.hasChildren).toBeTruthy();
+        expect(child.parent).toBe(parent);
+        expect(parent.children[0]).toBe(child);
+        expect(child.type).toBe("child");
+        expect(parent.value).toBe("Content");
+        expect(child.value).toBe("Content");
+        expect(child.name).toBe("child");
+        expect(child.firstIndex).toBe(0);
+        expect(child.lastIndex).toBe(0);
+        expect(child.startIndex).toBe(0);
+        expect(child.endIndex).toBe(1);
+    });
+
     test("Create Tree", () => {
         const child = new Node("child", "child", 0, 0, [], "Child");
         const parent = new Node("parent", "parent", 0, 0, [child]);
@@ -299,6 +318,17 @@ describe("Node", () => {
         });
 
         expect(result).toEqual(expected)
+    });
+
+    test("Reduce", () => {
+        const parent = new Node("parent", "parent", 0, 6, [
+            new Node("child", "child", 0, 6, undefined, "Content")
+        ]);
+
+        parent.reduce();
+
+        expect(parent.hasChildren).toBeFalsy();
+        expect(parent.value).toBe("Content")
     });
 
 });

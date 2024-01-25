@@ -13,7 +13,6 @@ export class And implements Pattern {
   private _isOptional: boolean;
   private _nodes: (Node | null)[];
   private _firstIndex: number;
-  private _shouldReduceAst: boolean;
 
   get type(): string {
     return this._type;
@@ -53,7 +52,6 @@ export class And implements Pattern {
     this._parent = null;
     this._children = children;
     this._firstIndex = -1
-    this._shouldReduceAst = false;
     this._nodes = [];
   }
 
@@ -196,26 +194,13 @@ export class And implements Pattern {
 
     cursor.moveTo(lastIndex)
 
-    if (this._shouldReduceAst) {
-      children.length = 0;
-    }
-
     return new Node(
       "and",
       this._name,
       this._firstIndex,
       lastIndex,
-      children,
-      this._shouldReduceAst ? value : undefined
+      children
     );
-  }
-
-  enableAstReduction(): void {
-    this._shouldReduceAst = true;
-  }
-
-  disableAstReduction(): void {
-    this._shouldReduceAst = false;
   }
 
   getTokens(): string[] {
@@ -313,9 +298,6 @@ export class And implements Pattern {
   }
 
   clone(name = this._name, isOptional = this._isOptional): Pattern {
-    const and = new And(name, this._children, isOptional)
-    and._shouldReduceAst = this._shouldReduceAst;
-
-    return and
+    return new And(name, this._children, isOptional)
   }
 }

@@ -3,6 +3,7 @@ import { And } from "./And";
 import { Cursor } from "./Cursor";
 import { findPattern } from "./findPattern";
 import { Literal } from "./Literal";
+import { Pattern } from "./Pattern";
 import { Regex } from "./Regex";
 import { Repeat } from "./Repeat";
 
@@ -160,5 +161,58 @@ describe("Repeat", () => {
         const integer = new Repeat("integer", new Regex("digit", "\\d"));
         const { ast: result } = integer.exec("B");
         expect(result).toBeNull()
+    });
+
+    test("Test With Match", () => {
+        const integer = new Repeat("integer", new Regex("digit", "\\d"));
+        const result = integer.test("1");
+        expect(result).toBeTruthy()
+    });
+
+    test("Test With No Match", () => {
+        const integer = new Repeat("integer", new Regex("digit", "\\d"));
+        const result = integer.test("b");
+        expect(result).toBeFalsy()
+    });
+
+    test("Get Next Tokens", () => {
+        const integer = new Repeat("integer", new Regex("digit", "\\d"));
+        const parent = new And("parent", [integer, new Literal("pow", "!")]);
+        const integerClone = parent.findPattern(p => p.name === "integer") as Pattern;
+        const tokens = integerClone.getNextTokens();
+
+        expect(tokens).toEqual(["!"])
+    });
+
+    test("Get Next Tokens With Null Parents", () => {
+        const integer = new Repeat("integer", new Regex("digit", "\\d"));
+        const tokens = integer.getNextTokens();
+
+        expect(tokens.length).toBe(0);
+    });
+
+    test("Find Pattern", () => {
+        const integer = new Repeat("integer", new Regex("digit", "\\d"));
+        const digitClone = integer.findPattern(p => p.name === "digit") as Pattern;
+
+        expect(digitClone).not.toBeNull();
+    });
+
+    test("Get Next Patterns", () => {
+        const integer = new Repeat("integer", new Regex("digit", "\\d"));
+        const parent = new And("parent", [integer, new Literal("pow", "!")]);
+        const integerClone = parent.findPattern(p => p.name === "integer") as Pattern;
+        const powClone = parent.findPattern(p => p.name === "pow") as Pattern;
+        const patterns = integerClone.getNextPatterns();
+
+        expect(patterns.length).toBe(1);
+        expect(patterns[0]).toBe(powClone);
+    });
+
+    test("Get Next Patterns With Null Parents", () => {
+        const integer = new Repeat("integer", new Regex("digit", "\\d"));
+        const patterns = integer.getNextPatterns();
+
+        expect(patterns.length).toBe(0);
     });
 });

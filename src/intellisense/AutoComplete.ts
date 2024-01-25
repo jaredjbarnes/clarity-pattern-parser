@@ -3,13 +3,31 @@ import { Pattern } from "../patterns/Pattern";
 import { Suggestion } from "./Suggestion";
 import { SuggestionOption } from "./SuggestionOption";
 
+export interface AutoCompleteOptions {
+  /**
+   * Allows for certain patterns to combine their tokens with the next tokens. 
+   * Be very careful, this can explode to infinity pretty quick. Usually useful 
+   * for dividers and spaces.
+   */
+  greedyPatternNames: string[];
+  /**
+   * Allows for custom suggestions for patterns. The key is the name of the pattern
+   * and the string array are the tokens suggested for that pattern.
+   */
+  customTokens: Record<string, string[]>;
+}
+
+const defaultOptions = { greedyPatternNames: [], customTokens: {} };
+
 export class AutoComplete {
   private _pattern: Pattern;
+  private _options: AutoCompleteOptions;
   private _cursor!: Cursor;
   private _text: string;
 
-  constructor(pattern: Pattern) {
+  constructor(pattern: Pattern, options: AutoCompleteOptions = defaultOptions) {
     this._pattern = pattern;
+    this._options = options;
     this._text = "";
   }
 
@@ -62,17 +80,50 @@ export class AutoComplete {
     const leafMatch = this._cursor.leafMatch;
 
     if (!leafMatch.pattern) {
-      return this.createSuggestions(-1, this._pattern.getTokens());
+      return this.createSuggestions(-1, this._getTokensForPattern(this._pattern));
     }
 
     const leafPattern = leafMatch.pattern;
+    const leafNode = leafMatch.node;
     const parent = leafMatch.pattern.parent;
 
     if (parent !== null && leafMatch.node != null) {
-      const tokens = parent.getTokensAfter(leafPattern);
+      const patterns = leafPattern.getNextPatterns();
+
+      const tokens = patterns.reduce((acc: string[], pattern) => {
+        acc.push(...this._getTokensForPattern(pattern));
+        return acc;
+      }, []);
+
       return this.createSuggestions(leafMatch.node.lastIndex, tokens);
     } else {
       return [];
+    }
+  }
+
+  private _getTokensForPattern(pattern: Pattern) {
+    if (this._options.greedyPatternNames.includes(pattern.name)) {
+      const greedyTokens = pattern.getTokens();
+      const nextPatterns = pattern.getNextPatterns();
+      const tokens: string[] = [];
+
+      const nextPatternTokens = nextPatterns.reduce((acc: string[], pattern)=>{
+        acc.push(...this._getTokensForPattern(pattern));
+        return acc;
+      }, []);
+
+      for (let token of greedyTokens){
+        for (let nextPatternToken of nextPatternTokens){
+          tokens.push(token + nextPatternToken);
+        }
+      }
+
+      return tokens;
+    } else {
+      const tokens = pattern.getTokens();
+      const customTokens = this._options.customTokens[pattern.name] || [];
+      tokens.push(...customTokens);
+      return tokens;
     }
   }
 

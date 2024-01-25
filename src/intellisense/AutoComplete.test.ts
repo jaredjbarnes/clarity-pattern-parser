@@ -4,7 +4,7 @@ import { Literal } from "../patterns/Literal";
 import { Or } from "../patterns/Or";
 import { Regex } from "../patterns/Regex";
 import { Repeat } from "../patterns/Repeat";
-import { AutoComplete } from "./AutoComplete";
+import { AutoComplete, AutoCompleteOptions } from "./AutoComplete";
 
 describe("AutoComplete", () => {
     test("No Text", () => {
@@ -102,7 +102,49 @@ describe("AutoComplete", () => {
         let result = autoComplete.suggest("Name");
 
         expect(result.options.length).toBe(0);
-        //expect(result.nextPattern).toBe(null);
+        expect(result.nextPatterns.length).toBe(0);
         expect(result.isComplete).toBeTruthy();
     });
+
+    test("Options", ()=>{
+        const autoCompleteOptions: AutoCompleteOptions = {
+            greedyPatternNames: ["space"],
+            customTokens: {
+                "last-name": ["Sparrow"]
+            }
+        };
+
+        const jack = new Literal("jack", "Jack");
+        const john = new Literal("john", "John");
+        const space = new Literal("space", " ");
+        const doe = new Literal("doe", "Doe");
+        const smith = new Literal("smith", "Smith");
+        const firstName = new Or("first-name", [jack, john]);
+        const lastName = new Or("last-name", [doe, smith]);
+        const fullName = new And("full-name", [firstName, space, lastName]);
+
+        const text = "John";
+        const autoComplete = new AutoComplete(fullName, autoCompleteOptions);
+        const { options, ast, nextPatterns } = autoComplete.suggest(text);
+        const expectedOptions = [
+            {text: " Doe", startIndex: 4},
+            {text: " Smith", startIndex: 4},
+            {text: " Sparrow", startIndex: 4},
+        ];
+
+        const results = expectedOptions.map(o=>text.slice(0, o.startIndex) + o.text);
+        const expectedResults = [
+            "John Doe",
+            "John Smith",
+            "John Sparrow",
+        ]
+
+        expect(options).toEqual(expectedOptions);
+        expect(ast).toBeNull();
+        expect(nextPatterns.length).toBe(1);
+        expect(nextPatterns[0].name).toBe("space");
+        expect(results).toEqual(expectedResults)
+
+    });
+
 });

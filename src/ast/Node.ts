@@ -173,6 +173,20 @@ export class Node {
     return matches;
   }
 
+  findAncester(predicate: (node: Node) => boolean){
+    let parent = this._parent;
+
+    while(parent != null){
+      if (predicate(parent)){
+        return parent;
+      }
+
+      parent = parent._parent;
+    }
+
+    return null;
+  }
+
   walkUp(callback: (node: Node) => void) {
     this.children.forEach(c => c.walkUp(callback))
     callback(this);
@@ -181,6 +195,18 @@ export class Node {
   walkDown(callback: (node: Node) => void) {
     callback(this);
     this.children.forEach(c => c.walkDown(callback))
+  }
+
+  flatten(){
+    const nodes: Node[] = [];
+
+    this.walkDown((node: Node)=>{
+      if (!node.hasChildren){
+        nodes.push(node);
+      }
+    });
+
+    return nodes;
   }
 
   reduce() {

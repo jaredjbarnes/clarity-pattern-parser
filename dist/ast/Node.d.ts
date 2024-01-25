@@ -37,8 +37,10 @@ export declare class Node {
     previousSibling(): Node | null;
     find(predicate: (node: Node) => boolean): Node | null;
     findAll(predicate: (node: Node) => boolean): Node[];
+    findAncester(predicate: (node: Node) => boolean): Node | null;
     walkUp(callback: (node: Node) => void): void;
     walkDown(callback: (node: Node) => void): void;
+    flatten(): Node[];
     reduce(): void;
     clone(): Node;
     toString(): string;

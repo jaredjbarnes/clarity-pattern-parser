@@ -119,6 +119,16 @@
             });
             return matches;
         }
+        findAncester(predicate) {
+            let parent = this._parent;
+            while (parent != null) {
+                if (predicate(parent)) {
+                    return parent;
+                }
+                parent = parent._parent;
+            }
+            return null;
+        }
         walkUp(callback) {
             this.children.forEach(c => c.walkUp(callback));
             callback(this);
@@ -126,6 +136,15 @@
         walkDown(callback) {
             callback(this);
             this.children.forEach(c => c.walkDown(callback));
+        }
+        flatten() {
+            const nodes = [];
+            this.walkDown((node) => {
+                if (!node.hasChildren) {
+                    nodes.push(node);
+                }
+            });
+            return nodes;
         }
         reduce() {
             const value = this.toString();

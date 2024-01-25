@@ -331,4 +331,34 @@ describe("Node", () => {
         expect(parent.value).toBe("Content")
     });
 
+    test("Flatten", () => {
+        const a = new Node("a", "a", 0, 0, [], "A");
+        const b = new Node("b", "b", 1, 1, [], "B");
+        const c = new Node("c", "c", 2, 2, [], "C");
+
+        const parent = new Node("parent", "parent", 0, 1, [
+            a,
+            b,
+        ]);
+
+        const grandParent = new Node("grand-parent", "grand-parent", 0, 2, [
+            parent,
+            c,
+        ]);
+
+        const nodes = grandParent.flatten();
+        const expected = [a, b, c];
+
+        expect(nodes).toEqual(expected)
+    });
+
+    test("Find Ancester", () => {
+        const child = new Node("child", "child", 0, 0, []);
+        const parent = new Node("parent", "parent", 0, 0, [child]);
+        const grandParent = new Node("grand-parent", "grand-parent", 0, 0, [parent]);
+        const result = child.findAncester(p => p.name === "grand-parent")
+
+        expect(result).toBe(grandParent)
+    });
+
 });

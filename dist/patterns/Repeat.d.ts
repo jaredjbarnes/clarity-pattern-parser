@@ -11,7 +11,6 @@ export declare class Repeat implements Pattern {
     private _isOptional;
     private _nodes;
     private _firstIndex;
-    private _shouldReduceAst;
     get type(): string;
     get name(): string;
     get parent(): Pattern | null;
@@ -20,7 +19,8 @@ export declare class Repeat implements Pattern {
     get isOptional(): boolean;
     constructor(name: string, pattern: Pattern, divider?: Pattern, isOptional?: boolean);
     private _assignChildrenToParent;
-    parseText(text: string): {
+    test(text: string): boolean;
+    exec(text: string): {
         ast: Node | null;
         cursor: Cursor;
     };
@@ -28,11 +28,11 @@ export declare class Repeat implements Pattern {
     private tryToParse;
     private createNode;
     private getLastValidNode;
-    enableAstReduction(): void;
-    disableAstReduction(): void;
     getTokens(): string[];
-    getNextTokens(lastMatched: Pattern): string[];
-    getNextPattern(): Pattern | null;
+    getTokensAfter(childReference: Pattern): string[];
+    getNextTokens(): string[];
+    getPatternsAfter(childReference: Pattern): Pattern[];
+    getNextPatterns(): Pattern[];
     findPattern(predicate: (p: Pattern) => boolean): Pattern | null;
     clone(name?: string, isOptional?: boolean): Pattern;
 }

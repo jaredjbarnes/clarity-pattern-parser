@@ -13,14 +13,17 @@ export declare class Not implements Pattern {
     get children(): Pattern[];
     get isOptional(): boolean;
     constructor(name: string, pattern: Pattern);
-    parseText(text: string): {
+    test(text: string): boolean;
+    exec(text: string): {
         ast: Node | null;
         cursor: Cursor;
     };
     parse(cursor: Cursor): Node | null;
     clone(name?: string): Pattern;
-    getNextPattern(): Pattern | null;
     getTokens(): string[];
-    getNextTokens(_lastMatched: Pattern): string[];
+    getTokensAfter(_childReference: Pattern): string[];
+    getNextTokens(): string[];
+    getPatternsAfter(_childReference: Pattern): Pattern[];
+    getNextPatterns(): Pattern[];
     findPattern(predicate: (p: Pattern) => boolean): Pattern | null;
 }

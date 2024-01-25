@@ -9,17 +9,28 @@ import { Repeat } from "./patterns/Repeat";
 import { ParseError } from "./patterns/ParseError";
 import { Pattern } from "./patterns/Pattern";
 import { Reference } from "./patterns/Reference";
+import { AutoComplete } from './intellisense/AutoComplete';
+import { CursorHistory, Match } from "./patterns/CursorHistory";
+import { ParseResult } from "./patterns/ParseResult";
+import { Suggestion } from "./intellisense/Suggestion";
+import { SuggestionOption } from "./intellisense/SuggestionOption";
 
 export {
   Node,
-  Cursor,
-  Regex,
+  AutoComplete,
+  Suggestion,
+  SuggestionOption,
   And,
+  Cursor,
+  CursorHistory,
+  Match,
   Literal,
   Not,
   Or,
-  Repeat,
   ParseError,
+  ParseResult,
   Pattern,
   Reference,
+  Regex,
+  Repeat,
 };

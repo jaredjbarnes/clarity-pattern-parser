@@ -12,8 +12,6 @@ export declare class Regex implements Pattern {
     private _cursor;
     private _substring;
     private _tokens;
-    private _hasContextualTokenAggregation;
-    private _isRetrievingContextualTokens;
     get type(): string;
     get name(): string;
     get parent(): Pattern | null;
@@ -22,7 +20,8 @@ export declare class Regex implements Pattern {
     get isOptional(): boolean;
     constructor(name: string, regex: string, isOptional?: boolean);
     private assertArguments;
-    parseText(text: string): {
+    test(text: string): boolean;
+    exec(text: string): {
         ast: Node | null;
         cursor: Cursor;
     };
@@ -33,10 +32,10 @@ export declare class Regex implements Pattern {
     private processError;
     clone(name?: string, isOptional?: boolean): Regex;
     getTokens(): string[];
-    getNextTokens(_reference: Pattern): string[];
-    getNextPattern(): Pattern | null;
+    getTokensAfter(_childReference: Pattern): string[];
+    getNextTokens(): string[];
+    getPatternsAfter(_childReference: Pattern): Pattern[];
+    getNextPatterns(): Pattern[];
     findPattern(_predicate: (p: Pattern) => boolean): Pattern | null;
     setTokens(tokens: string[]): void;
-    enableContextualTokenAggregation(): void;
-    disableContextualTokenAggregation(): void;
 }

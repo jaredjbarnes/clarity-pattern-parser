@@ -10,8 +10,6 @@ export declare class Literal implements Pattern {
     private _runes;
     private _firstIndex;
     private _lastIndex;
-    private _hasContextualTokenAggregation;
-    private _isRetrievingContextualTokens;
     get type(): string;
     get name(): string;
     get parent(): Pattern | null;
@@ -19,7 +17,8 @@ export declare class Literal implements Pattern {
     get children(): Pattern[];
     get isOptional(): boolean;
     constructor(name: string, value: string, isOptional?: boolean);
-    parseText(text: string): {
+    test(text: string): boolean;
+    exec(text: string): {
         ast: Node | null;
         cursor: Cursor;
     };
@@ -28,9 +27,9 @@ export declare class Literal implements Pattern {
     private _createNode;
     clone(name?: string, isOptional?: boolean): Pattern;
     getTokens(): string[];
-    getNextTokens(_lastMatched: Pattern): string[];
-    getNextPattern(): Pattern | null;
+    getTokensAfter(_lastMatched: Pattern): string[];
+    getNextTokens(): string[];
+    getPatternsAfter(): Pattern[];
+    getNextPatterns(): Pattern[];
     findPattern(_predicate: (p: Pattern) => boolean): Pattern | null;
-    enableContextualTokenAggregation(): void;
-    disableContextualTokenAggregation(): void;
 }

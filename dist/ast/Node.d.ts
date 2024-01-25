@@ -24,6 +24,7 @@ export declare class Node {
     get endIndex(): number;
     get parent(): Node | null;
     get children(): readonly Node[];
+    get hasChildren(): boolean;
     get value(): string;
     constructor(type: string, name: string, firstIndex: number, lastIndex: number, children?: Node[], value?: string);
     removeChild(node: Node): void;
@@ -38,6 +39,7 @@ export declare class Node {
     findAll(predicate: (node: Node) => boolean): Node[];
     walkUp(callback: (node: Node) => void): void;
     walkDown(callback: (node: Node) => void): void;
+    reduce(): void;
     clone(): Node;
     toString(): string;
     toCycleFreeObject(): CycleFreeNode;

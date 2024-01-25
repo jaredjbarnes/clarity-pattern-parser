@@ -23,6 +23,9 @@ class Node {
     get children() {
         return this._children;
     }
+    get hasChildren() {
+        return this._children.length > 0;
+    }
     get value() {
         return this.toString();
     }
@@ -117,6 +120,11 @@ class Node {
     walkDown(callback) {
         callback(this);
         this.children.forEach(c => c.walkDown(callback));
+    }
+    reduce() {
+        const value = this.toString();
+        this.removeAllChildren();
+        this._value = value;
     }
     clone() {
         return new Node(this._type, this._name, this._firstIndex, this._lastIndex, this._children.map((c) => c.clone()), this._value);
@@ -316,19 +324,6 @@ class Cursor {
     }
 }
 
-function getNextPattern(pattern) {
-    const parent = pattern.parent;
-    if (parent == null) {
-        return null;
-    }
-    const patternIndex = parent.children.indexOf(pattern);
-    const nextPattern = parent.children[patternIndex + 1] || null;
-    if (nextPattern == null) {
-        return parent.getNextPattern();
-    }
-    return nextPattern;
-}
-
 class Regex {
     get type() {
         return this._type;
@@ -353,8 +348,6 @@ class Regex {
         this._cursor = null;
         this._substring = "";
         this._tokens = [];
-        this._hasContextualTokenAggregation = false;
-        this._isRetrievingContextualTokens = false;
         this._type = "regex";
         this._name = name;
         this._isOptional = isOptional;
@@ -374,11 +367,16 @@ class Regex {
             throw new Error("Invalid Arguments: The regex string cannot end with a '$' because it is expected to be in the middle of a string.");
         }
     }
-    parseText(text) {
+    test(text) {
+        const cursor = new Cursor(text);
+        const ast = this.parse(cursor);
+        return (ast === null || ast === void 0 ? void 0 : ast.value) === text;
+    }
+    exec(text) {
         const cursor = new Cursor(text);
         const ast = this.parse(cursor);
         return {
-            ast,
+            ast: (ast === null || ast === void 0 ? void 0 : ast.value) === text ? ast : null,
             cursor
         };
     }
@@ -405,7 +403,7 @@ class Regex {
     processResult(cursor, result) {
         const currentIndex = cursor.index;
         const newIndex = currentIndex + result[0].length - 1;
-        this._node = new Node("regex", this._name, currentIndex, newIndex, [], result[0]);
+        this._node = new Node("regex", this._name, currentIndex, newIndex, undefined, result[0]);
         cursor.moveTo(newIndex);
         cursor.recordMatch(this, this._node);
     }
@@ -418,46 +416,34 @@ class Regex {
     clone(name = this._name, isOptional = this._isOptional) {
         const pattern = new Regex(name, this._originalRegexString, isOptional);
         pattern._tokens = this._tokens.slice();
-        pattern._hasContextualTokenAggregation =
-            this._hasContextualTokenAggregation;
         return pattern;
     }
     getTokens() {
-        const parent = this._parent;
-        if (this._hasContextualTokenAggregation &&
-            parent != null &&
-            !this._isRetrievingContextualTokens) {
-            this._isRetrievingContextualTokens = true;
-            const tokens = this._tokens;
-            const aggregateTokens = [];
-            const nextTokens = parent.getNextTokens(this);
-            for (let nextToken of nextTokens) {
-                for (let token of tokens) {
-                    aggregateTokens.push(token + nextToken);
-                }
-            }
-            this._isRetrievingContextualTokens = false;
-            return aggregateTokens;
-        }
         return this._tokens;
     }
-    getNextTokens(_reference) {
+    getTokensAfter(_childReference) {
         return [];
     }
-    getNextPattern() {
-        return getNextPattern(this);
+    getNextTokens() {
+        if (this.parent == null) {
+            return [];
+        }
+        return this.parent.getTokensAfter(this);
+    }
+    getPatternsAfter(_childReference) {
+        return [];
+    }
+    getNextPatterns() {
+        if (this.parent == null) {
+            return [];
+        }
+        return this.parent.getPatternsAfter(this);
     }
     findPattern(_predicate) {
         return null;
     }
     setTokens(tokens) {
         this._tokens = tokens;
-    }
-    enableContextualTokenAggregation() {
-        this._hasContextualTokenAggregation = true;
-    }
-    disableContextualTokenAggregation() {
-        this._hasContextualTokenAggregation = false;
     }
 }
 
@@ -528,7 +514,6 @@ class And {
         this._parent = null;
         this._children = children;
         this._firstIndex = -1;
-        this._shouldReduceAst = false;
         this._nodes = [];
     }
     _assignChildrenToParent(children) {
@@ -536,11 +521,16 @@ class And {
             child.parent = this;
         }
     }
-    parseText(text) {
+    test(text) {
+        const cursor = new Cursor(text);
+        const ast = this.parse(cursor);
+        return (ast === null || ast === void 0 ? void 0 : ast.value) === text;
+    }
+    exec(text) {
         const cursor = new Cursor(text);
         const ast = this.parse(cursor);
         return {
-            ast,
+            ast: (ast === null || ast === void 0 ? void 0 : ast.value) === text ? ast : null,
             cursor
         };
     }
@@ -574,34 +564,43 @@ class And {
                 if (hasMorePatterns) {
                     if (hadMatch) {
                         if (cursor.hasNext()) {
+                            // We had a match. Increment the cursor and use the next pattern.
                             cursor.next();
                             continue;
                         }
                         else {
+                            // We are at the end of the text, it may still be valid, if all the
+                            // following patterns are optional.
                             if (this.areRemainingPatternsOptional(i)) {
                                 passed = true;
                                 break;
                             }
+                            // We didn't finish the parsing sequence.
                             cursor.recordErrorAt(cursor.index + 1, this);
                             break;
                         }
                     }
                     else {
+                        // An optional pattern did not matched, try from the same spot on the next
+                        // pattern.
                         cursor.moveTo(runningCursorIndex);
                         continue;
                     }
                 }
                 else {
+                    // If we don't have any results from what we parsed then record error.
                     const lastNode = this.getLastValidNode();
                     if (lastNode === null) {
                         cursor.recordErrorAt(cursor.index, this);
                         break;
                     }
+                    // The sequence was parsed fully.
                     passed = true;
                     break;
                 }
             }
             else {
+                // The pattern failed.
                 cursor.moveTo(this._firstIndex);
                 break;
             }
@@ -629,18 +628,9 @@ class And {
     createNode(cursor) {
         const children = filterOutNull(this._nodes);
         const lastIndex = children[children.length - 1].lastIndex;
-        const value = cursor.getChars(this._firstIndex, lastIndex);
+        cursor.getChars(this._firstIndex, lastIndex);
         cursor.moveTo(lastIndex);
-        if (this._shouldReduceAst) {
-            children.length = 0;
-        }
-        return new Node("and", this._name, this._firstIndex, lastIndex, children, this._shouldReduceAst ? value : undefined);
-    }
-    enableAstReduction() {
-        this._shouldReduceAst = true;
-    }
-    disableAstReduction() {
-        this._shouldReduceAst = false;
+        return new Node("and", this._name, this._firstIndex, lastIndex, children);
     }
     getTokens() {
         const tokens = [];
@@ -652,13 +642,25 @@ class And {
         }
         return tokens;
     }
-    getNextTokens(lastMatched) {
+    getTokensAfter(childReference) {
+        const patterns = this.getPatternsAfter(childReference);
+        const tokens = [];
+        patterns.forEach(p => tokens.push(...p.getTokens()));
+        return tokens;
+    }
+    getNextTokens() {
+        if (this.parent == null) {
+            return [];
+        }
+        return this.parent.getTokensAfter(this);
+    }
+    getPatternsAfter(childReference) {
         let nextSibling = null;
         let nextSiblingIndex = -1;
         let index = -1;
-        const tokens = [];
+        const patterns = [];
         for (let i = 0; i < this._children.length; i++) {
-            if (this._children[i] === lastMatched) {
+            if (this._children[i] === childReference) {
                 if (i + 1 < this._children.length) {
                     nextSibling = this._children[i + 1];
                 }
@@ -667,39 +669,44 @@ class And {
                 break;
             }
         }
+        // The child reference isn't one of the child patterns.
         if (index === -1) {
             return [];
         }
+        // The reference pattern is the last child. So ask the parent for the next pattern.
         if (nextSiblingIndex === this._children.length && this._parent !== null) {
-            return this._parent.getNextTokens(this);
+            return this._parent.getPatternsAfter(this);
         }
+        // Next pattern isn't optional so send it back as the next patterns.
         if (nextSibling !== null && !nextSibling.isOptional) {
-            return nextSibling.getTokens();
+            return [nextSibling];
         }
+        // Send back as many optional patterns as possible.
         if (nextSibling !== null && nextSibling.isOptional) {
             for (let i = nextSiblingIndex; i < this._children.length; i++) {
                 const child = this._children[i];
-                tokens.push(...child.getTokens());
+                patterns.push(child);
                 if (!child.isOptional) {
                     break;
                 }
                 if (i === this._children.length - 1 && this._parent !== null) {
-                    tokens.push(...this._parent.getNextTokens(this));
+                    patterns.push(...this._parent.getPatternsAfter(this));
                 }
             }
         }
-        return tokens;
+        return patterns;
     }
-    getNextPattern() {
-        return getNextPattern(this);
+    getNextPatterns() {
+        if (this.parent == null) {
+            return [];
+        }
+        return this.parent.getPatternsAfter(this);
     }
     findPattern(predicate) {
         return findPattern(this, predicate);
     }
     clone(name = this._name, isOptional = this._isOptional) {
-        const and = new And(name, this._children, isOptional);
-        and._shouldReduceAst = this._shouldReduceAst;
-        return and;
+        return new And(name, this._children, isOptional);
     }
 }
 
@@ -734,14 +741,17 @@ class Literal {
         this._parent = null;
         this._firstIndex = 0;
         this._lastIndex = 0;
-        this._hasContextualTokenAggregation = false;
-        this._isRetrievingContextualTokens = false;
     }
-    parseText(text) {
+    test(text) {
+        const cursor = new Cursor(text);
+        const ast = this.parse(cursor);
+        return (ast === null || ast === void 0 ? void 0 : ast.value) === text;
+    }
+    exec(text) {
         const cursor = new Cursor(text);
         const ast = this.parse(cursor);
         return {
-            ast,
+            ast: (ast === null || ast === void 0 ? void 0 : ast.value) === text ? ast : null,
             cursor
         };
     }
@@ -784,45 +794,35 @@ class Literal {
         return passed;
     }
     _createNode() {
-        return new Node("literal", this._name, this._firstIndex, this._lastIndex, [], this._literal);
+        return new Node("literal", this._name, this._firstIndex, this._lastIndex, undefined, this._literal);
     }
     clone(name = this._name, isOptional = this._isOptional) {
         const clone = new Literal(name, this._literal, isOptional);
-        clone._hasContextualTokenAggregation = this._hasContextualTokenAggregation;
         return clone;
     }
     getTokens() {
-        const parent = this._parent;
-        if (this._hasContextualTokenAggregation &&
-            parent != null &&
-            !this._isRetrievingContextualTokens) {
-            this._isRetrievingContextualTokens = true;
-            const aggregateTokens = [];
-            const nextTokens = parent.getNextTokens(this);
-            for (const nextToken of nextTokens) {
-                aggregateTokens.push(this._literal + nextToken);
-            }
-            this._isRetrievingContextualTokens = false;
-            return aggregateTokens;
-        }
-        else {
-            return [this._literal];
-        }
+        return [this._literal];
     }
-    getNextTokens(_lastMatched) {
+    getTokensAfter(_lastMatched) {
         return [];
     }
-    getNextPattern() {
-        return getNextPattern(this);
+    getNextTokens() {
+        if (this.parent == null) {
+            return [];
+        }
+        return this.parent.getTokensAfter(this);
+    }
+    getPatternsAfter() {
+        return [];
+    }
+    getNextPatterns() {
+        if (this.parent == null) {
+            return [];
+        }
+        return this.parent.getPatternsAfter(this);
     }
     findPattern(_predicate) {
         return null;
-    }
-    enableContextualTokenAggregation() {
-        this._hasContextualTokenAggregation = true;
-    }
-    disableContextualTokenAggregation() {
-        this._hasContextualTokenAggregation = false;
     }
 }
 
@@ -852,7 +852,12 @@ class Not {
         this._children = [pattern.clone(pattern.name, false)];
         this._children[0].parent = this;
     }
-    parseText(text) {
+    test(text) {
+        const cursor = new Cursor(text);
+        this.parse(cursor);
+        return !cursor.hasError;
+    }
+    exec(text) {
         const cursor = new Cursor(text);
         const ast = this.parse(cursor);
         return {
@@ -878,18 +883,38 @@ class Not {
         const not = new Not(name, this._children[0]);
         return not;
     }
-    getNextPattern() {
-        return getNextPattern(this);
-    }
     getTokens() {
-        return [];
-    }
-    getNextTokens(_lastMatched) {
         const parent = this._parent;
         if (parent != null) {
-            parent.getNextTokens(this);
+            return parent.getTokensAfter(this);
         }
         return [];
+    }
+    getTokensAfter(_childReference) {
+        const parent = this._parent;
+        if (parent != null) {
+            return parent.getTokensAfter(this);
+        }
+        return [];
+    }
+    getNextTokens() {
+        if (this.parent == null) {
+            return [];
+        }
+        return this.parent.getTokensAfter(this);
+    }
+    getPatternsAfter(_childReference) {
+        const parent = this._parent;
+        if (parent != null) {
+            return parent.getPatternsAfter(this);
+        }
+        return [];
+    }
+    getNextPatterns() {
+        if (this.parent == null) {
+            return [];
+        }
+        return this.parent.getPatternsAfter(this);
     }
     findPattern(predicate) {
         return predicate(this._children[0]) ? this._children[0] : null;
@@ -933,11 +958,16 @@ class Or {
             child.parent = this;
         }
     }
-    parseText(text) {
+    test(text) {
+        const cursor = new Cursor(text);
+        const ast = this.parse(cursor);
+        return (ast === null || ast === void 0 ? void 0 : ast.value) === text;
+    }
+    exec(text) {
         const cursor = new Cursor(text);
         const ast = this.parse(cursor);
         return {
-            ast,
+            ast: (ast === null || ast === void 0 ? void 0 : ast.value) === text ? ast : null,
             cursor
         };
     }
@@ -974,14 +1004,29 @@ class Or {
         }
         return tokens;
     }
-    getNextTokens(_lastMatched) {
+    getTokensAfter(_childReference) {
         if (this._parent === null) {
             return [];
         }
-        return this._parent.getNextTokens(this);
+        return this._parent.getTokensAfter(this);
     }
-    getNextPattern() {
-        return getNextPattern(this);
+    getNextTokens() {
+        if (this._parent == null) {
+            return [];
+        }
+        return this._parent.getTokensAfter(this);
+    }
+    getPatternsAfter(_childReference) {
+        if (this._parent === null) {
+            return [];
+        }
+        return this._parent.getPatternsAfter(this);
+    }
+    getNextPatterns() {
+        if (this.parent == null) {
+            return [];
+        }
+        return this.parent.getPatternsAfter(this);
     }
     findPattern(predicate) {
         return findPattern(this, predicate);
@@ -1023,7 +1068,6 @@ class Repeat {
         this._pattern = children[0];
         this._divider = children[1];
         this._firstIndex = -1;
-        this._shouldReduceAst = false;
         this._nodes = [];
     }
     _assignChildrenToParent(children) {
@@ -1031,11 +1075,16 @@ class Repeat {
             child.parent = this;
         }
     }
-    parseText(text) {
+    test(text) {
+        const cursor = new Cursor(text);
+        const ast = this.parse(cursor);
+        return (ast === null || ast === void 0 ? void 0 : ast.value) === text;
+    }
+    exec(text) {
         const cursor = new Cursor(text);
         const ast = this.parse(cursor);
         return {
-            ast,
+            ast: (ast === null || ast === void 0 ? void 0 : ast.value) === text ? ast : null,
             cursor
         };
     }
@@ -1117,12 +1166,9 @@ class Repeat {
             }
         }
         const lastIndex = children[children.length - 1].lastIndex;
-        const value = cursor.getChars(this._firstIndex, lastIndex);
+        cursor.getChars(this._firstIndex, lastIndex);
         cursor.moveTo(lastIndex);
-        if (this._shouldReduceAst) {
-            children = [];
-        }
-        return new Node("repeat", this._name, this._firstIndex, lastIndex, children, this._shouldReduceAst ? value : undefined);
+        return new Node("repeat", this._name, this._firstIndex, lastIndex, children, undefined);
     }
     getLastValidNode() {
         const nodes = this._nodes.filter((node) => node !== null);
@@ -1131,20 +1177,26 @@ class Repeat {
         }
         return nodes[nodes.length - 1];
     }
-    enableAstReduction() {
-        this._shouldReduceAst = true;
-    }
-    disableAstReduction() {
-        this._shouldReduceAst = false;
-    }
     getTokens() {
         return this._pattern.getTokens();
     }
-    getNextTokens(lastMatched) {
-        let index = -1;
+    getTokensAfter(childReference) {
+        const patterns = this.getPatternsAfter(childReference);
         const tokens = [];
+        patterns.forEach(p => tokens.push(...p.getTokens()));
+        return tokens;
+    }
+    getNextTokens() {
+        if (this.parent == null) {
+            return [];
+        }
+        return this.parent.getTokensAfter(this);
+    }
+    getPatternsAfter(childReference) {
+        let index = -1;
+        const patterns = [];
         for (let i = 0; i < this._children.length; i++) {
-            if (this._children[i] === lastMatched) {
+            if (this._children[i] === childReference) {
                 index = i;
             }
         }
@@ -1154,31 +1206,32 @@ class Repeat {
         }
         // If the last match was the repeated patterns, then suggest the divider.
         if (index === 0 && this._divider) {
-            tokens.push(...this._children[1].getTokens());
+            patterns.push(this._children[1]);
             if (this._parent) {
-                tokens.push(...this._parent.getNextTokens(this));
+                patterns.push(...this._parent.getPatternsAfter(this));
             }
         }
         // Suggest the pattern because the divider was the last match.
         if (index === 1) {
-            tokens.push(...this._children[0].getTokens());
+            patterns.push(this._children[0]);
         }
         if (index === 0 && !this._divider && this._parent) {
-            tokens.push(...this._children[0].getTokens());
-            tokens.push(...this._parent.getNextTokens(this));
+            patterns.push(this._children[0]);
+            patterns.push(...this._parent.getPatternsAfter(this));
         }
-        return tokens;
+        return patterns;
     }
-    getNextPattern() {
-        return getNextPattern(this);
+    getNextPatterns() {
+        if (this.parent == null) {
+            return [];
+        }
+        return this.parent.getPatternsAfter(this);
     }
     findPattern(predicate) {
         return findPattern(this, predicate);
     }
     clone(name = this._name, isOptional = this._isOptional) {
-        const repeat = new Repeat(name, this._pattern, this._divider, isOptional);
-        repeat._shouldReduceAst = this._shouldReduceAst;
-        return repeat;
+        return new Repeat(name, this._pattern, this._divider, isOptional);
     }
 }
 
@@ -1209,11 +1262,16 @@ class Reference {
         this._pattern = null;
         this._children = [];
     }
-    parseText(text) {
+    test(text) {
+        const cursor = new Cursor(text);
+        const ast = this.parse(cursor);
+        return (ast === null || ast === void 0 ? void 0 : ast.value) === text;
+    }
+    exec(text) {
         const cursor = new Cursor(text);
         const ast = this.parse(cursor);
         return {
-            ast,
+            ast: (ast === null || ast === void 0 ? void 0 : ast.value) === text ? ast : null,
             cursor
         };
     }
@@ -1255,14 +1313,29 @@ class Reference {
     getTokens() {
         return this._getPatternSafely().getTokens();
     }
-    getNextTokens(_lastMatched) {
+    getTokensAfter(_lastMatched) {
+        if (this._parent == null) {
+            return [];
+        }
+        return this._parent.getTokensAfter(this);
+    }
+    getNextTokens() {
         if (this.parent == null) {
             return [];
         }
-        return this.parent.getNextTokens(this);
+        return this.parent.getTokensAfter(this);
     }
-    getNextPattern() {
-        return getNextPattern(this);
+    getPatternsAfter(_childReference) {
+        if (this._parent == null) {
+            return [];
+        }
+        return this._parent.getPatternsAfter(this);
+    }
+    getNextPatterns() {
+        if (this.parent == null) {
+            return [];
+        }
+        return this.parent.getPatternsAfter(this);
     }
     findPattern(_predicate) {
         return null;
@@ -1272,5 +1345,149 @@ class Reference {
     }
 }
 
-export { And, Cursor, Literal, Node, Not, Or, ParseError, Reference, Regex, Repeat };
+const defaultOptions = { greedyPatternNames: [], customTokens: {} };
+class AutoComplete {
+    constructor(pattern, options = defaultOptions) {
+        this._pattern = pattern;
+        this._options = options;
+        this._text = "";
+    }
+    suggest(text) {
+        if (text.length === 0) {
+            return {
+                isComplete: false,
+                options: this.createSuggestionsFromRoot(),
+                nextPatterns: [this._pattern],
+                cursor: null,
+                ast: null
+            };
+        }
+        this._text = text;
+        this._cursor = new Cursor(text);
+        const ast = this._pattern.parse(this._cursor);
+        const leafPattern = this._cursor.leafMatch.pattern;
+        const isComplete = (ast === null || ast === void 0 ? void 0 : ast.value) === text;
+        const options = this.createSuggestionsFromTokens();
+        let nextPatterns = [this._pattern];
+        if (leafPattern != null) {
+            nextPatterns = leafPattern.getNextPatterns();
+        }
+        return {
+            isComplete: isComplete,
+            options: options,
+            nextPatterns,
+            cursor: this._cursor,
+            ast,
+        };
+    }
+    createSuggestionsFromRoot() {
+        const suggestions = [];
+        const tokens = this._pattern.getTokens();
+        for (const token of tokens) {
+            suggestions.push(this.createSuggestion("", token));
+        }
+        return suggestions;
+    }
+    createSuggestionsFromTokens() {
+        const leafMatch = this._cursor.leafMatch;
+        if (!leafMatch.pattern) {
+            return this.createSuggestions(-1, this._getTokensForPattern(this._pattern));
+        }
+        const leafPattern = leafMatch.pattern;
+        leafMatch.node;
+        const parent = leafMatch.pattern.parent;
+        if (parent !== null && leafMatch.node != null) {
+            const patterns = leafPattern.getNextPatterns();
+            const tokens = patterns.reduce((acc, pattern) => {
+                acc.push(...this._getTokensForPattern(pattern));
+                return acc;
+            }, []);
+            return this.createSuggestions(leafMatch.node.lastIndex, tokens);
+        }
+        else {
+            return [];
+        }
+    }
+    _getTokensForPattern(pattern) {
+        if (this._options.greedyPatternNames.includes(pattern.name)) {
+            const greedyTokens = pattern.getTokens();
+            const nextPatterns = pattern.getNextPatterns();
+            const tokens = [];
+            const nextPatternTokens = nextPatterns.reduce((acc, pattern) => {
+                acc.push(...this._getTokensForPattern(pattern));
+                return acc;
+            }, []);
+            for (let token of greedyTokens) {
+                for (let nextPatternToken of nextPatternTokens) {
+                    tokens.push(token + nextPatternToken);
+                }
+            }
+            return tokens;
+        }
+        else {
+            const tokens = pattern.getTokens();
+            const customTokens = this._options.customTokens[pattern.name] || [];
+            tokens.push(...customTokens);
+            return tokens;
+        }
+    }
+    createSuggestions(lastIndex, tokens) {
+        let substring = lastIndex === -1 ? "" : this._cursor.getChars(0, lastIndex);
+        const suggestionStrings = [];
+        const options = [];
+        for (const token of tokens) {
+            const suggestion = substring + token;
+            const startsWith = suggestion.startsWith(substring);
+            const alreadyExist = suggestionStrings.includes(suggestion);
+            const isSameAsText = suggestion === this._text;
+            if (startsWith && !alreadyExist && !isSameAsText) {
+                suggestionStrings.push(suggestion);
+                options.push(this.createSuggestion(this._cursor.text, suggestion));
+            }
+        }
+        const reducedOptions = getFurthestOptions(options);
+        reducedOptions.sort((a, b) => a.text.localeCompare(b.text));
+        return reducedOptions;
+    }
+    createSuggestion(fullText, suggestion) {
+        const furthestMatch = findMatchIndex(suggestion, fullText);
+        const text = suggestion.slice(furthestMatch);
+        return {
+            text: text,
+            startIndex: furthestMatch,
+        };
+    }
+}
+function findMatchIndex(str1, str2) {
+    let matchCount = 0;
+    let minLength = str1.length;
+    if (str2.length < minLength) {
+        minLength = str2.length;
+    }
+    for (let i = 0; i < minLength; i++) {
+        if (str1[i] === str2[i]) {
+            matchCount++;
+        }
+        else {
+            break;
+        }
+    }
+    return matchCount;
+}
+function getFurthestOptions(options) {
+    let furthestOptions = [];
+    let furthestIndex = -1;
+    for (const option of options) {
+        if (option.startIndex > furthestIndex) {
+            furthestIndex = option.startIndex;
+            furthestOptions = [];
+        }
+        if (option.startIndex === furthestIndex) {
+            furthestOptions.push(option);
+        }
+    }
+    return furthestOptions;
+}
+
+export { And, AutoComplete, Cursor, CursorHistory, Literal, Node, Not, Or, ParseError, Reference, Regex, Repeat };
 //# sourceMappingURL=index.esm.js.map

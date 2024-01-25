@@ -15,7 +15,8 @@ export declare class Reference implements Pattern {
     get children(): Pattern[];
     get isOptional(): boolean;
     constructor(name: string, isOptional?: boolean);
-    parseText(text: string): {
+    test(text: string): boolean;
+    exec(text: string): {
         ast: Node | null;
         cursor: Cursor;
     };
@@ -24,8 +25,10 @@ export declare class Reference implements Pattern {
     private _findPattern;
     private _getRoot;
     getTokens(): string[];
-    getNextTokens(_lastMatched: Pattern): string[];
-    getNextPattern(): Pattern | null;
+    getTokensAfter(_lastMatched: Pattern): string[];
+    getNextTokens(): string[];
+    getPatternsAfter(_childReference: Pattern): Pattern[];
+    getNextPatterns(): Pattern[];
     findPattern(_predicate: (p: Pattern) => boolean): Pattern | null;
     clone(name?: string, isOptional?: boolean): Pattern;
 }

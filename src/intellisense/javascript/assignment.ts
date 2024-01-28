@@ -1,6 +1,7 @@
 import { And } from "../../patterns/And";
 import { Literal } from "../../patterns/Literal";
 import { Or } from "../../patterns/Or";
+import { Reference } from "../../patterns/Reference";
 import { Repeat } from "../../patterns/Repeat";
 import { expression } from "./expression";
 import { optionalSpaces } from "./optionalSpaces";
@@ -16,14 +17,13 @@ const assignment = new And("assignment", [
     optionalSpaces,
     assignmentOperators,
     optionalSpaces,
-]);
-
-const expressionStatement = new And("expressionStatement", [
-    new Repeat("assignments",
-        assignment),
-    optionalSpaces,
-    expression
+    new Or("assignment-right-operand", [
+        new Reference("assignment"),
+        expression
+    ]),
 ]);
 
 
-export { expressionStatement }
+
+
+export { assignment }

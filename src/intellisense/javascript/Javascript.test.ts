@@ -2,7 +2,7 @@ import { Cursor } from "../../patterns/Cursor";
 import { escapedCharacter } from "./escapedCharacter";
 import { exponent } from "./exponent";
 import { expression } from "./expression";
-import { expressionStatement } from "./expressionStatement";
+import { assignment } from "./assignment";
 import { infixOperator } from "./infixOperator";
 import { integer } from "./integer";
 import { name } from "./name";
@@ -197,20 +197,20 @@ describe("Ecmascript 3", () => {
     })
 
     test("Expression Statement", () => {
-        let result = expressionStatement.exec(`name = "John"`);
+        let result = assignment.exec(`name = "John"`);
         expect(result.ast?.value).toBe(`name = "John"`);
 
-        result = expressionStatement.exec(`name = othername = "John"`)
+        result = assignment.exec(`name = othername = "John"`)
         expect(result.ast?.value).toBe(`name = othername = "John"`);
 
-        result = expressionStatement.exec(`name = othername.prop = "John"`)
+        result = assignment.exec(`name = othername.prop = "John"`)
         expect(result.ast?.value).toBe(`name = othername.prop = "John"`);
 
-        result = expressionStatement.exec(`name = othername.prop += 2`)
+        result = assignment.exec(`name = othername.prop += 2`)
         expect(result.ast?.value).toBe(`name = othername.prop += 2`);
 
-        result = expressionStatement.exec(`name.prop().method(blah) = blah.prop()`)
-        expect(result.ast?.value).toBe(`name.prop().method(blah) = blah.prop()`);
+        result = assignment.exec(`name.prop().method(blah) = blah.prop() == ha ? first : second`)
+        expect(result.ast?.value).toBe(`name.prop().method(blah) = blah.prop() == ha ? first : second`);
 
     });
 

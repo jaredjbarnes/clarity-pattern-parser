@@ -6,7 +6,7 @@ import { name } from "./name";
 
 const dotPropertyAccess = new And("dot-property-access", [
     new Literal("period", "."),
-    name
+    name.clone("property-name")
 ]);
 
 const bracketPropertyAccess = new And("bracket-property-access", [

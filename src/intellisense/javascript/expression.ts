@@ -6,6 +6,7 @@ import { Reference } from "../../patterns/Reference";
 import { Repeat } from "../../patterns/Repeat";
 import { infixOperator } from "./infixOperator";
 import { invocation } from "./invocation";
+import { nullKeyword } from "./keywords";
 import { literal } from "./literal";
 import { name } from "./name";
 import { optionalSpaces } from "./optionalSpaces";
@@ -41,13 +42,52 @@ const prefixExpression = new And("prefix-expression", [
     new Reference("expression")
 ]);
 
-const optionalInfix = new And("infix-expression", [
+const memberAccess = new Repeat("member-access",
+    new Or("member-access", [
+        invocation,
+        propertyAccess,
+    ])
+);
+
+
+
+const objectAccess = new And("object-access", [name.clone("object-name"), memberAccess]);
+
+var variableName = name.clone("variable-name");
+
+const expressions = new Or("expressions", [
+    newExpression,
+    deleteExpression,
+    literal,
+    nullKeyword,
+    objectAccess,
+    variableName,
+    groupExpression,
+    prefixExpression
+]);
+
+const expressionBody = new And("expression-body", [
+    expressions,
+    memberAccess.clone(undefined, true),
+]);
+
+const infixExpression = new And("infix-expression", [
+    expressionBody,
+    optionalSpaces,
     infixOperator,
     optionalSpaces,
-    new Reference("expression"),
-], true);
+    new Or("infix-right-operand", [
+        new Reference("infix-expression"),
+        expressionBody,
+    ])
+]);
 
-const optionalTernary = new And("ternary", [
+const ternaryExpression = new And("ternary", [
+    new Or("ternary-condition", [
+        infixExpression,
+        expressionBody
+    ]),
+    optionalSpaces,
     new Literal("question-mark", "?"),
     optionalSpaces,
     new Reference("expression"),
@@ -55,32 +95,12 @@ const optionalTernary = new And("ternary", [
     new Literal("colon", ":"),
     optionalSpaces,
     new Reference("expression")
-], true);
-
-const optionalMemberAccesses = new Repeat("object-member-accesses",
-    new Or("object-member-access", [
-        invocation,
-        propertyAccess,
-    ]),
-    undefined, true
-);
-
-var variableName = name.clone("variable-name");
-
-const expressions = new Or("expressions", [
-    newExpression,
-    deleteExpression,
-    groupExpression,
-    prefixExpression,
-    literal,
-    variableName,
 ]);
 
-const expression = new And("expression", [
-    expressions,
-    optionalInfix,
-    optionalTernary,
-    optionalMemberAccesses
+const expression = new Or("expression", [
+    ternaryExpression,
+    infixExpression,
+    expressionBody
 ]);
 
 export { expression }

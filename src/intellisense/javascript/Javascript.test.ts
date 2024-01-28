@@ -1,3 +1,4 @@
+import { Cursor } from "../../patterns/Cursor";
 import { escapedCharacter } from "./escapedCharacter";
 import { exponent } from "./exponent";
 import { expression } from "./expression";
@@ -173,13 +174,27 @@ describe("Ecmascript 3", () => {
         expect(result.ast?.value).toBe(`{"prop":1}`);
     });
 
-    test("Array Literal", () => {
+    test("Expression", () => {
+
         let result = expression.exec("[]")
         expect(result.ast?.value).toBe("[]");
 
         result = expression.exec("[{}, 9, 0.9e-10, [1, 2]]")
         expect(result.ast?.value).toBe("[{}, 9, 0.9e-10, [1, 2]]");
-    });
+
+        result = expression.exec(`"John"`);
+        expect(result.ast?.value).toBe(`"John"`)
+
+        result = expression.exec(`variableName.property`);
+        expect(result.ast?.value).toBe(`variableName.property`);
+
+        result = expression.exec(`{property: ""}`);
+        expect(result.ast?.value).toBe(`{property: ""}`);
+
+        const cursor = new Cursor(`name == name.property === name2 ? {prop: name, blah: [ 0.9e-10 ]} : name`);
+        cursor.startRecording();
+        const ast = expression.parse(cursor);
+    })
 
     test("Expression Statement", () => {
         let result = expressionStatement.exec(`name = "John"`);
@@ -193,10 +208,10 @@ describe("Ecmascript 3", () => {
 
         result = expressionStatement.exec(`name = othername.prop += 2`)
         expect(result.ast?.value).toBe(`name = othername.prop += 2`);
-    
+
         result = expressionStatement.exec(`name.prop().method(blah) = blah.prop()`)
         expect(result.ast?.value).toBe(`name.prop().method(blah) = blah.prop()`);
-    
+
     });
 
 

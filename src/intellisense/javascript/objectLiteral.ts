@@ -8,7 +8,7 @@ import { name } from "./name";
 import { optionalSpaces } from "./optionalSpaces";
 import { stringLiteral } from "./stringLiteral";
 
-const propertyName = new Or("property-name", [stringLiteral, name]);
+const propertyName = new Or("property-name", [stringLiteral.clone("object-property"), name.clone("object-property")]);
 const property = new And("property", [
     propertyName,
     optionalSpaces,
@@ -17,12 +17,12 @@ const property = new And("property", [
     new Reference("expression"),
 ]);
 const divider = new Regex("property-divider", "\\s*,\\s*");
-const properties = new Repeat("properties", property, divider, true);
+const optionalProperties = new Repeat("properties", property, divider, true);
 
 const objectLiteral = new And("object-literal", [
     new Literal("open-curly-bracket", "{"),
     optionalSpaces,
-    properties,
+    optionalProperties,
     optionalSpaces,
     new Literal("close-curly-bracket", "}"),
 ]);

@@ -7,19 +7,27 @@ import { escapedCharacter } from "./escapedCharacter";
 
 const doubleQuoteStringLiteral = new And("double-string-literal", [
     new Literal("double-quote", "\""),
-    new Repeat("characters", new Or("characters", [
-        new Regex("normal-characters", "[^\\\"]+"),
-        escapedCharacter
-    ])),
+    new Repeat("characters",
+        new Or("characters", [
+            new Regex("normal-characters", "[^\\\"]+"),
+            escapedCharacter
+        ]),
+        undefined,
+        true
+    ),
     new Literal("double-quote", "\""),
 ]);
 
 const singleQuoteStringLiteral = new And("single-string-literal", [
     new Literal("single-quote", "'"),
-    new Repeat("characters", new Or("characters", [
-        new Regex("normal-characters", "[^\\']+"),
-        escapedCharacter
-    ])),
+    new Repeat("characters",
+        new Or("characters", [
+            new Regex("normal-characters", "[^\\']+"),
+            escapedCharacter
+        ]),
+        undefined,
+        true
+    ),
     new Literal("single-quote", "'"),
 ]);
 

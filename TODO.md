@@ -74,3 +74,9 @@ array = "[" & spaces? & array-items & spaces? & "]"
 
 // Other file
 import (method, arguments) from "./method.grammar"
+
+
+
+We can easily make this parser a breadth first parser by adding a custom parser to essentially count brackets until its whole, so capture a full block, then allow another system handle each block.
+
+By default this parser is depth first. 

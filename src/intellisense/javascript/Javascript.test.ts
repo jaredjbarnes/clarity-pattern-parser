@@ -191,7 +191,7 @@ describe("Ecmascript 3", () => {
         result = expression.exec(`{property: ""}`);
         expect(result.ast?.value).toBe(`{property: ""}`);
 
-        const cursor = new Cursor(`name == name.property === name2 ? {prop: name, blah: [ 0.9e-10 ]} : name`);
+        const cursor = new Cursor(`name() == name.property === name2 ? {prop: name, blah: [ 0.9e-10 ]} : name`);
         cursor.startRecording();
         const ast = expression.parse(cursor);
     })

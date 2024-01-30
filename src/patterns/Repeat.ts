@@ -249,6 +249,7 @@ export class Repeat implements Pattern {
       patterns.push(this._children[0]);
     }
 
+    // If there is no divider then suggest the repeating pattern and the next pattern after.
     if (index === 0 && !this._divider && this._parent) {
       patterns.push(this._children[0]);
       patterns.push(...this._parent.getPatternsAfter(this));

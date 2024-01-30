@@ -249,10 +249,10 @@ export class And implements Pattern {
   }
 
   getPatternsAfter(childReference: Pattern): Pattern[] {
+    const patterns: Pattern[] = [];
     let nextSibling: Pattern | null = null;
     let nextSiblingIndex = -1;
     let index = -1;
-    const patterns: Pattern[] = [];
 
     for (let i = 0; i < this._children.length; i++) {
       if (this._children[i] === childReference) {
@@ -275,24 +275,18 @@ export class And implements Pattern {
       return this._parent.getPatternsAfter(this);
     }
 
-    // Next pattern isn't optional so send it back as the next patterns.
-    if (nextSibling !== null && !nextSibling.isOptional) {
-      return [nextSibling];
-    }
-
     // Send back as many optional patterns as possible.
-    if (nextSibling !== null && nextSibling.isOptional) {
-      for (let i = nextSiblingIndex; i < this._children.length; i++) {
-        const child = this._children[i];
-        patterns.push(child);
+    for (let i = nextSiblingIndex; i < this._children.length; i++) {
+      const child = this._children[i];
+      patterns.push(child);
 
-        if (!child.isOptional) {
-          break;
-        }
+      if (!child.isOptional) {
+        break;
+      }
 
-        if (i === this._children.length - 1 && this._parent !== null) {
-          patterns.push(...this._parent.getPatternsAfter(this));
-        }
+      // If we are on the last child and its options then ask for the next pattern from the parent.
+      if (i === this._children.length - 1 && this._parent !== null) {
+        patterns.push(...this._parent.getPatternsAfter(this));
       }
     }
 

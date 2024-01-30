@@ -52,18 +52,12 @@ export class AutoComplete {
 
     this._text = text;
     this._cursor = new Cursor(text);
-    const ast = this._pattern.parse(this._cursor);
 
-    const leafPattern = this._cursor.leafMatch.pattern;
-    const isComplete = ast?.value === text;
-    const options = this._createSuggestionsFromTokens();
-
-    let nextPatterns = [this._pattern];
     let errorAtIndex = null;
 
-    if (leafPattern != null) {
-      nextPatterns = leafPattern.getNextPatterns();
-    }
+    const ast = this._pattern.parse(this._cursor);
+    const isComplete = ast?.value === text;
+    const options = this._createSuggestionsFromTokens();
 
     if (this._cursor.hasError && this._cursor.furthestError != null) {
       errorAtIndex = this._cursor.furthestError.index;

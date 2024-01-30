@@ -216,6 +216,10 @@ export class Repeat implements Pattern {
     return this.parent.getTokensAfter(this);
   }
 
+  getPatterns(): Pattern[] {
+    return this._pattern.getPatterns();
+  }
+
   getPatternsAfter(childReference: Pattern): Pattern[] {
     let index = -1;
     const patterns: Pattern[] = [];

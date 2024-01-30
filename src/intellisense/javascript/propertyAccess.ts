@@ -15,9 +15,14 @@ const bracketPropertyAccess = new And("bracket-property-access", [
     new Literal("close-square-bracket", "]"),
 ]);
 
-const propertyAccess = new Or("property-access", [
+const propertyAccessTypes = new Or("property-access-types", [
     dotPropertyAccess,
-    bracketPropertyAccess,
+    bracketPropertyAccess
+]);
+
+const propertyAccess = new And("property-access", [
+    propertyAccessTypes,
+    new Reference("property-access", true)
 ]);
 
 export { propertyAccess }

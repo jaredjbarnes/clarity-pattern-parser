@@ -99,6 +99,15 @@ describe("Regex", () => {
         expect(tokens).toEqual([]);
     });
 
+    test("Get Patterns", () => {
+        const a = new Regex("a", "A");
+
+        const tokens = a.getPatterns();
+        const expectedTokens = [a];
+
+        expect(tokens).toEqual(expectedTokens);
+    });
+
     test("Get Patterns After", () => {
         const a = new Regex("a", "A")
         const patterns = a.getPatternsAfter(new Literal("bogus", "bogus"));

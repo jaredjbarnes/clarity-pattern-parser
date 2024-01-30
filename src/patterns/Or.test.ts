@@ -153,6 +153,17 @@ describe("Or", () => {
         expect(tokens[0]).toBe("C");
     });
 
+    test("Get Patterns", () => {
+        const aOrB = new Or("a-b", [new Literal("a", "A"), new Literal("b", "B")]);
+        const patterns = aOrB.getPatterns();
+        const expected = [
+            aOrB.findPattern(p => p.name === "a"),
+            aOrB.findPattern(p => p.name === "b")
+        ];
+
+        expect(patterns).toEqual(expected);
+    });
+
     test("Get Patterns After", () => {
         const sequence = new And("sequence", [
             new Or("a-or-b", [

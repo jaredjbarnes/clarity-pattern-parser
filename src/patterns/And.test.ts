@@ -289,6 +289,19 @@ describe("And", () => {
         expect(tokens.length).toBe(0);
     });
 
+    test("Get Patterns", () => {
+        const sequence = new And("sequence", [
+            new Literal("a", "A", true),
+            new Literal("b", "B"),
+        ], true);
+        const tokens = sequence.getPatterns();
+        const a = sequence.findPattern(p=>p.name === "a");
+        const b = sequence.findPattern(p=>p.name === "b");
+        const expected = [a, b]
+
+        expect(tokens).toEqual(expected);
+    });
+
     test("Get Next Patterns", () => {
         const sequence = new And("sequence", [new Literal("a", "A")]);
         const parent = new And("parent", [sequence, new Literal("b", "B")]);

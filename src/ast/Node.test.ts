@@ -361,4 +361,10 @@ describe("Node", () => {
         expect(result).toBe(grandParent)
     });
 
+    test("Find Ancester Without Parent", () => {
+        const child = new Node("child", "child", 0, 0, []);
+        const result = child.findAncester(p => p.name === "parent")
+        expect(result).toBeNull()
+    });
+
 });

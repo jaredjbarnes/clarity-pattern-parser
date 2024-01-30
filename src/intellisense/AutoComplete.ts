@@ -9,12 +9,12 @@ export interface AutoCompleteOptions {
    * Be very careful, this can explode to infinity pretty quick. Usually useful 
    * for dividers and spaces.
    */
-  greedyPatternNames: string[];
+  greedyPatternNames?: string[];
   /**
    * Allows for custom suggestions for patterns. The key is the name of the pattern
    * and the string array are the tokens suggested for that pattern.
    */
-  customTokens: Record<string, string[]>;
+  customTokens?: Record<string, string[]>;
 }
 
 const defaultOptions = { greedyPatternNames: [], customTokens: {} };
@@ -35,7 +35,7 @@ export class AutoComplete {
     if (text.length === 0) {
       return {
         isComplete: false,
-        options: this.createSuggestionsFromRoot(),
+        options: this._createSuggestionsFromRoot(),
         nextPatterns: [this._pattern],
         cursor: null,
         ast: null
@@ -48,7 +48,7 @@ export class AutoComplete {
 
     const leafPattern = this._cursor.leafMatch.pattern;
     const isComplete = ast?.value === text;
-    const options = this.createSuggestionsFromTokens();
+    const options = this._createSuggestionsFromTokens();
 
     let nextPatterns = [this._pattern];
 
@@ -65,26 +65,25 @@ export class AutoComplete {
     }
   }
 
-  private createSuggestionsFromRoot(): SuggestionOption[] {
+  private _createSuggestionsFromRoot(): SuggestionOption[] {
     const suggestions: SuggestionOption[] = [];
     const tokens = this._pattern.getTokens();
 
     for (const token of tokens) {
-      suggestions.push(this.createSuggestion("", token));
+      suggestions.push(this._createSuggestion("", token));
     }
 
     return suggestions;
   }
 
-  private createSuggestionsFromTokens(): SuggestionOption[] {
+  private _createSuggestionsFromTokens(): SuggestionOption[] {
     const leafMatch = this._cursor.leafMatch;
 
     if (!leafMatch.pattern) {
-      return this.createSuggestions(-1, this._getTokensForPattern(this._pattern));
+      return this._createSuggestions(-1, this._getTokensForPattern(this._pattern));
     }
 
     const leafPattern = leafMatch.pattern;
-    const leafNode = leafMatch.node;
     const parent = leafMatch.pattern.parent;
 
     if (parent !== null && leafMatch.node != null) {
@@ -95,39 +94,50 @@ export class AutoComplete {
         return acc;
       }, []);
 
-      return this.createSuggestions(leafMatch.node.lastIndex, tokens);
+      return this._createSuggestions(leafMatch.node.lastIndex, tokens);
     } else {
       return [];
     }
   }
 
   private _getTokensForPattern(pattern: Pattern) {
-    if (this._options.greedyPatternNames.includes(pattern.name)) {
-      const greedyTokens = pattern.getTokens();
+    const augmentedTokens = this._getAugmentedTokens(pattern)
+
+    if (this._options.greedyPatternNames != null && this._options.greedyPatternNames.includes(pattern.name)) {
       const nextPatterns = pattern.getNextPatterns();
       const tokens: string[] = [];
 
-      const nextPatternTokens = nextPatterns.reduce((acc: string[], pattern)=>{
+      const nextPatternTokens = nextPatterns.reduce((acc: string[], pattern) => {
         acc.push(...this._getTokensForPattern(pattern));
         return acc;
       }, []);
 
-      for (let token of greedyTokens){
-        for (let nextPatternToken of nextPatternTokens){
+      for (let token of augmentedTokens) {
+        for (let nextPatternToken of nextPatternTokens) {
           tokens.push(token + nextPatternToken);
         }
       }
 
       return tokens;
     } else {
-      const tokens = pattern.getTokens();
-      const customTokens = this._options.customTokens[pattern.name] || [];
-      tokens.push(...customTokens);
-      return tokens;
+      return augmentedTokens;
     }
   }
 
-  private createSuggestions(lastIndex: number, tokens: string[]): SuggestionOption[] {
+  private _getAugmentedTokens(pattern: Pattern) {
+    const customTokensMap: any = this._options.customTokens || {};
+    const leafPatterns = pattern.getPatterns();
+    const tokens: string[] = customTokensMap[pattern.name] || [];
+
+    leafPatterns.forEach(p => {
+      const augmentedTokens = customTokensMap[p.name] || []; 
+      tokens.push(...p.getTokens(), ...augmentedTokens);
+    });
+
+    return tokens;
+  }
+
+  private _createSuggestions(lastIndex: number, tokens: string[]): SuggestionOption[] {
     let substring = lastIndex === -1 ? "" : this._cursor.getChars(0, lastIndex);
     const suggestionStrings: string[] = [];
     const options: SuggestionOption[] = [];
@@ -140,7 +150,7 @@ export class AutoComplete {
 
       if (startsWith && !alreadyExist && !isSameAsText) {
         suggestionStrings.push(suggestion);
-        options.push(this.createSuggestion(this._cursor.text, suggestion));
+        options.push(this._createSuggestion(this._cursor.text, suggestion));
       }
     }
 
@@ -150,7 +160,7 @@ export class AutoComplete {
     return reducedOptions;
   }
 
-  private createSuggestion(fullText: string, suggestion: string): SuggestionOption {
+  private _createSuggestion(fullText: string, suggestion: string): SuggestionOption {
     const furthestMatch = findMatchIndex(suggestion, fullText);
     const text = suggestion.slice(furthestMatch);
 

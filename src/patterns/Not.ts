@@ -106,6 +106,10 @@ export class Not implements Pattern {
     return this.parent.getTokensAfter(this);
   }
 
+  getPatterns(): Pattern[] {
+    return [...this.getNextPatterns().map(p => p.getPatterns()).flat()];
+  }
+
   getPatternsAfter(_childReference: Pattern): Pattern[] {
     const parent = this._parent;
 

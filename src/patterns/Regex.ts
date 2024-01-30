@@ -157,6 +157,10 @@ export class Regex implements Pattern {
     return this.parent.getTokensAfter(this);
   }
 
+  getPatterns(): Pattern[] {
+    return [this];
+  }
+
   getPatternsAfter(_childReference: Pattern): Pattern[] {
     return [];
   }

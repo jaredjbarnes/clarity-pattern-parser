@@ -234,6 +234,20 @@ export class And implements Pattern {
     return this.parent.getTokensAfter(this);
   }
 
+  getPatterns(): Pattern[] {
+    const patterns: Pattern[] = [];
+
+    for (const pattern of this._children) {
+      patterns.push(...pattern.getPatterns());
+
+      if (!pattern.isOptional) {
+        break;
+      }
+    }
+
+    return patterns;
+  }
+
   getPatternsAfter(childReference: Pattern): Pattern[] {
     let nextSibling: Pattern | null = null;
     let nextSiblingIndex = -1;

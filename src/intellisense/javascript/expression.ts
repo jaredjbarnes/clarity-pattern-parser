@@ -9,6 +9,7 @@ import { invocation } from "./invocation";
 import { nullKeyword } from "./keywords";
 import { literal } from "./literal";
 import { name } from "./name";
+import { objectAccess } from "./objectAccess";
 import { optionalSpaces } from "./optionalSpaces";
 import { prefixOperator } from "./prefixOperator";
 import { propertyAccess } from "./propertyAccess";
@@ -49,9 +50,6 @@ const memberAccess = new Repeat("member-access",
     ])
 );
 
-
-
-const objectAccess = new And("object-access", [name.clone("object-name"), memberAccess]);
 
 var variableName = name.clone("variable-name");
 

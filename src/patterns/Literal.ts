@@ -151,6 +151,10 @@ export class Literal implements Pattern {
     return this.parent.getTokensAfter(this);
   }
 
+  getPatterns(): Pattern[] {
+    return [this];
+  }
+
   getPatternsAfter(): Pattern[] {
     return []
   }

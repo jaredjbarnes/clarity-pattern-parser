@@ -106,7 +106,7 @@ describe("AutoComplete", () => {
         expect(result.isComplete).toBeTruthy();
     });
 
-    test("Options", ()=>{
+    test("Options AutoComplete on Composing Pattern", ()=>{
         const autoCompleteOptions: AutoCompleteOptions = {
             greedyPatternNames: ["space"],
             customTokens: {
@@ -123,7 +123,7 @@ describe("AutoComplete", () => {
         const lastName = new Or("last-name", [doe, smith]);
         const fullName = new And("full-name", [firstName, space, lastName]);
 
-        const text = "John";
+        const text = "Jack";
         const autoComplete = new AutoComplete(fullName, autoCompleteOptions);
         const { options, ast, nextPatterns } = autoComplete.suggest(text);
         const expectedOptions = [
@@ -134,9 +134,52 @@ describe("AutoComplete", () => {
 
         const results = expectedOptions.map(o=>text.slice(0, o.startIndex) + o.text);
         const expectedResults = [
-            "John Doe",
-            "John Smith",
-            "John Sparrow",
+            "Jack Doe",
+            "Jack Smith",
+            "Jack Sparrow",
+        ]
+
+        expect(options).toEqual(expectedOptions);
+        expect(ast).toBeNull();
+        expect(nextPatterns.length).toBe(1);
+        expect(nextPatterns[0].name).toBe("space");
+        expect(results).toEqual(expectedResults)
+
+    });
+
+    test("Options AutoComplete On Leaf Pattern", ()=>{
+        const autoCompleteOptions: AutoCompleteOptions = {
+            greedyPatternNames: ["space"],
+            customTokens: {
+                "space": ["  "]
+            }
+        };
+
+        const jack = new Literal("jack", "Jack");
+        const john = new Literal("john", "John");
+        const space = new Literal("space", " ");
+        const doe = new Literal("doe", "Doe");
+        const smith = new Literal("smith", "Smith");
+        const firstName = new Or("first-name", [jack, john]);
+        const lastName = new Or("last-name", [doe, smith]);
+        const fullName = new And("full-name", [firstName, space, lastName]);
+
+        const text = "Jack";
+        const autoComplete = new AutoComplete(fullName, autoCompleteOptions);
+        const { options, ast, nextPatterns } = autoComplete.suggest(text);
+        const expectedOptions = [
+            {text: "  Doe", startIndex: 4},
+            {text: "  Smith", startIndex: 4},
+            {text: " Doe", startIndex: 4},
+            {text: " Smith", startIndex: 4},
+        ];
+
+        const results = expectedOptions.map(o=>text.slice(0, o.startIndex) + o.text);
+        const expectedResults = [
+            "Jack  Doe",
+            "Jack  Smith",
+            "Jack Doe",
+            "Jack Smith",
         ]
 
         expect(options).toEqual(expectedOptions);

@@ -132,6 +132,15 @@ describe("Literal", () => {
         expect(tokens.length).toBe(0);
     });
 
+    test("Get Patterns", () => {
+        const a = new Literal("a", "A");
+
+        const tokens = a.getPatterns();
+        const expectedTokens = [a];
+
+        expect(tokens).toEqual(expectedTokens);
+    });
+
     test("Get Next Patterns", () => {
         const sequence = new And("sequence", [new Literal("a", "A")]);
         const parent = new And("parent", [sequence, new Literal("b", "B")]);

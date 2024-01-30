@@ -8,6 +8,7 @@ import { integer } from "./integer";
 import { name } from "./name";
 import { parameters } from "./parameters";
 import { prefixOperator } from "./prefixOperator";
+import { objectAccess } from "./objectAccess";
 
 describe("Ecmascript 3", () => {
     test("Escaped Character", () => {
@@ -211,7 +212,15 @@ describe("Ecmascript 3", () => {
 
         result = assignment.exec(`name.prop().method(blah) = blah.prop() == ha ? first : second`)
         expect(result.ast?.value).toBe(`name.prop().method(blah) = blah.prop() == ha ? first : second`);
+    });
 
+
+    test("Object Access", () => {
+        let result = expression.exec("name.prop");
+        expect(result.ast?.value).toBe(`name.prop`);
+
+        result = expression.exec(`name.prop.anotherProp["Ha"][coolYo] === 1`);
+        expect(result.ast?.value).toBe(`name.prop.anotherProp["Ha"][coolYo] === 1`);
     });
 
 

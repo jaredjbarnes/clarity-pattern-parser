@@ -136,6 +136,16 @@ export class Or implements Pattern {
     return this._parent.getTokensAfter(this);
   }
 
+  getPatterns(): Pattern[] {
+    const patterns: Pattern[] = [];
+
+    for (const pattern of this._children) {
+      patterns.push(...pattern.getPatterns());
+    }
+
+    return patterns;
+  }
+
   getPatternsAfter(_childReference: Pattern): Pattern[] {
     if (this._parent === null) {
       return [];

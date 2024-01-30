@@ -152,6 +152,16 @@ describe("Reference", () => {
         expect(tokens).toEqual([])
     });
 
+    test("Get Patterns", () => {
+        const value = createValuePattern();
+        const ref = findPattern(value, (p) => p.type === "reference");
+        const patterns = ref?.getPatterns() || [];
+
+        expect(patterns.length).toBe(2);
+        expect(patterns[0].name).toBe("number");
+        expect(patterns[1].name).toBe("open-bracket");
+    });
+
     test("Get Patterns After", () => {
         const value = createValuePattern();
         const reference = value.findPattern(p => p.type === "reference") as Pattern;

@@ -128,6 +128,17 @@ describe("Not", () => {
         expect(child).not.toBeNull();
     });
 
+    test("Get Patterns", () => {
+        const notAboutUs = new Not("not-about-us", new Literal("about-us", "About Us"));
+        const sequence = new And("sequence", [notAboutUs, new Literal("about-them", "About Them")]);
+
+        const cloneNotAboutUs = sequence.findPattern(p => p.name === "not-about-us") as Pattern;
+        const nextPatterns = cloneNotAboutUs.getPatterns();
+        const expected = [sequence.findPattern(p=>p.name === "about-them")];
+
+        expect(nextPatterns).toEqual(expected);
+    });
+
     test("Get Next Patterns", () => {
         const notAboutUs = new Not("not-about-us", new Literal("about-us", "About Us"));
         const sequence = new And("sequence", [notAboutUs, new Literal("about-them", "About Them")]);

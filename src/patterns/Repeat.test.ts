@@ -198,6 +198,15 @@ describe("Repeat", () => {
         expect(digitClone).not.toBeNull();
     });
 
+    test("Get Patterns", () => {
+        const a = new Literal("a", "A");
+        const manyA = new Repeat("number", a);
+        const patterns = manyA.getPatterns();
+        const expected = [manyA.findPattern(p => p.name === "a")];
+
+        expect(patterns).toEqual(expected)
+    });
+
     test("Get Next Patterns", () => {
         const integer = new Repeat("integer", new Regex("digit", "\\d"));
         const parent = new And("parent", [integer, new Literal("pow", "!")]);

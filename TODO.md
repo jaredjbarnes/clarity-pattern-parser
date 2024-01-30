@@ -7,14 +7,10 @@ divider = /\s*,\s*/
 open-paren = "("
 close-paren = ")"
 argument = integer | method
-arguments = argument* divider
+arguments = argument+ divider
 not-integer = !integer
 optional-integer = integer?
-method = method-name & open-paren & arguments & close-paren
-
-integer.tokens = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
-integer.enableContextualTokenAggregation
-arguments.shouldReduceAst
+method = method-name & open-paren & arguments? & close-paren
 
 export (method, arguments)
 ```

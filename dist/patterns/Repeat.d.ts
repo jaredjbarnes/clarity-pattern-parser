@@ -31,6 +31,7 @@ export declare class Repeat implements Pattern {
     getTokens(): string[];
     getTokensAfter(childReference: Pattern): string[];
     getNextTokens(): string[];
+    getPatterns(): Pattern[];
     getPatternsAfter(childReference: Pattern): Pattern[];
     getNextPatterns(): Pattern[];
     findPattern(predicate: (p: Pattern) => boolean): Pattern | null;

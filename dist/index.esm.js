@@ -449,6 +449,9 @@ class Regex {
         }
         return this.parent.getTokensAfter(this);
     }
+    getPatterns() {
+        return [this];
+    }
     getPatternsAfter(_childReference) {
         return [];
     }
@@ -673,6 +676,16 @@ class And {
         }
         return this.parent.getTokensAfter(this);
     }
+    getPatterns() {
+        const patterns = [];
+        for (const pattern of this._children) {
+            patterns.push(...pattern.getPatterns());
+            if (!pattern.isOptional) {
+                break;
+            }
+        }
+        return patterns;
+    }
     getPatternsAfter(childReference) {
         let nextSibling = null;
         let nextSiblingIndex = -1;
@@ -831,6 +844,9 @@ class Literal {
         }
         return this.parent.getTokensAfter(this);
     }
+    getPatterns() {
+        return [this];
+    }
     getPatternsAfter() {
         return [];
     }
@@ -921,6 +937,9 @@ class Not {
             return [];
         }
         return this.parent.getTokensAfter(this);
+    }
+    getPatterns() {
+        return [...this.getNextPatterns().map(p => p.getPatterns()).flat()];
     }
     getPatternsAfter(_childReference) {
         const parent = this._parent;
@@ -1034,6 +1053,13 @@ class Or {
             return [];
         }
         return this._parent.getTokensAfter(this);
+    }
+    getPatterns() {
+        const patterns = [];
+        for (const pattern of this._children) {
+            patterns.push(...pattern.getPatterns());
+        }
+        return patterns;
     }
     getPatternsAfter(_childReference) {
         if (this._parent === null) {
@@ -1211,6 +1237,9 @@ class Repeat {
         }
         return this.parent.getTokensAfter(this);
     }
+    getPatterns() {
+        return this._pattern.getPatterns();
+    }
     getPatternsAfter(childReference) {
         let index = -1;
         const patterns = [];
@@ -1344,6 +1373,9 @@ class Reference {
         }
         return this.parent.getTokensAfter(this);
     }
+    getPatterns() {
+        return this._getPatternSafely().getPatterns();
+    }
     getPatternsAfter(_childReference) {
         if (this._parent == null) {
             return [];
@@ -1371,12 +1403,19 @@ class AutoComplete {
         this._options = options;
         this._text = "";
     }
+    /**
+     * @deprecated Use suggestFor instead.
+     * @param text The text to suggest for.
+     */
     suggest(text) {
+        return this.suggestFor(text);
+    }
+    suggestFor(text) {
         if (text.length === 0) {
             return {
                 isComplete: false,
-                options: this.createSuggestionsFromRoot(),
-                nextPatterns: [this._pattern],
+                options: this._createSuggestionsFromRoot(),
+                errorAtIndex: 0,
                 cursor: null,
                 ast: null
             };
@@ -1386,34 +1425,38 @@ class AutoComplete {
         const ast = this._pattern.parse(this._cursor);
         const leafPattern = this._cursor.leafMatch.pattern;
         const isComplete = (ast === null || ast === void 0 ? void 0 : ast.value) === text;
-        const options = this.createSuggestionsFromTokens();
-        let nextPatterns = [this._pattern];
+        const options = this._createSuggestionsFromTokens();
+        [this._pattern];
+        let errorAtIndex = null;
         if (leafPattern != null) {
-            nextPatterns = leafPattern.getNextPatterns();
+            leafPattern.getNextPatterns();
+        }
+        if (this._cursor.hasError && this._cursor.furthestError != null) {
+            errorAtIndex = this._cursor.furthestError.index;
+            errorAtIndex = options.reduce((errorAtIndex, option) => Math.max(errorAtIndex, option.startIndex), errorAtIndex);
         }
         return {
             isComplete: isComplete,
             options: options,
-            nextPatterns,
+            errorAtIndex,
             cursor: this._cursor,
             ast,
         };
     }
-    createSuggestionsFromRoot() {
+    _createSuggestionsFromRoot() {
         const suggestions = [];
         const tokens = this._pattern.getTokens();
         for (const token of tokens) {
-            suggestions.push(this.createSuggestion("", token));
+            suggestions.push(this._createSuggestion("", token));
         }
         return suggestions;
     }
-    createSuggestionsFromTokens() {
+    _createSuggestionsFromTokens() {
         const leafMatch = this._cursor.leafMatch;
         if (!leafMatch.pattern) {
-            return this.createSuggestions(-1, this._getTokensForPattern(this._pattern));
+            return this._createSuggestions(-1, this._getTokensForPattern(this._pattern));
         }
         const leafPattern = leafMatch.pattern;
-        leafMatch.node;
         const parent = leafMatch.pattern.parent;
         if (parent !== null && leafMatch.node != null) {
             const patterns = leafPattern.getNextPatterns();
@@ -1421,22 +1464,22 @@ class AutoComplete {
                 acc.push(...this._getTokensForPattern(pattern));
                 return acc;
             }, []);
-            return this.createSuggestions(leafMatch.node.lastIndex, tokens);
+            return this._createSuggestions(leafMatch.node.lastIndex, tokens);
         }
         else {
             return [];
         }
     }
     _getTokensForPattern(pattern) {
-        if (this._options.greedyPatternNames.includes(pattern.name)) {
-            const greedyTokens = pattern.getTokens();
+        const augmentedTokens = this._getAugmentedTokens(pattern);
+        if (this._options.greedyPatternNames != null && this._options.greedyPatternNames.includes(pattern.name)) {
             const nextPatterns = pattern.getNextPatterns();
             const tokens = [];
             const nextPatternTokens = nextPatterns.reduce((acc, pattern) => {
                 acc.push(...this._getTokensForPattern(pattern));
                 return acc;
             }, []);
-            for (let token of greedyTokens) {
+            for (let token of augmentedTokens) {
                 for (let nextPatternToken of nextPatternTokens) {
                     tokens.push(token + nextPatternToken);
                 }
@@ -1444,13 +1487,20 @@ class AutoComplete {
             return tokens;
         }
         else {
-            const tokens = pattern.getTokens();
-            const customTokens = this._options.customTokens[pattern.name] || [];
-            tokens.push(...customTokens);
-            return tokens;
+            return augmentedTokens;
         }
     }
-    createSuggestions(lastIndex, tokens) {
+    _getAugmentedTokens(pattern) {
+        const customTokensMap = this._options.customTokens || {};
+        const leafPatterns = pattern.getPatterns();
+        const tokens = customTokensMap[pattern.name] || [];
+        leafPatterns.forEach(p => {
+            const augmentedTokens = customTokensMap[p.name] || [];
+            tokens.push(...p.getTokens(), ...augmentedTokens);
+        });
+        return tokens;
+    }
+    _createSuggestions(lastIndex, tokens) {
         let substring = lastIndex === -1 ? "" : this._cursor.getChars(0, lastIndex);
         const suggestionStrings = [];
         const options = [];
@@ -1461,14 +1511,14 @@ class AutoComplete {
             const isSameAsText = suggestion === this._text;
             if (startsWith && !alreadyExist && !isSameAsText) {
                 suggestionStrings.push(suggestion);
-                options.push(this.createSuggestion(this._cursor.text, suggestion));
+                options.push(this._createSuggestion(this._cursor.text, suggestion));
             }
         }
         const reducedOptions = getFurthestOptions(options);
         reducedOptions.sort((a, b) => a.text.localeCompare(b.text));
         return reducedOptions;
     }
-    createSuggestion(fullText, suggestion) {
+    _createSuggestion(fullText, suggestion) {
         const furthestMatch = findMatchIndex(suggestion, fullText);
         const text = suggestion.slice(furthestMatch);
         return {

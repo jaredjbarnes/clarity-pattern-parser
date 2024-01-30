@@ -13,8 +13,9 @@ export interface Pattern {
     clone(name?: string, isOptional?: boolean): Pattern;
     getTokens(): string[];
     getTokensAfter(childReference: Pattern): string[];
+    getNextTokens(): string[];
+    getPatterns(): Pattern[];
     getPatternsAfter(childReference: Pattern): Pattern[];
     getNextPatterns(): Pattern[];
-    getNextTokens(): string[];
     findPattern(predicate: (p: Pattern) => boolean): Pattern | null;
 }

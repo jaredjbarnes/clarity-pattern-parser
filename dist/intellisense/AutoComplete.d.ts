@@ -6,12 +6,12 @@ export interface AutoCompleteOptions {
      * Be very careful, this can explode to infinity pretty quick. Usually useful
      * for dividers and spaces.
      */
-    greedyPatternNames: string[];
+    greedyPatternNames?: string[];
     /**
      * Allows for custom suggestions for patterns. The key is the name of the pattern
      * and the string array are the tokens suggested for that pattern.
      */
-    customTokens: Record<string, string[]>;
+    customTokens?: Record<string, string[]>;
 }
 export declare class AutoComplete {
     private _pattern;
@@ -19,10 +19,16 @@ export declare class AutoComplete {
     private _cursor;
     private _text;
     constructor(pattern: Pattern, options?: AutoCompleteOptions);
+    /**
+     * @deprecated Use suggestFor instead.
+     * @param text The text to suggest for.
+     */
     suggest(text: string): Suggestion;
-    private createSuggestionsFromRoot;
-    private createSuggestionsFromTokens;
+    suggestFor(text: string): Suggestion;
+    private _createSuggestionsFromRoot;
+    private _createSuggestionsFromTokens;
     private _getTokensForPattern;
-    private createSuggestions;
-    private createSuggestion;
+    private _getAugmentedTokens;
+    private _createSuggestions;
+    private _createSuggestion;
 }

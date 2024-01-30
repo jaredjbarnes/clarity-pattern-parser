@@ -10,11 +10,11 @@ describe("AutoComplete", () => {
     test("No Text", () => {
         const name = new Literal("name", "Name");
         const autoComplete = new AutoComplete(name);
-        let result = autoComplete.suggest("");
+        let result = autoComplete.suggestFor("");
 
         expect(result.options[0].text).toBe("Name");
         expect(result.options[0].startIndex).toBe(0);
-        expect(result.nextPatterns[0]).toBe(name);
+        expect(result.errorAtIndex).toBe(0);
         expect(result.isComplete).toBeFalsy();
     });
 
@@ -26,11 +26,11 @@ describe("AutoComplete", () => {
         const name = new And("name", [john, space, new Or("last-name", [smith, doe])]);
 
         const autoComplete = new AutoComplete(name);
-        const result = autoComplete.suggest("John Doe");
+        const result = autoComplete.suggestFor("John Doe");
 
         expect(result.ast?.value).toBe("John Doe");
         expect(result.options.length).toBe(0);
-        expect(result.nextPatterns.length).toBe(0);
+        expect(result.errorAtIndex).toBeNull();
         expect(result.isComplete).toBeTruthy();
         expect(result.cursor).not.toBeNull();
     });
@@ -42,14 +42,20 @@ describe("AutoComplete", () => {
         const smith = new Literal("smith", "Smith");
         const name = new And("name", [john, space, new Or("last-name", [smith, doe])]);
 
+        const text = "John "
         const autoComplete = new AutoComplete(name);
-        const result = autoComplete.suggest("John ");
+        const result = autoComplete.suggestFor(text);
+        const expectedOptions = [{
+            text: "Doe",
+            startIndex: 5
+        }, {
+            text: "Smith",
+            startIndex: 5
+        }];
 
         expect(result.ast).toBeNull();
-        expect(result.options.length).toBe(2);
-        expect(result.nextPatterns.length).toBe(1);
-        expect(result.nextPatterns[0].type).toBe("or");
-        expect(result.nextPatterns[0].name).toBe("last-name");
+        expect(result.options).toEqual(expectedOptions);
+        expect(result.errorAtIndex).toBe(text.length)
         expect(result.isComplete).toBeFalsy();
         expect(result.cursor).not.toBeNull();
     });
@@ -64,12 +70,17 @@ describe("AutoComplete", () => {
 
         divider.setTokens([", "])
 
+        const text = "John Doe";
         const autoComplete = new AutoComplete(new Repeat("last-names", name, divider));
-        const result = autoComplete.suggest("John Doe");
+        const result = autoComplete.suggestFor(text);
+        const expectedOptions = [{
+            text: ", ",
+            startIndex: 8
+        }];
 
-        expect(result.ast?.value).toBe("John Doe");
-        expect(result.options.length).toBe(1);
-        expect(result.nextPatterns.length).toBe(result.options.length);
+        expect(result.ast?.value).toBe(text);
+        expect(result.options).toEqual(expectedOptions);
+        expect(result.errorAtIndex).toBeNull()
         expect(result.isComplete).toBeTruthy();
         expect(result.cursor).not.toBeNull();
     });
@@ -77,36 +88,50 @@ describe("AutoComplete", () => {
     test("Partial", () => {
         const name = new Literal("name", "Name");
         const autoComplete = new AutoComplete(name);
-        let result = autoComplete.suggest("Na");
+        const result = autoComplete.suggestFor("Na");
+        const expectedOptions = [{
+            text: "me",
+            startIndex: 2
+        }];
 
-        expect(result.options[0].text).toBe("me");
-        expect(result.options[0].startIndex).toBe(2);
-        expect(result.nextPatterns[0]).toBe(name);
+        expect(result.ast).toBeNull();
+        expect(result.options).toEqual(expectedOptions);
+        expect(result.errorAtIndex).toBe(2);
         expect(result.isComplete).toBeFalsy();
+        expect(result.cursor).not.toBeNull();
     });
 
     test("Partial Match With Bad Characters", () => {
         const name = new Literal("name", "Name");
         const autoComplete = new AutoComplete(name);
-        let result = autoComplete.suggest("Ni");
+        const result = autoComplete.suggestFor("Ni");
 
-        expect(result.options[0].text).toBe("ame");
-        expect(result.options[0].startIndex).toBe(1);
-        //expect(result.nextPattern).toBe(name);
+        const expectedOptions = [{
+            text: "ame",
+            startIndex: 1
+        }];
+
+        expect(result.ast).toBeNull();
+        expect(result.options).toEqual(expectedOptions);
+        expect(result.errorAtIndex).toBe(1);
         expect(result.isComplete).toBeFalsy();
+        expect(result.cursor).not.toBeNull();
     });
 
     test("Complete", () => {
         const name = new Literal("name", "Name");
         const autoComplete = new AutoComplete(name);
-        let result = autoComplete.suggest("Name");
+        const text = "Name"
+        const result = autoComplete.suggestFor(text);
 
-        expect(result.options.length).toBe(0);
-        expect(result.nextPatterns.length).toBe(0);
+        expect(result.ast?.value).toBe(text);
+        expect(result.options).toEqual([]);
+        expect(result.errorAtIndex).toBeNull();
         expect(result.isComplete).toBeTruthy();
+        expect(result.cursor).not.toBeNull();
     });
 
-    test("Options AutoComplete on Composing Pattern", ()=>{
+    test("Options AutoComplete on Composing Pattern", () => {
         const autoCompleteOptions: AutoCompleteOptions = {
             greedyPatternNames: ["space"],
             customTokens: {
@@ -125,29 +150,29 @@ describe("AutoComplete", () => {
 
         const text = "Jack";
         const autoComplete = new AutoComplete(fullName, autoCompleteOptions);
-        const { options, ast, nextPatterns } = autoComplete.suggest(text);
+        const { options, ast, errorAtIndex } = autoComplete.suggestFor(text);
+
         const expectedOptions = [
-            {text: " Doe", startIndex: 4},
-            {text: " Smith", startIndex: 4},
-            {text: " Sparrow", startIndex: 4},
+            { text: " Doe", startIndex: 4 },
+            { text: " Smith", startIndex: 4 },
+            { text: " Sparrow", startIndex: 4 },
         ];
 
-        const results = expectedOptions.map(o=>text.slice(0, o.startIndex) + o.text);
+        const results = expectedOptions.map(o => text.slice(0, o.startIndex) + o.text);
         const expectedResults = [
             "Jack Doe",
             "Jack Smith",
             "Jack Sparrow",
         ]
 
-        expect(options).toEqual(expectedOptions);
         expect(ast).toBeNull();
-        expect(nextPatterns.length).toBe(1);
-        expect(nextPatterns[0].name).toBe("space");
-        expect(results).toEqual(expectedResults)
+        expect(errorAtIndex).toBe(4);
+        expect(options).toEqual(expectedOptions);
+        expect(results).toEqual(expectedResults);
 
     });
 
-    test("Options AutoComplete On Leaf Pattern", ()=>{
+    test("Options AutoComplete On Leaf Pattern", () => {
         const autoCompleteOptions: AutoCompleteOptions = {
             greedyPatternNames: ["space"],
             customTokens: {
@@ -166,15 +191,15 @@ describe("AutoComplete", () => {
 
         const text = "Jack";
         const autoComplete = new AutoComplete(fullName, autoCompleteOptions);
-        const { options, ast, nextPatterns } = autoComplete.suggest(text);
+        const { options, ast, errorAtIndex } = autoComplete.suggestFor(text);
         const expectedOptions = [
-            {text: "  Doe", startIndex: 4},
-            {text: "  Smith", startIndex: 4},
-            {text: " Doe", startIndex: 4},
-            {text: " Smith", startIndex: 4},
+            { text: "  Doe", startIndex: 4 },
+            { text: "  Smith", startIndex: 4 },
+            { text: " Doe", startIndex: 4 },
+            { text: " Smith", startIndex: 4 },
         ];
 
-        const results = expectedOptions.map(o=>text.slice(0, o.startIndex) + o.text);
+        const results = expectedOptions.map(o => text.slice(0, o.startIndex) + o.text);
         const expectedResults = [
             "Jack  Doe",
             "Jack  Smith",
@@ -182,10 +207,9 @@ describe("AutoComplete", () => {
             "Jack Smith",
         ]
 
-        expect(options).toEqual(expectedOptions);
         expect(ast).toBeNull();
-        expect(nextPatterns.length).toBe(1);
-        expect(nextPatterns[0].name).toBe("space");
+        expect(errorAtIndex).toBe(4);
+        expect(options).toEqual(expectedOptions);
         expect(results).toEqual(expectedResults)
 
     });

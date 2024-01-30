@@ -23,6 +23,7 @@ export declare class Not implements Pattern {
     getTokens(): string[];
     getTokensAfter(_childReference: Pattern): string[];
     getNextTokens(): string[];
+    getPatterns(): Pattern[];
     getPatternsAfter(_childReference: Pattern): Pattern[];
     getNextPatterns(): Pattern[];
     findPattern(predicate: (p: Pattern) => boolean): Pattern | null;

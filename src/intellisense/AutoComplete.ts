@@ -31,12 +31,20 @@ export class AutoComplete {
     this._text = "";
   }
 
+  /**
+   * @deprecated Use suggestFor instead.
+   * @param text The text to suggest for.
+   */
   suggest(text: string): Suggestion {
+    return this.suggestFor(text);
+  }
+
+  suggestFor(text: string): Suggestion {
     if (text.length === 0) {
       return {
         isComplete: false,
         options: this._createSuggestionsFromRoot(),
-        nextPatterns: [this._pattern],
+        errorAtIndex: 0,
         cursor: null,
         ast: null
       }
@@ -51,15 +59,24 @@ export class AutoComplete {
     const options = this._createSuggestionsFromTokens();
 
     let nextPatterns = [this._pattern];
+    let errorAtIndex = null;
 
     if (leafPattern != null) {
       nextPatterns = leafPattern.getNextPatterns();
     }
 
+    if (this._cursor.hasError && this._cursor.furthestError != null) {
+      errorAtIndex = this._cursor.furthestError.index;
+
+      errorAtIndex = options.reduce((errorAtIndex, option) =>
+        Math.max(errorAtIndex, option.startIndex),
+        errorAtIndex);
+    }
+
     return {
       isComplete: isComplete,
       options: options,
-      nextPatterns,
+      errorAtIndex,
       cursor: this._cursor,
       ast,
     }
@@ -130,7 +147,7 @@ export class AutoComplete {
     const tokens: string[] = customTokensMap[pattern.name] || [];
 
     leafPatterns.forEach(p => {
-      const augmentedTokens = customTokensMap[p.name] || []; 
+      const augmentedTokens = customTokensMap[p.name] || [];
       tokens.push(...p.getTokens(), ...augmentedTokens);
     });
 

@@ -11,7 +11,7 @@ const divider = new Regex("invocation-divider", "\\s*,\\s*");
 const invocationWithArguments = new And("invocation-with-arguments", [
     new Literal("open-paren", "("),
     optionalSpaces,
-    new Repeat("expressions", new Reference("expression"), divider, true),
+    new Repeat("expressions", new Reference("expression"), { divider, min: 0 }),
     optionalSpaces,
     new Literal("close-paren", ")"),
 ]);

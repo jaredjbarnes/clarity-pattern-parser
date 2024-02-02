@@ -71,7 +71,7 @@ describe("AutoComplete", () => {
         divider.setTokens([", "])
 
         const text = "John Doe";
-        const autoComplete = new AutoComplete(new Repeat("last-names", name, divider));
+        const autoComplete = new AutoComplete(new Repeat("last-names", name, {divider}));
         const result = autoComplete.suggestFor(text);
         const expectedOptions = [{
             text: ", ",

@@ -8,7 +8,6 @@ import { integer } from "./integer";
 import { name } from "./name";
 import { parameters } from "./parameters";
 import { prefixOperator } from "./prefixOperator";
-import { objectAccess } from "./objectAccess";
 
 describe("Ecmascript 3", () => {
     test("Escaped Character", () => {

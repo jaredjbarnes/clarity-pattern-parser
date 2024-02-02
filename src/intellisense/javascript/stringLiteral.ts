@@ -12,8 +12,7 @@ const doubleQuoteStringLiteral = new And("double-string-literal", [
             new Regex("normal-characters", "[^\\\"]+"),
             escapedCharacter
         ]),
-        undefined,
-        true
+        { min: 0 }
     ),
     new Literal("double-quote", "\""),
 ]);
@@ -25,8 +24,7 @@ const singleQuoteStringLiteral = new And("single-string-literal", [
             new Regex("normal-characters", "[^\\']+"),
             escapedCharacter
         ]),
-        undefined,
-        true
+        { min: 0 }
     ),
     new Literal("single-quote", "'"),
 ]);

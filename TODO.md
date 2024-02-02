@@ -82,3 +82,13 @@ import (method, arguments) from "./method.grammar"
 We can easily make this parser a breadth first parser by adding a custom parser to essentially count brackets until its whole, so capture a full block, then allow another system handle each block.
 
 By default this parser is depth first. 
+
+
+In order to keep intellisense working we need to create BoundedRepeat pattern. This would 
+allow us to stamp out the patterns as described exactly. The reason Repeat can't do this
+is because we don't have the context of how many matches went before. But if we have
+a pattern for each match we can. 
+
+We need both repeats to support a min, but one is upper bound.
+
+So we should call it FiniteRepeat.

@@ -4,18 +4,22 @@ import { Pattern } from "./Pattern";
 import { clonePatterns } from "./clonePatterns";
 import { findPattern } from "./findPattern";
 
+export interface RepeatOptions {
+  divider?: Pattern;
+  min?: number;
+}
+
 export class Repeat implements Pattern {
   private _type: string;
   private _name: string;
   private _parent: Pattern | null;
   private _children: Pattern[];
   private _pattern: Pattern;
-  private _divider: Pattern;
+  private _divider: Pattern | null;
   private _isOptional: boolean;
   private _nodes: Node[];
   private _firstIndex: number;
   private _min: number;
-  private _max: number;
 
   get type(): string {
     return this._type;
@@ -41,22 +45,22 @@ export class Repeat implements Pattern {
     return this._isOptional;
   }
 
-  constructor(name: string, pattern: Pattern, divider?: Pattern, isOptional = false, min = 1, max = Infinity) {
-    const patterns = divider != null ? [pattern, divider] : [pattern];
+  constructor(name: string, pattern: Pattern, options: RepeatOptions = {}) {
+    const patterns = options.divider != null ? [pattern, options.divider] : [pattern];
+    const min = options.min != null ? options.min : 1;
     const children: Pattern[] = clonePatterns(patterns, false);
     this._assignChildrenToParent(children);
 
     this._type = "repeat";
     this._name = name;
-    this._isOptional = min < 1 ? true : isOptional;
+    this._isOptional = min < 1;
+    this._min = min;
     this._parent = null;
     this._children = children;
     this._pattern = children[0];
     this._divider = children[1];
     this._firstIndex = -1
     this._nodes = [];
-    this._min = min;
-    this._max = max;
   }
 
   private _assignChildrenToParent(children: Pattern[]): void {
@@ -86,26 +90,18 @@ export class Repeat implements Pattern {
     this._firstIndex = cursor.index;
     this._nodes = [];
 
-    const successfulParse = this.tryToParse(cursor);
-    const isWithinMatchBounds = successfulParse && this._isWithinMatchBounds();
-    const passed = successfulParse && isWithinMatchBounds;
+    const passed = this._tryToParse(cursor);
 
     if (passed) {
       cursor.resolveError();
-      const node = this.createNode(cursor);
+      const node = this._createNode(cursor);
 
       if (node != null) {
         cursor.moveTo(node.lastIndex);
         cursor.recordMatch(this, node);
       }
 
-
       return node;
-    }
-
-    if (successfulParse && !isWithinMatchBounds) {
-      cursor.moveTo(this._firstIndex);
-      cursor.recordErrorAt(this._firstIndex, this._pattern);
     }
 
     if (!this._isOptional) {
@@ -116,28 +112,22 @@ export class Repeat implements Pattern {
     return null;
   }
 
-  private _isWithinMatchBounds() {
-    const count = this._getMatchCount();
-    return count >= this._min && count <= this._max
+  private _meetsMin() {
+    if (this._divider != null) {
+      return Math.ceil(this._nodes.length / 2) >= this._min;
+    }
+    return this._nodes.length >= this._min;
   }
 
-  private tryToParse(cursor: Cursor): boolean {
+  private _tryToParse(cursor: Cursor): boolean {
     let passed = false;
 
     while (true) {
-      const matchCount = this._getMatchCount();
-      const isWithinBounds = matchCount < this._max;
-
-      if (!isWithinBounds) {
-        passed = true;
-        break;
-      }
-
       const runningCursorIndex = cursor.index;
       const repeatedNode = this._pattern.parse(cursor);
 
       if (cursor.hasError) {
-        const lastValidNode = this.getLastValidNode();
+        const lastValidNode = this._getLastValidNode();
 
         if (lastValidNode != null) {
           passed = true;
@@ -178,17 +168,20 @@ export class Repeat implements Pattern {
       }
     }
 
+    const hasMinimum = this._meetsMin();
+
+    if (hasMinimum) {
+      return passed;
+    } else if (!hasMinimum && passed) {
+      cursor.recordErrorAt(cursor.index, this);
+      cursor.moveTo(this._firstIndex);
+      return false;
+    }
+
     return passed;
   }
 
-  private _getMatchCount() {
-    if (this._divider != null) {
-      return Math.ceil(this._nodes.length / 2);
-    }
-    return this._nodes.length;
-  }
-
-  private createNode(cursor: Cursor): Node | null {
+  private _createNode(cursor: Cursor): Node | null {
     let children: Node[] = [];
 
     if (this._divider == null) {
@@ -211,12 +204,11 @@ export class Repeat implements Pattern {
       this._name,
       this._firstIndex,
       lastIndex,
-      children,
-      undefined
+      children
     );
   }
 
-  private getLastValidNode(): Node | null {
+  private _getLastValidNode(): Node | null {
     const nodes = this._nodes.filter((node) => node !== null);
 
     if (nodes.length === 0) {
@@ -240,11 +232,11 @@ export class Repeat implements Pattern {
   }
 
   getNextTokens(): string[] {
-    if (this.parent == null) {
+    if (this._parent == null) {
       return []
     }
 
-    return this.parent.getTokensAfter(this);
+    return this._parent.getTokensAfter(this);
   }
 
   getPatterns(): Pattern[] {
@@ -290,11 +282,11 @@ export class Repeat implements Pattern {
   }
 
   getNextPatterns(): Pattern[] {
-    if (this.parent == null) {
+    if (this._parent == null) {
       return [];
     }
 
-    return this.parent.getPatternsAfter(this)
+    return this._parent.getPatternsAfter(this)
   }
 
   findPattern(predicate: (p: Pattern) => boolean): Pattern | null {
@@ -305,10 +297,10 @@ export class Repeat implements Pattern {
     return new Repeat(
       name,
       this._pattern,
-      this._divider,
-      isOptional,
-      this._min,
-      this._max
+      {
+        divider: this._divider == null ? undefined : this._divider,
+        min: isOptional ? 0 : this._min
+      }
     );
   }
 }

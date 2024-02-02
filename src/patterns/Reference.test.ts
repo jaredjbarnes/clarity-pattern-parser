@@ -19,7 +19,7 @@ function createValuePattern() {
     divider.setTokens([", "]);
 
     const valueRef = new Reference("value");
-    const values = new Repeat("values", valueRef, divider);
+    const values = new Repeat("values", valueRef, { divider });
     const array = new And("array", [openBracket, values, closeBracket]);
     const value = new Or("value", [number, array]);
 

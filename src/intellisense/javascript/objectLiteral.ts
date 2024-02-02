@@ -17,7 +17,7 @@ const property = new And("property", [
     new Reference("expression"),
 ]);
 const divider = new Regex("property-divider", "\\s*,\\s*");
-const optionalProperties = new Repeat("properties", property, divider, true);
+const optionalProperties = new Repeat("properties", property, { divider, min: 0 });
 
 const objectLiteral = new And("object-literal", [
     new Literal("open-curly-bracket", "{"),

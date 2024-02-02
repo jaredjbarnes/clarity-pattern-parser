@@ -7,7 +7,7 @@ import { Repeat } from "../../patterns/Repeat";
 import { optionalSpaces } from "./optionalSpaces";
 
 const divider = new Regex("array-divider", "\\s*,\\s*");
-const arrayItems = new Repeat("array-items", new Reference("expression"), divider, true);
+const arrayItems = new Repeat("array-items", new Reference("expression"), { divider, min: 0 });
 
 export const arrayLiteral = new Or("array-literal",
     [new And("empty-array-literal", [

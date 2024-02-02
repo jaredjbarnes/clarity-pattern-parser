@@ -9,7 +9,7 @@ import divider from "./divider";
 const openParen = new Literal("open-paren", "(");
 const closeParen = new Literal("close-paren", ")");
 const values = new Reference("values");
-const args = new Repeat("arguments", values, divider, true);
+const args = new Repeat("arguments", values, { divider, min: 0 });
 const methodName = name.clone("method-name");
 methodName.setTokens(["rgba", "radial-gradient", "linear-gradient"]);
 

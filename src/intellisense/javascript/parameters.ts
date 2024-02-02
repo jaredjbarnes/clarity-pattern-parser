@@ -12,7 +12,7 @@ const optionalSpace = new Regex("optional-space", "\\s", true)
 const parameters = new And("parameters", [
     new Literal("open-paren", "("),
     optionalSpace,
-    new Repeat("arguments", name, divider),
+    new Repeat("arguments", name, { divider }),
     optionalSpace,
     new Literal("close-paren", ")"),
 ]);

@@ -186,9 +186,9 @@ describe("Node", () => {
     test("Remove", () => {
         const a = new Node("a", "a", 0, 0, [], "A");
         const b = new Node("b", "b", 0, 0, [], "B");
-        const parent = new Node("parent", "parent", 0, 0, [a]);
+        const parent = new Node("parent", "parent", 0, 0, [a, b]);
 
-        b.remove();
+        parent.find(p=>p.name === "b")?.remove();
 
         expect(parent.children.length).toBe(1);
         expect(parent.value).toBe("A")

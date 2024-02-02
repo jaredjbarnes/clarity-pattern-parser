@@ -89,7 +89,7 @@ export class FiniteRepeat implements Pattern {
 
         // Make sure we backtrack if we landed on a divider.
         if (this._hasDivider) {
-            if (nodes.length % 2) {
+            if (nodes.length % 2 === 0) {
                 const node = nodes.pop() as Node;
                 cursor.moveTo(node.firstIndex)
             }

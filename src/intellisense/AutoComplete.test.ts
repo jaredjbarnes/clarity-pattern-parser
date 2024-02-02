@@ -88,7 +88,8 @@ describe("AutoComplete", () => {
     test("Partial", () => {
         const name = new Literal("name", "Name");
         const autoComplete = new AutoComplete(name);
-        const result = autoComplete.suggestFor("Na");
+        // Use deprecated suggest for code coverage.
+        const result = autoComplete.suggest("Na");
         const expectedOptions = [{
             text: "me",
             startIndex: 2

@@ -138,14 +138,24 @@ export class FiniteRepeat implements Pattern {
         };
     }
 
-    clone(name = this._name, isOptional = this._isOptional): Pattern {
+    clone(name = this._name, isOptional?: boolean): Pattern {
+        let min = this._min;
+
+        if (isOptional != null) {
+            if (this._min === 0 && !isOptional) {
+                min = 1;
+            } else if (isOptional) {
+                min = 0;
+            }
+        }
+
         return new FiniteRepeat(
             name,
             this._children[0],
             this._max,
             {
                 divider: this._hasDivider ? this._children[1] : undefined,
-                min: isOptional ? 0 : 1
+                min
             }
         );
     }

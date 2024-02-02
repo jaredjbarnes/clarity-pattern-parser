@@ -32,5 +32,8 @@ describe("Grammer", () => {
             `repeatExactly = literal{2} regex`;
 
         const result = grammar.exec(text);
+        result.ast?.
+            findAll(n => n.name === "spaces" || n.name === "optional-spaces" || n.name === "new-line" || n.name === "whitespace").
+            forEach(n => n.remove())
     });
 });

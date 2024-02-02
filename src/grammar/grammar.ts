@@ -7,6 +7,7 @@ import { statement } from "./statement";
 
 const whitespace = new Regex("whitespace", "[ \\t]+");
 const newLine = new Regex("new-line", "(\\r?\\n)+");
+
 const line = new Or("line", [
     comment,
     statement,

@@ -9,7 +9,6 @@ import { repeatLiteral } from "./repeatLiteral";
 import { spaces } from "./spaces";
 import { stringLiteral } from "./stringLiteral";
 import { comment } from "./comment";
-import { Regex } from "../patterns/Regex";
 
 const optionalSpaces = spaces.clone("optional-spaces", true);
 const assignOperator = new Literal("assign-operator", "=");

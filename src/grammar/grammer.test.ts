@@ -19,6 +19,7 @@ describe("Grammer", () => {
             `literal = "Literal"\n` +
             `\n` +
             ` \n` +
+            `#comment    \n` +
             `regex = /\\s+,\\s+/\n` +
             `\t\n` +
             `and = !literal & regex? & literal\n` +
@@ -26,7 +27,7 @@ describe("Grammer", () => {
             `optionalRepeat = literal* regex\n` +
             `repeat = literal+ regex\n` +
             `repeatBounds = literal{2,3} regex\n` +
-            `repeatUpperBounds = literal{,3} regex\n` +
+            `optionalRepeatUpperBounds = literal{,3} regex\n` +
             `repeatLowerBounds = literal{2,} regex\n` +
             `repeatExactly = literal{2} regex`;
 

@@ -3,7 +3,7 @@ import { grammar } from "./grammar";
 describe("Grammer", () => {
     test("Single Line", () => {
         const result = grammar.exec(`literal = "Literal"`);
-        expect(result.ast?.value).toBe("literal = Literal");
+        expect(result.ast?.value).toBe(`literal = "Literal"`);
     });
 
     test("Multiple Lines", () => {
@@ -17,14 +17,17 @@ describe("Grammer", () => {
     test("All Patterns", () => {
         const text =
             `literal = "Literal"\n` +
+            `\n` +
+            ` \n` +
             `regex = /\\s+,\\s+/\n` +
+            `\t\n` +
             `and = !literal & regex? & literal\n` +
             `or = literal | regex\n` +
             `optionalRepeat = literal* regex\n` +
             `repeat = literal+ regex\n` +
             `repeatBounds = literal{2,3} regex\n` +
             `repeatUpperBounds = literal{,3} regex\n` +
-            `repeatUpperBounds = literal{2,} regex\n` +
+            `repeatLowerBounds = literal{2,} regex\n` +
             `repeatExactly = literal{2} regex`;
 
         const result = grammar.exec(text);

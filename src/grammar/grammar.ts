@@ -5,16 +5,12 @@ import { Repeat } from "../patterns/Repeat";
 import { comment } from "./comment";
 import { statement } from "./statement";
 
-const newLine = new Regex("new-line", "\\r?\\n");
-const optionalWhitespace = new Regex("optional-whitespace", "\\s+", true);
+const whitespace = new Regex("whitespace", "[ \\t]+");
+const newLine = new Regex("new-line", "(\\r?\\n)+");
 const line = new Or("line", [
     comment,
     statement,
+    whitespace
 ]);
 
-const lines = new Repeat("lines", line, newLine);
-export const grammar = new And("grammar", [
-    optionalWhitespace,
-    lines,
-    optionalWhitespace,
-]);
+export const grammar = new Repeat("grammer", line, newLine);

@@ -1,5 +1,6 @@
 import { Node } from "../ast/Node";
 import { Cursor } from "./Cursor";
+import { findPattern } from "./findPattern";
 import { ParseResult } from "./ParseResult";
 import { Pattern } from "./Pattern";
 import { RepeatOptions } from "./Repeat";
@@ -31,6 +32,10 @@ export class FiniteRepeat implements Pattern {
         return this._parent;
     }
 
+    set parent(value: Pattern | null) {
+        this._parent = value;
+    }
+
     get children() {
         return this._children;
     }
@@ -47,7 +52,7 @@ export class FiniteRepeat implements Pattern {
         return this._max;
     }
 
-    constructor(name: string, pattern: Pattern, repeatAmount: number, options: RepeatOptions) {
+    constructor(name: string, pattern: Pattern, repeatAmount: number, options: RepeatOptions = {}) {
         this._type = "finite-repeat";
         this._name = name;
         this._parent = null;
@@ -75,6 +80,7 @@ export class FiniteRepeat implements Pattern {
             const node = childPattern.parse(cursor);
 
             if (cursor.hasError || node == null) {
+                cursor.resolveError();
                 break;
             }
 
@@ -98,15 +104,12 @@ export class FiniteRepeat implements Pattern {
         const matchCount = this._hasDivider ? Math.ceil(nodes.length / 2) : nodes.length;
 
         if (matchCount < this._min) {
-
-            if (this._isOptional) {
-                cursor.moveTo(startIndex)
-                cursor.resolveError();
-                return null;
-            }
-
             cursor.moveTo(startIndex);
             cursor.recordErrorAt(startIndex, this);
+            return null;
+        } else if (nodes.length === 0) {
+            cursor.resolveError();
+            cursor.moveTo(startIndex)
             return null;
         }
 
@@ -142,7 +145,7 @@ export class FiniteRepeat implements Pattern {
             this._max,
             {
                 divider: this._hasDivider ? this._children[1] : undefined,
-                min: isOptional ? 0 : this._min
+                min: isOptional ? 0 : 1
             }
         );
     }
@@ -204,7 +207,7 @@ export class FiniteRepeat implements Pattern {
     }
 
     findPattern(predicate: (p: Pattern) => boolean): Pattern | null {
-        throw new Error("Method not implemented.");
+        return findPattern(this, predicate);
     }
 
 }

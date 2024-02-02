@@ -13,22 +13,32 @@ const openBracket = new Literal("open-bracket", "{");
 const closeBracket = new Literal("close-bracket", "}");
 const comma = new Literal("comma", ",");
 const integer = new Regex("integer", "([1-9][0-9]*)|0");
+const optionalInteger = integer.clone("integer", true)
 
 const bounds = new And("bounds", [
     openBracket,
     optionalSpaces,
-    integer,
+    optionalInteger,
     optionalSpaces,
     comma,
     optionalSpaces,
-    integer,
+    optionalInteger,
     optionalSpaces,
     closeBracket
+]);
+
+const exactCount = new And("bounds", [
+    openBracket,
+    optionalSpaces,
+    integer,
+    optionalSpaces,
+    closeBracket,
 ]);
 
 const quantifierShorthand = new Regex("quantifier-shorthand", "\\*|\\+");
 const optionalQuantifier = new Or("quantifier", [
     quantifierShorthand,
+    exactCount,
     bounds
 ], true);
 

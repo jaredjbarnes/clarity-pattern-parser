@@ -20,8 +20,12 @@ describe("Grammer", () => {
             `regex = /\\s+,\\s+/\n` +
             `and = !literal & regex? & literal\n` +
             `or = literal | regex\n` +
-            `repeatOptional = literal* regex\n` +
-            `repeat = literal+ regex`;
+            `optionalRepeat = literal* regex\n` +
+            `repeat = literal+ regex\n` +
+            `repeatBounds = literal{2,3} regex\n` +
+            `repeatUpperBounds = literal{,3} regex\n` +
+            `repeatUpperBounds = literal{2,} regex\n` +
+            `repeatExactly = literal{2} regex`;
 
         const result = grammar.exec(text);
     });

@@ -1,5 +1,4 @@
 import { And } from "../patterns/And";
-import { findPattern } from "../patterns/findPattern";
 import { Literal } from "../patterns/Literal";
 import { Or } from "../patterns/Or";
 import { Regex } from "../patterns/Regex";

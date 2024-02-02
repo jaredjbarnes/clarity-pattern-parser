@@ -1,4 +1,3 @@
-import { And } from "../patterns/And";
 import { Or } from "../patterns/Or";
 import { Regex } from "../patterns/Regex";
 import { Repeat } from "../patterns/Repeat";

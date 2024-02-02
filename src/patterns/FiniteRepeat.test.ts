@@ -310,7 +310,6 @@ describe("BoundedRepeat", () => {
         tokens = numbers.getTokensAfter(child);
 
         expect(tokens).toEqual([]);
-
     });
 
     test("Get Tokens After With Parent", () => {
@@ -350,14 +349,15 @@ describe("BoundedRepeat", () => {
             {
                 divider: new Literal("comma", ","),
                 min: 0
-            });
+            }
+        );
 
         const parent = new And("parent", [numbers, new Literal("b", "B")]);
         const numbersClone = parent.children[0];
         const tokens = numbersClone.getNextTokens();
 
 
-        expect(tokens).toEqual(["B"])
+        expect(tokens).toEqual(["B"]);
     });
 
     test("Get Next Tokens Without Parent", () => {
@@ -368,12 +368,13 @@ describe("BoundedRepeat", () => {
             {
                 divider: new Literal("comma", ","),
                 min: 0
-            });
+            }
+        );
 
         const tokens = numbers.getNextTokens();
 
 
-        expect(tokens).toEqual([])
+        expect(tokens).toEqual([]);
     });
 
     test("Get Patterns", () => {
@@ -384,11 +385,62 @@ describe("BoundedRepeat", () => {
             {
                 divider: new Literal("comma", ","),
                 min: 0
-            });
+            }
+        );
 
         const patterns = numbers.getPatterns();
 
-        expect(patterns).toEqual([numbers.children[0]])
+        expect(patterns).toEqual([numbers.children[0]]);
+    });
+
+    test("Get Next Patterns Without Parent", () => {
+        const numbers = new FiniteRepeat(
+            "numbers",
+            new Literal("one", "1"),
+            2,
+            {
+                divider: new Literal("comma", ","),
+                min: 0
+            }
+        );
+
+        const patterns = numbers.getNextPatterns();
+
+        expect(patterns).toEqual([]);
+    });
+
+    test("Get Next Patterns With Parent", () => {
+        const numbers = new FiniteRepeat(
+            "numbers",
+            new Literal("one", "1"),
+            2,
+            {
+                divider: new Literal("comma", ","),
+                min: 0
+            }
+        );
+
+        const parent = new And("parent", [numbers, new Literal("b", "B")]);
+        const numbersClone = parent.children[0];
+
+        const patterns = numbersClone.getNextPatterns();
+
+        expect(patterns).toEqual([parent.children[1]]);
+    });
+
+    test("Find Pattern", () => {
+        const numbers = new FiniteRepeat(
+            "numbers",
+            new Literal("one", "1"),
+            2,
+            {
+                divider: new Literal("comma", ","),
+                min: 0
+            }
+        );
+
+        const comma = numbers.findPattern(p=>p.name === "comma");
+        expect(comma).toBe(numbers.children[1]);
     });
 
 });

@@ -1,8 +1,8 @@
-import { Regex } from "../..";
 import { And } from "../../patterns/And";
 import { Literal } from "../../patterns/Literal";
 import { Or } from "../../patterns/Or";
 import { Reference } from "../../patterns/Reference";
+import { Regex } from "../../patterns/Regex";
 import { Repeat } from "../../patterns/Repeat";
 import { infixOperator } from "./infixOperator";
 import { invocation } from "./invocation";

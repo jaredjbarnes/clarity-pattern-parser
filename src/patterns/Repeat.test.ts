@@ -87,6 +87,93 @@ describe("Repeat", () => {
         expect(cursor.hasError).toBeFalsy()
     });
 
+    test("Bounds", () => {
+        const integer = new Repeat("integer", new Regex("digit", "\\d"), undefined, false, 2, 3);
+        let result = integer.exec("1");
+        expect(result.ast).toBeNull();
+
+        result = integer.exec("12");
+
+        let expected = new Node("repeat", "integer", 0, 1, [
+            new Node("regex", "digit", 0, 0, [], "1"),
+            new Node("regex", "digit", 1, 1, [], "2"),
+        ]);
+
+        expect(result.ast).toEqual(expected);
+
+        result = integer.exec("123");
+        expected = new Node("repeat", "integer", 0, 2, [
+            new Node("regex", "digit", 0, 0, [], "1"),
+            new Node("regex", "digit", 1, 1, [], "2"),
+            new Node("regex", "digit", 2, 2, [], "3"),
+        ])
+
+        expect(result.ast).toEqual(expected);
+
+
+        const cursor = new Cursor("1234");
+        const ast = integer.parse(cursor);
+        expected = new Node("repeat", "integer", 0, 2, [
+            new Node("regex", "digit", 0, 0, [], "1"),
+            new Node("regex", "digit", 1, 1, [], "2"),
+            new Node("regex", "digit", 2, 2, [], "3"),
+        ])
+
+        expect(ast).toEqual(expected);
+        expect(result.cursor.index).toBe(2);
+
+    });
+
+    test("Bounds With Divider", () => {
+        const integer = new Repeat(
+            "integer",
+            new Regex("digit", "\\d"),
+            new Regex("comma", ","),
+            false,
+            2,
+            3
+        );
+
+        let result = integer.exec("1");
+        expect(result.ast).toBeNull();
+
+        result = integer.exec("1,2");
+
+        let expected = new Node("repeat", "integer", 0, 2, [
+            new Node("regex", "digit", 0, 0, [], "1"),
+            new Node("regex", "comma", 1, 1, [], ","),
+            new Node("regex", "digit", 2, 2, [], "2"),
+        ]);
+
+        expect(result.ast).toEqual(expected);
+
+        result = integer.exec("1,2,3");
+        expected = new Node("repeat", "integer", 0, 4, [
+            new Node("regex", "digit", 0, 0, [], "1"),
+            new Node("regex", "comma", 1, 1, [], ","),
+            new Node("regex", "digit", 2, 2, [], "2"),
+            new Node("regex", "comma", 3, 3, [], ","),
+            new Node("regex", "digit", 4, 4, [], "3"),
+        ])
+
+        expect(result.ast).toEqual(expected);
+
+
+        const cursor = new Cursor("1,2,3,4");
+        const ast = integer.parse(cursor);
+        expected = new Node("repeat", "integer", 0, 4, [
+            new Node("regex", "digit", 0, 0, [], "1"),
+            new Node("regex", "comma", 1, 1, [], ","),
+            new Node("regex", "digit", 2, 2, [], "2"),
+            new Node("regex", "comma", 3, 3, [], ","),
+            new Node("regex", "digit", 4, 4, [], "3"),
+        ]);
+
+        expect(ast).toEqual(expected);
+        expect(result.cursor.index).toBe(4);
+
+    });
+
     test("Failed (Optional)", () => {
         const digit = new Regex("digit", "\\d");
         const integer = new Repeat("number", digit, undefined, true);

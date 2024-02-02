@@ -183,6 +183,21 @@ describe("Node", () => {
         expect(b.value).toBe("B");
     });
 
+    test("Remove", () => {
+        const a = new Node("a", "a", 0, 0, [], "A");
+        const b = new Node("b", "b", 0, 0, [], "B");
+        const parent = new Node("parent", "parent", 0, 0, [a]);
+
+        b.remove();
+
+        expect(parent.children.length).toBe(1);
+        expect(parent.value).toBe("A")
+        expect(parent.children[0]).toBe(a);
+        expect(a.parent).toBe(parent);
+        expect(b.parent).toBeNull();
+        expect(a.value).toBe("A");
+    });
+
     test("Next Sibling", () => {
         const a = new Node("a", "a", 0, 0, [], "A");
         const b = new Node("b", "b", 0, 0, [], "B");

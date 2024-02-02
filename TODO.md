@@ -2,15 +2,21 @@
 ```
 #comment
 integer = /0|([1-9][0-9]+)/
-method-name = "subtract" | "add" | "multiply"
+method-name = /[a-zA-Z_-]+[a-zA-Z0-9_-]*/
 divider = /\s*,\s*/
 open-paren = "("
 close-paren = ")"
 argument = integer | method
-arguments = argument+ divider
+arguments = argument+ divider # Normal Repeat
+arguments = argument* divider # Optional Repeat 
+arguments = argument{,3} divider # optionally up to 3 
+arguments = argument{1,3} divider # 1 to 3
+arguments = argument{2,} divider # 2 or more
+arguments = argument{3} divider # Match 3
+arguments = argument{0,} divider # Optional Repeat 
 not-integer = !integer
 optional-integer = integer?
-method = method-name & open-paren & arguments? & close-paren
+method = method-name & open-paren & arguments & close-paren
 
 export (method, arguments)
 ```
@@ -18,7 +24,7 @@ export (method, arguments)
 Using Grammar for a simple JSON Parser
 ```
 # Number Integer
-integer = /([1-9][0-9])*|0/ 
+integer = /([1-9][0-9]*)|0/ 
 digit = /\d+/
 
 # Number Fraction

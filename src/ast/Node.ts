@@ -173,11 +173,11 @@ export class Node {
     return matches;
   }
 
-  findAncester(predicate: (node: Node) => boolean){
+  findAncester(predicate: (node: Node) => boolean) {
     let parent = this._parent;
 
-    while(parent != null){
-      if (predicate(parent)){
+    while (parent != null) {
+      if (predicate(parent)) {
         return parent;
       }
 
@@ -197,11 +197,11 @@ export class Node {
     this.children.forEach(c => c.walkDown(callback))
   }
 
-  flatten(){
+  flatten() {
     const nodes: Node[] = [];
 
-    this.walkDown((node: Node)=>{
-      if (!node.hasChildren){
+    this.walkDown((node: Node) => {
+      if (!node.hasChildren) {
         nodes.push(node);
       }
     });
@@ -213,6 +213,12 @@ export class Node {
     const value = this.toString();
     this.removeAllChildren();
     this._value = value;
+  }
+
+  remove() {
+    if (this._parent != null) {
+      this._parent.removeChild(this);
+    }
   }
 
   clone(): Node {

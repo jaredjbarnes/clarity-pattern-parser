@@ -14,6 +14,8 @@ export class Repeat implements Pattern {
   private _isOptional: boolean;
   private _nodes: Node[];
   private _firstIndex: number;
+  private _min: number;
+  private _max: number;
 
   get type(): string {
     return this._type;
@@ -39,20 +41,22 @@ export class Repeat implements Pattern {
     return this._isOptional;
   }
 
-  constructor(name: string, pattern: Pattern, divider?: Pattern, isOptional = false) {
+  constructor(name: string, pattern: Pattern, divider?: Pattern, isOptional = false, min = 1, max = Infinity) {
     const patterns = divider != null ? [pattern, divider] : [pattern];
     const children: Pattern[] = clonePatterns(patterns, false);
     this._assignChildrenToParent(children);
 
     this._type = "repeat";
     this._name = name;
-    this._isOptional = isOptional;
+    this._isOptional = min < 1 ? true : isOptional;
     this._parent = null;
     this._children = children;
     this._pattern = children[0];
     this._divider = children[1];
     this._firstIndex = -1
     this._nodes = [];
+    this._min = min;
+    this._max = max;
   }
 
   private _assignChildrenToParent(children: Pattern[]): void {
@@ -82,17 +86,26 @@ export class Repeat implements Pattern {
     this._firstIndex = cursor.index;
     this._nodes = [];
 
-    const passed = this.tryToParse(cursor);
+    const successfulParse = this.tryToParse(cursor);
+    const isWithinMatchBounds = successfulParse && this._isWithinMatchBounds();
+    const passed = successfulParse && isWithinMatchBounds;
 
     if (passed) {
       cursor.resolveError();
       const node = this.createNode(cursor);
 
       if (node != null) {
+        cursor.moveTo(node.lastIndex);
         cursor.recordMatch(this, node);
       }
 
+
       return node;
+    }
+
+    if (successfulParse && !isWithinMatchBounds) {
+      cursor.moveTo(this._firstIndex);
+      cursor.recordErrorAt(this._firstIndex, this._pattern);
     }
 
     if (!this._isOptional) {
@@ -100,14 +113,26 @@ export class Repeat implements Pattern {
     }
 
     cursor.resolveError();
-    cursor.moveTo(this._firstIndex);
     return null;
+  }
+
+  private _isWithinMatchBounds() {
+    const count = this._getMatchCount();
+    return count >= this._min && count <= this._max
   }
 
   private tryToParse(cursor: Cursor): boolean {
     let passed = false;
 
     while (true) {
+      const matchCount = this._getMatchCount();
+      const isWithinBounds = matchCount < this._max;
+
+      if (!isWithinBounds) {
+        passed = true;
+        break;
+      }
+
       const runningCursorIndex = cursor.index;
       const repeatedNode = this._pattern.parse(cursor);
 
@@ -156,10 +181,17 @@ export class Repeat implements Pattern {
     return passed;
   }
 
+  private _getMatchCount() {
+    if (this._divider != null) {
+      return Math.ceil(this._nodes.length / 2);
+    }
+    return this._nodes.length;
+  }
+
   private createNode(cursor: Cursor): Node | null {
     let children: Node[] = [];
 
-    if (!this._divider) {
+    if (this._divider == null) {
       children = this._nodes;
     } else {
       if (this._nodes.length % 2 !== 1) {
@@ -172,7 +204,6 @@ export class Repeat implements Pattern {
     }
 
     const lastIndex = children[children.length - 1].lastIndex;
-    const value = cursor.getChars(this._firstIndex, lastIndex);
     cursor.moveTo(lastIndex);
 
     return new Node(
@@ -271,7 +302,14 @@ export class Repeat implements Pattern {
   }
 
   clone(name = this._name, isOptional = this._isOptional): Pattern {
-    return new Repeat(name, this._pattern, this._divider, isOptional);
+    return new Repeat(
+      name,
+      this._pattern,
+      this._divider,
+      isOptional,
+      this._min,
+      this._max
+    );
   }
 }
 

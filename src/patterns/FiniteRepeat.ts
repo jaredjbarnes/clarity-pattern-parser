@@ -53,12 +53,12 @@ export class FiniteRepeat implements Pattern {
     }
 
     constructor(name: string, pattern: Pattern, repeatAmount: number, options: RepeatOptions = {}) {
-        this._type = "finite-repeat";
+        this._type = "repeat";
         this._name = name;
         this._parent = null;
         this._children = [];
         this._hasDivider = options.divider != null;
-        this._min = options.min == null ? 1 : options.min;
+        this._min = options.min != null ? options.min : 1;
         this._max = repeatAmount;
         this._isOptional = this._min < 1;
 
@@ -142,10 +142,10 @@ export class FiniteRepeat implements Pattern {
         let min = this._min;
 
         if (isOptional != null) {
-            if (this._min === 0 && !isOptional) {
-                min = 1;
-            } else if (isOptional) {
-                min = 0;
+            if (isOptional){
+                min = 0
+            } else {
+                min = Math.max(this._min, 1);
             }
         }
 

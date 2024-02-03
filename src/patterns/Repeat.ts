@@ -12,7 +12,8 @@ export interface RepeatOptions {
 }
 
 export class Repeat implements Pattern {
-    private _repeatPattern: Pattern;
+    private _repeatPattern: InfiniteRepeat | FiniteRepeat;
+    private _options: RepeatOptions;
 
     get type() {
         return this._repeatPattern.type;
@@ -39,6 +40,8 @@ export class Repeat implements Pattern {
     }
 
     constructor(name: string, pattern: Pattern, options: RepeatOptions = {}) {
+        this._options = options;
+
         if (options.max != null) {
             this._repeatPattern = new FiniteRepeat(name, pattern, options.max, options);
         } else {
@@ -58,8 +61,8 @@ export class Repeat implements Pattern {
         return this._repeatPattern.test(text);
     }
 
-    clone(name?: string | undefined, isOptional?: boolean | undefined): Pattern {
-        return this._repeatPattern.clone(name, isOptional)
+    clone(name?: string, isOptional?: boolean) {
+        return this._repeatPattern.clone(name, isOptional);
     }
 
     getTokens(): string[] {

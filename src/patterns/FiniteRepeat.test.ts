@@ -19,7 +19,7 @@ describe("BoundedRepeat", () => {
 
         cursor = new Cursor("12");
         result = numbers.parse(cursor);
-        expected = new Node("finite-repeat", "numbers", 0, 1, [
+        expected = new Node("repeat", "numbers", 0, 1, [
             new Node("regex", "number", 0, 0, [], "1"),
             new Node("regex", "number", 1, 1, [], "2"),
         ]);
@@ -29,7 +29,7 @@ describe("BoundedRepeat", () => {
 
         cursor = new Cursor("123");
         result = numbers.parse(cursor);
-        expected = new Node("finite-repeat", "numbers", 0, 2, [
+        expected = new Node("repeat", "numbers", 0, 2, [
             new Node("regex", "number", 0, 0, [], "1"),
             new Node("regex", "number", 1, 1, [], "2"),
             new Node("regex", "number", 2, 2, [], "3"),
@@ -40,7 +40,7 @@ describe("BoundedRepeat", () => {
 
         cursor = new Cursor("1234");
         result = numbers.parse(cursor);
-        expected = new Node("finite-repeat", "numbers", 0, 2, [
+        expected = new Node("repeat", "numbers", 0, 2, [
             new Node("regex", "number", 0, 0, [], "1"),
             new Node("regex", "number", 1, 1, [], "2"),
             new Node("regex", "number", 2, 2, [], "3"),
@@ -52,7 +52,7 @@ describe("BoundedRepeat", () => {
 
         cursor = new Cursor("12f");
         result = numbers.parse(cursor);
-        expected = new Node("finite-repeat", "numbers", 0, 1, [
+        expected = new Node("repeat", "numbers", 0, 1, [
             new Node("regex", "number", 0, 0, [], "1"),
             new Node("regex", "number", 1, 1, [], "2"),
         ]);
@@ -79,7 +79,7 @@ describe("BoundedRepeat", () => {
 
         cursor = new Cursor("123");
         result = numbers.parse(cursor);
-        expected = new Node("finite-repeat", "numbers", 0, 2, [
+        expected = new Node("repeat", "numbers", 0, 2, [
             new Node("regex", "number", 0, 0, [], "1"),
             new Node("regex", "number", 1, 1, [], "2"),
             new Node("regex", "number", 2, 2, [], "3"),
@@ -90,7 +90,7 @@ describe("BoundedRepeat", () => {
 
         cursor = new Cursor("1234");
         result = numbers.parse(cursor);
-        expected = new Node("finite-repeat", "numbers", 0, 2, [
+        expected = new Node("repeat", "numbers", 0, 2, [
             new Node("regex", "number", 0, 0, [], "1"),
             new Node("regex", "number", 1, 1, [], "2"),
             new Node("regex", "number", 2, 2, [], "3"),
@@ -114,7 +114,7 @@ describe("BoundedRepeat", () => {
 
         cursor = new Cursor("1,2");
         result = numbers.parse(cursor);
-        expected = new Node("finite-repeat", "numbers", 0, 2, [
+        expected = new Node("repeat", "numbers", 0, 2, [
             new Node("regex", "number", 0, 0, [], "1"),
             new Node("literal", "comma", 1, 1, [], ","),
             new Node("regex", "number", 2, 2, [], "2"),
@@ -125,7 +125,7 @@ describe("BoundedRepeat", () => {
 
         cursor = new Cursor("1,2,3,");
         result = numbers.parse(cursor);
-        expected = new Node("finite-repeat", "numbers", 0, 4, [
+        expected = new Node("repeat", "numbers", 0, 4, [
             new Node("regex", "number", 0, 0, [], "1"),
             new Node("literal", "comma", 1, 1, [], ","),
             new Node("regex", "number", 2, 2, [], "2"),
@@ -138,7 +138,7 @@ describe("BoundedRepeat", () => {
 
         cursor = new Cursor("1,2,3,4");
         result = numbers.parse(cursor);
-        expected = new Node("finite-repeat", "numbers", 0, 4, [
+        expected = new Node("repeat", "numbers", 0, 4, [
             new Node("regex", "number", 0, 0, [], "1"),
             new Node("literal", "comma", 1, 1, [], ","),
             new Node("regex", "number", 2, 2, [], "2"),
@@ -169,7 +169,7 @@ describe("BoundedRepeat", () => {
 
         cursor = new Cursor("1,2,3,");
         result = numbers.parse(cursor);
-        expected = new Node("finite-repeat", "numbers", 0, 4, [
+        expected = new Node("repeat", "numbers", 0, 4, [
             new Node("regex", "number", 0, 0, [], "1"),
             new Node("literal", "comma", 1, 1, [], ","),
             new Node("regex", "number", 2, 2, [], "2"),
@@ -182,7 +182,7 @@ describe("BoundedRepeat", () => {
 
         cursor = new Cursor("1,2,3,4");
         result = numbers.parse(cursor);
-        expected = new Node("finite-repeat", "numbers", 0, 4, [
+        expected = new Node("repeat", "numbers", 0, 4, [
             new Node("regex", "number", 0, 0, [], "1"),
             new Node("literal", "comma", 1, 1, [], ","),
             new Node("regex", "number", 2, 2, [], "2"),
@@ -236,7 +236,7 @@ describe("BoundedRepeat", () => {
     test("Properties", () => {
         const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), 3, { min: 0 });
 
-        expect(numbers.type).toBe("finite-repeat");
+        expect(numbers.type).toBe("repeat");
         expect(numbers.name).toBe("numbers");
         expect(numbers.parent).toBeNull();
         expect(numbers.children.length).toBe(3);

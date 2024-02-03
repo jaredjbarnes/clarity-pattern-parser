@@ -45,6 +45,10 @@ export class InfiniteRepeat implements Pattern {
     return this._isOptional;
   }
 
+  get min(): number {
+    return this._min;
+  }
+
   constructor(name: string, pattern: Pattern, options: InfiniteRepeatOptions = {}) {
     const patterns = options.divider != null ? [pattern, options.divider] : [pattern];
     const min = options.min != null ? options.min : 1;
@@ -293,13 +297,23 @@ export class InfiniteRepeat implements Pattern {
     return findPattern(this, predicate);
   }
 
-  clone(name = this._name, isOptional = this._isOptional): Pattern {
+  clone(name = this._name, isOptional?: boolean): Pattern {
+    let min = this._min;
+
+    if (isOptional != null) {
+      if (isOptional) {
+        min = 0
+      } else {
+        min = Math.max(this._min, 1);
+      }
+    }
+
     return new InfiniteRepeat(
       name,
       this._pattern,
       {
         divider: this._divider == null ? undefined : this._divider,
-        min: isOptional ? 0 : this._min
+        min: min
       }
     );
   }

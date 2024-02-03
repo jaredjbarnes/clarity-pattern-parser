@@ -11,9 +11,18 @@ export interface RepeatOptions {
     divider?: Pattern;
 }
 
+interface InternalRepeatOptions {
+    min: number;
+    max: number;
+    divider?: Pattern;
+}
+
 export class Repeat implements Pattern {
     private _repeatPattern: InfiniteRepeat | FiniteRepeat;
-    private _options: RepeatOptions;
+    private _parent: Pattern | null;
+    private _pattern: Pattern;
+    private _options: InternalRepeatOptions;
+    private _children: Pattern[];
 
     get type() {
         return this._repeatPattern.type;
@@ -24,15 +33,15 @@ export class Repeat implements Pattern {
     }
 
     get parent() {
-        return this._repeatPattern.parent;
+        return this._parent;
     }
 
     set parent(value: Pattern | null) {
-        this._repeatPattern.parent = value;
+        this._parent = value;
     }
 
     get children() {
-        return this._repeatPattern.children;
+        return this._children;
     }
 
     get isOptional() {
@@ -40,13 +49,22 @@ export class Repeat implements Pattern {
     }
 
     constructor(name: string, pattern: Pattern, options: RepeatOptions = {}) {
-        this._options = options;
+        this._pattern = pattern;
+        this._parent = null;
+        this._options = {
+            ...options,
+            min: options.min == null ? 1 : options.min,
+            max: options.max == null ? Infinity : options.max
+        };
 
-        if (options.max != null) {
-            this._repeatPattern = new FiniteRepeat(name, pattern, options.max, options);
+        if (this._options.max != Infinity) {
+            this._repeatPattern = new FiniteRepeat(name, pattern, this._options.max, this._options);
         } else {
-            this._repeatPattern = new InfiniteRepeat(name, pattern, options)
+            this._repeatPattern = new InfiniteRepeat(name, pattern, this._options)
         }
+
+        this._children = [this._repeatPattern]
+        this._repeatPattern.parent = this;
     }
 
     parse(cursor: Cursor): Node | null {
@@ -61,32 +79,58 @@ export class Repeat implements Pattern {
         return this._repeatPattern.test(text);
     }
 
-    clone(name?: string, isOptional?: boolean) {
-        return this._repeatPattern.clone(name, isOptional);
+    clone(name = this.name, isOptional?: boolean) {
+        let min = this._options.min;
+
+        if (isOptional != null) {
+            if (isOptional) {
+                min = 0
+            } else {
+                min = Math.max(this._options.min, 1);
+            }
+        }
+
+        return new Repeat(name, this._pattern, { ...this._options, min });
     }
 
     getTokens(): string[] {
         return this._repeatPattern.getTokens();
     }
 
-    getTokensAfter(childReference: Pattern): string[] {
-        return this._repeatPattern.getTokensAfter(childReference);
+    getTokensAfter(_childReference: Pattern): string[] {
+        if (this._parent == null) {
+            return []
+        }
+
+        return this._parent.getTokensAfter(this);
     }
 
     getNextTokens(): string[] {
-        return this._repeatPattern.getNextTokens();
+        if (this._parent == null) {
+            return []
+        }
+
+        return this._parent.getNextTokens();
     }
 
     getPatterns(): Pattern[] {
         return this._repeatPattern.getPatterns();
     }
 
-    getPatternsAfter(childReference: Pattern): Pattern[] {
-        return this._repeatPattern.getPatternsAfter(childReference);
+    getPatternsAfter(_childReference: Pattern): Pattern[] {
+        if (this._parent == null) {
+            return []
+        }
+
+        return this._parent.getPatternsAfter(this);
     }
 
     getNextPatterns(): Pattern[] {
-        return this._repeatPattern.getNextPatterns();
+        if (this._parent == null) {
+            return []
+        }
+
+        return this._parent.getNextPatterns();
     }
 
     findPattern(predicate: (p: Pattern) => boolean): Pattern | null {

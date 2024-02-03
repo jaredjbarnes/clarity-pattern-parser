@@ -135,13 +135,35 @@ describe("Repeat", () => {
     test("Repeat Properties", () => {
         const number = new Literal("number", "1");
         const repeat = new Repeat("numbers", number);
-        const repeatClone = repeat.clone(repeat.name, true);
 
-        expect(repeatClone).toBeInstanceOf(InfiniteRepeat);
         expect(repeat.type).toBe("repeat");
         expect(repeat.name).toBe("numbers");
         expect(repeat.parent).toBeNull();
-        expect(repeat.children.length).toBe(1);
         expect(repeat.isOptional).toBeFalsy();
+    });
+
+    test("Repeat Clone", () => {
+        const number = new Literal("number", "1");
+        const repeat = new Repeat("numbers", number);
+
+        let repeatClone = repeat.clone();
+        let expected = new Repeat("numbers", number);
+
+        expect(repeatClone).toEqual(expected);
+
+        repeatClone = repeat.clone("new-name");
+        expected = new Repeat("new-name", number);
+
+        expect(repeatClone).toEqual(expected);
+
+        repeatClone = repeat.clone("new-name", false);
+        expected = new Repeat("new-name", number);
+
+        expect(repeatClone).toEqual(expected);
+
+        repeatClone = repeat.clone("new-name", true);
+        expected = new Repeat("new-name", number, { min: 0 });
+
+        expect(repeatClone).toEqual(expected);
     });
 });

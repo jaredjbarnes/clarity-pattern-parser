@@ -16,7 +16,6 @@ export class InfiniteRepeat implements Pattern {
   private _children: Pattern[];
   private _pattern: Pattern;
   private _divider: Pattern | null;
-  private _isOptional: boolean;
   private _nodes: Node[];
   private _firstIndex: number;
   private _min: number;
@@ -42,7 +41,7 @@ export class InfiniteRepeat implements Pattern {
   }
 
   get isOptional(): boolean {
-    return this._isOptional;
+    return this._min === 0;
   }
 
   get min(): number {
@@ -57,7 +56,6 @@ export class InfiniteRepeat implements Pattern {
 
     this._type = "repeat";
     this._name = name;
-    this._isOptional = min < 1;
     this._min = min;
     this._parent = null;
     this._children = children;
@@ -108,7 +106,7 @@ export class InfiniteRepeat implements Pattern {
       return node;
     }
 
-    if (!this._isOptional) {
+    if (this._min > 0) {
       return null;
     }
 

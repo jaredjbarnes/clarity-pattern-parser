@@ -15,7 +15,6 @@ export class FiniteRepeat implements Pattern {
     private _name: string;
     private _parent: Pattern | null;
     private _children: Pattern[];
-    private _isOptional: boolean;
     private _hasDivider: boolean;
     private _min: number;
     private _max: number;
@@ -41,7 +40,7 @@ export class FiniteRepeat implements Pattern {
     }
 
     get isOptional() {
-        return this._isOptional;
+        return this._min === 0;
     }
 
     get min() {
@@ -60,7 +59,6 @@ export class FiniteRepeat implements Pattern {
         this._hasDivider = options.divider != null;
         this._min = options.min != null ? options.min : 1;
         this._max = repeatAmount;
-        this._isOptional = this._min < 1;
 
         for (let i = 0; i < repeatAmount; i++) {
             this._children.push(pattern.clone(pattern.name, false));
@@ -142,7 +140,7 @@ export class FiniteRepeat implements Pattern {
         let min = this._min;
 
         if (isOptional != null) {
-            if (isOptional){
+            if (isOptional) {
                 min = 0
             } else {
                 min = Math.max(this._min, 1);

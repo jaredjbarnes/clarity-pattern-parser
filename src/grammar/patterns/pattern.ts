@@ -1,5 +1,5 @@
-import { And } from "../patterns/And";
-import { Literal } from "../patterns/Literal";
+import { And } from "../../patterns/And";
+import { Literal } from "../../patterns/Literal";
 import { name } from "./name";
 
 const optionalNot = new Literal("not", "!", true);

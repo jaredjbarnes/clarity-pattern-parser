@@ -1,7 +1,7 @@
-import { And } from "../patterns/And";
-import { Literal } from "../patterns/Literal";
-import { Or } from "../patterns/Or";
-import { Regex } from "../patterns/Regex";
+import { And } from "../../patterns/And";
+import { Literal } from "../../patterns/Literal";
+import { Or } from "../../patterns/Or";
+import { Regex } from "../../patterns/Regex";
 import { name } from "./name";
 import { spaces } from "./spaces";
 

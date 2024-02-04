@@ -1,5 +1,5 @@
-import { Repeat } from "../patterns/Repeat"
-import { Regex } from "../patterns/Regex";
+import { Repeat } from "../../patterns/Repeat"
+import { Regex } from "../../patterns/Regex";
 import { pattern } from "./pattern";
 
 const divider = new Regex("and-divider", "\\s*[&]\\s*");

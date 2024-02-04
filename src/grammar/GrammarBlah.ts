@@ -28,10 +28,11 @@ export class Grammar {
     }
 
     private _tryToParse(content: string) {
-        const { ast } = grammar.exec(content);
+        const { ast, cursor } = grammar.exec(content);
 
         if (ast == null) {
-            throw new Error("Invalid Grammar");
+
+            throw new Error("Invalid Grammar" + cursor.furthestError?.pattern.name);
         }
 
         this._cleanAst(ast);
@@ -43,7 +44,7 @@ export class Grammar {
             n => n.name === "spaces" ||
                 n.name === "optional-spaces" ||
                 n.name === "new-line" ||
-                n.name === "whitespace" ||
+                n.name.includes("whitespace") ||
                 n.name.includes("comment")
         ).forEach(n => n.remove());
     }

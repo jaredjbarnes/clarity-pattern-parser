@@ -201,7 +201,7 @@ describe("InfiniteRepeat", () => {
     test("Get Next Tokens", () => {
         const integer = new InfiniteRepeat("integer", new Regex("digit", "\\d"));
         const parent = new And("parent", [integer, new Literal("pow", "!")]);
-        const integerClone = parent.findPattern(p => p.name === "integer") as Pattern;
+        const integerClone = parent.find(p => p.name === "integer") as Pattern;
         const tokens = integerClone.getNextTokens();
 
         expect(tokens).toEqual(["!"])
@@ -216,7 +216,7 @@ describe("InfiniteRepeat", () => {
 
     test("Find Pattern", () => {
         const integer = new InfiniteRepeat("integer", new Regex("digit", "\\d"));
-        const digitClone = integer.findPattern(p => p.name === "digit") as Pattern;
+        const digitClone = integer.find(p => p.name === "digit") as Pattern;
 
         expect(digitClone).not.toBeNull();
     });
@@ -225,7 +225,7 @@ describe("InfiniteRepeat", () => {
         const a = new Literal("a", "A");
         const manyA = new InfiniteRepeat("number", a);
         const patterns = manyA.getPatterns();
-        const expected = [manyA.findPattern(p => p.name === "a")];
+        const expected = [manyA.find(p => p.name === "a")];
 
         expect(patterns).toEqual(expected)
     });
@@ -233,8 +233,8 @@ describe("InfiniteRepeat", () => {
     test("Get Next Patterns", () => {
         const integer = new InfiniteRepeat("integer", new Regex("digit", "\\d"));
         const parent = new And("parent", [integer, new Literal("pow", "!")]);
-        const integerClone = parent.findPattern(p => p.name === "integer") as Pattern;
-        const powClone = parent.findPattern(p => p.name === "pow") as Pattern;
+        const integerClone = parent.find(p => p.name === "integer") as Pattern;
+        const powClone = parent.find(p => p.name === "pow") as Pattern;
         const patterns = integerClone.getNextPatterns();
 
         expect(patterns.length).toBe(1);
@@ -246,5 +246,28 @@ describe("InfiniteRepeat", () => {
         const patterns = integer.getNextPatterns();
 
         expect(patterns.length).toBe(0);
+    });
+
+    test("Clone With Custom Overrides", () => {
+        const numbers = new InfiniteRepeat("numbers", new Regex("number", "\\d"), { min: 0 });
+        let clone = numbers.clone();
+        let expected = new InfiniteRepeat("numbers", new Regex("number", "\\d"), { min: 0 });
+
+        expect(clone).toEqual(expected);
+
+        clone = numbers.clone("cloned-numbers");
+        expected = new InfiniteRepeat("cloned-numbers", new Regex("number", "\\d"), { min: 0 });
+
+        expect(clone).toEqual(expected);
+
+        clone = numbers.clone("cloned-numbers", true);
+        expected = new InfiniteRepeat("cloned-numbers", new Regex("number", "\\d"), { min: 0 });
+
+        expect(clone).toEqual(expected);
+
+        clone = numbers.clone("cloned-numbers", false);
+        expected = new InfiniteRepeat("cloned-numbers", new Regex("number", "\\d"), { min: 1 });
+
+        expect(clone).toEqual(expected);
     });
 });

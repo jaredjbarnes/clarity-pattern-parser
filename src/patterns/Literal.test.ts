@@ -119,7 +119,7 @@ describe("Literal", () => {
         const sequence = new And("sequence", [new Literal("a", "A")]);
         const parent = new And("parent", [sequence, new Literal("b", "B")]);
 
-        const a = parent.findPattern(p => p.name === "a");
+        const a = parent.find(p => p.name === "a");
         const tokens = a?.getNextTokens() || [];
 
         expect(tokens[0]).toBe("B");
@@ -145,9 +145,9 @@ describe("Literal", () => {
         const sequence = new And("sequence", [new Literal("a", "A")]);
         const parent = new And("parent", [sequence, new Literal("b", "B")]);
 
-        const a = parent.findPattern(p => p.name === "a");
+        const a = parent.find(p => p.name === "a");
         const nextPatterns = a?.getNextPatterns() || [];
-        const b = parent.findPattern(p => p.name === "b")
+        const b = parent.find(p => p.name === "b")
 
         expect(nextPatterns[0]).toBe(b);
     });
@@ -168,7 +168,7 @@ describe("Literal", () => {
 
     test("Find Pattern", () => {
         const a = new Literal("a", "A");
-        const pattern = a.findPattern(p => p.name === "nada");
+        const pattern = a.find(p => p.name === "nada");
 
         expect(pattern).toBeNull();
     });

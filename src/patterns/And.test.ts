@@ -276,7 +276,7 @@ describe("And", () => {
         const sequence = new And("sequence", [new Literal("a", "A")]);
         const parent = new And("parent", [sequence, new Literal("b", "B")]);
 
-        const sequenceClone = parent.findPattern(p => p.name === "sequence");
+        const sequenceClone = parent.find(p => p.name === "sequence");
         const tokens = sequenceClone?.getNextTokens() || [];
 
         expect(tokens[0]).toBe("B");
@@ -295,8 +295,8 @@ describe("And", () => {
             new Literal("b", "B"),
         ], true);
         const tokens = sequence.getPatterns();
-        const a = sequence.findPattern(p=>p.name === "a");
-        const b = sequence.findPattern(p=>p.name === "b");
+        const a = sequence.find(p=>p.name === "a");
+        const b = sequence.find(p=>p.name === "b");
         const expected = [a, b]
 
         expect(tokens).toEqual(expected);
@@ -306,9 +306,9 @@ describe("And", () => {
         const sequence = new And("sequence", [new Literal("a", "A")]);
         const parent = new And("parent", [sequence, new Literal("b", "B")]);
 
-        const sequenceClone = parent.findPattern(p => p.name === "sequence");
+        const sequenceClone = parent.find(p => p.name === "sequence");
         const nextPatterns = sequenceClone?.getNextPatterns() || [];
-        const b = parent.findPattern(p => p.name === "b")
+        const b = parent.find(p => p.name === "b")
 
         expect(nextPatterns[0]).toBe(b);
     });

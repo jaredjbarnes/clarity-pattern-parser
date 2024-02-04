@@ -128,7 +128,7 @@ export class Not implements Pattern {
     return this.parent.getPatternsAfter(this)
   }
 
-  findPattern(predicate: (p: Pattern) => boolean): Pattern | null {
+  find(predicate: (p: Pattern) => boolean): Pattern | null {
     return predicate(this._children[0]) ? this._children[0] : null;
   }
 

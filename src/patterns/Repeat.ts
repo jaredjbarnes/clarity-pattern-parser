@@ -110,7 +110,7 @@ export class Repeat implements Pattern {
             return []
         }
 
-        return this._parent.getNextTokens();
+        return this._parent.getTokensAfter(this);
     }
 
     getPatterns(): Pattern[] {
@@ -130,11 +130,11 @@ export class Repeat implements Pattern {
             return []
         }
 
-        return this._parent.getNextPatterns();
+        return this._parent.getPatternsAfter(this);
     }
 
-    findPattern(predicate: (p: Pattern) => boolean): Pattern | null {
-        return this._repeatPattern.findPattern(predicate);
+    find(predicate: (p: Pattern) => boolean): Pattern | null {
+        return this._repeatPattern.find(predicate);
     }
 
 }

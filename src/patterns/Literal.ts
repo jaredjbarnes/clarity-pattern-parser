@@ -167,7 +167,7 @@ export class Literal implements Pattern {
     return this.parent.getPatternsAfter(this)
   }
 
-  findPattern(_predicate: (p: Pattern) => boolean): Pattern | null {
+  find(_predicate: (p: Pattern) => boolean): Pattern | null {
     return null;
   }
 

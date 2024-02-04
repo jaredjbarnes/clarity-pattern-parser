@@ -86,7 +86,7 @@ describe("Regex", () => {
 
     test("Get Next Tokens", () => {
         const parent = new And("parent", [new Regex("a", "A"), new Literal("b", "B")]);
-        const aClone = parent.findPattern(p => p.name === "a") as Pattern;
+        const aClone = parent.find(p => p.name === "a") as Pattern;
         const tokens = aClone.getNextTokens();
 
         expect(tokens).toEqual(["B"]);
@@ -117,15 +117,15 @@ describe("Regex", () => {
 
     test("Find Pattern", () => {
         const a = new Regex("a", "A")
-        const pattern = a.findPattern(p => p.name === "other");
+        const pattern = a.find(p => p.name === "other");
 
         expect(pattern).toBeNull();
     });
 
     test("Get Next Patterns", () => {
         const parent = new And("parent", [new Regex("a", "A"), new Literal("b", "B")]);
-        const aClone = parent.findPattern(p => p.name === "a") as Pattern;
-        const bClone = parent.findPattern(p => p.name === "b") as Pattern;
+        const aClone = parent.find(p => p.name === "a") as Pattern;
+        const bClone = parent.find(p => p.name === "b") as Pattern;
         const patterns = aClone.getNextPatterns();
 
         expect(patterns.length).toBe(1);

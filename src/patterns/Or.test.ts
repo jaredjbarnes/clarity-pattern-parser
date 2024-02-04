@@ -118,7 +118,7 @@ describe("Or", () => {
             new Literal("c", "C")
         ]);
 
-        const orClone = sequence.findPattern(p => p.name === "a-or-b") as Pattern;
+        const orClone = sequence.find(p => p.name === "a-or-b") as Pattern;
         const tokens = orClone.getNextTokens();
 
         expect(tokens.length).toBe(1);
@@ -145,8 +145,8 @@ describe("Or", () => {
             new Literal("c", "C")
         ]);
 
-        const aClone = sequence.findPattern(p => p.name === "a") as Pattern;
-        const orClone = sequence.findPattern(p => p.name === "a-or-b") as Pattern;
+        const aClone = sequence.find(p => p.name === "a") as Pattern;
+        const orClone = sequence.find(p => p.name === "a-or-b") as Pattern;
         const tokens = orClone.getTokensAfter(aClone);
 
         expect(tokens.length).toBe(1);
@@ -157,8 +157,8 @@ describe("Or", () => {
         const aOrB = new Or("a-b", [new Literal("a", "A"), new Literal("b", "B")]);
         const patterns = aOrB.getPatterns();
         const expected = [
-            aOrB.findPattern(p => p.name === "a"),
-            aOrB.findPattern(p => p.name === "b")
+            aOrB.find(p => p.name === "a"),
+            aOrB.find(p => p.name === "b")
         ];
 
         expect(patterns).toEqual(expected);
@@ -173,8 +173,8 @@ describe("Or", () => {
             new Literal("c", "C")
         ]);
 
-        const aClone = sequence.findPattern(p => p.name === "a") as Pattern;
-        const orClone = sequence.findPattern(p => p.name === "a-or-b") as Pattern;
+        const aClone = sequence.find(p => p.name === "a") as Pattern;
+        const orClone = sequence.find(p => p.name === "a-or-b") as Pattern;
         const patterns = orClone.getPatternsAfter(aClone);
 
         expect(patterns.length).toBe(1);
@@ -186,7 +186,7 @@ describe("Or", () => {
             new Literal("a", "A"),
             new Literal("b", "B")
         ])
-        const aClone = or.findPattern(p => p.name === "a") as Pattern;
+        const aClone = or.find(p => p.name === "a") as Pattern;
         const patterns = or.getPatternsAfter(aClone);
 
         expect(patterns.length).toBe(0);
@@ -201,7 +201,7 @@ describe("Or", () => {
             new Literal("c", "C")
         ]);
 
-        const orClone = sequence.findPattern(p => p.name === "a-or-b") as Pattern;
+        const orClone = sequence.find(p => p.name === "a-or-b") as Pattern;
         const patterns = orClone.getNextPatterns();
 
         expect(patterns.length).toBe(1);

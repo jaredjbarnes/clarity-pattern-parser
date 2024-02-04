@@ -291,7 +291,7 @@ export class InfiniteRepeat implements Pattern {
     return this._parent.getPatternsAfter(this)
   }
 
-  findPattern(predicate: (p: Pattern) => boolean): Pattern | null {
+  find(predicate: (p: Pattern) => boolean): Pattern | null {
     return findPattern(this, predicate);
   }
 

@@ -114,9 +114,9 @@ describe("Reference", () => {
 
     test("Find Pattern", () => {
         const value = createValuePattern();
-        const reference = value.findPattern(p => p.type === "reference") as Pattern;
+        const reference = value.find(p => p.type === "reference") as Pattern;
 
-        const pattern = reference?.findPattern(p => p.name === "Nada");
+        const pattern = reference?.find(p => p.name === "Nada");
 
         expect(pattern).toBe(null);
     });
@@ -124,7 +124,7 @@ describe("Reference", () => {
 
     test("Get Next Tokens", () => {
         const value = createValuePattern();
-        const reference = value.findPattern(p => p.type === "reference") as Pattern;
+        const reference = value.find(p => p.type === "reference") as Pattern;
         const tokens = reference.getNextTokens();
 
         expect(tokens).toEqual([", ", "]"]);
@@ -139,7 +139,7 @@ describe("Reference", () => {
 
     test("Get Tokens After", () => {
         const value = createValuePattern();
-        const reference = value.findPattern(p => p.type === "reference") as Pattern;
+        const reference = value.find(p => p.type === "reference") as Pattern;
         const tokens = reference.getTokensAfter(new Literal("bogus", "Bogus"));
 
         expect(tokens).toEqual([", ", "]"]);
@@ -164,7 +164,7 @@ describe("Reference", () => {
 
     test("Get Patterns After", () => {
         const value = createValuePattern();
-        const reference = value.findPattern(p => p.type === "reference") as Pattern;
+        const reference = value.find(p => p.type === "reference") as Pattern;
         const patterns = reference.getPatternsAfter(new Literal("bogus", "Bogus"));
 
         expect(patterns.length).toEqual(2);
@@ -183,7 +183,7 @@ describe("Reference", () => {
 
     test("Get Next Patterns", () => {
         const value = createValuePattern();
-        const reference = value.findPattern(p => p.type === "reference") as Pattern;
+        const reference = value.find(p => p.type === "reference") as Pattern;
         const patterns = reference.getNextPatterns();
 
         expect(patterns.length).toEqual(2);

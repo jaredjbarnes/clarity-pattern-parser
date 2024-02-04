@@ -162,7 +162,7 @@ export class Or implements Pattern {
     return this.parent.getPatternsAfter(this)
   }
 
-  findPattern(predicate: (p: Pattern) => boolean): Pattern | null {
+  find(predicate: (p: Pattern) => boolean): Pattern | null {
     return findPattern(this, predicate);
   }
 

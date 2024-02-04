@@ -1,4 +1,5 @@
 import { Node } from "../ast/Node";
+import { And } from "./And";
 import { Cursor } from "./Cursor";
 import { InfiniteRepeat } from "./InfiniteRepeat";
 import { Literal } from "./Literal";
@@ -93,7 +94,7 @@ describe("Repeat", () => {
     test("Finite Repeat Get Tokens", () => {
         const number = new Literal("number", "1");
         const repeat = new Repeat("numbers", number);
-        const numberClone = repeat.findPattern(p => p.name === "number") as Pattern;
+        const numberClone = repeat.find(p => p.name === "number") as Pattern;
 
         let tokens = repeat.getTokens();
         let expected = ["1"];
@@ -111,10 +112,48 @@ describe("Repeat", () => {
         expect(tokens).toEqual(expected);
     });
 
+    test("Get Tokens After", () => {
+        const number = new Literal("number", "1");
+        const repeat = new Repeat("numbers", number);
+        const parent = new And("parent", [repeat, new Literal("b", "B")]);
+        const numberClone = parent.find(p => p.name === "number") as Pattern;
+        const repeatClone = parent.children[0];
+
+        let tokens = repeatClone.getTokensAfter(numberClone);
+        let expected = ["B"];
+
+        expect(tokens).toEqual(expected);
+    });
+
+    test("Get Next Tokens", () => {
+        const number = new Literal("number", "1");
+        const repeat = new Repeat("numbers", number);
+        const parent = new And("parent", [repeat, new Literal("b", "B")]);
+        const repeatClone = parent.children[0];
+
+        let tokens = repeatClone.getNextTokens();
+        let expected = ["B"];
+
+        expect(tokens).toEqual(expected);
+    });
+
+    test("Get Next Patterns", () => {
+        const number = new Literal("number", "1");
+        const repeat = new Repeat("numbers", number);
+        const parent = new And("parent", [repeat, new Literal("b", "B")]);
+        const repeatClone = parent.children[0];
+        const bClone = parent.find(p => p.name === "b") as Pattern;
+
+        let patterns = repeatClone.getNextPatterns();
+        let expected = [bClone];
+
+        expect(patterns).toEqual(expected);
+    });
+
     test("Repeat Get Patterns", () => {
         const number = new Literal("number", "1");
         const repeat = new Repeat("numbers", number);
-        const numberClone = repeat.findPattern(p => p.name === "number") as Pattern;
+        const numberClone = repeat.find(p => p.name === "number") as Pattern;
 
         let patterns = repeat.getPatterns();
         let expected = [numberClone];
@@ -140,6 +179,20 @@ describe("Repeat", () => {
         expect(repeat.name).toBe("numbers");
         expect(repeat.parent).toBeNull();
         expect(repeat.isOptional).toBeFalsy();
+    });
+
+    test("test", () => {
+        const number = new Literal("number", "1");
+        const repeat = new Repeat("numbers", number);
+        let result = repeat.test("1");
+        let expected = true;
+
+        expect(result).toBe(expected);
+
+        result = repeat.test("g");
+        expected = false;
+
+        expect(result).toBe(expected);
     });
 
     test("Repeat Clone", () => {

@@ -260,15 +260,25 @@ describe("BoundedRepeat", () => {
 
     test("Clone With Custom Overrides", () => {
         const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), 3, { min: 0 });
-        const clone = numbers.clone("clone-numbers", false) as FiniteRepeat;
+        let clone = numbers.clone();
+        let expected = new FiniteRepeat("numbers", new Regex("number", "\\d"), 3, { min: 0 });
 
-        expect(clone.type).toBe(numbers.type);
-        expect(clone.name).toBe("clone-numbers");
-        expect(clone.parent).toBeNull();
-        expect(clone.children.length).toBe(numbers.children.length);
-        expect(clone.min).toBe(1);
-        expect(clone.max).toBe(3);
-        expect(clone.isOptional).toBe(false);
+        expect(clone).toEqual(expected);
+
+        clone = numbers.clone("cloned-numbers");
+        expected = new FiniteRepeat("cloned-numbers", new Regex("number", "\\d"), 3, { min: 0 });
+
+        expect(clone).toEqual(expected);
+
+        clone = numbers.clone("cloned-numbers", true);
+        expected = new FiniteRepeat("cloned-numbers", new Regex("number", "\\d"), 3, { min: 0 });
+
+        expect(clone).toEqual(expected);
+
+        clone = numbers.clone("cloned-numbers", false);
+        expected = new FiniteRepeat("cloned-numbers", new Regex("number", "\\d"), 3, { min: 1 });
+
+        expect(clone).toEqual(expected);
     });
 
     test("Get Tokens", () => {
@@ -439,7 +449,7 @@ describe("BoundedRepeat", () => {
             }
         );
 
-        const comma = numbers.findPattern(p=>p.name === "comma");
+        const comma = numbers.find(p => p.name === "comma");
         expect(comma).toBe(numbers.children[1]);
     });
 

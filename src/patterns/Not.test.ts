@@ -88,7 +88,7 @@ describe("Not", () => {
         const notAboutUs = new Not("not-about-us", new Literal("about-us", "About Us"));
         const sequence = new And("sequence", [notAboutUs, new Literal("about-them", "About Them")]);
 
-        const cloneNotAboutUs = sequence.findPattern(p => p.name === "not-about-us") as Pattern;
+        const cloneNotAboutUs = sequence.find(p => p.name === "not-about-us") as Pattern;
         const nextTokens = cloneNotAboutUs.getNextTokens() || [];
 
         expect(nextTokens[0]).toBe("About Them");
@@ -105,7 +105,7 @@ describe("Not", () => {
         const notAboutUs = new Not("not-about-us", new Literal("about-us", "About Us"));
         const sequence = new And("sequence", [notAboutUs, new Literal("about-them", "About Them")]);
 
-        const cloneNotAboutUs = sequence.findPattern(p => p.name === "not-about-us") as Pattern;
+        const cloneNotAboutUs = sequence.find(p => p.name === "not-about-us") as Pattern;
         const nextTokens = cloneNotAboutUs.getTokens() || [];
 
         expect(nextTokens[0]).toBe("About Them");
@@ -114,8 +114,8 @@ describe("Not", () => {
     test("Get Tokens After", () => {
         const notAboutUs = new Not("not-about-us", new Literal("about-us", "About Us"));
         const sequence = new And("sequence", [notAboutUs, new Literal("about-them", "About Them")]);
-        const notAboutUsClone = sequence.findPattern(p => p.name === "not-about-us") as Pattern;
-        const aboutUsClone = sequence.findPattern(p => p.name === "about-us") as Pattern;
+        const notAboutUsClone = sequence.find(p => p.name === "not-about-us") as Pattern;
+        const aboutUsClone = sequence.find(p => p.name === "about-us") as Pattern;
         const nextTokens = notAboutUsClone.getTokensAfter(aboutUsClone) || [];
 
         expect(nextTokens[0]).toBe("About Them");
@@ -123,7 +123,7 @@ describe("Not", () => {
 
     test("Find Pattern", () => {
         const notAboutUs = new Not("not-about-us", new Literal("about-us", "About Us"));
-        const child = notAboutUs.findPattern(p => p.name === "about-us")
+        const child = notAboutUs.find(p => p.name === "about-us")
 
         expect(child).not.toBeNull();
     });
@@ -132,9 +132,9 @@ describe("Not", () => {
         const notAboutUs = new Not("not-about-us", new Literal("about-us", "About Us"));
         const sequence = new And("sequence", [notAboutUs, new Literal("about-them", "About Them")]);
 
-        const cloneNotAboutUs = sequence.findPattern(p => p.name === "not-about-us") as Pattern;
+        const cloneNotAboutUs = sequence.find(p => p.name === "not-about-us") as Pattern;
         const nextPatterns = cloneNotAboutUs.getPatterns();
-        const expected = [sequence.findPattern(p=>p.name === "about-them")];
+        const expected = [sequence.find(p=>p.name === "about-them")];
 
         expect(nextPatterns).toEqual(expected);
     });
@@ -143,7 +143,7 @@ describe("Not", () => {
         const notAboutUs = new Not("not-about-us", new Literal("about-us", "About Us"));
         const sequence = new And("sequence", [notAboutUs, new Literal("about-them", "About Them")]);
 
-        const cloneNotAboutUs = sequence.findPattern(p => p.name === "not-about-us") as Pattern;
+        const cloneNotAboutUs = sequence.find(p => p.name === "not-about-us") as Pattern;
         const patterns = cloneNotAboutUs.getNextPatterns() || [];
 
         expect(patterns.length).toBe(1);
@@ -160,8 +160,8 @@ describe("Not", () => {
     test("Get Patterns After", () => {
         const notAboutUs = new Not("not-about-us", new Literal("about-us", "About Us"));
         const sequence = new And("sequence", [notAboutUs, new Literal("about-them", "About Them")]);
-        const notAboutUsClone = sequence.findPattern(p => p.name === "not-about-us") as Pattern;
-        const aboutUsClone = sequence.findPattern(p => p.name === "about-us") as Pattern;
+        const notAboutUsClone = sequence.find(p => p.name === "not-about-us") as Pattern;
+        const aboutUsClone = sequence.find(p => p.name === "about-us") as Pattern;
         const patterns = notAboutUsClone.getPatternsAfter(aboutUsClone) || [];
 
         expect(patterns.length).toBe(1);
@@ -170,7 +170,7 @@ describe("Not", () => {
 
     test("Get Patterns After With Null Parent", () => {
         const notAboutUs = new Not("not-about-us", new Literal("about-us", "About Us"));
-        const aboutUsClone = notAboutUs.findPattern(p => p.name === "about-us") as Pattern;
+        const aboutUsClone = notAboutUs.find(p => p.name === "about-us") as Pattern;
         const patterns = notAboutUs.getPatternsAfter(aboutUsClone) || [];
 
         expect(patterns.length).toBe(0);

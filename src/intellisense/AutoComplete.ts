@@ -31,14 +31,6 @@ export class AutoComplete {
     this._text = "";
   }
 
-  /**
-   * @deprecated Use suggestFor instead.
-   * @param text The text to suggest for.
-   */
-  suggest(text: string): Suggestion {
-    return this.suggestFor(text);
-  }
-
   suggestFor(text: string): Suggestion {
     if (text.length === 0) {
       return {

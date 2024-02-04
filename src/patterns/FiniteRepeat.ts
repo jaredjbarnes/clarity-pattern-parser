@@ -3,11 +3,11 @@ import { Cursor } from "./Cursor";
 import { findPattern } from "./findPattern";
 import { ParseResult } from "./ParseResult";
 import { Pattern } from "./Pattern";
-import { RepeatOptions } from "./Repeat";
 
 export interface FiniteRepeatOptions {
     divider?: Pattern;
     min?: number;
+    trimDivider?: boolean;
 }
 
 export class FiniteRepeat implements Pattern {
@@ -18,6 +18,7 @@ export class FiniteRepeat implements Pattern {
     private _hasDivider: boolean;
     private _min: number;
     private _max: number;
+    private _trimDivider: boolean;
 
     get type() {
         return this._type;
@@ -51,7 +52,7 @@ export class FiniteRepeat implements Pattern {
         return this._max;
     }
 
-    constructor(name: string, pattern: Pattern, repeatAmount: number, options: RepeatOptions = {}) {
+    constructor(name: string, pattern: Pattern, repeatAmount: number, options: FiniteRepeatOptions = {}) {
         this._type = "repeat";
         this._name = name;
         this._parent = null;
@@ -59,11 +60,12 @@ export class FiniteRepeat implements Pattern {
         this._hasDivider = options.divider != null;
         this._min = options.min != null ? options.min : 1;
         this._max = repeatAmount;
+        this._trimDivider = options.trimDivider == null ? false : options.trimDivider;
 
         for (let i = 0; i < repeatAmount; i++) {
-            this._children.push(pattern.clone(pattern.name, false));
+            this._children.push(pattern.clone(pattern.name));
 
-            if (options.divider != null && i < repeatAmount - 1) {
+            if (options.divider != null && (i < repeatAmount - 1 || !this._trimDivider)) {
                 this._children.push(options.divider.clone(options.divider.name, false));
             }
         }
@@ -72,34 +74,41 @@ export class FiniteRepeat implements Pattern {
     parse(cursor: Cursor): Node | null {
         const startIndex = cursor.index;
         const nodes: Node[] = [];
+        const modulo = this._hasDivider ? 2 : 1;
+        let matchCount = 0;
+
 
         for (let i = 0; i < this._children.length; i++) {
             const childPattern = this._children[i];
             const node = childPattern.parse(cursor);
 
-            if (cursor.hasError || node == null) {
+            if (i % modulo === 0 && !cursor.hasError) {
+                matchCount++
+            }
+
+            if (cursor.hasError) {
                 cursor.resolveError();
                 break;
             }
 
-            nodes.push(node);
+            if (node != null) {
+                nodes.push(node);
 
-            if (cursor.hasNext()) {
-                cursor.next();
-            } else {
-                break;
+                if (cursor.hasNext()) {
+                    cursor.next();
+                } else {
+                    break;
+                }
             }
+
         }
 
-        // Make sure we backtrack if we landed on a divider.
-        if (this._hasDivider) {
-            if (nodes.length % 2 === 0) {
+        if (this._trimDivider && this._hasDivider) {
+            if (cursor.leafMatch.pattern === this.children[1]) {
                 const node = nodes.pop() as Node;
                 cursor.moveTo(node.firstIndex)
             }
         }
-
-        const matchCount = this._hasDivider ? Math.ceil(nodes.length / 2) : nodes.length;
 
         if (matchCount < this._min) {
             cursor.moveTo(startIndex);
@@ -153,7 +162,8 @@ export class FiniteRepeat implements Pattern {
             this._max,
             {
                 divider: this._hasDivider ? this._children[1] : undefined,
-                min
+                min,
+                trimDivider: this._trimDivider
             }
         );
     }

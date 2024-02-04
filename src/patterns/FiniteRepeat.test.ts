@@ -62,7 +62,7 @@ describe("BoundedRepeat", () => {
     });
 
     test("Bounds Are Equal Without Divider", () => {
-        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), 3, { min: 3 });
+        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), 3, { min: 3});
 
         let cursor = new Cursor("1");
         let result = numbers.parse(cursor);
@@ -104,7 +104,7 @@ describe("BoundedRepeat", () => {
 
     test("Bounds With Divider", () => {
         const divider = new Literal("comma", ",");
-        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), 3, { divider, min: 2 });
+        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), 3, { divider, min: 2, trimDivider: true });
 
         let cursor = new Cursor("1,");
         let result = numbers.parse(cursor);
@@ -150,9 +150,32 @@ describe("BoundedRepeat", () => {
         expect(cursor.hasError).toBeFalsy();
     });
 
+    test("Optional Repeating Pattern", () => {
+        const digit = new Regex("digit", "\\d+", true);
+        const divider = new Regex("divider", "\\s");
+        const integer = new FiniteRepeat("number", digit, 4, { divider });
+        const cursor = new Cursor(
+            "\n" +
+            "3\n" +
+            "\n" +
+            "\n"
+        );
+        const result = integer.parse(cursor);
+        const expected = new Node("repeat", "number", 0, 4, [
+            new Node("regex", "divider", 0, 0, [], "\n"),
+            new Node("regex", "digit", 1, 1, [], "3"),
+            new Node("regex", "divider", 2, 2, [], "\n"),
+            new Node("regex", "divider", 3, 3, [], "\n"),
+            new Node("regex", "divider", 4, 4, [], "\n"),
+        ]);
+
+        expect(result).toEqual(expected)
+        expect(cursor.hasError).toBeFalsy()
+    });
+
     test("Bounds Are Equal With Divider", () => {
         const divider = new Literal("comma", ",");
-        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), 3, { divider, min: 3 });
+        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), 3, { divider, min: 3, trimDivider: true });
 
         let cursor = new Cursor("1,");
         let result = numbers.parse(cursor);
@@ -303,7 +326,8 @@ describe("BoundedRepeat", () => {
             2,
             {
                 divider: new Literal("comma", ","),
-                min: 0
+                min: 0,
+                trimDivider: true
             });
 
         let child = numbers.children[0];
@@ -329,6 +353,7 @@ describe("BoundedRepeat", () => {
             2,
             {
                 divider: new Literal("comma", ","),
+                trimDivider: true,
                 min: 0
             });
 

@@ -76,7 +76,7 @@ describe("InfiniteRepeat", () => {
     test("Successful Parse Text Ends With Divider", () => {
         const digit = new Regex("digit", "\\d");
         const divider = new Literal("divider", ",");
-        const integer = new InfiniteRepeat("number", digit, { divider });
+        const integer = new InfiniteRepeat("number", digit, { divider, trimDivider: true });
         const cursor = new Cursor("3,3,7,");
         const result = integer.parse(cursor);
         const expected = new Node("repeat", "number", 0, 4, [
@@ -94,7 +94,7 @@ describe("InfiniteRepeat", () => {
     test("Successful Parse Trailing Comma", () => {
         const digit = new Regex("digit", "\\d");
         const divider = new Literal("divider", ",");
-        const integer = new InfiniteRepeat("number", digit, { divider });
+        const integer = new InfiniteRepeat("number", digit, { divider, trimDivider: true });
         const cursor = new Cursor("3,3,7,t");
         const result = integer.parse(cursor);
         const expected = new Node("repeat", "number", 0, 4, [
@@ -103,6 +103,29 @@ describe("InfiniteRepeat", () => {
             new Node("regex", "digit", 2, 2, [], "3"),
             new Node("literal", "divider", 3, 3, [], ","),
             new Node("regex", "digit", 4, 4, [], "7"),
+        ]);
+
+        expect(result).toEqual(expected)
+        expect(cursor.hasError).toBeFalsy()
+    });
+
+    test("Optional Repeating Pattern", () => {
+        const digit = new Regex("digit", "\\d+", true);
+        const divider = new Regex("divider", "\\s");
+        const integer = new InfiniteRepeat("number", digit, { divider });
+        const cursor = new Cursor(
+            "\n" +
+            "3\n" +
+            "\n" +
+            "\n"
+        );
+        const result = integer.parse(cursor);
+        const expected = new Node("repeat", "number", 0, 4, [
+            new Node("regex", "divider", 0, 0, [], "\n"),
+            new Node("regex", "digit", 1, 1, [], "3"),
+            new Node("regex", "divider", 2, 2, [], "\n"),
+            new Node("regex", "divider", 3, 3, [], "\n"),
+            new Node("regex", "divider", 4, 4, [], "\n"),
         ]);
 
         expect(result).toEqual(expected)

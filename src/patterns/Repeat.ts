@@ -9,6 +9,7 @@ export interface RepeatOptions {
     min?: number;
     max?: number;
     divider?: Pattern;
+    trimDivider?: boolean;
 }
 
 interface InternalRepeatOptions {

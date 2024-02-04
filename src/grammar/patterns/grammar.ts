@@ -11,6 +11,6 @@ const line = new Or("line", [
     comment,
     statement,
     whitespace
-]);
+], true);
 
 export const grammar = new Repeat("grammer", line, { divider: newLine });

@@ -24,12 +24,15 @@ describe("Grammer", () => {
             `\t\n` +
             `and = !literal & regex? & literal\n` +
             `or = literal | regex\n\n` +
+            `repeat = literal*\n` +
             `optionalRepeat = literal* regex\n` +
             `repeat = literal+ regex\n` +
-            `repeatBounds = literal{2,3} regex\n` +
-            `optionalRepeatUpperBounds = literal{,3} regex\n` +
-            `repeatLowerBounds = literal{2,} regex\n` +
-            `repeatExactly = literal{2} regex\n\n`;
+            `repeat-bounds = literal{2,3} regex\n` +
+            `optional-repeat-upper-bounds = literal{,3} regex\n` +
+            `repeat-lower-bounds = literal{2,} regex\n` +
+            `repeat-exactly = literal{2} regex\n` +
+            `optional-repeat-pattern = literal? regex\n\n` +
+            `trim-repeat-pattern = literal? regex -t`;
 
         const result = grammar.exec(text);
         result.ast?.

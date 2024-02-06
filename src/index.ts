@@ -2,6 +2,7 @@ import { Node } from "./ast/Node";
 import { Grammar } from "./grammar/Grammar";
 import { Suggestion } from "./intellisense/Suggestion";
 import { SuggestionOption } from "./intellisense/SuggestionOption";
+import { AutoComplete, AutoCompleteOptions } from './intellisense/AutoComplete';
 import { Cursor } from "./patterns/Cursor";
 import { Regex } from "./patterns/Regex";
 import { And } from "./patterns/And";
@@ -12,7 +13,6 @@ import { Repeat } from "./patterns/Repeat";
 import { ParseError } from "./patterns/ParseError";
 import { Pattern } from "./patterns/Pattern";
 import { Reference } from "./patterns/Reference";
-import { AutoComplete, AutoCompleteOptions } from './intellisense/AutoComplete';
 import { CursorHistory, Match } from "./patterns/CursorHistory";
 import { ParseResult } from "./patterns/ParseResult";
 

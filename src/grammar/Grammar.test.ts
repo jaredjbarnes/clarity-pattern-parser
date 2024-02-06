@@ -116,7 +116,7 @@ describe("Grammar", () => {
     test("Repeat", () => {
         const expression = `
             digit = /\\d/
-            digits = digit +
+            digits = (digit)+
         `;
 
         const patterns = Grammar.parse(expression);
@@ -130,7 +130,7 @@ describe("Grammar", () => {
     test("Repeat Zero Or More", () => {
         const expression = `
             digit = /\\d/
-            digits = digit *
+            digits = (digit)*
         `;
 
         const patterns = Grammar.parse(expression);
@@ -144,7 +144,7 @@ describe("Grammar", () => {
     test("Repeat Lower Limit", () => {
         const expression = `
             digit = /\\d+/
-            digits = digit {1,}
+            digits = (digit){1,}
         `;
 
         const patterns = Grammar.parse(expression);
@@ -158,7 +158,7 @@ describe("Grammar", () => {
     test("Repeat Bounded", () => {
         const expression = `
             digit = /\\d+/
-            digits = digit {1,3}
+            digits = (digit){1,3}
         `;
 
         const patterns = Grammar.parse(expression);
@@ -172,7 +172,7 @@ describe("Grammar", () => {
     test("Repeat Upper Limit", () => {
         const expression = `
             digit = /\\d+/
-            digits = digit {,3}
+            digits = (digit){,3}
         `;
 
         const patterns = Grammar.parse(expression);
@@ -186,7 +186,7 @@ describe("Grammar", () => {
     test("Repeat Exact", () => {
         const expression = `
             digit = /\\d+/
-            digits = digit {3}
+            digits = (digit){3}
         `;
 
         const patterns = Grammar.parse(expression);
@@ -201,7 +201,7 @@ describe("Grammar", () => {
         const expression = `
             digit = /\\d+/
             comma = ","
-            digits = digit comma {3}
+            digits = (digit, comma){3}
         `;
 
         const patterns = Grammar.parse(expression);
@@ -217,7 +217,7 @@ describe("Grammar", () => {
         const expression = `
             digit = /\\d+/
             comma = ","
-            digits = digit comma {3} -t
+            digits = (digit, comma){3} -t
         `;
 
         const patterns = Grammar.parse(expression);
@@ -233,7 +233,7 @@ describe("Grammar", () => {
         const expression = `
             digit = /\\d+/
             comma = ","
-            digits = digit? comma +
+            digits = (digit?, comma)+
         `;
 
         const patterns = Grammar.parse(expression);
@@ -253,7 +253,7 @@ describe("Grammar", () => {
             close-bracket = "]"
             spaces = /\\s+/
             items = digit | array
-            array-items = items divider * -t
+            array-items = (items, divider)* -t
             array = open-bracket & spaces? & array-items? & spaces? & close-bracket
         `;
 

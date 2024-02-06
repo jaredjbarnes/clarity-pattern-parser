@@ -51,11 +51,18 @@ const quantifier = new Or("quantifier", [
 
 const optional = new Literal("is-optional", "?", true);
 const trimDivider = new Literal("trim-divider", "-t");
+const openParen = new Literal("open-paren", "(");
+const closeParen = new Literal("close-paren", ")");
+const dividerComma = new Regex("divider-comma", "\\s*,\\s*");
 
 export const repeatLiteral = new And("repeat-literal", [
+    openParen,
+    optionalSpaces,
     pattern,
     optional,
-    new And("optional-divider-section", [spaces, dividerPattern], true),
-    new And("quantifier-section", [spaces, quantifier]),
+    new And("optional-divider-section", [dividerComma, dividerPattern], true),
+    optionalSpaces,
+    closeParen,
+    new And("quantifier-section", [optionalSpaces, quantifier]),
     new And("optional-trim-divider-section", [spaces, trimDivider], true)
 ]);

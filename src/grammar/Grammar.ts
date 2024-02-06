@@ -74,9 +74,6 @@ export class Grammar {
                     this._buildRepeat(n)
                     break;
                 }
-                default: {
-                    //Do nothing
-                }
             }
         });
     }

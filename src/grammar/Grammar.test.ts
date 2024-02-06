@@ -249,4 +249,13 @@ describe("Grammar", () => {
 
         expect(result.ast?.value).toEqual("[1, []]");
     });
+
+    test("Bad Grammar", () => {
+
+        expect(() => {
+            const expression = `Just Junk`;
+            Grammar.parse(expression);
+        }).toThrowError()
+
+    });
 });

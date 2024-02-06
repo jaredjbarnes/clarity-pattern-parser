@@ -9,20 +9,14 @@ import { Not } from "../patterns/Not";
 import { And } from "../patterns/And";
 import { Repeat, RepeatOptions } from "../patterns/Repeat";
 
-export interface GrammarOptions {
-
-}
-
 class ParseContext {
     patternsByName = new Map<string, Pattern>();
 }
 
 export class Grammar {
-    private _options: GrammarOptions;
     private _parseContext: ParseContext;
 
-    constructor(options: GrammarOptions = {}) {
-        this._options = options;
+    constructor() {
         this._parseContext = new ParseContext();
     }
 
@@ -37,7 +31,6 @@ export class Grammar {
         const { ast, cursor } = grammar.exec(expression);
 
         if (ast == null) {
-
             throw new Error("Invalid Grammar" + cursor.furthestError?.pattern.name);
         }
 

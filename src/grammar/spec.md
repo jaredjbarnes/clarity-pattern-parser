@@ -89,12 +89,11 @@ const expression = `
 `;
 
 const { digits } = Gammar.parse(expression);
-let result = digits.exec("1,2,3");
 
+let result = digits.exec("1,2,3");
 expect(result.ast?.value).toBe("1,2,3");
 
 result = digits.exec("1,2,");
-
 expect(result.ast).toBeNull();
 ```
 

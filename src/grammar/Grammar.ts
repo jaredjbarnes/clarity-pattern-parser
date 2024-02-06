@@ -31,7 +31,7 @@ export class Grammar {
         const { ast, cursor } = grammar.exec(expression);
 
         if (ast == null) {
-            throw new Error("Invalid Grammar" + cursor.furthestError?.pattern.name);
+            throw new Error(`Invalid Grammar '${cursor.furthestError?.pattern.name}'.`);
         }
 
         this._cleanAst(ast);

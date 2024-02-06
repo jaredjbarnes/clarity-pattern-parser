@@ -115,13 +115,13 @@ describe("Grammar", () => {
 
     test("Repeat", () => {
         const expression = `
-            digit = /\\d+/
-            digits = digit+
+            digit = /\\d/
+            digits = digit +
         `;
 
         const patterns = Grammar.parse(expression);
         const pattern = patterns.get("digits");
-        const digit = new Regex("digit", "\\d+");
+        const digit = new Regex("digit", "\\d");
         const digits = new Repeat("digits", digit);
 
         expect(pattern).toEqual(digits);
@@ -129,13 +129,13 @@ describe("Grammar", () => {
 
     test("Repeat Zero Or More", () => {
         const expression = `
-            digit = /\\d+/
-            digits = digit*
+            digit = /\\d/
+            digits = digit *
         `;
 
         const patterns = Grammar.parse(expression);
         const pattern = patterns.get("digits");
-        const digit = new Regex("digit", "\\d+");
+        const digit = new Regex("digit", "\\d");
         const digits = new Repeat("digits", digit, { min: 0 });
 
         expect(pattern).toEqual(digits);
@@ -144,7 +144,7 @@ describe("Grammar", () => {
     test("Repeat Lower Limit", () => {
         const expression = `
             digit = /\\d+/
-            digits = digit{1,}
+            digits = digit {1,}
         `;
 
         const patterns = Grammar.parse(expression);
@@ -158,7 +158,7 @@ describe("Grammar", () => {
     test("Repeat Bounded", () => {
         const expression = `
             digit = /\\d+/
-            digits = digit{1,3}
+            digits = digit {1,3}
         `;
 
         const patterns = Grammar.parse(expression);
@@ -172,7 +172,7 @@ describe("Grammar", () => {
     test("Repeat Upper Limit", () => {
         const expression = `
             digit = /\\d+/
-            digits = digit{,3}
+            digits = digit {,3}
         `;
 
         const patterns = Grammar.parse(expression);
@@ -186,7 +186,7 @@ describe("Grammar", () => {
     test("Repeat Exact", () => {
         const expression = `
             digit = /\\d+/
-            digits = digit{3}
+            digits = digit {3}
         `;
 
         const patterns = Grammar.parse(expression);
@@ -201,7 +201,7 @@ describe("Grammar", () => {
         const expression = `
             digit = /\\d+/
             comma = ","
-            digits = digit{3} comma
+            digits = digit comma {3}
         `;
 
         const patterns = Grammar.parse(expression);
@@ -213,11 +213,11 @@ describe("Grammar", () => {
         expect(pattern).toEqual(digits);
     });
 
-    test("Repeat Divider & Trim Divider", () => {
+    test("Repeat Divider With Trim Divider", () => {
         const expression = `
             digit = /\\d+/
             comma = ","
-            digits = digit{3} comma -t
+            digits = digit comma {3} -t
         `;
 
         const patterns = Grammar.parse(expression);
@@ -229,6 +229,22 @@ describe("Grammar", () => {
         expect(pattern).toEqual(digits);
     });
 
+    test("Repeat Divider With Optional Pattern", () => {
+        const expression = `
+            digit = /\\d+/
+            comma = ","
+            digits = digit? comma +
+        `;
+
+        const patterns = Grammar.parse(expression);
+        const pattern = patterns.get("digits") as Pattern;
+        const digit = new Regex("digit", "\\d+", true);
+        const comma = new Literal("comma", ",");
+        const digits = new Repeat("digits", digit, { divider: comma });
+
+        expect(pattern).toEqual(digits)
+    });
+
     test("Reference", () => {
         const expression = `
             digit = /\\d+/
@@ -237,7 +253,7 @@ describe("Grammar", () => {
             close-bracket = "]"
             spaces = /\\s+/
             items = digit | array
-            array-items = items* divider -t
+            array-items = items divider * -t
             array = open-bracket & spaces? & array-items? & spaces? & close-bracket
         `;
 

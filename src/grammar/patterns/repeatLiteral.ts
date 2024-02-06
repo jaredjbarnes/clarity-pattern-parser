@@ -14,7 +14,7 @@ export const pattern = new And("pattern", [
 ]);
 
 const optionalSpaces = spaces.clone("optional-spaces", true);
-const optionalDividerPattern = name.clone("divider-pattern", true);
+const dividerPattern = name.clone("divider-pattern");
 
 const openBracket = new Literal("open-bracket", "{");
 const closeBracket = new Literal("close-bracket", "}");
@@ -43,21 +43,19 @@ const exactCount = new And("exact-count", [
 ]);
 
 const quantifierShorthand = new Regex("quantifier-shorthand", "\\*|\\+");
-const optionalQuantifier = new Or("quantifier", [
+const quantifier = new Or("quantifier", [
     quantifierShorthand,
     exactCount,
     bounds
-], true);
+]);
 
 const optional = new Literal("is-optional", "?", true);
-const optionalTrimDivider = new Literal("trim-divider", "-t", true);
+const trimDivider = new Literal("trim-divider", "-t");
 
 export const repeatLiteral = new And("repeat-literal", [
     pattern,
     optional,
-    optionalQuantifier,
-    optionalSpaces,
-    optionalDividerPattern,
-    optionalSpaces,
-    optionalTrimDivider
+    new And("optional-divider-section", [spaces, dividerPattern], true),
+    new And("quantifier-section", [spaces, quantifier]),
+    new And("optional-trim-divider-section", [spaces, trimDivider], true)
 ]);

@@ -173,8 +173,11 @@ export class Grammar {
 
         const options: RepeatOptions = {
             min: 1,
-            max: Infinity,
-            trimDivider
+            max: Infinity
+        }
+
+        if (trimDivider) {
+            options.trimDivider = trimDivider;
         }
 
         if (dividerNode != null) {

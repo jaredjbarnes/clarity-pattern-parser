@@ -2,6 +2,7 @@ import { And } from "../patterns/And";
 import { Literal } from "../patterns/Literal";
 import { Not } from "../patterns/Not";
 import { Or } from "../patterns/Or";
+import { Pattern } from "../patterns/Pattern";
 import { Regex } from "../patterns/Regex";
 import { Repeat } from "../patterns/Repeat";
 import { Grammar } from "./Grammar";
@@ -207,7 +208,7 @@ describe("Grammar", () => {
         const pattern = patterns.get("digits");
         const digit = new Regex("digit", "\\d+");
         const divider = new Literal("comma", ",");
-        const digits = new Repeat("digits", digit, { divider, min: 3, max: 3, trimDivider: false });
+        const digits = new Repeat("digits", digit, { divider, min: 3, max: 3 });
 
         expect(pattern).toEqual(digits);
     });
@@ -226,5 +227,26 @@ describe("Grammar", () => {
         const digits = new Repeat("digits", digit, { divider, min: 3, max: 3, trimDivider: true });
 
         expect(pattern).toEqual(digits);
+    });
+
+    test("Reference", () => {
+        const expression = `
+            digit = /\\d+/
+            divider = /\\s*,\\s*/
+            open-bracket = "["
+            close-bracket = "]"
+            spaces = /\\s+/
+            items = digit | array
+            array-items = items* divider -t
+            array = open-bracket & spaces? & array-items? & spaces? & close-bracket
+        `;
+
+        const patterns = Grammar.parse(expression);
+        const pattern = patterns.get("array") as Pattern;
+
+        let text = "[1, []]";
+        let result = pattern.exec(text);
+
+        expect(result.ast?.value).toEqual("[1, []]");
     });
 });

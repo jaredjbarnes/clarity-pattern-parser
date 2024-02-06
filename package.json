@@ -8,7 +8,7 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "rollup -c -m",
-    "test": "jest --coverage"
+    "test": "jest --config=jest.coverage.config.js --coverage"
   },
   "keywords": [],
   "devDependencies": {

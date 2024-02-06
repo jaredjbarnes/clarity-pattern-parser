@@ -34,7 +34,7 @@ describe("Reference", () => {
 
         const expected = new Node("and", "array", 0, 5, [
             new Node("literal", "open-bracket", 0, 0, [], "["),
-            new Node("repeat", "values", 1, 4, [
+            new Node("infinite-repeat", "values", 1, 4, [
                 new Node("regex", "number", 1, 1, [], "1"),
                 new Node("regex", "divider", 2, 3, [], ", "),
                 new Node("regex", "number", 4, 4, [], "2")

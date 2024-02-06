@@ -22,7 +22,7 @@ describe("Repeat", () => {
 
         cursor = new Cursor("1");
         result = finiteRepeat.parse(cursor);
-        expected = new Node("repeat", "numbers", 0, 0, [
+        expected = new Node("finite-repeat", "numbers", 0, 0, [
             new Node("regex", "number", 0, 0, [], "1")
         ]);
 
@@ -31,7 +31,7 @@ describe("Repeat", () => {
 
         cursor = new Cursor("12");
         result = finiteRepeat.parse(cursor);
-        expected = new Node("repeat", "numbers", 0, 1, [
+        expected = new Node("finite-repeat", "numbers", 0, 1, [
             new Node("regex", "number", 0, 0, [], "1"),
             new Node("regex", "number", 1, 1, [], "2")
         ]);
@@ -41,7 +41,7 @@ describe("Repeat", () => {
 
         cursor = new Cursor("123");
         result = finiteRepeat.parse(cursor);
-        expected = new Node("repeat", "numbers", 0, 1, [
+        expected = new Node("finite-repeat", "numbers", 0, 1, [
             new Node("regex", "number", 0, 0, [], "1"),
             new Node("regex", "number", 1, 1, [], "2")
         ]);
@@ -71,7 +71,7 @@ describe("Repeat", () => {
 
         cursor = new Cursor("12");
         result = finiteRepeat.parse(cursor);
-        expected = new Node("repeat", "numbers", 0, 1, [
+        expected = new Node("finite-repeat", "numbers", 0, 1, [
             new Node("regex", "number", 0, 0, [], "1"),
             new Node("regex", "number", 1, 1, [], "2")
         ]);
@@ -81,7 +81,7 @@ describe("Repeat", () => {
 
         cursor = new Cursor("123");
         result = finiteRepeat.parse(cursor);
-        expected = new Node("repeat", "numbers", 0, 1, [
+        expected = new Node("finite-repeat", "numbers", 0, 1, [
             new Node("regex", "number", 0, 0, [], "1"),
             new Node("regex", "number", 1, 1, [], "2")
         ]);
@@ -175,7 +175,7 @@ describe("Repeat", () => {
         const number = new Literal("number", "1");
         const repeat = new Repeat("numbers", number);
 
-        expect(repeat.type).toBe("repeat");
+        expect(repeat.type).toBe("infinite-repeat");
         expect(repeat.name).toBe("numbers");
         expect(repeat.parent).toBeNull();
         expect(repeat.isOptional).toBeFalsy();

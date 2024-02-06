@@ -33,6 +33,10 @@ export class Cursor {
     return this._history.leafMatch;
   }
 
+  get leafMatches(): Match[] {
+    return this._history.leafMatches;
+  }
+
   get furthestError(): ParseError | null {
     return this._history.furthestError;
   }

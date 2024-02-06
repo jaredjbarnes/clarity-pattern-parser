@@ -13,7 +13,7 @@ describe("InfiniteRepeat", () => {
         const integer = new InfiniteRepeat("number", digit);
         const cursor = new Cursor("337");
         const result = integer.parse(cursor);
-        const expected = new Node("repeat", "number", 0, 2, [
+        const expected = new Node("infinite-repeat", "number", 0, 2, [
             new Node("regex", "digit", 0, 0, [], "3"),
             new Node("regex", "digit", 1, 1, [], "3"),
             new Node("regex", "digit", 2, 2, [], "7"),
@@ -36,7 +36,7 @@ describe("InfiniteRepeat", () => {
 
         cursor = new Cursor("33");
         result = integer.parse(cursor);
-        expected = new Node("repeat", "number", 0, 1, [
+        expected = new Node("infinite-repeat", "number", 0, 1, [
             new Node("regex", "digit", 0, 0, [], "3"),
             new Node("regex", "digit", 1, 1, [], "3")
         ]);
@@ -61,7 +61,7 @@ describe("InfiniteRepeat", () => {
         const integer = new InfiniteRepeat("number", digit, { divider });
         const cursor = new Cursor("3,3,7");
         const result = integer.parse(cursor);
-        const expected = new Node("repeat", "number", 0, 4, [
+        const expected = new Node("infinite-repeat", "number", 0, 4, [
             new Node("regex", "digit", 0, 0, [], "3"),
             new Node("literal", "divider", 1, 1, [], ","),
             new Node("regex", "digit", 2, 2, [], "3"),
@@ -79,7 +79,7 @@ describe("InfiniteRepeat", () => {
         const integer = new InfiniteRepeat("number", digit, { divider, trimDivider: true });
         const cursor = new Cursor("3,3,7,");
         const result = integer.parse(cursor);
-        const expected = new Node("repeat", "number", 0, 4, [
+        const expected = new Node("infinite-repeat", "number", 0, 4, [
             new Node("regex", "digit", 0, 0, [], "3"),
             new Node("literal", "divider", 1, 1, [], ","),
             new Node("regex", "digit", 2, 2, [], "3"),
@@ -97,7 +97,7 @@ describe("InfiniteRepeat", () => {
         const integer = new InfiniteRepeat("number", digit, { divider, trimDivider: true });
         const cursor = new Cursor("3,3,7,t");
         const result = integer.parse(cursor);
-        const expected = new Node("repeat", "number", 0, 4, [
+        const expected = new Node("infinite-repeat", "number", 0, 4, [
             new Node("regex", "digit", 0, 0, [], "3"),
             new Node("literal", "divider", 1, 1, [], ","),
             new Node("regex", "digit", 2, 2, [], "3"),
@@ -120,7 +120,7 @@ describe("InfiniteRepeat", () => {
             "\n"
         );
         const result = integer.parse(cursor);
-        const expected = new Node("repeat", "number", 0, 4, [
+        const expected = new Node("infinite-repeat", "number", 0, 4, [
             new Node("regex", "divider", 0, 0, [], "\n"),
             new Node("regex", "digit", 1, 1, [], "3"),
             new Node("regex", "divider", 2, 2, [], "\n"),
@@ -195,7 +195,7 @@ describe("InfiniteRepeat", () => {
     test("Properties", () => {
         const integer = new InfiniteRepeat("integer", new Regex("digit", "\\d"));
 
-        expect(integer.type).toBe("repeat");
+        expect(integer.type).toBe("infinite-repeat");
         expect(integer.name).toBe("integer");
         expect(integer.min).toBe(1);
         expect(integer.isOptional).toBeFalsy()

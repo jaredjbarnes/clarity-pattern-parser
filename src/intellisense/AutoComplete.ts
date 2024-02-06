@@ -1,4 +1,5 @@
 import { Cursor } from "../patterns/Cursor";
+import { Match } from "../patterns/CursorHistory";
 import { Pattern } from "../patterns/Pattern";
 import { Suggestion } from "./Suggestion";
 import { SuggestionOption } from "./SuggestionOption";
@@ -49,7 +50,7 @@ export class AutoComplete {
 
     const ast = this._pattern.parse(this._cursor);
     const isComplete = ast?.value === text;
-    const options = this._createSuggestionsFromTokens();
+    const options = this._getAllOptions();
 
     if (this._cursor.hasError && this._cursor.furthestError != null) {
       errorAtIndex = this._cursor.furthestError.index;
@@ -68,6 +69,10 @@ export class AutoComplete {
     }
   }
 
+  private _getAllOptions() {
+    return this._cursor.leafMatches.map((m) => this._createSuggestionsFromMatch(m)).flat();
+  }
+
   private _createSuggestionsFromRoot(): SuggestionOption[] {
     const suggestions: SuggestionOption[] = [];
     const tokens = this._pattern.getTokens();
@@ -79,17 +84,15 @@ export class AutoComplete {
     return suggestions;
   }
 
-  private _createSuggestionsFromTokens(): SuggestionOption[] {
-    const leafMatch = this._cursor.leafMatch;
-
-    if (!leafMatch.pattern) {
+  private _createSuggestionsFromMatch(match: Match): SuggestionOption[] {
+    if (!match.pattern) {
       return this._createSuggestions(-1, this._getTokensForPattern(this._pattern));
     }
 
-    const leafPattern = leafMatch.pattern;
-    const parent = leafMatch.pattern.parent;
+    const leafPattern = match.pattern;
+    const parent = match.pattern.parent;
 
-    if (parent !== null && leafMatch.node != null) {
+    if (parent !== null && match.node != null) {
       const patterns = leafPattern.getNextPatterns();
 
       const tokens = patterns.reduce((acc: string[], pattern) => {
@@ -97,7 +100,7 @@ export class AutoComplete {
         return acc;
       }, []);
 
-      return this._createSuggestions(leafMatch.node.lastIndex, tokens);
+      return this._createSuggestions(match.node.lastIndex, tokens);
     } else {
       return [];
     }

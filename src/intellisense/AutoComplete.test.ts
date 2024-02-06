@@ -70,7 +70,7 @@ describe("AutoComplete", () => {
         divider.setTokens([", "])
 
         const text = "John Doe";
-        const autoComplete = new AutoComplete(new Repeat("last-names", name, {divider}));
+        const autoComplete = new AutoComplete(new Repeat("last-names", name, { divider }));
         const result = autoComplete.suggestFor(text);
         const expectedOptions = [{
             text: ", ",
@@ -212,6 +212,25 @@ describe("AutoComplete", () => {
         expect(options).toEqual(expectedOptions);
         expect(results).toEqual(expectedResults)
 
+    });
+
+    test("Match On Different Pattern Roots", () => {
+        const start = new Literal("start", "John went to");
+        const a = new Literal("a", "a bank.");
+        const the = new Literal("the", "the store.");
+
+        const first = new And("first", [start, a]);
+        const second = new And("second", [start, the]);
+
+        const both = new Or("both", [first, second]);
+
+        const autoComplete = new AutoComplete(both);
+        const result = autoComplete.suggestFor("John went to a gas station.");
+        const expected = [
+            { text: "the store.", startIndex: 12 },
+            { text: "a bank.", startIndex: 12 }
+        ];
+        expect(result.options).toEqual(expected);
     });
 
 });

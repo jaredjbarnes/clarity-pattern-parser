@@ -53,7 +53,7 @@ export class FiniteRepeat implements Pattern {
     }
 
     constructor(name: string, pattern: Pattern, repeatAmount: number, options: FiniteRepeatOptions = {}) {
-        this._type = "repeat";
+        this._type = "finite-repeat";
         this._name = name;
         this._parent = null;
         this._children = [];

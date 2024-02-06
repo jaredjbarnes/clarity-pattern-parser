@@ -9,7 +9,7 @@ export interface Match {
 
 export class CursorHistory {
   private _isRecording: boolean = false;
-  private _leafMatch: Match = { pattern: null, node: null };
+  private _leafMatches: Match[] = [{ pattern: null, node: null }];
   private _furthestError: ParseError | null = null;
   private _currentError: ParseError | null = null;
   private _rootMatch: Match = { pattern: null, node: null };
@@ -26,7 +26,11 @@ export class CursorHistory {
   }
 
   get leafMatch(): Match {
-    return this._leafMatch;
+    return this._leafMatches[this._leafMatches.length - 1];
+  }
+
+  get leafMatches() {
+    return this._leafMatches;
   }
 
   get furthestError(): ParseError | null {
@@ -57,13 +61,38 @@ export class CursorHistory {
 
     this._rootMatch.pattern = pattern;
     this._rootMatch.node = node;
+    const leafMatch = this._leafMatches[this._leafMatches.length - 1];
 
     const isFurthestMatch =
-      this._leafMatch.node === null || node.lastIndex > this._leafMatch.node.lastIndex;
+      leafMatch.node === null || node.lastIndex > leafMatch.node.lastIndex;
+
+    const isSameIndexMatch =
+      leafMatch.node === null || node.lastIndex === leafMatch.node.lastIndex
 
     if (isFurthestMatch) {
-      this._leafMatch.pattern = pattern;
-      this._leafMatch.node = node;
+      // This is to save on GC churn.
+      const match = this._leafMatches.pop() as Match;
+      match.pattern = pattern;
+      match.node = node;
+
+      this._leafMatches.length = 0;
+      this._leafMatches.push(match);
+    } else if (isSameIndexMatch) {
+      const isAncestor = this._leafMatches.some((m) => {
+        let parent = m.pattern?.parent;
+
+        while (parent != null) {
+          if (parent == pattern.parent) {
+            return true;
+          }
+          parent = parent.parent
+        }
+        return false;
+      })
+
+      if (!isAncestor) {
+        this._leafMatches.unshift({ pattern, node });
+      }
     }
   }
 

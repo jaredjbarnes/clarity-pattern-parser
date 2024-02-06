@@ -63,7 +63,7 @@ export class InfiniteRepeat implements Pattern {
 
     this._assignChildrenToParent(children);
 
-    this._type = "repeat";
+    this._type = "infinite-repeat";
     this._name = name;
     this._min = min;
     this._parent = null;
@@ -211,7 +211,7 @@ export class InfiniteRepeat implements Pattern {
     cursor.moveTo(lastIndex);
 
     return new Node(
-      "repeat",
+      this._type,
       this._name,
       this._firstIndex,
       lastIndex,

@@ -63,20 +63,24 @@ full-name = !jack & first-name & space & middle-name-with-space? & last-name
 ```
 
 ## Repeat
+```
+digit = /\d/
+digits = (digit)*
+```
 
 ### Zero Or More Pattern
 
 ```
 digit = /\d/
 comma = ","
-digits = digit* comma
+digits = (digit, comma)*
 ```
 
 ### Zero Or More & Trim Trailing Divider
 ```
 digit = /\d/
 comma = ","
-digits = digit* comma -t
+digits = (digit, comma)* -t
 ```
 
 This is a useful feature if you don't want the divider to be the last pattern found. Let's look at the example below to understand.
@@ -85,7 +89,7 @@ This is a useful feature if you don't want the divider to be the last pattern fo
 const expression = `
     digit = /\d/
     comma = ","
-    digits = digit* comma -t
+    digits = (digit, comma)* -t
 `;
 
 const { digits } = Gammar.parse(expression);
@@ -102,7 +106,7 @@ expect(result.ast).toBeNull();
 ```
 digit = /\d/
 comma = ","
-digits = digit?* comma
+digits = (digit?, comma)*
 ```
 
 ### One Or More With Optional Repeated Pattern
@@ -110,7 +114,7 @@ digits = digit?* comma
 ```
 digit = /\d/
 comma = ","
-digits = digit?+ comma
+digits = (digit?, comma)+
 ```
 
 ### Upper Limit
@@ -118,7 +122,7 @@ digits = digit?+ comma
 ```
 digit = /\d/
 comma = ","
-digits = digit{,3} comma
+digits = (digit, comma){,3}
 ```
 
 ### Bounded
@@ -126,7 +130,7 @@ digits = digit{,3} comma
 ```
 digit = /\d/
 comma = ","
-digits = digit{1,3} comma
+digits = (digit, comma){1,3}
 ```
 
 ### Lower Limit
@@ -134,5 +138,5 @@ digits = digit{1,3} comma
 ```
 digit = /\d/
 comma = ","
-digits = digit{1,3} comma
+digits = (digit, comma){1,3}
 ```

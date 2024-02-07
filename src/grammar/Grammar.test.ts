@@ -266,12 +266,24 @@ describe("Grammar", () => {
         expect(result.ast?.value).toEqual("[1, []]");
     });
 
-    test("Bad Grammar", () => {
+    test("Bad Grammar At Beginning", () => {
 
         expect(() => {
             const expression = `Just Junk`;
             Grammar.parse(expression);
-        }).toThrowError()
+        }).toThrowError('[Parse Error] Found:"Just Junk". Expected: "Just =".')
+
+    });
+
+    test("Bad Grammar Further In", () => {
+
+        expect(() => {
+            const expression = `
+                name = /\\w/
+                age = /()
+            `;
+            Grammar.parse(expression);
+        }).toThrowError('[Parse Error] Found:"age = /()\n ". Expected: "age = !" or "age = (".')
 
     });
 });

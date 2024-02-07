@@ -8,6 +8,7 @@ import { Or } from "../patterns/Or";
 import { Not } from "../patterns/Not";
 import { And } from "../patterns/And";
 import { Repeat, RepeatOptions } from "../patterns/Repeat";
+import { createErrorMessage } from "../utils/createErrorMessage";
 
 class ParseContext {
     patternsByName = new Map<string, Pattern>();
@@ -31,7 +32,8 @@ export class Grammar {
         const { ast, cursor } = grammar.exec(expression);
 
         if (ast == null) {
-            throw new Error(`Invalid Grammar '${cursor.furthestError?.pattern.name}'.`);
+            const message = createErrorMessage(grammar, cursor)
+            throw new Error(message);
         }
 
         this._cleanAst(ast);

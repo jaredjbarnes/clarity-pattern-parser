@@ -20,6 +20,8 @@ const openBracket = new Literal("open-bracket", "{");
 const closeBracket = new Literal("close-bracket", "}");
 const comma = new Literal("comma", ",");
 const integer = new Regex("integer", "([1-9][0-9]*)|0");
+integer.setTokens(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]);
+
 const optionalInteger = integer.clone("integer", true)
 
 const bounds = new And("bounds", [
@@ -43,6 +45,7 @@ const exactCount = new And("exact-count", [
 ]);
 
 const quantifierShorthand = new Regex("quantifier-shorthand", "\\*|\\+");
+quantifierShorthand.setTokens(["*", "+"]);
 const quantifier = new Or("quantifier", [
     quantifierShorthand,
     exactCount,
@@ -54,6 +57,7 @@ const trimDivider = new Literal("trim-divider", "-t");
 const openParen = new Literal("open-paren", "(");
 const closeParen = new Literal("close-paren", ")");
 const dividerComma = new Regex("divider-comma", "\\s*,\\s*");
+dividerComma.setTokens([", "]);
 
 export const repeatLiteral = new And("repeat-literal", [
     openParen,

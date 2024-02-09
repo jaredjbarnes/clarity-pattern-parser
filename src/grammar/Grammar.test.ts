@@ -271,19 +271,18 @@ describe("Grammar", () => {
         expect(() => {
             const expression = `Just Junk`;
             Grammar.parse(expression);
-        }).toThrowError('[Parse Error] Found:"Just Junk". Expected: "Just =".')
+        }).toThrowError("[Parse Error] Found: 'Just Junk', expected: ' ='.");
 
     });
 
     test("Bad Grammar Further In", () => {
 
         expect(() => {
-            const expression = `
-                name = /\\w/
+            const expression = `name = /\\w/
                 age = /()
             `;
             Grammar.parse(expression);
-        }).toThrowError('[Parse Error] Found:"age = /()\n ". Expected: "age = !" or "age = (".')
+        }).toThrowError("[Parse Error] Found: '    age = /()\n      ', expected: '    age = !' or '    age = (' or '    age = [Pattern Name]' or '    age = [Regular Expression]' or '    age = [String]'.")
 
     });
 });

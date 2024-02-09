@@ -8,7 +8,7 @@ import { Or } from "../patterns/Or";
 import { Not } from "../patterns/Not";
 import { And } from "../patterns/And";
 import { Repeat, RepeatOptions } from "../patterns/Repeat";
-import { createErrorMessage } from "../utils/createErrorMessage";
+import { AutoComplete } from "../intellisense/AutoComplete";
 
 class ParseContext {
     patternsByName = new Map<string, Pattern>();
@@ -16,9 +16,19 @@ class ParseContext {
 
 export class Grammar {
     private _parseContext: ParseContext;
+    private _autoComplete: AutoComplete;
 
     constructor() {
         this._parseContext = new ParseContext();
+        this._autoComplete = new AutoComplete(grammar, {
+            greedyPatternNames: ["spaces", "optional-spaces", "whitespace", "new-line"],
+            customTokens: {
+                "regex-literal": ["[Regular Expression]"],
+                "literal": ["[String]"],
+                "name": ["[Pattern Name]"],
+                "pattern-name": ["[Pattern Name]"]
+            }
+        });
     }
 
     parse(expression: string) {
@@ -29,15 +39,24 @@ export class Grammar {
     }
 
     private _tryToParse(expression: string) {
-        const { ast, cursor } = grammar.exec(expression);
+        const { ast, cursor, options, isComplete } = this._autoComplete.suggestFor(expression);
 
-        if (ast == null) {
-            const message = createErrorMessage(grammar, cursor)
+        if (!isComplete) {
+            const text = cursor?.text || "";
+            const index = options.reduce((num, o) => Math.max(o.startIndex, num), 0);
+            const foundText = text.slice(Math.max(index - 10, 0), index + 10);
+            const expectedTexts = "'" + options.map(o => {
+                const startText = text.slice(Math.max(o.startIndex - 10), o.startIndex);
+                return startText + o.text;
+            }).join("' or '") + "'";
+            const message = `[Parse Error] Found: '${foundText}', expected: ${expectedTexts}.`
             throw new Error(message);
         }
 
-        this._cleanAst(ast);
-        this._buildPatterns(ast);
+        // If it is complete it will always have a node. So we have to cast it.
+        this._cleanAst(ast as Node);
+        this._buildPatterns(ast as Node);
+
     }
 
     private _cleanAst(ast: Node) {

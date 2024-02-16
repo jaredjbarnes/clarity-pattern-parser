@@ -1709,6 +1709,7 @@ const statements = new Or("statements", [
     orLiteral,
     andLiteral,
     repeatLiteral,
+    name.clone("alias-literal"),
 ]);
 const statement = new And("statement", [
     optionalSpaces,
@@ -2055,6 +2056,10 @@ class Grammar {
                     this._buildRepeat(n);
                     break;
                 }
+                case "alias-literal": {
+                    this._buildAlias(n);
+                    break;
+                }
             }
         });
     }
@@ -2159,6 +2164,15 @@ class Grammar {
         }
         const repeat = new Repeat(name, pattern.clone(pattern.name, isPatternOptional), options);
         this._parseContext.patternsByName.set(name, repeat);
+    }
+    _buildAlias(statementNode) {
+        const nameNode = statementNode.find(n => n.name === "name");
+        const aliasNode = statementNode.find(n => n.name === "alias-literal");
+        const aliasName = aliasNode.value;
+        const name = nameNode.value;
+        const pattern = this._getPattern(aliasName);
+        const alias = pattern.clone(name);
+        this._parseContext.patternsByName.set(name, alias);
     }
     static parse(expression) {
         const grammar = new Grammar();

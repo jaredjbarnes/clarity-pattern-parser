@@ -13,5 +13,6 @@ export declare class Grammar {
     private _getPattern;
     private _buildAnd;
     private _buildRepeat;
+    private _buildAlias;
     static parse(expression: string): Map<string, Pattern>;
 }

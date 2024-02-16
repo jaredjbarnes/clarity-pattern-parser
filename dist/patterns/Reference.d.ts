@@ -30,6 +30,6 @@ export declare class Reference implements Pattern {
     getPatterns(): Pattern[];
     getPatternsAfter(_childReference: Pattern): Pattern[];
     getNextPatterns(): Pattern[];
-    findPattern(_predicate: (p: Pattern) => boolean): Pattern | null;
+    find(_predicate: (p: Pattern) => boolean): Pattern | null;
     clone(name?: string, isOptional?: boolean): Pattern;
 }

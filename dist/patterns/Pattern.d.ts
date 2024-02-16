@@ -17,5 +17,5 @@ export interface Pattern {
     getPatterns(): Pattern[];
     getPatternsAfter(childReference: Pattern): Pattern[];
     getNextPatterns(): Pattern[];
-    findPattern(predicate: (p: Pattern) => boolean): Pattern | null;
+    find(predicate: (p: Pattern) => boolean): Pattern | null;
 }

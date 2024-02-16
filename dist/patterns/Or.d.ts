@@ -29,6 +29,6 @@ export declare class Or implements Pattern {
     getPatterns(): Pattern[];
     getPatternsAfter(_childReference: Pattern): Pattern[];
     getNextPatterns(): Pattern[];
-    findPattern(predicate: (p: Pattern) => boolean): Pattern | null;
+    find(predicate: (p: Pattern) => boolean): Pattern | null;
     clone(name?: string, isOptional?: boolean): Pattern;
 }

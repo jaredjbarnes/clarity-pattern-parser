@@ -2,34 +2,38 @@ import { Node } from "../ast/Node";
 import { Cursor } from "./Cursor";
 import { ParseResult } from "./ParseResult";
 import { Pattern } from "./Pattern";
-export interface RepeatOptions {
-    min?: number;
-    max?: number;
+export interface FiniteRepeatOptions {
     divider?: Pattern;
+    min?: number;
     trimDivider?: boolean;
 }
-export declare class Repeat implements Pattern {
-    private _repeatPattern;
+export declare class FiniteRepeat implements Pattern {
+    private _type;
+    private _name;
     private _parent;
-    private _pattern;
-    private _options;
     private _children;
+    private _hasDivider;
+    private _min;
+    private _max;
+    private _trimDivider;
     get type(): string;
     get name(): string;
     get parent(): Pattern | null;
     set parent(value: Pattern | null);
     get children(): Pattern[];
     get isOptional(): boolean;
-    constructor(name: string, pattern: Pattern, options?: RepeatOptions);
+    get min(): number;
+    get max(): number;
+    constructor(name: string, pattern: Pattern, repeatAmount: number, options?: FiniteRepeatOptions);
     parse(cursor: Cursor): Node | null;
-    exec(text: string): ParseResult;
     test(text: string): boolean;
-    clone(name?: string, isOptional?: boolean): Repeat;
+    exec(text: string): ParseResult;
+    clone(name?: string, isOptional?: boolean): Pattern;
     getTokens(): string[];
-    getTokensAfter(_childReference: Pattern): string[];
+    getTokensAfter(childReference: Pattern): string[];
     getNextTokens(): string[];
     getPatterns(): Pattern[];
-    getPatternsAfter(_childReference: Pattern): Pattern[];
+    getPatternsAfter(childReference: Pattern): Pattern[];
     getNextPatterns(): Pattern[];
     find(predicate: (p: Pattern) => boolean): Pattern | null;
 }

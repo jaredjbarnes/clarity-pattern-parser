@@ -7,7 +7,7 @@ export interface Match {
 }
 export declare class CursorHistory {
     private _isRecording;
-    private _leafMatch;
+    private _leafMatches;
     private _furthestError;
     private _currentError;
     private _rootMatch;
@@ -17,6 +17,7 @@ export declare class CursorHistory {
     get isRecording(): boolean;
     get rootMatch(): Match;
     get leafMatch(): Match;
+    get leafMatches(): Match[];
     get furthestError(): ParseError | null;
     get errors(): ParseError[];
     get error(): ParseError | null;

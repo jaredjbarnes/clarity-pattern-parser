@@ -32,5 +32,5 @@ export declare class Literal implements Pattern {
     getPatterns(): Pattern[];
     getPatternsAfter(): Pattern[];
     getNextPatterns(): Pattern[];
-    findPattern(_predicate: (p: Pattern) => boolean): Pattern | null;
+    find(_predicate: (p: Pattern) => boolean): Pattern | null;
 }

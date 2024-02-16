@@ -19,14 +19,10 @@ export declare class AutoComplete {
     private _cursor;
     private _text;
     constructor(pattern: Pattern, options?: AutoCompleteOptions);
-    /**
-     * @deprecated Use suggestFor instead.
-     * @param text The text to suggest for.
-     */
-    suggest(text: string): Suggestion;
     suggestFor(text: string): Suggestion;
+    private _getAllOptions;
     private _createSuggestionsFromRoot;
-    private _createSuggestionsFromTokens;
+    private _createSuggestionsFromMatch;
     private _getTokensForPattern;
     private _getAugmentedTokens;
     private _createSuggestions;

@@ -42,6 +42,7 @@ export declare class Node {
     walkDown(callback: (node: Node) => void): void;
     flatten(): Node[];
     reduce(): void;
+    remove(): void;
     clone(): Node;
     toString(): string;
     toCycleFreeObject(): CycleFreeNode;

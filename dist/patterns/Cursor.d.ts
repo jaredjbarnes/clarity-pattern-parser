@@ -13,6 +13,7 @@ export declare class Cursor {
     get isRecording(): boolean;
     get rootMatch(): Match;
     get leafMatch(): Match;
+    get leafMatches(): Match[];
     get furthestError(): ParseError | null;
     get error(): ParseError | null;
     get index(): number;

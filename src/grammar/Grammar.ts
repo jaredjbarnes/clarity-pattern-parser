@@ -95,6 +95,10 @@ export class Grammar {
                     this._buildRepeat(n)
                     break;
                 }
+                case "alias-literal": {
+                    this._buildAlias(n)
+                    break;
+                }
             }
         });
     }
@@ -224,6 +228,17 @@ export class Grammar {
         const repeat = new Repeat(name, pattern.clone(pattern.name, isPatternOptional), options);
 
         this._parseContext.patternsByName.set(name, repeat);
+    }
+
+    private _buildAlias(statementNode: Node) {
+        const nameNode = statementNode.find(n => n.name === "name") as Node;
+        const aliasNode = statementNode.find(n => n.name === "alias-literal") as Node;
+        const aliasName = aliasNode.value;
+        const name = nameNode.value;
+        const pattern = this._getPattern(aliasName);
+        const alias = pattern.clone(name);
+
+        this._parseContext.patternsByName.set(name, alias)
     }
 
     static parse(expression: string) {

@@ -20,6 +20,7 @@ const statements = new Or("statements", [
     orLiteral,
     andLiteral,
     repeatLiteral,
+    name.clone("alias-literal"),
 ]);
 
 export const statement = new And("statement", [

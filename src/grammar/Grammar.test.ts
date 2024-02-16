@@ -266,6 +266,24 @@ describe("Grammar", () => {
         expect(result.ast?.value).toEqual("[1, []]");
     });
 
+    test("Alias", () => {
+        const expression = `
+            name = /regex/
+            alias = name
+        `;
+
+        const patterns = Grammar.parse(expression);
+        
+        const name = patterns.get("name");
+        const expectedName = new Regex("name", "regex");
+
+        const alias = patterns.get("alias");
+        const expectedAlias = new Regex("alias", "regex");
+
+        expect(name).toEqual(expectedName);
+        expect(alias).toEqual(expectedAlias);
+    });
+
     test("Bad Grammar At Beginning", () => {
 
         expect(() => {

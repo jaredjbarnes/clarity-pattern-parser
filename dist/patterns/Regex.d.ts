@@ -10,6 +10,7 @@ export declare class Regex implements Pattern {
     private _regex;
     private _node;
     private _cursor;
+    private _firstIndex;
     private _substring;
     private _tokens;
     get type(): string;

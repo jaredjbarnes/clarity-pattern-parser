@@ -177,8 +177,9 @@ class Node {
 }
 
 class ParseError {
-    constructor(index, pattern) {
-        this.index = index;
+    constructor(startIndex, endIndex, pattern) {
+        this.startIndex = startIndex;
+        this.endIndex = endIndex;
         this.pattern = pattern;
     }
 }
@@ -244,7 +245,7 @@ class CursorHistory {
                 var _a;
                 let parent = (_a = m.pattern) === null || _a === void 0 ? void 0 : _a.parent;
                 while (parent != null) {
-                    if (parent == pattern.parent) {
+                    if (parent === pattern.parent) {
                         return true;
                     }
                     parent = parent.parent;
@@ -256,10 +257,10 @@ class CursorHistory {
             }
         }
     }
-    recordErrorAt(index, pattern) {
-        const error = new ParseError(index, pattern);
+    recordErrorAt(firstIndex, lastIndex, pattern) {
+        const error = new ParseError(firstIndex, lastIndex, pattern);
         this._currentError = error;
-        if (this._furthestError === null || index > this._furthestError.index) {
+        if (this._furthestError === null || lastIndex > this._furthestError.endIndex) {
             this._furthestError = error;
         }
         if (this._isRecording) {
@@ -314,6 +315,9 @@ class Cursor {
     get error() {
         return this._history.error;
     }
+    get errors() {
+        return this._history.errors;
+    }
     get index() {
         return this._index;
     }
@@ -362,8 +366,8 @@ class Cursor {
     recordMatch(pattern, node) {
         this._history.recordMatch(pattern, node);
     }
-    recordErrorAt(index, onPattern) {
-        this._history.recordErrorAt(index, onPattern);
+    recordErrorAt(firstIndex, lastIndex, onPattern) {
+        this._history.recordErrorAt(firstIndex, lastIndex, onPattern);
     }
     resolveError() {
         this._history.resolveError();
@@ -431,7 +435,7 @@ class Literal {
             return node;
         }
         if (!this._isOptional) {
-            cursor.recordErrorAt(cursor.index, this);
+            cursor.recordErrorAt(this._firstIndex, this._lastIndex, this);
             return null;
         }
         cursor.resolveError();
@@ -445,6 +449,7 @@ class Literal {
             const literalRune = this._runes[i];
             const cursorRune = cursor.currentChar;
             if (literalRune !== cursorRune) {
+                this._lastIndex = cursor.index;
                 break;
             }
             if (i + 1 === literalRuneLength) {
@@ -453,6 +458,7 @@ class Literal {
                 break;
             }
             if (!cursor.hasNext()) {
+                this._lastIndex = cursor.index + 1;
                 break;
             }
             cursor.next();
@@ -499,6 +505,7 @@ class Regex {
     constructor(name, regex, isOptional = false) {
         this._node = null;
         this._cursor = null;
+        this._firstIndex = -1;
         this._substring = "";
         this._tokens = [];
         this._type = "regex";
@@ -552,6 +559,7 @@ class Regex {
         };
     }
     parse(cursor) {
+        this._firstIndex = cursor.index;
         this.resetState(cursor);
         this.tryToParse(cursor);
         return this._node;
@@ -580,7 +588,7 @@ class Regex {
     }
     processError(cursor) {
         if (!this._isOptional) {
-            cursor.recordErrorAt(cursor.index, this);
+            cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
         }
         this._node = null;
     }
@@ -818,7 +826,7 @@ class Or {
             return node;
         }
         if (!this._isOptional) {
-            cursor.recordErrorAt(this._firstIndex, this);
+            cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
             return null;
         }
         cursor.resolveError();
@@ -957,7 +965,7 @@ class FiniteRepeat {
         }
         if (matchCount < this._min) {
             cursor.moveTo(startIndex);
-            cursor.recordErrorAt(startIndex, this);
+            cursor.recordErrorAt(startIndex, startIndex, this);
             return null;
         }
         else if (nodes.length === 0) {
@@ -1020,7 +1028,7 @@ class FiniteRepeat {
     getPatternsAfter(childReference) {
         const childIndex = this._children.indexOf(childReference);
         // If Reference Pattern isn't a child.
-        if (childIndex == -1) {
+        if (childIndex === -1) {
             return [];
         }
         // If Reference Pattern is the last pattern. Ask for the parents next patterns 
@@ -1135,6 +1143,7 @@ class InfiniteRepeat {
         return this._nodes.length >= this._min;
     }
     _tryToParse(cursor) {
+        const firstIndex = cursor.index;
         let passed = false;
         while (true) {
             const runningCursorIndex = cursor.index;
@@ -1146,7 +1155,7 @@ class InfiniteRepeat {
                 }
                 else {
                     cursor.moveTo(runningCursorIndex);
-                    cursor.recordErrorAt(runningCursorIndex, this._pattern);
+                    cursor.recordErrorAt(firstIndex, runningCursorIndex, this._pattern);
                     passed = false;
                 }
                 break;
@@ -1182,7 +1191,7 @@ class InfiniteRepeat {
             return passed;
         }
         else if (!hasMinimum && passed) {
-            cursor.recordErrorAt(cursor.index, this);
+            cursor.recordErrorAt(firstIndex, cursor.index, this);
             cursor.moveTo(this._firstIndex);
             return false;
         }
@@ -1287,7 +1296,7 @@ class Repeat {
         this._pattern = pattern;
         this._parent = null;
         this._options = Object.assign(Object.assign({}, options), { min: options.min == null ? 1 : options.min, max: options.max == null ? Infinity : options.max });
-        if (this._options.max != Infinity) {
+        if (this._options.max !== Infinity) {
             this._repeatPattern = new FiniteRepeat(name, pattern, this._options.max, this._options);
         }
         else {
@@ -1475,7 +1484,7 @@ class And {
                                 break;
                             }
                             // We didn't finish the parsing sequence.
-                            cursor.recordErrorAt(cursor.index + 1, this);
+                            cursor.recordErrorAt(this._firstIndex, cursor.index + 1, this);
                             break;
                         }
                     }
@@ -1490,7 +1499,7 @@ class And {
                     // If we don't have any results from what we parsed then record error.
                     const lastNode = this.getLastValidNode();
                     if (lastNode === null) {
-                        cursor.recordErrorAt(cursor.index, this);
+                        cursor.recordErrorAt(this._firstIndex, cursor.index, this);
                         break;
                     }
                     // The sequence was parsed fully.
@@ -1779,7 +1788,7 @@ class Not {
         else {
             cursor.moveTo(firstIndex);
             cursor.resolveError();
-            cursor.recordErrorAt(firstIndex, this);
+            cursor.recordErrorAt(firstIndex, firstIndex, this);
         }
         return null;
     }
@@ -1847,12 +1856,13 @@ class AutoComplete {
         }
         this._text = text;
         this._cursor = new Cursor(text);
+        this._cursor.startRecording();
         let errorAtIndex = null;
         const ast = this._pattern.parse(this._cursor);
         const isComplete = (ast === null || ast === void 0 ? void 0 : ast.value) === text;
         const options = this._getAllOptions();
         if (this._cursor.hasError && this._cursor.furthestError != null) {
-            errorAtIndex = this._cursor.furthestError.index;
+            errorAtIndex = this._cursor.furthestError.endIndex;
             errorAtIndex = options.reduce((errorAtIndex, option) => Math.max(errorAtIndex, option.startIndex), errorAtIndex);
         }
         return {
@@ -1864,7 +1874,20 @@ class AutoComplete {
         };
     }
     _getAllOptions() {
-        return this._cursor.leafMatches.map((m) => this._createSuggestionsFromMatch(m)).flat();
+        const errorMatches = this._getOptionsFromErrors();
+        const leafMatches = this._cursor.leafMatches.map((m) => this._createSuggestionsFromMatch(m)).flat();
+        const finalResults = errorMatches.filter(m => leafMatches.findIndex(l => l.text === m.text) === -1);
+        return [...leafMatches, ...finalResults];
+    }
+    _getOptionsFromErrors() {
+        // These errored because the length of the string.
+        const errors = this._cursor.errors.filter(e => e.endIndex === this._cursor.length);
+        const suggestions = errors.map(e => {
+            const tokens = this._getTokensForPattern(e.pattern);
+            const adjustedTokens = tokens.map(t => t.slice(e.endIndex - e.startIndex));
+            return this._createSuggestions(e.endIndex, adjustedTokens);
+        });
+        return suggestions.flat();
     }
     _createSuggestionsFromRoot() {
         const suggestions = [];
@@ -1875,7 +1898,7 @@ class AutoComplete {
         return suggestions;
     }
     _createSuggestionsFromMatch(match) {
-        if (!match.pattern) {
+        if (match.pattern == null) {
             return this._createSuggestions(-1, this._getTokensForPattern(this._pattern));
         }
         const leafPattern = match.pattern;

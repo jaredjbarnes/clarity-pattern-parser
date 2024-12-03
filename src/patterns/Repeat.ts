@@ -58,7 +58,7 @@ export class Repeat implements Pattern {
             max: options.max == null ? Infinity : options.max
         };
 
-        if (this._options.max != Infinity) {
+        if (this._options.max !== Infinity) {
             this._repeatPattern = new FiniteRepeat(name, pattern, this._options.max, this._options);
         } else {
             this._repeatPattern = new InfiniteRepeat(name, pattern, this._options)

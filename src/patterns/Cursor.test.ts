@@ -40,17 +40,19 @@ describe("Cursor", () => {
         const pattern = new Literal("a", "A");
         const cursor = new Cursor("Hello World!");
 
-        cursor.recordErrorAt(0, pattern);
+        cursor.recordErrorAt(0, 0, pattern);
 
         expect(cursor.hasError).toBeTruthy();
-        expect(cursor.error?.index).toBe(0);
+        expect(cursor.error?.startIndex).toBe(0);
+        expect(cursor.error?.endIndex).toBe(0);
         expect(cursor.error?.pattern).toBe(pattern);
 
         cursor.resolveError();
 
         expect(cursor.hasError).toBeFalsy();
         expect(cursor.error).toBe(null);
-        expect(cursor.furthestError?.index).toBe(0);
+        expect(cursor.furthestError?.startIndex).toBe(0);
+        expect(cursor.furthestError?.endIndex).toBe(0);
         expect(cursor.furthestError?.pattern).toBe(pattern);
     });
 

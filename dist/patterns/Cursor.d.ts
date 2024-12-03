@@ -16,6 +16,7 @@ export declare class Cursor {
     get leafMatches(): Match[];
     get furthestError(): ParseError | null;
     get error(): ParseError | null;
+    get errors(): ParseError[];
     get index(): number;
     get length(): number;
     get hasError(): boolean;
@@ -31,7 +32,7 @@ export declare class Cursor {
     getLastIndex(): number;
     getChars(first: number, last: number): string;
     recordMatch(pattern: Pattern, node: Node): void;
-    recordErrorAt(index: number, onPattern: Pattern): void;
+    recordErrorAt(firstIndex: number, lastIndex: number, onPattern: Pattern): void;
     resolveError(): void;
     startRecording(): void;
     stopRecording(): void;

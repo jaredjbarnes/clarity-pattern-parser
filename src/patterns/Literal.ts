@@ -82,7 +82,7 @@ export class Literal implements Pattern {
     }
 
     if (!this._isOptional) {
-      cursor.recordErrorAt(cursor.index, this)
+      cursor.recordErrorAt(this._firstIndex, this._lastIndex, this)
       return null;
     }
 
@@ -100,6 +100,7 @@ export class Literal implements Pattern {
       const cursorRune = cursor.currentChar;
 
       if (literalRune !== cursorRune) {
+        this._lastIndex = cursor.index;
         break
       }
 
@@ -110,6 +111,7 @@ export class Literal implements Pattern {
       }
 
       if (!cursor.hasNext()) {
+        this._lastIndex = cursor.index + 1;
         break;
       }
 

@@ -1,6 +1,7 @@
 import { Pattern } from "./Pattern";
 export declare class ParseError {
-    index: number;
+    startIndex: number;
+    endIndex: number;
     pattern: Pattern;
-    constructor(index: number, pattern: Pattern);
+    constructor(startIndex: number, endIndex: number, pattern: Pattern);
 }

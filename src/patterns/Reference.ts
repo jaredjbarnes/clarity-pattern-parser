@@ -35,7 +35,7 @@ export class Reference implements Pattern {
     return this._isOptional;
   }
 
-  constructor(name: string, isOptional: boolean = false) {
+  constructor(name: string, isOptional = false) {
     this._type = "reference";
     this._name = name;
     this._parent = null;

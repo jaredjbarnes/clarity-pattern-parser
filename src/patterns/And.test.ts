@@ -29,7 +29,8 @@ describe("And", () => {
         const result = sequence.parse(cursor);
 
         expect(result).toEqual(null);
-        expect(cursor.error?.index).toBe(0)
+        expect(cursor.error?.startIndex).toBe(0);
+        expect(cursor.error?.endIndex).toBe(0);
         expect(cursor.index).toBe(0);
     });
 
@@ -59,7 +60,8 @@ describe("And", () => {
         const result = sequence.parse(cursor);
 
         expect(result).toEqual(null);
-        expect(cursor.error?.index).toBe(1);
+        expect(cursor.error?.startIndex).toBe(1);
+        expect(cursor.error?.endIndex).toBe(1);
         expect(cursor.index).toBe(0);
     });
 
@@ -295,8 +297,8 @@ describe("And", () => {
             new Literal("b", "B"),
         ], true);
         const tokens = sequence.getPatterns();
-        const a = sequence.find(p=>p.name === "a");
-        const b = sequence.find(p=>p.name === "b");
+        const a = sequence.find(p => p.name === "a");
+        const b = sequence.find(p => p.name === "b");
         const expected = [a, b]
 
         expect(tokens).toEqual(expected);

@@ -132,6 +132,7 @@ export class InfiniteRepeat implements Pattern {
   }
 
   private _tryToParse(cursor: Cursor): boolean {
+    const firstIndex = cursor.index;
     let passed = false;
 
     while (true) {
@@ -145,7 +146,7 @@ export class InfiniteRepeat implements Pattern {
           passed = true;
         } else {
           cursor.moveTo(runningCursorIndex);
-          cursor.recordErrorAt(runningCursorIndex, this._pattern);
+          cursor.recordErrorAt(firstIndex, runningCursorIndex, this._pattern);
           passed = false;
         }
 
@@ -187,7 +188,7 @@ export class InfiniteRepeat implements Pattern {
     if (hasMinimum) {
       return passed;
     } else if (!hasMinimum && passed) {
-      cursor.recordErrorAt(cursor.index, this);
+      cursor.recordErrorAt(firstIndex, cursor.index, this);
       cursor.moveTo(this._firstIndex);
       return false;
     }

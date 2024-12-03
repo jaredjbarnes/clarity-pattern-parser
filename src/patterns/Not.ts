@@ -67,7 +67,7 @@ export class Not implements Pattern {
     } else {
       cursor.moveTo(firstIndex);
       cursor.resolveError();
-      cursor.recordErrorAt(firstIndex, this);
+      cursor.recordErrorAt(firstIndex, firstIndex, this);
     }
 
     return null;

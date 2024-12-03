@@ -45,6 +45,7 @@ export class AutoComplete {
 
     this._text = text;
     this._cursor = new Cursor(text);
+    this._cursor.startRecording();
 
     let errorAtIndex = null;
 
@@ -53,7 +54,7 @@ export class AutoComplete {
     const options = this._getAllOptions();
 
     if (this._cursor.hasError && this._cursor.furthestError != null) {
-      errorAtIndex = this._cursor.furthestError.index;
+      errorAtIndex = this._cursor.furthestError.endIndex;
 
       errorAtIndex = options.reduce((errorAtIndex, option) =>
         Math.max(errorAtIndex, option.startIndex),
@@ -70,7 +71,23 @@ export class AutoComplete {
   }
 
   private _getAllOptions() {
-    return this._cursor.leafMatches.map((m) => this._createSuggestionsFromMatch(m)).flat();
+    const errorMatches = this._getOptionsFromErrors();
+    const leafMatches = this._cursor.leafMatches.map((m) => this._createSuggestionsFromMatch(m)).flat();
+    const finalResults = errorMatches.filter(m => leafMatches.findIndex(l => l.text === m.text) === -1);
+
+    return [...leafMatches, ...finalResults]
+  }
+
+  private _getOptionsFromErrors() {
+    // These errored because the length of the string.
+    const errors = this._cursor.errors.filter(e => e.endIndex === this._cursor.length);
+    const suggestions = errors.map(e => {
+      const tokens = this._getTokensForPattern(e.pattern);
+      const adjustedTokens = tokens.map(t => t.slice(e.endIndex - e.startIndex));
+      return this._createSuggestions(e.endIndex, adjustedTokens);
+    });
+
+    return suggestions.flat();
   }
 
   private _createSuggestionsFromRoot(): SuggestionOption[] {
@@ -85,7 +102,7 @@ export class AutoComplete {
   }
 
   private _createSuggestionsFromMatch(match: Match): SuggestionOption[] {
-    if (!match.pattern) {
+    if (match.pattern == null) {
       return this._createSuggestions(-1, this._getTokensForPattern(this._pattern));
     }
 

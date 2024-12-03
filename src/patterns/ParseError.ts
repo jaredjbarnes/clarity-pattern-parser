@@ -1,11 +1,13 @@
 import { Pattern } from "./Pattern";
 
 export class ParseError {
-  public index: number;
+  public startIndex: number
+  public endIndex: number;
   public pattern: Pattern;
 
-  constructor(index: number, pattern: Pattern) {
-    this.index = index;
+  constructor(startIndex: number, endIndex: number, pattern: Pattern) {
+    this.startIndex = startIndex;
+    this.endIndex = endIndex;
     this.pattern = pattern;
   }
 }

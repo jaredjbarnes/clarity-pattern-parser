@@ -8,7 +8,7 @@ export interface Match {
 }
 
 export class CursorHistory {
-  private _isRecording: boolean = false;
+  private _isRecording = false;
   private _leafMatches: Match[] = [{ pattern: null, node: null }];
   private _furthestError: ParseError | null = null;
   private _currentError: ParseError | null = null;
@@ -82,7 +82,7 @@ export class CursorHistory {
         let parent = m.pattern?.parent;
 
         while (parent != null) {
-          if (parent == pattern.parent) {
+          if (parent === pattern.parent) {
             return true;
           }
           parent = parent.parent
@@ -96,11 +96,11 @@ export class CursorHistory {
     }
   }
 
-  recordErrorAt(index: number, pattern: Pattern): void {
-    const error = new ParseError(index, pattern);
+  recordErrorAt(firstIndex: number, lastIndex: number, pattern: Pattern): void {
+    const error = new ParseError(firstIndex, lastIndex, pattern);
     this._currentError = error;
 
-    if (this._furthestError === null || index > this._furthestError.index) {
+    if (this._furthestError === null || lastIndex > this._furthestError.endIndex) {
       this._furthestError = error;
     }
 

@@ -131,7 +131,7 @@ export class And implements Pattern {
               }
 
               // We didn't finish the parsing sequence.
-              cursor.recordErrorAt(cursor.index + 1, this);
+              cursor.recordErrorAt(this._firstIndex, cursor.index + 1, this);
               break;
             }
           } else {
@@ -144,7 +144,7 @@ export class And implements Pattern {
           // If we don't have any results from what we parsed then record error.
           const lastNode = this.getLastValidNode();
           if (lastNode === null) {
-            cursor.recordErrorAt(cursor.index, this);
+            cursor.recordErrorAt(this._firstIndex, cursor.index, this);
             break;
           }
 

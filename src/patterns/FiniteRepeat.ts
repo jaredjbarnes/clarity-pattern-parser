@@ -112,7 +112,7 @@ export class FiniteRepeat implements Pattern {
 
         if (matchCount < this._min) {
             cursor.moveTo(startIndex);
-            cursor.recordErrorAt(startIndex, this);
+            cursor.recordErrorAt(startIndex, startIndex, this);
             return null;
         } else if (nodes.length === 0) {
             cursor.resolveError();
@@ -197,7 +197,7 @@ export class FiniteRepeat implements Pattern {
         const childIndex = this._children.indexOf(childReference);
 
         // If Reference Pattern isn't a child.
-        if (childIndex == -1) {
+        if (childIndex === -1) {
             return [];
         }
 

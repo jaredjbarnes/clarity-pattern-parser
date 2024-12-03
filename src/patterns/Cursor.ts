@@ -45,6 +45,10 @@ export class Cursor {
     return this._history.error;
   }
 
+  get errors() {
+    return this._history.errors;
+  }
+
   get index(): number {
     return this._index;
   }
@@ -118,8 +122,8 @@ export class Cursor {
     this._history.recordMatch(pattern, node);
   }
 
-  recordErrorAt(index: number, onPattern: Pattern): void {
-    this._history.recordErrorAt(index, onPattern);
+  recordErrorAt(firstIndex: number, lastIndex: number, onPattern: Pattern): void {
+    this._history.recordErrorAt(firstIndex, lastIndex, onPattern);
   }
 
   resolveError(): void {

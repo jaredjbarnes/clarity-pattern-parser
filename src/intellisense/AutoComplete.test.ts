@@ -233,4 +233,17 @@ describe("AutoComplete", () => {
         expect(result.options).toEqual(expected);
     });
 
+    test("Match On Different Or Pattern Roots", () => {
+        const smalls = new Or("smalls", [
+            new Literal("longer-small", "smalllll"),
+            new Literal("longest-small", "smallllll"),
+            new Literal("small", "small"),
+        ]);
+
+        const autoComplete = new AutoComplete(smalls);
+        const result = autoComplete.suggestFor("smalll");
+
+        expect(result.options.length).toEqual(2);
+    });
+
 });

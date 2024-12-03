@@ -11,7 +11,8 @@ export class Regex implements Pattern {
   private _regex: RegExp;
   private _node: Node | null = null;
   private _cursor: Cursor | null = null;
-  private _substring: string = "";
+  private _firstIndex = -1;
+  private _substring = "";
   private _tokens: string[] = [];
 
   get type(): string {
@@ -86,6 +87,7 @@ export class Regex implements Pattern {
   }
 
   parse(cursor: Cursor) {
+    this._firstIndex = cursor.index;
     this.resetState(cursor);
     this.tryToParse(cursor);
 
@@ -128,7 +130,7 @@ export class Regex implements Pattern {
 
   private processError(cursor: Cursor) {
     if (!this._isOptional) {
-      cursor.recordErrorAt(cursor.index, this);
+      cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
     }
 
     this._node = null;

@@ -21,6 +21,7 @@ export declare class AutoComplete {
     constructor(pattern: Pattern, options?: AutoCompleteOptions);
     suggestFor(text: string): Suggestion;
     private _getAllOptions;
+    private _getOptionsFromErrors;
     private _createSuggestionsFromRoot;
     private _createSuggestionsFromMatch;
     private _getTokensForPattern;

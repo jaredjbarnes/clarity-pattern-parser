@@ -8,6 +8,6 @@ export interface Suggestion {
   options: SuggestionOption[];
   error: ParseError | null;
   errorAtIndex: number | null;
-  cursor: Cursor | null;
+  cursor: Cursor;
   ast: Node | null;
 }

@@ -1857,7 +1857,7 @@ class AutoComplete {
                 options: this._createSuggestionsFromRoot(),
                 error: new ParseError(0, 0, this._pattern),
                 errorAtIndex: 0,
-                cursor: null,
+                cursor,
                 ast: null
             };
         }
@@ -1872,9 +1872,9 @@ class AutoComplete {
         return {
             isComplete: isComplete,
             options: options,
-            error: this._cursor.furthestError,
+            error: cursor.furthestError,
             errorAtIndex,
-            cursor: this._cursor,
+            cursor: cursor,
             ast,
         };
     }

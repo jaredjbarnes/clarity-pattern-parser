@@ -280,9 +280,6 @@ class CursorHistory {
 
 class Cursor {
     constructor(text) {
-        if (text.length === 0) {
-            throw new Error("Cannot have a empty string.");
-        }
         this._text = text;
         this._index = 0;
         this._length = text.length;
@@ -1845,22 +1842,24 @@ class AutoComplete {
         this._options = options;
         this._text = "";
     }
-    suggestFor(text) {
-        if (text.length === 0) {
+    suggestForWithCursor(cursor) {
+        cursor.moveTo(0);
+        this._cursor = cursor;
+        this._text = cursor.text;
+        this._cursor.startRecording();
+        if (cursor.length === 0) {
             return {
                 isComplete: false,
                 options: this._createSuggestionsFromRoot(),
+                error: new ParseError(0, 0, this._pattern),
                 errorAtIndex: 0,
                 cursor: null,
                 ast: null
             };
         }
-        this._text = text;
-        this._cursor = new Cursor(text);
-        this._cursor.startRecording();
         let errorAtIndex = null;
         const ast = this._pattern.parse(this._cursor);
-        const isComplete = (ast === null || ast === void 0 ? void 0 : ast.value) === text;
+        const isComplete = (ast === null || ast === void 0 ? void 0 : ast.value) === this._text;
         const options = this._getAllOptions();
         if (this._cursor.hasError && this._cursor.furthestError != null) {
             errorAtIndex = this._cursor.furthestError.endIndex;
@@ -1869,10 +1868,14 @@ class AutoComplete {
         return {
             isComplete: isComplete,
             options: options,
+            error: this._cursor.furthestError,
             errorAtIndex,
             cursor: this._cursor,
             ast,
         };
+    }
+    suggestFor(text) {
+        return this.suggestForWithCursor(new Cursor(text));
     }
     _getAllOptions() {
         const errorMatches = this._getOptionsFromErrors();
@@ -1971,6 +1974,12 @@ class AutoComplete {
             text: text,
             startIndex: furthestMatch,
         };
+    }
+    static suggestFor(text, pattern, options) {
+        return new AutoComplete(pattern, options).suggestFor(text);
+    }
+    static suggestForWithCursor(cursor, pattern, options) {
+        return new AutoComplete(pattern, options).suggestForWithCursor(cursor);
     }
 }
 function findMatchIndex(str1, str2) {

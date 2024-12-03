@@ -1,3 +1,4 @@
+import { Cursor } from "../patterns/Cursor";
 import { Pattern } from "../patterns/Pattern";
 import { Suggestion } from "./Suggestion";
 export interface AutoCompleteOptions {
@@ -19,6 +20,7 @@ export declare class AutoComplete {
     private _cursor;
     private _text;
     constructor(pattern: Pattern, options?: AutoCompleteOptions);
+    suggestForWithCursor(cursor: Cursor): Suggestion;
     suggestFor(text: string): Suggestion;
     private _getAllOptions;
     private _getOptionsFromErrors;
@@ -28,4 +30,6 @@ export declare class AutoComplete {
     private _getAugmentedTokens;
     private _createSuggestions;
     private _createSuggestion;
+    static suggestFor(text: string, pattern: Pattern, options?: AutoCompleteOptions): Suggestion;
+    static suggestForWithCursor(cursor: Cursor, pattern: Pattern, options?: AutoCompleteOptions): Suggestion;
 }

@@ -1862,17 +1862,19 @@ class AutoComplete {
             };
         }
         let errorAtIndex = null;
+        let error = null;
         const ast = this._pattern.parse(this._cursor);
         const isComplete = (ast === null || ast === void 0 ? void 0 : ast.value) === this._text;
         const options = this._getAllOptions();
-        if (this._cursor.hasError && this._cursor.furthestError != null) {
+        if (!isComplete && this._cursor.hasError && this._cursor.furthestError != null) {
             errorAtIndex = this._cursor.furthestError.endIndex;
+            error = this._cursor.furthestError;
             errorAtIndex = options.reduce((errorAtIndex, option) => Math.max(errorAtIndex, option.startIndex), errorAtIndex);
         }
         return {
             isComplete: isComplete,
             options: options,
-            error: cursor.furthestError,
+            error,
             errorAtIndex,
             cursor: cursor,
             ast,

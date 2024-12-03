@@ -355,4 +355,12 @@ describe("AutoComplete", () => {
         expect(result.options).toEqual([{ text: '|', startIndex: 3 }]);
     });
 
+    test("Repeat with bad second repeat", () => {
+        const repeat = new Repeat("repeat", new Literal("a", "a"), { divider: new Literal("pipe", "|"), trimDivider: true });
+        const autoComplete = new AutoComplete(repeat);
+        const result = autoComplete.suggestFor("a|b");
+
+        expect(result.options).toEqual([{ text: 'a', startIndex: 2 }]);
+    });
+
 });

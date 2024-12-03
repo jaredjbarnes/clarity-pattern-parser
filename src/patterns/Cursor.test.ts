@@ -4,9 +4,16 @@ import { Node } from "../ast/Node"
 
 describe("Cursor", () => {
     test("Empty Text", () => {
-        expect(() => {
-            new Cursor("");
-        }).toThrowError()
+        const cursor = new Cursor("");
+
+        cursor.next();
+        expect(cursor.index).toBe(0);
+
+        cursor.previous();
+        expect(cursor.index).toBe(0);
+
+        const text = cursor.getChars(0, 1);
+        expect(text).toBe("");
     });
 
     test("Move Cursor", () => {

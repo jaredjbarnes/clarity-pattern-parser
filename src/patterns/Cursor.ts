@@ -66,10 +66,6 @@ export class Cursor {
   }
 
   constructor(text: string) {
-    if (text.length === 0) {
-      throw new Error("Cannot have a empty string.");
-    }
-
     this._text = text;
     this._index = 0;
     this._length = text.length;

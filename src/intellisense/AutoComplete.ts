@@ -1,5 +1,6 @@
 import { Cursor } from "../patterns/Cursor";
 import { Match } from "../patterns/CursorHistory";
+import { ParseError } from "../patterns/ParseError";
 import { Pattern } from "../patterns/Pattern";
 import { Suggestion } from "./Suggestion";
 import { SuggestionOption } from "./SuggestionOption";
@@ -32,25 +33,28 @@ export class AutoComplete {
     this._text = "";
   }
 
-  suggestFor(text: string): Suggestion {
-    if (text.length === 0) {
+  suggestForWithCursor(cursor: Cursor): Suggestion {
+    cursor.moveTo(0);
+
+    this._cursor = cursor;
+    this._text = cursor.text;
+    this._cursor.startRecording();
+
+    if (cursor.length === 0) {
       return {
         isComplete: false,
         options: this._createSuggestionsFromRoot(),
+        error: new ParseError(0, 0, this._pattern),
         errorAtIndex: 0,
         cursor: null,
         ast: null
       }
     }
 
-    this._text = text;
-    this._cursor = new Cursor(text);
-    this._cursor.startRecording();
-
     let errorAtIndex = null;
 
     const ast = this._pattern.parse(this._cursor);
-    const isComplete = ast?.value === text;
+    const isComplete = ast?.value === this._text;
     const options = this._getAllOptions();
 
     if (this._cursor.hasError && this._cursor.furthestError != null) {
@@ -64,10 +68,16 @@ export class AutoComplete {
     return {
       isComplete: isComplete,
       options: options,
+      error: this._cursor.furthestError,
       errorAtIndex,
       cursor: this._cursor,
       ast,
     }
+
+  }
+
+  suggestFor(text: string): Suggestion {
+    return this.suggestForWithCursor(new Cursor(text));
   }
 
   private _getAllOptions() {
@@ -191,6 +201,14 @@ export class AutoComplete {
       text: text,
       startIndex: furthestMatch,
     }
+  }
+
+  static suggestFor(text: string, pattern: Pattern, options?: AutoCompleteOptions) {
+    return new AutoComplete(pattern, options).suggestFor(text);
+  }
+
+  static suggestForWithCursor(cursor: Cursor, pattern: Pattern, options?: AutoCompleteOptions) {
+    return new AutoComplete(pattern, options).suggestForWithCursor(cursor);
   }
 }
 

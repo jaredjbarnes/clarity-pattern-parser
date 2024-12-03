@@ -11,6 +11,7 @@ export class Literal implements Pattern {
   private _runes: string[];
   private _firstIndex: number;
   private _lastIndex: number;
+  private _endIndex: number;
 
   get type(): string {
     return this._type;
@@ -49,6 +50,7 @@ export class Literal implements Pattern {
     this._parent = null;
     this._firstIndex = 0;
     this._lastIndex = 0;
+    this._endIndex = 0;
   }
 
   test(text: string) {
@@ -82,7 +84,7 @@ export class Literal implements Pattern {
     }
 
     if (!this._isOptional) {
-      cursor.recordErrorAt(this._firstIndex, this._lastIndex, this)
+      cursor.recordErrorAt(this._firstIndex, this._endIndex, this)
       return null;
     }
 
@@ -100,7 +102,7 @@ export class Literal implements Pattern {
       const cursorRune = cursor.currentChar;
 
       if (literalRune !== cursorRune) {
-        this._lastIndex = cursor.index;
+        this._endIndex = cursor.index;
         break
       }
 
@@ -111,7 +113,7 @@ export class Literal implements Pattern {
       }
 
       if (!cursor.hasNext()) {
-        this._lastIndex = cursor.index + 1;
+        this._endIndex = cursor.index + 1;
         break;
       }
 

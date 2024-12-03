@@ -233,17 +233,110 @@ describe("AutoComplete", () => {
         expect(result.options).toEqual(expected);
     });
 
-    test("Match On Different Or Pattern Roots", () => {
-        const smalls = new Or("smalls", [
-            new Literal("longer-small", "smalllll"),
-            new Literal("longest-small", "smallllll"),
-            new Literal("small", "small"),
+    test("Options on errors because of string ending, with match", () => {
+        const smalls = new Or("kahns", [
+            new Literal("large", "kahnnnnnn"),
+            new Literal("medium", "kahnnnnn"),
+            new Literal("small", "kahn"),
         ]);
 
         const autoComplete = new AutoComplete(smalls);
-        const result = autoComplete.suggestFor("smalll");
+        const result = autoComplete.suggestFor("kahn");
 
-        expect(result.options.length).toEqual(2);
+        const expected = [
+            { text: "nnnnn", startIndex: 4 },
+            { text: "nnnn", startIndex: 4 }
+        ];
+
+        expect(result.options).toEqual(expected);
+        expect(result.isComplete).toBeTruthy();
+    });
+
+    test("Options on errors because of string ending, between matches", () => {
+        const smalls = new Or("kahns", [
+            new Literal("large", "kahnnnnnn"),
+            new Literal("medium", "kahnnnnn"),
+            new Literal("small", "kahn"),
+        ]);
+
+        const autoComplete = new AutoComplete(smalls);
+        const result = autoComplete.suggestFor("kahnn");
+
+        const expected = [
+            { text: "nnnn", startIndex: 5 },
+            { text: "nnn", startIndex: 5 }
+        ];
+
+        expect(result.options).toEqual(expected);
+        expect(result.isComplete).toBeFalsy();
+    });
+
+    test("Options on errors because of string ending, match middle", () => {
+        const smalls = new Or("kahns", [
+            new Literal("large", "kahnnnnnn"),
+            new Literal("medium", "kahnnnnn"),
+            new Literal("small", "kahn"),
+        ]);
+
+        const autoComplete = new AutoComplete(smalls);
+        const result = autoComplete.suggestFor("kahnnnnn");
+
+        const expected = [
+            { text: "n", startIndex: 8 },
+        ];
+
+        expect(result.options).toEqual(expected);
+        expect(result.isComplete).toBeTruthy();
+    });
+
+
+    test("Options on errors because of string ending on a variety, with match", () => {
+        const smalls = new Or("kahns", [
+            new Literal("different-3", "kahnnnnnnn3"),
+            new Literal("different-21", "kahnnnnnn21"),
+            new Literal("different-22", "kahnnnnnn22"),
+            new Literal("different-2", "kahnnnnnn2"),
+            new Literal("different", "kahnnnnnn1"),
+            new Literal("large", "kahnnnnnn"),
+            new Literal("medium", "kahnnnnn"),
+            new Literal("small", "kahn"),
+        ]);
+
+        const autoComplete = new AutoComplete(smalls);
+        const result = autoComplete.suggestFor("kahnnnnn");
+
+        const expected = [
+            { text: "nn3", startIndex: 8 },
+            { text: "n21", startIndex: 8 },
+            { text: "n22", startIndex: 8 },
+            { text: "n2", startIndex: 8 },
+            { text: "n1", startIndex: 8 },
+            { text: "n", startIndex: 8 },
+        ];
+
+        expect(result.options).toEqual(expected);
+        expect(result.isComplete).toBeTruthy();
+    });
+
+    test("Options on errors because of string ending on different branches, with match", () => {
+        const smalls = new Or("kahns", [
+            new And("kahn-combo-3", [new Literal("kah", "kah"), new And('partial', [new Literal("n", "n"), new Literal("three", "3")])]),
+            new And("kahn-combo", [new Literal("kahn", "kahn"), new Literal("one", "1")]),
+            new And("kahn-combo-2", [new Literal("kahn", "kahn"), new Literal("two", "2")]),
+            new Literal("small", "kahn"),
+        ]);
+
+        const autoComplete = new AutoComplete(smalls);
+        const result = autoComplete.suggestFor("kahn");
+
+        const expected = [
+            { text: "2", startIndex: 4 },
+            { text: "1", startIndex: 4 },
+            { text: "3", startIndex: 4 },
+        ];
+
+        expect(result.options).toEqual(expected);
+        expect(result.isComplete).toBeTruthy();
     });
 
 });

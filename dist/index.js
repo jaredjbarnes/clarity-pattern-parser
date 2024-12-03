@@ -397,6 +397,7 @@ class Literal {
         this._parent = null;
         this._firstIndex = 0;
         this._lastIndex = 0;
+        this._endIndex = 0;
     }
     get type() {
         return this._type;
@@ -439,7 +440,7 @@ class Literal {
             return node;
         }
         if (!this._isOptional) {
-            cursor.recordErrorAt(this._firstIndex, this._lastIndex, this);
+            cursor.recordErrorAt(this._firstIndex, this._endIndex, this);
             return null;
         }
         cursor.resolveError();
@@ -453,7 +454,7 @@ class Literal {
             const literalRune = this._runes[i];
             const cursorRune = cursor.currentChar;
             if (literalRune !== cursorRune) {
-                this._lastIndex = cursor.index;
+                this._endIndex = cursor.index;
                 break;
             }
             if (i + 1 === literalRuneLength) {
@@ -462,7 +463,7 @@ class Literal {
                 break;
             }
             if (!cursor.hasNext()) {
-                this._lastIndex = cursor.index + 1;
+                this._endIndex = cursor.index + 1;
                 break;
             }
             cursor.next();

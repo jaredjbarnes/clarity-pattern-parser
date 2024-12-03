@@ -10,6 +10,7 @@ export declare class Literal implements Pattern {
     private _runes;
     private _firstIndex;
     private _lastIndex;
+    private _endIndex;
     get type(): string;
     get name(): string;
     get parent(): Pattern | null;

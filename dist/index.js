@@ -1874,6 +1874,12 @@ class AutoComplete {
             error = new ParseError(startIndex, endIndex, this._pattern);
             errorAtIndex = startIndex;
         }
+        else if (!isComplete && options.length === 0 && ast != null) {
+            const startIndex = ast.lastIndex;
+            const endIndex = cursor.getLastIndex() + 1;
+            error = new ParseError(startIndex, endIndex, this._pattern);
+            errorAtIndex = startIndex;
+        }
         else if (!isComplete && this._cursor.hasError && this._cursor.furthestError != null) {
             errorAtIndex = this._cursor.furthestError.endIndex;
             error = this._cursor.furthestError;

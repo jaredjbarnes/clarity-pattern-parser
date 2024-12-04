@@ -1,9 +1,72 @@
 import { And } from "../patterns/And";
 import { Literal } from "../patterns/Literal";
 import { Or } from "../patterns/Or";
+import { Pattern } from "../patterns/Pattern";
+import { Reference } from "../patterns/Reference";
 import { Regex } from "../patterns/Regex";
 import { Repeat } from "../patterns/Repeat";
 import { AutoComplete, AutoCompleteOptions } from "./AutoComplete";
+
+function generateFlagFromList(flagNames: string[]) {
+    return flagNames.map(flagName => {
+        return new Literal('flag-name', flagName);
+    });
+}
+
+function generateFlagPattern(flagNames: string[]): Pattern {
+    const singleFlagOption = flagNames.length === 1 && flagNames[0];
+    if (singleFlagOption) {
+        return new Literal('flag-name', singleFlagOption);
+    }
+
+    const flagPattern = new Or('flags', generateFlagFromList(flagNames));
+    return flagPattern;
+}
+
+export function generateExpression(flagNames: string[]): Repeat {
+    if (flagNames.length === 0) {
+        // regex is purposefully impossible to satisfy
+        const noValidOptionsRegex = new Regex('[No Valid Options Exist]', '(?=a)^(?!a)');
+
+        // returning a "Repeat" so as to not break current implementations relying on a Repeat return
+        const invalidInputExpression = new Repeat(
+            'impossible_expression',
+            noValidOptionsRegex
+        );
+
+        return invalidInputExpression;
+    }
+
+    const openParen = new Literal('open-paren', '(');
+    const closeParen = new Literal('close-paren', ')');
+    const space = new Regex('[space]', '\\s');
+    const and = new Literal('and-literal', 'AND');
+    const or = new Literal('or-literal', 'OR');
+    const not = new Literal('not', 'NOT ');
+    const booleanOperator = new Or('booleanOperator', [and, or]);
+    const operatorWithSpaces = new And('operator-with-spaces', [
+        space,
+        booleanOperator,
+        space,
+    ]);
+    const flag = generateFlagPattern(flagNames);
+    const group = new And('group', [
+        openParen,
+        new Reference('flag-expression'),
+        closeParen,
+    ]);
+    const flagOrGroup = new Or('flag-or-group', [flag, group]);
+    const expressionBody = new And('flag-body', [
+        not.clone('optional-not', true),
+        flagOrGroup,
+    ]);
+    const flagExpression = new Repeat(
+        'flag-expression',
+        expressionBody,
+        { divider: operatorWithSpaces, trimDivider: true }
+    );
+    return flagExpression;
+}
 
 describe("AutoComplete", () => {
     test("No Text", () => {
@@ -361,6 +424,16 @@ describe("AutoComplete", () => {
         const result = autoComplete.suggestFor("a|b");
 
         expect(result.options).toEqual([{ text: 'a', startIndex: 2 }]);
+    });
+
+    test("Repeat with bad trailing content", () => {
+        const flags = ["FlagA", "FlagB", "FlagC"];
+        const pattern = generateExpression(flags);
+        const result = new AutoComplete(pattern).suggestFor("FlagA AND FlagAlkjhgB")
+
+        expect(result.options).toEqual([]);
+        expect(result.ast?.value).toBe("FlagA AND FlagA");
+        expect(result.errorAtIndex).toBe(14);
     });
 
 });

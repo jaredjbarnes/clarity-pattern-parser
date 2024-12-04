@@ -1877,7 +1877,7 @@
                 errorAtIndex = startIndex;
             }
             else if (!isComplete && options.length === 0 && ast != null) {
-                const startIndex = ast.lastIndex;
+                const startIndex = ast.endIndex;
                 const endIndex = cursor.getLastIndex() + 1;
                 error = new ParseError(startIndex, endIndex, this._pattern);
                 errorAtIndex = startIndex;

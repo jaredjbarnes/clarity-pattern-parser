@@ -69,7 +69,6 @@ digits = (digit)*
 ```
 
 ### Zero Or More Pattern
-
 ```
 digit = /\d/
 comma = ","
@@ -138,5 +137,5 @@ digits = (digit, comma){1,3}
 ```
 digit = /\d/
 comma = ","
-digits = (digit, comma){1,3}
+digits = (digit, comma){1,}
 ```

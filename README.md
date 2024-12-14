@@ -129,14 +129,14 @@ ast.toJson(2); // Look Below for output
 ```
 
 ## Or
-The `Or` pattern mathes any of the patterns given to the constructor. 
+The `Or` pattern matches any of the patterns given to the constructor. 
 ```ts
 import { Or, Literal } from "clarity-pattern-parser";
 
 const jane = new Literal("jane", "Jane");
 const john = new Literal("john", "John");
 const firstName = new Or("first-name", [jane, john]);
-const { ast }= firstName.exec("Jane");
+const { ast } = firstName.exec("Jane");
 
 ast.toJson(2)
 ```

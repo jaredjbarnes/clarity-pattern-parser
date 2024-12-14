@@ -9,16 +9,28 @@ import { Not } from "../patterns/Not";
 import { And } from "../patterns/And";
 import { Repeat, RepeatOptions } from "../patterns/Repeat";
 import { AutoComplete } from "../intellisense/AutoComplete";
+import { importBlock } from "./patterns/import";
 
 class ParseContext {
     patternsByName = new Map<string, Pattern>();
+    importedPatternsByName = new Map<string, Pattern>();
+}
+
+function defaultImportResolver(_path: string): Promise<string> {
+    throw new Error("No import resolver supplied.");
+}
+
+export interface GrammerOptions {
+    resolveImport?: (path: string) => Promise<string>;
 }
 
 export class Grammar {
+    private _resolveImport: (path: string) => Promise<string>;
     private _parseContext: ParseContext;
     private _autoComplete: AutoComplete;
 
-    constructor() {
+    constructor(options: GrammerOptions = {}) {
+        this._resolveImport = options.resolveImport == null ? defaultImportResolver : options.resolveImport;
         this._parseContext = new ParseContext();
         this._autoComplete = new AutoComplete(grammar, {
             greedyPatternNames: ["spaces", "optional-spaces", "whitespace", "new-line"],
@@ -31,14 +43,32 @@ export class Grammar {
         });
     }
 
-    parse(expression: string) {
+    async parse(expression: string) {
         this._parseContext = new ParseContext();
-        this._tryToParse(expression);
+        const ast = this._tryToParse(expression);
+
+        this._resolveImports(ast);
+        this._buildPatterns(ast);
+        this._cleanAst(ast);
 
         return this._parseContext.patternsByName;
     }
 
-    private _tryToParse(expression: string) {
+    parseString(expression: string) {
+        this._parseContext = new ParseContext();
+        const ast = this._tryToParse(expression);
+
+        if (this._hasImports(ast)) {
+            throw new Error("Cannot use imports on parseString, use parse instead.");
+        }
+
+        this._buildPatterns(ast);
+        this._cleanAst(ast);
+
+        return this._parseContext.patternsByName;
+    }
+
+    private _tryToParse(expression: string): Node {
         const { ast, cursor, options, isComplete } = this._autoComplete.suggestFor(expression);
 
         if (!isComplete) {
@@ -54,9 +84,16 @@ export class Grammar {
         }
 
         // If it is complete it will always have a node. So we have to cast it.
-        this._cleanAst(ast as Node);
-        this._buildPatterns(ast as Node);
+        return ast as Node;
+    }
 
+    private _hasImports(ast: Node) {
+        const importBlock = ast.find(n => n.name === "import-block");
+        if (importBlock == null) {
+            return false;
+        }
+
+        return importBlock && importBlock.children.length > 0;
     }
 
     private _cleanAst(ast: Node) {
@@ -70,6 +107,7 @@ export class Grammar {
     }
 
     private _buildPatterns(ast: Node) {
+
         ast.children.forEach((n) => {
             const typeNode = n.find(n => n.name.includes("literal"));
             const type = typeNode?.name || "unknown";
@@ -101,6 +139,44 @@ export class Grammar {
                 }
             }
         });
+    }
+
+    private async _resolveImports(ast: Node) {
+        const parseContext = this._parseContext;
+        const importBlock = ast.find(n => n.name === "import-block");
+
+        if (importBlock == null || importBlock.children.length === 0) {
+            return;
+        }
+
+        for (const importStatement of importBlock.children) {
+            const urlNode = importStatement.find(n => n.name === "url") as Node;
+
+            const url = urlNode.value;
+            const expression = await this._resolveImport(url);
+            const grammer = new Grammar({ resolveImport: this._resolveImport });
+            try {
+                const patterns = await grammer.parse(expression);
+                const importNames = importStatement.findAll(n => n.name === "import-name").map(n => n.value);
+
+                importNames.forEach((importName) => {
+                    if (parseContext.importedPatternsByName.has(importName)) {
+                        throw new Error(`'${importName}' was already used within another import.`);
+                    }
+
+                    const pattern = patterns.get(importName);
+                    if (pattern == null) {
+                        throw new Error(`Couldn't find pattern with name: ${importName}, from import: ${url}.`);
+                    }
+
+                    parseContext.importedPatternsByName.set(importName, pattern);
+                })
+
+            } catch (e: any) {
+                throw new Error(`Failed loading expression from: ${url}. Error details: ${e.message}`);
+            }
+
+        }
     }
 
     private _buildLiteral(statementNode: Node) {
@@ -137,7 +213,11 @@ export class Grammar {
     }
 
     private _getPattern(name: string) {
-        const pattern = this._parseContext.patternsByName.get(name);
+        let pattern = this._parseContext.patternsByName.get(name);
+
+        if (pattern == null) {
+            pattern = this._parseContext.importedPatternsByName.get(name);
+        }
 
         if (pattern == null) {
             return new Reference(name);

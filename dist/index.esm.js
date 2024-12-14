@@ -1542,7 +1542,6 @@ class And {
     createNode(cursor) {
         const children = filterOutNull(this._nodes);
         const lastIndex = children[children.length - 1].lastIndex;
-        cursor.getChars(this._firstIndex, lastIndex);
         cursor.moveTo(lastIndex);
         return new Node("and", this._name, this._firstIndex, lastIndex, children);
     }
@@ -1584,9 +1583,6 @@ class And {
         let index = -1;
         for (let i = 0; i < this._children.length; i++) {
             if (this._children[i] === childReference) {
-                if (i + 1 < this._children.length) {
-                    this._children[i + 1];
-                }
                 nextSiblingIndex = i + 1;
                 index = i;
                 break;
@@ -1628,11 +1624,11 @@ class And {
     }
 }
 
-const name = new Regex("name", "[a-zA-Z_-]+[a-zA-Z0-9_-]*");
+const name$1 = new Regex("name", "[a-zA-Z_-]+[a-zA-Z0-9_-]*");
 
 const optionalNot = new Literal("not", "!", true);
 const optionalIsOptional$1 = new Literal("is-optional", "?", true);
-const patternName$1 = name.clone("pattern-name");
+const patternName$1 = name$1.clone("pattern-name");
 const pattern$1 = new And("pattern", [
     optionalNot,
     patternName$1,
@@ -1645,7 +1641,7 @@ const andLiteral = new Repeat("and-literal", pattern$1, { divider: divider$1, mi
 
 const divider = new Regex("or-divider", "\\s*[|]\\s*");
 divider.setTokens([" | "]);
-const orLiteral = new Repeat("or-literal", name.clone("pattern-name"), { divider, min: 2 });
+const orLiteral = new Repeat("or-literal", name$1.clone("pattern-name"), { divider, min: 2 });
 
 const regexLiteral = new Regex("regex-literal", "/(\\\\/|[^/\\n\\r])*/");
 
@@ -1653,36 +1649,36 @@ const spaces = new Regex("spaces", "[ \\t]+");
 spaces.setTokens([" "]);
 
 const optionalIsOptional = new Literal("is-optional", "?", true);
-const patternName = name.clone("pattern-name");
+const patternName = name$1.clone("pattern-name");
 const pattern = new And("pattern", [
     patternName,
     optionalIsOptional,
 ]);
-const optionalSpaces$1 = spaces.clone("optional-spaces", true);
-const dividerPattern = name.clone("divider-pattern");
-const openBracket = new Literal("open-bracket", "{");
-const closeBracket = new Literal("close-bracket", "}");
+const optionalSpaces$2 = spaces.clone("optional-spaces", true);
+const dividerPattern = name$1.clone("divider-pattern");
+const openBracket$1 = new Literal("open-bracket", "{");
+const closeBracket$1 = new Literal("close-bracket", "}");
 const comma = new Literal("comma", ",");
 const integer = new Regex("integer", "([1-9][0-9]*)|0");
 integer.setTokens(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]);
 const optionalInteger = integer.clone("integer", true);
 const bounds = new And("bounds", [
-    openBracket,
-    optionalSpaces$1,
+    openBracket$1,
+    optionalSpaces$2,
     optionalInteger.clone("min"),
-    optionalSpaces$1,
+    optionalSpaces$2,
     comma,
-    optionalSpaces$1,
+    optionalSpaces$2,
     optionalInteger.clone("max"),
-    optionalSpaces$1,
-    closeBracket
+    optionalSpaces$2,
+    closeBracket$1
 ]);
 const exactCount = new And("exact-count", [
-    openBracket,
-    optionalSpaces$1,
+    openBracket$1,
+    optionalSpaces$2,
     integer,
-    optionalSpaces$1,
-    closeBracket,
+    optionalSpaces$2,
+    closeBracket$1,
 ]);
 const quantifierShorthand = new Regex("quantifier-shorthand", "\\*|\\+");
 quantifierShorthand.setTokens(["*", "+"]);
@@ -1699,19 +1695,19 @@ const dividerComma = new Regex("divider-comma", "\\s*,\\s*");
 dividerComma.setTokens([", "]);
 const repeatLiteral = new And("repeat-literal", [
     openParen,
-    optionalSpaces$1,
+    optionalSpaces$2,
     pattern,
     optional,
     new And("optional-divider-section", [dividerComma, dividerPattern], true),
-    optionalSpaces$1,
+    optionalSpaces$2,
     closeParen,
-    new And("quantifier-section", [optionalSpaces$1, quantifier]),
+    new And("quantifier-section", [optionalSpaces$2, quantifier]),
     new And("optional-trim-divider-section", [spaces, trimDivider], true)
 ]);
 
 const literal = new Regex("literal", "\"(?:\\\\[\"\\\\]|[^\n\"\\\\])*\"");
 
-const optionalSpaces = spaces.clone("optional-spaces", true);
+const optionalSpaces$1 = spaces.clone("optional-spaces", true);
 const assignOperator = new Literal("assign-operator", "=");
 const optionalComment = comment.clone("inline-comment", true);
 const statements = new Or("statements", [
@@ -1720,19 +1716,44 @@ const statements = new Or("statements", [
     orLiteral,
     andLiteral,
     repeatLiteral,
-    name.clone("alias-literal"),
+    name$1.clone("alias-literal"),
 ]);
 const statement = new And("statement", [
-    optionalSpaces,
-    name,
-    optionalSpaces,
+    optionalSpaces$1,
+    name$1,
+    optionalSpaces$1,
     assignOperator,
-    optionalSpaces,
+    optionalSpaces$1,
     statements,
-    optionalSpaces,
+    optionalSpaces$1,
     optionalComment,
-    optionalSpaces,
+    optionalSpaces$1,
 ]);
+
+const importKeyword = new Literal("import", "import");
+const fromKeyword = new Literal("from", "from");
+const openBracket = new Literal("open-bracket", "{");
+const closeBracket = new Literal("close-bracket", "}");
+const name = new Regex("name", "[^} ]+");
+const importedNames = new Repeat("imported-names", name, { divider: spaces });
+const optionalSpaces = spaces.clone("optional-spaces", true);
+const newLine$1 = new Regex("new-line", "(\\r?\\n)+");
+const importStatement = new And("import-statment", [
+    importKeyword,
+    spaces,
+    openBracket,
+    optionalSpaces,
+    importedNames,
+    optionalSpaces,
+    closeBracket,
+    spaces,
+    fromKeyword,
+    spaces,
+    literal,
+    optionalSpaces,
+    newLine$1
+]);
+const importBlock = new Repeat("import-block", importStatement, { divider: newLine$1, min: 0 });
 
 const whitespace = new Regex("whitespace", "[ \\t]+");
 const newLine = new Regex("new-line", "(\\r?\\n)+");
@@ -1743,7 +1764,8 @@ const line = new Or("line", [
     statement,
     whitespace
 ], true);
-const grammar = new Repeat("grammar", line, { divider: newLine });
+const bodyBlock = new Repeat("body-block", line, { divider: newLine });
+const grammar = new And("grammer", [importBlock, bodyBlock]);
 
 class Not {
     get type() {

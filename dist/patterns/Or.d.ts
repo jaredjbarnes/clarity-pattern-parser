@@ -7,6 +7,7 @@ export declare class Or implements Pattern {
     private _parent;
     private _children;
     private _isOptional;
+    private _isGreedy;
     private _firstIndex;
     get type(): string;
     get name(): string;
@@ -14,7 +15,7 @@ export declare class Or implements Pattern {
     set parent(pattern: Pattern | null);
     get children(): Pattern[];
     get isOptional(): boolean;
-    constructor(name: string, options: Pattern[], isOptional?: boolean);
+    constructor(name: string, options: Pattern[], isOptional?: boolean, isGreedy?: boolean);
     private _assignChildrenToParent;
     test(text: string): boolean;
     exec(text: string): {

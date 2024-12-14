@@ -433,7 +433,46 @@ describe("AutoComplete", () => {
 
         expect(result.options).toEqual([]);
         expect(result.ast?.value).toBe("FlagA AND FlagA");
-        expect(result.errorAtIndex).toBe(14);
+        expect(result.errorAtIndex).toBe(15);
+    });
+
+    test("Greedy Or", () => {
+        const john = new Literal("john", "John");
+        const doe = new Literal("doe", "Doe");
+        const jane = new Literal("jane", "Jane");
+        const smith = new Literal("smith", "Smith");
+        const space = new Literal("space", " ");
+
+        const firstName = new Or("first-name", [john, jane], false, true);
+        const lastName = new Or("last-name", [doe, smith], false, true);
+        const johnJohnson = new Literal("john-johnson", "John Johnson");
+        const johnStockton = new Literal("john-stockton", "John Stockton");
+        const fullName = new And("full-name", [firstName, space, lastName]);
+        const names = new Or("names", [johnStockton, johnJohnson, fullName], false, true);
+
+        const autoComplete = new AutoComplete(names);
+        const results = autoComplete.suggestFor("John ");
+        const expected = [
+            {
+                text: "Doe",
+                startIndex: 5,
+            },
+            {
+                text: "Smith",
+                startIndex: 5,
+            },
+            {
+                text: "Stockton",
+                startIndex: 5,
+            },
+            {
+                text: "Johnson",
+                startIndex: 5,
+            },
+        ];
+        expect(results.options).toEqual(expected);
+        expect(results.ast).toBeNull();
+        expect(results.errorAtIndex).toBe(5);
     });
 
 });

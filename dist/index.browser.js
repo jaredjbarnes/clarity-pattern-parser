@@ -773,7 +773,7 @@
     }
 
     class Or {
-        constructor(name, options, isOptional = false) {
+        constructor(name, options, isOptional = false, isGreedy = false) {
             if (options.length === 0) {
                 throw new Error("Need at least one pattern with an 'or' pattern.");
             }
@@ -785,6 +785,7 @@
             this._children = children;
             this._isOptional = isOptional;
             this._firstIndex = 0;
+            this._isGreedy = isGreedy;
         }
         get type() {
             return this._type;
@@ -838,15 +839,21 @@
             return null;
         }
         _tryToParse(cursor) {
+            const results = [];
             for (const pattern of this._children) {
                 cursor.moveTo(this._firstIndex);
                 const result = pattern.parse(cursor);
-                if (!cursor.hasError) {
+                if (this._isGreedy) {
+                    results.push(result);
+                }
+                if (!cursor.hasError && !this._isGreedy) {
                     return result;
                 }
                 cursor.resolveError();
             }
-            return null;
+            const nonNullResults = results.filter(r => r != null);
+            nonNullResults.sort((a, b) => b.endIndex - a.endIndex);
+            return nonNullResults[0] || null;
         }
         getTokens() {
             const tokens = [];

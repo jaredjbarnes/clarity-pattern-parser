@@ -217,4 +217,56 @@ describe("Or", () => {
 
         expect(patterns.length).toBe(0);
     });
+
+    test("Greedy With Match Last", () => {
+        const john = new Literal("john", "John");
+        const doe = new Literal("doe", "Doe");
+        const jane = new Literal("jane", "Jane");
+        const smith = new Literal("smith", "Smith");
+        const space = new Literal("space", " ");
+
+        const firstName = new Or("first-name", [john, jane], false, true);
+        const lastName = new Or("last-name", [doe, smith], false, true);
+        const johnJohnson = new Literal("john-johnson", "John Johnson");
+        const fullName = new And("full-name", [firstName, space, lastName]);
+        const names = new Or("names", [fullName, johnJohnson], false, true);
+
+        const result = names.exec("John Johnson");
+        expect(result.ast?.value).toBe("John Johnson");
+    });
+
+    test("Greedy With Match First", () => {
+        const john = new Literal("john", "John");
+        const doe = new Literal("doe", "Doe");
+        const jane = new Literal("jane", "Jane");
+        const smith = new Literal("smith", "Smith");
+        const space = new Literal("space", " ");
+
+        const firstName = new Or("first-name", [john, jane], false, true);
+        const lastName = new Or("last-name", [doe, smith], false, true);
+        const johnJohnson = new Literal("john-johnson", "John Johnson");
+        const fullName = new And("full-name", [firstName, space, lastName]);
+        const names = new Or("names", [johnJohnson, fullName], false, true);
+
+        const result = names.exec("John Johnson");
+        expect(result.ast?.value).toBe("John Johnson");
+    });
+
+    test("Greedy With Match In Middle", () => {
+        const john = new Literal("john", "John");
+        const doe = new Literal("doe", "Doe");
+        const jane = new Literal("jane", "Jane");
+        const smith = new Literal("smith", "Smith");
+        const space = new Literal("space", " ");
+
+        const firstName = new Or("first-name", [john, jane], false, true);
+        const lastName = new Or("last-name", [doe, smith], false, true);
+        const johnJohnson = new Literal("john-johnson", "John Johnson");
+        const johnStockton = new Literal("john-stockton", "John Stockton");
+        const fullName = new And("full-name", [firstName, space, lastName]);
+        const names = new Or("names", [johnStockton, johnJohnson, fullName], false, true);
+
+        const result = names.exec("John Johnson");
+        expect(result.ast?.value).toBe("John Johnson");
+    });
 });

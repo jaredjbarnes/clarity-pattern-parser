@@ -139,3 +139,28 @@ digit = /\d/
 comma = ","
 digits = (digit, comma){1,}
 ```
+
+### Import
+```
+import { spaces } from "https://some.cdn.com/some/spaces.cpat"
+
+first-name = "John"
+last-name = "Doe"
+full-name = first-name & spaces & last-name
+```
+
+### Muliple Named Imports
+```
+import { spaces, first-name } from "https://some.cdn.com/some/spaces.cpat"
+
+last-name = "Doe"
+full-name = first-name & spaces & last-name
+```
+
+### Muliple Imports
+```
+import { spaces, first-name } from "https://some.cdn.com/some/patterns.cpat"
+import { last-name } from "https://some.cdn.com/some/last-name.cpat"
+
+full-name = first-name & spaces & last-name
+```

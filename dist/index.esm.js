@@ -176,6 +176,36 @@ class Node {
     }
 }
 
+/******************************************************************************
+Copyright (c) Microsoft Corporation.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+***************************************************************************** */
+
+function __awaiter(thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+}
+
+typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
+    var e = new Error(message);
+    return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
+};
+
 class ParseError {
     constructor(startIndex, endIndex, pattern) {
         this.startIndex = startIndex;
@@ -1645,8 +1675,8 @@ const orLiteral = new Repeat("or-literal", name$1.clone("pattern-name"), { divid
 
 const regexLiteral = new Regex("regex-literal", "/(\\\\/|[^/\\n\\r])*/");
 
-const spaces = new Regex("spaces", "[ \\t]+");
-spaces.setTokens([" "]);
+const spaces$1 = new Regex("spaces", "[ \\t]+");
+spaces$1.setTokens([" "]);
 
 const optionalIsOptional = new Literal("is-optional", "?", true);
 const patternName = name$1.clone("pattern-name");
@@ -1654,7 +1684,7 @@ const pattern = new And("pattern", [
     patternName,
     optionalIsOptional,
 ]);
-const optionalSpaces$2 = spaces.clone("optional-spaces", true);
+const optionalSpaces$2 = spaces$1.clone("optional-spaces", true);
 const dividerPattern = name$1.clone("divider-pattern");
 const openBracket$1 = new Literal("open-bracket", "{");
 const closeBracket$1 = new Literal("close-bracket", "}");
@@ -1702,12 +1732,12 @@ const repeatLiteral = new And("repeat-literal", [
     optionalSpaces$2,
     closeParen,
     new And("quantifier-section", [optionalSpaces$2, quantifier]),
-    new And("optional-trim-divider-section", [spaces, trimDivider], true)
+    new And("optional-trim-divider-section", [spaces$1, trimDivider], true)
 ]);
 
 const literal = new Regex("literal", "\"(?:\\\\[\"\\\\]|[^\n\"\\\\])*\"");
 
-const optionalSpaces$1 = spaces.clone("optional-spaces", true);
+const optionalSpaces$1 = spaces$1.clone("optional-spaces", true);
 const assignOperator = new Literal("assign-operator", "=");
 const optionalComment = comment.clone("inline-comment", true);
 const statements = new Or("statements", [
@@ -1730,12 +1760,15 @@ const statement = new And("statement", [
     optionalSpaces$1,
 ]);
 
+const spaces = new Regex("spaces", "\\s+", true);
+const importNameDivider = new Regex("import-name-divider", "(\\s+)?,(\\s+)?");
 const importKeyword = new Literal("import", "import");
 const fromKeyword = new Literal("from", "from");
 const openBracket = new Literal("open-bracket", "{");
 const closeBracket = new Literal("close-bracket", "}");
-const name = new Regex("name", "[^} ]+");
-const importedNames = new Repeat("imported-names", name, { divider: spaces });
+const name = new Regex("import-name", "[^}\\s,]+");
+const importedNames = new Repeat("imported-names", name, { divider: importNameDivider });
+const optionalLinespaces = spaces$1.clone("optional-spaces", true);
 const optionalSpaces = spaces.clone("optional-spaces", true);
 const newLine$1 = new Regex("new-line", "(\\r?\\n)+");
 const importStatement = new And("import-statment", [
@@ -1749,23 +1782,28 @@ const importStatement = new And("import-statment", [
     spaces,
     fromKeyword,
     spaces,
-    literal,
-    optionalSpaces,
+    literal.clone("url"),
+    optionalLinespaces,
     newLine$1
 ]);
-const importBlock = new Repeat("import-block", importStatement, { divider: newLine$1, min: 0 });
+const importBlock = new Repeat("import-block", importStatement, {
+    divider: newLine$1,
+    min: 0,
+    trimDivider: true
+});
 
 const whitespace = new Regex("whitespace", "[ \\t]+");
 const newLine = new Regex("new-line", "(\\r?\\n)+");
 whitespace.setTokens([" "]);
 newLine.setTokens(["\n"]);
+const allWhitespace = new Regex("spaces", "\\s+", true);
 const line = new Or("line", [
     comment,
     statement,
     whitespace
 ], true);
 const bodyBlock = new Repeat("body-block", line, { divider: newLine });
-const grammar = new And("grammer", [importBlock, bodyBlock]);
+const grammar = new And("grammer", [allWhitespace, importBlock, bodyBlock]);
 
 class Not {
     get type() {
@@ -2062,10 +2100,15 @@ function getFurthestOptions(options) {
 class ParseContext {
     constructor() {
         this.patternsByName = new Map();
+        this.importedPatternsByName = new Map();
     }
 }
+function defaultImportResolver(_path) {
+    throw new Error("No import resolver supplied.");
+}
 class Grammar {
-    constructor() {
+    constructor(options = {}) {
+        this._resolveImport = options.resolveImport == null ? defaultImportResolver : options.resolveImport;
         this._parseContext = new ParseContext();
         this._autoComplete = new AutoComplete(grammar, {
             greedyPatternNames: ["spaces", "optional-spaces", "whitespace", "new-line"],
@@ -2078,8 +2121,23 @@ class Grammar {
         });
     }
     parse(expression) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this._parseContext = new ParseContext();
+            const ast = this._tryToParse(expression);
+            yield this._resolveImports(ast);
+            this._buildPatterns(ast);
+            this._cleanAst(ast);
+            return this._parseContext.patternsByName;
+        });
+    }
+    parseString(expression) {
         this._parseContext = new ParseContext();
-        this._tryToParse(expression);
+        const ast = this._tryToParse(expression);
+        if (this._hasImports(ast)) {
+            throw new Error("Cannot use imports on parseString, use parse instead.");
+        }
+        this._buildPatterns(ast);
+        this._cleanAst(ast);
         return this._parseContext.patternsByName;
     }
     _tryToParse(expression) {
@@ -2096,8 +2154,14 @@ class Grammar {
             throw new Error(message);
         }
         // If it is complete it will always have a node. So we have to cast it.
-        this._cleanAst(ast);
-        this._buildPatterns(ast);
+        return ast;
+    }
+    _hasImports(ast) {
+        const importBlock = ast.find(n => n.name === "import-block");
+        if (importBlock == null) {
+            return false;
+        }
+        return importBlock && importBlock.children.length > 0;
     }
     _cleanAst(ast) {
         ast.findAll(n => n.name === "spaces" ||
@@ -2107,7 +2171,11 @@ class Grammar {
             n.name.includes("comment")).forEach(n => n.remove());
     }
     _buildPatterns(ast) {
-        ast.children.forEach((n) => {
+        const bodyBlock = ast.find(n => n.name === "body-block");
+        if (bodyBlock == null) {
+            throw new Error("No Patterns were found in expression.");
+        }
+        bodyBlock.children.forEach((n) => {
             const typeNode = n.find(n => n.name.includes("literal"));
             const type = (typeNode === null || typeNode === void 0 ? void 0 : typeNode.name) || "unknown";
             switch (type) {
@@ -2138,6 +2206,38 @@ class Grammar {
             }
         });
     }
+    _resolveImports(ast) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const parseContext = this._parseContext;
+            const importBlock = ast.find(n => n.name === "import-block");
+            if (importBlock == null || importBlock.children.length === 0) {
+                return;
+            }
+            for (const importStatement of importBlock.children) {
+                const urlNode = importStatement.find(n => n.name === "url");
+                const url = urlNode.value.slice(1, -1);
+                const expression = yield this._resolveImport(url);
+                const grammer = new Grammar({ resolveImport: this._resolveImport });
+                try {
+                    const patterns = yield grammer.parse(expression);
+                    const importNames = importStatement.findAll(n => n.name === "import-name").map(n => n.value);
+                    importNames.forEach((importName) => {
+                        if (parseContext.importedPatternsByName.has(importName)) {
+                            throw new Error(`'${importName}' was already used within another import.`);
+                        }
+                        const pattern = patterns.get(importName);
+                        if (pattern == null) {
+                            throw new Error(`Couldn't find pattern with name: ${importName}, from import: ${url}.`);
+                        }
+                        parseContext.importedPatternsByName.set(importName, pattern);
+                    });
+                }
+                catch (e) {
+                    throw new Error(`Failed loading expression from: "${url}". Error details: "${e.message}"`);
+                }
+            }
+        });
+    }
     _buildLiteral(statementNode) {
         const nameNode = statementNode.find(n => n.name === "name");
         const literalNode = statementNode.find(n => n.name === "literal");
@@ -2164,7 +2264,10 @@ class Grammar {
         this._parseContext.patternsByName.set(name, or);
     }
     _getPattern(name) {
-        const pattern = this._parseContext.patternsByName.get(name);
+        let pattern = this._parseContext.patternsByName.get(name);
+        if (pattern == null) {
+            pattern = this._parseContext.importedPatternsByName.get(name);
+        }
         if (pattern == null) {
             return new Reference(name);
         }
@@ -2249,9 +2352,13 @@ class Grammar {
         const alias = pattern.clone(name);
         this._parseContext.patternsByName.set(name, alias);
     }
-    static parse(expression) {
-        const grammar = new Grammar();
+    static parse(expression, options) {
+        const grammar = new Grammar(options);
         return grammar.parse(expression);
+    }
+    static parseString(expression) {
+        const grammar = new Grammar();
+        return grammar.parseString(expression);
     }
 }
 

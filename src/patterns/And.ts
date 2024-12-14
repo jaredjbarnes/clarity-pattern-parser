@@ -190,7 +190,6 @@ export class And implements Pattern {
     const children = filterOutNull(this._nodes);
 
     const lastIndex = children[children.length - 1].lastIndex;
-    const value = cursor.getChars(this._firstIndex, lastIndex);
 
     cursor.moveTo(lastIndex)
 
@@ -250,15 +249,12 @@ export class And implements Pattern {
 
   getPatternsAfter(childReference: Pattern): Pattern[] {
     const patterns: Pattern[] = [];
-    let nextSibling: Pattern | null = null;
     let nextSiblingIndex = -1;
     let index = -1;
 
     for (let i = 0; i < this._children.length; i++) {
       if (this._children[i] === childReference) {
-        if (i + 1 < this._children.length) {
-          nextSibling = this._children[i + 1];
-        }
+
         nextSiblingIndex = i + 1;
         index = i;
         break;

@@ -83,6 +83,7 @@ export class Or implements Pattern {
     const node = this._tryToParse(cursor);
 
     if (node != null) {
+      cursor.moveTo(node.lastIndex);
       cursor.resolveError();
       return node
     }
@@ -177,7 +178,7 @@ export class Or implements Pattern {
   }
 
   clone(name = this._name, isOptional = this._isOptional): Pattern {
-    const or = new Or(name, this._children, isOptional);
+    const or = new Or(name, this._children, isOptional, this._isGreedy);
     return or;
   }
 }

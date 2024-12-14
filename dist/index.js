@@ -3,16 +3,6 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 class Node {
-    constructor(type, name, firstIndex, lastIndex, children = [], value = "") {
-        this._type = type;
-        this._name = name;
-        this._firstIndex = firstIndex;
-        this._lastIndex = lastIndex;
-        this._parent = null;
-        this._children = children;
-        this._value = value;
-        this._children.forEach(c => c._parent = this);
-    }
     get type() {
         return this._type;
     }
@@ -42,6 +32,16 @@ class Node {
     }
     get value() {
         return this.toString();
+    }
+    constructor(type, name, firstIndex, lastIndex, children = [], value = "") {
+        this._type = type;
+        this._name = name;
+        this._firstIndex = firstIndex;
+        this._lastIndex = lastIndex;
+        this._parent = null;
+        this._children = children;
+        this._value = value;
+        this._children.forEach(c => c._parent = this);
     }
     removeChild(node) {
         const index = this._children.indexOf(node);
@@ -283,12 +283,6 @@ class CursorHistory {
 }
 
 class Cursor {
-    constructor(text) {
-        this._text = text;
-        this._index = 0;
-        this._length = text.length;
-        this._history = new CursorHistory();
-    }
     get text() {
         return this._text;
     }
@@ -330,6 +324,12 @@ class Cursor {
     }
     get currentChar() {
         return this._text[this._index];
+    }
+    constructor(text) {
+        this._text = text;
+        this._index = 0;
+        this._length = text.length;
+        this._history = new CursorHistory();
     }
     hasNext() {
         return this._index + 1 < this._length;
@@ -382,20 +382,6 @@ class Cursor {
 }
 
 class Literal {
-    constructor(name, value, isOptional = false) {
-        if (value.length === 0) {
-            throw new Error("Value Cannot be empty.");
-        }
-        this._type = "literal";
-        this._name = name;
-        this._literal = value;
-        this._runes = Array.from(value);
-        this._isOptional = isOptional;
-        this._parent = null;
-        this._firstIndex = 0;
-        this._lastIndex = 0;
-        this._endIndex = 0;
-    }
     get type() {
         return this._type;
     }
@@ -413,6 +399,20 @@ class Literal {
     }
     get isOptional() {
         return this._isOptional;
+    }
+    constructor(name, value, isOptional = false) {
+        if (value.length === 0) {
+            throw new Error("Value Cannot be empty.");
+        }
+        this._type = "literal";
+        this._name = name;
+        this._literal = value;
+        this._runes = Array.from(value);
+        this._isOptional = isOptional;
+        this._parent = null;
+        this._firstIndex = 0;
+        this._lastIndex = 0;
+        this._endIndex = 0;
     }
     test(text) {
         const cursor = new Cursor(text);
@@ -504,20 +504,6 @@ class Literal {
 }
 
 class Regex {
-    constructor(name, regex, isOptional = false) {
-        this._node = null;
-        this._cursor = null;
-        this._firstIndex = -1;
-        this._substring = "";
-        this._tokens = [];
-        this._type = "regex";
-        this._name = name;
-        this._isOptional = isOptional;
-        this._parent = null;
-        this._originalRegexString = regex;
-        this._regex = new RegExp(`^${regex}`, "g");
-        this.assertArguments();
-    }
     get type() {
         return this._type;
     }
@@ -535,6 +521,20 @@ class Regex {
     }
     get isOptional() {
         return this._isOptional;
+    }
+    constructor(name, regex, isOptional = false) {
+        this._node = null;
+        this._cursor = null;
+        this._firstIndex = -1;
+        this._substring = "";
+        this._tokens = [];
+        this._type = "regex";
+        this._name = name;
+        this._isOptional = isOptional;
+        this._parent = null;
+        this._originalRegexString = regex;
+        this._regex = new RegExp(`^${regex}`, "g");
+        this.assertArguments();
     }
     assertArguments() {
         if (this._originalRegexString.length < 1) {
@@ -654,14 +654,6 @@ function findPattern(pattern, predicate) {
 }
 
 class Reference {
-    constructor(name, isOptional = false) {
-        this._type = "reference";
-        this._name = name;
-        this._parent = null;
-        this._isOptional = isOptional;
-        this._pattern = null;
-        this._children = [];
-    }
     get type() {
         return this._type;
     }
@@ -679,6 +671,14 @@ class Reference {
     }
     get isOptional() {
         return this._isOptional;
+    }
+    constructor(name, isOptional = false) {
+        this._type = "reference";
+        this._name = name;
+        this._parent = null;
+        this._isOptional = isOptional;
+        this._pattern = null;
+        this._children = [];
     }
     test(text) {
         const cursor = new Cursor(text);
@@ -771,20 +771,6 @@ function clonePatterns(patterns, isOptional) {
 }
 
 class Or {
-    constructor(name, options, isOptional = false, isGreedy = false) {
-        if (options.length === 0) {
-            throw new Error("Need at least one pattern with an 'or' pattern.");
-        }
-        const children = clonePatterns(options, false);
-        this._assignChildrenToParent(children);
-        this._type = "or";
-        this._name = name;
-        this._parent = null;
-        this._children = children;
-        this._isOptional = isOptional;
-        this._firstIndex = 0;
-        this._isGreedy = isGreedy;
-    }
     get type() {
         return this._type;
     }
@@ -802,6 +788,20 @@ class Or {
     }
     get isOptional() {
         return this._isOptional;
+    }
+    constructor(name, options, isOptional = false, isGreedy = false) {
+        if (options.length === 0) {
+            throw new Error("Need at least one pattern with an 'or' pattern.");
+        }
+        const children = clonePatterns(options, false);
+        this._assignChildrenToParent(children);
+        this._type = "or";
+        this._name = name;
+        this._parent = null;
+        this._children = children;
+        this._isOptional = isOptional;
+        this._firstIndex = 0;
+        this._isGreedy = isGreedy;
     }
     _assignChildrenToParent(children) {
         for (const child of children) {
@@ -825,6 +825,7 @@ class Or {
         this._firstIndex = cursor.index;
         const node = this._tryToParse(cursor);
         if (node != null) {
+            cursor.moveTo(node.lastIndex);
             cursor.resolveError();
             return node;
         }
@@ -895,28 +896,12 @@ class Or {
         return findPattern(this, predicate);
     }
     clone(name = this._name, isOptional = this._isOptional) {
-        const or = new Or(name, this._children, isOptional);
+        const or = new Or(name, this._children, isOptional, this._isGreedy);
         return or;
     }
 }
 
 class FiniteRepeat {
-    constructor(name, pattern, repeatAmount, options = {}) {
-        this._type = "finite-repeat";
-        this._name = name;
-        this._parent = null;
-        this._children = [];
-        this._hasDivider = options.divider != null;
-        this._min = options.min != null ? options.min : 1;
-        this._max = repeatAmount;
-        this._trimDivider = options.trimDivider == null ? false : options.trimDivider;
-        for (let i = 0; i < repeatAmount; i++) {
-            this._children.push(pattern.clone(pattern.name));
-            if (options.divider != null && (i < repeatAmount - 1 || !this._trimDivider)) {
-                this._children.push(options.divider.clone(options.divider.name, false));
-            }
-        }
-    }
     get type() {
         return this._type;
     }
@@ -940,6 +925,22 @@ class FiniteRepeat {
     }
     get max() {
         return this._max;
+    }
+    constructor(name, pattern, repeatAmount, options = {}) {
+        this._type = "finite-repeat";
+        this._name = name;
+        this._parent = null;
+        this._children = [];
+        this._hasDivider = options.divider != null;
+        this._min = options.min != null ? options.min : 1;
+        this._max = repeatAmount;
+        this._trimDivider = options.trimDivider == null ? false : options.trimDivider;
+        for (let i = 0; i < repeatAmount; i++) {
+            this._children.push(pattern.clone(pattern.name));
+            if (options.divider != null && (i < repeatAmount - 1 || !this._trimDivider)) {
+                this._children.push(options.divider.clone(options.divider.name, false));
+            }
+        }
     }
     parse(cursor) {
         const startIndex = cursor.index;
@@ -1065,6 +1066,27 @@ class FiniteRepeat {
 }
 
 class InfiniteRepeat {
+    get type() {
+        return this._type;
+    }
+    get name() {
+        return this._name;
+    }
+    get parent() {
+        return this._parent;
+    }
+    set parent(pattern) {
+        this._parent = pattern;
+    }
+    get children() {
+        return this._children;
+    }
+    get isOptional() {
+        return this._min === 0;
+    }
+    get min() {
+        return this._min;
+    }
     constructor(name, pattern, options = {}) {
         const min = options.min != null ? options.min : 1;
         const divider = options.divider;
@@ -1086,27 +1108,6 @@ class InfiniteRepeat {
         this._firstIndex = -1;
         this._nodes = [];
         this._trimDivider = options.trimDivider == null ? false : options.trimDivider;
-    }
-    get type() {
-        return this._type;
-    }
-    get name() {
-        return this._name;
-    }
-    get parent() {
-        return this._parent;
-    }
-    set parent(pattern) {
-        this._parent = pattern;
-    }
-    get children() {
-        return this._children;
-    }
-    get isOptional() {
-        return this._min === 0;
-    }
-    get min() {
-        return this._min;
     }
     _assignChildrenToParent(children) {
         for (const child of children) {
@@ -1301,19 +1302,6 @@ class InfiniteRepeat {
 }
 
 class Repeat {
-    constructor(name, pattern, options = {}) {
-        this._pattern = pattern;
-        this._parent = null;
-        this._options = Object.assign(Object.assign({}, options), { min: options.min == null ? 1 : options.min, max: options.max == null ? Infinity : options.max });
-        if (this._options.max !== Infinity) {
-            this._repeatPattern = new FiniteRepeat(name, pattern, this._options.max, this._options);
-        }
-        else {
-            this._repeatPattern = new InfiniteRepeat(name, pattern, this._options);
-        }
-        this._children = [this._repeatPattern];
-        this._repeatPattern.parent = this;
-    }
     get type() {
         return this._repeatPattern.type;
     }
@@ -1331,6 +1319,19 @@ class Repeat {
     }
     get isOptional() {
         return this._repeatPattern.isOptional;
+    }
+    constructor(name, pattern, options = {}) {
+        this._pattern = pattern;
+        this._parent = null;
+        this._options = Object.assign(Object.assign({}, options), { min: options.min == null ? 1 : options.min, max: options.max == null ? Infinity : options.max });
+        if (this._options.max !== Infinity) {
+            this._repeatPattern = new FiniteRepeat(name, pattern, this._options.max, this._options);
+        }
+        else {
+            this._repeatPattern = new InfiniteRepeat(name, pattern, this._options);
+        }
+        this._children = [this._repeatPattern];
+        this._repeatPattern.parent = this;
     }
     parse(cursor) {
         return this._repeatPattern.parse(cursor);
@@ -1401,20 +1402,6 @@ function filterOutNull(nodes) {
 }
 
 class And {
-    constructor(name, sequence, isOptional = false) {
-        if (sequence.length === 0) {
-            throw new Error("Need at least one pattern with an 'and' pattern.");
-        }
-        const children = clonePatterns(sequence);
-        this._assignChildrenToParent(children);
-        this._type = "and";
-        this._name = name;
-        this._isOptional = isOptional;
-        this._parent = null;
-        this._children = children;
-        this._firstIndex = -1;
-        this._nodes = [];
-    }
     get type() {
         return this._type;
     }
@@ -1432,6 +1419,20 @@ class And {
     }
     get isOptional() {
         return this._isOptional;
+    }
+    constructor(name, sequence, isOptional = false) {
+        if (sequence.length === 0) {
+            throw new Error("Need at least one pattern with an 'and' pattern.");
+        }
+        const children = clonePatterns(sequence);
+        this._assignChildrenToParent(children);
+        this._type = "and";
+        this._name = name;
+        this._isOptional = isOptional;
+        this._parent = null;
+        this._children = children;
+        this._firstIndex = -1;
+        this._nodes = [];
     }
     _assignChildrenToParent(children) {
         for (const child of children) {
@@ -1749,13 +1750,6 @@ const line = new Or("line", [
 const grammar = new Repeat("grammar", line, { divider: newLine });
 
 class Not {
-    constructor(name, pattern) {
-        this._type = "not";
-        this._name = name;
-        this._parent = null;
-        this._children = [pattern.clone(pattern.name, false)];
-        this._children[0].parent = this;
-    }
     get type() {
         return this._type;
     }
@@ -1773,6 +1767,13 @@ class Not {
     }
     get isOptional() {
         return false;
+    }
+    constructor(name, pattern) {
+        this._type = "not";
+        this._name = name;
+        this._parent = null;
+        this._children = [pattern.clone(pattern.name, false)];
+        this._children[0].parent = this;
     }
     test(text) {
         const cursor = new Cursor(text);
@@ -2138,10 +2139,10 @@ class Grammar {
     _buildOr(statementNode) {
         const nameNode = statementNode.find(n => n.name === "name");
         const orNode = statementNode.find(n => n.name === "or-literal");
-        const patternNodes = orNode.children.filter(n => n.name == "pattern-name");
+        const patternNodes = orNode.children.filter(n => n.name === "pattern-name");
         const name = nameNode.value;
         const patterns = patternNodes.map(n => this._getPattern(n.value));
-        const or = new Or(name, patterns);
+        const or = new Or(name, patterns, false, true);
         this._parseContext.patternsByName.set(name, or);
     }
     _getPattern(name) {
@@ -2154,7 +2155,7 @@ class Grammar {
     _buildAnd(statementNode) {
         const nameNode = statementNode.find(n => n.name === "name");
         const andNode = statementNode.find(n => n.name === "and-literal");
-        const patternNodes = andNode.children.filter(n => n.name == "pattern");
+        const patternNodes = andNode.children.filter(n => n.name === "pattern");
         const name = nameNode.value;
         const patterns = patternNodes.map(n => {
             const nameNode = n.find(n => n.name === "pattern-name");
@@ -2173,7 +2174,7 @@ class Grammar {
     _buildRepeat(statementNode) {
         const nameNode = statementNode.find(n => n.name === "name");
         const repeatNode = statementNode.find(n => n.name === "repeat-literal");
-        const patternNode = repeatNode.find(n => n.name == "pattern");
+        const patternNode = repeatNode.find(n => n.name === "pattern");
         const patternNameNode = patternNode.find(n => n.name === "pattern-name");
         const dividerNode = repeatNode.find(n => n.name === "divider-pattern");
         const bounds = repeatNode.find(n => n.name === "bounds");

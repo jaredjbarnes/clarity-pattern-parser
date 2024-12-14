@@ -127,11 +127,11 @@ export class Grammar {
     private _buildOr(statementNode: Node) {
         const nameNode = statementNode.find(n => n.name === "name") as Node;
         const orNode = statementNode.find(n => n.name === "or-literal") as Node;
-        const patternNodes = orNode.children.filter(n => n.name == "pattern-name");
+        const patternNodes = orNode.children.filter(n => n.name === "pattern-name");
 
         const name = nameNode.value;
         const patterns = patternNodes.map(n => this._getPattern(n.value));
-        const or = new Or(name, patterns);
+        const or = new Or(name, patterns, false, true);
 
         this._parseContext.patternsByName.set(name, or);
     }
@@ -149,7 +149,7 @@ export class Grammar {
     private _buildAnd(statementNode: Node) {
         const nameNode = statementNode.find(n => n.name === "name") as Node;
         const andNode = statementNode.find(n => n.name === "and-literal") as Node;
-        const patternNodes = andNode.children.filter(n => n.name == "pattern");
+        const patternNodes = andNode.children.filter(n => n.name === "pattern");
 
         const name = nameNode.value;
         const patterns = patternNodes.map(n => {
@@ -174,7 +174,7 @@ export class Grammar {
     private _buildRepeat(statementNode: Node) {
         const nameNode = statementNode.find(n => n.name === "name") as Node;
         const repeatNode = statementNode.find(n => n.name === "repeat-literal") as Node;
-        const patternNode = repeatNode.find(n => n.name == "pattern") as Node;
+        const patternNode = repeatNode.find(n => n.name === "pattern") as Node;
         const patternNameNode = patternNode.find(n => n.name === "pattern-name") as Node;
         const dividerNode = repeatNode.find(n => n.name === "divider-pattern");
         const bounds = repeatNode.find(n => n.name === "bounds");

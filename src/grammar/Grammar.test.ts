@@ -43,7 +43,7 @@ describe("Grammar", () => {
         const pattern = patterns.get("names");
         const john = new Literal("john", "John");
         const jane = new Literal("jane", "Jane");
-        const names = new Or("names", [john, jane]);
+        const names = new Or("names", [john, jane], false, true);
 
         expect(pattern).toEqual(names);
     });

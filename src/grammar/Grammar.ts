@@ -9,7 +9,6 @@ import { Not } from "../patterns/Not";
 import { And } from "../patterns/And";
 import { Repeat, RepeatOptions } from "../patterns/Repeat";
 import { AutoComplete } from "../intellisense/AutoComplete";
-import { importBlock } from "./patterns/import";
 
 class ParseContext {
     patternsByName = new Map<string, Pattern>();
@@ -20,7 +19,7 @@ function defaultImportResolver(_path: string): Promise<string> {
     throw new Error("No import resolver supplied.");
 }
 
-export interface GrammerOptions {
+export interface GrammarOptions {
     resolveImport?: (path: string) => Promise<string>;
 }
 
@@ -29,7 +28,7 @@ export class Grammar {
     private _parseContext: ParseContext;
     private _autoComplete: AutoComplete;
 
-    constructor(options: GrammerOptions = {}) {
+    constructor(options: GrammarOptions = {}) {
         this._resolveImport = options.resolveImport == null ? defaultImportResolver : options.resolveImport;
         this._parseContext = new ParseContext();
         this._autoComplete = new AutoComplete(grammar, {
@@ -47,7 +46,7 @@ export class Grammar {
         this._parseContext = new ParseContext();
         const ast = this._tryToParse(expression);
 
-        this._resolveImports(ast);
+        await this._resolveImports(ast);
         this._buildPatterns(ast);
         this._cleanAst(ast);
 
@@ -107,8 +106,13 @@ export class Grammar {
     }
 
     private _buildPatterns(ast: Node) {
+        const bodyBlock = ast.find(n=>n.name === "body-block");
 
-        ast.children.forEach((n) => {
+        if (bodyBlock == null){
+            throw new Error("No Patterns were found in expression.");
+        }
+
+        bodyBlock.children.forEach((n) => {
             const typeNode = n.find(n => n.name.includes("literal"));
             const type = typeNode?.name || "unknown";
 
@@ -152,9 +156,10 @@ export class Grammar {
         for (const importStatement of importBlock.children) {
             const urlNode = importStatement.find(n => n.name === "url") as Node;
 
-            const url = urlNode.value;
+            const url = urlNode.value.slice(1, -1);
             const expression = await this._resolveImport(url);
             const grammer = new Grammar({ resolveImport: this._resolveImport });
+
             try {
                 const patterns = await grammer.parse(expression);
                 const importNames = importStatement.findAll(n => n.name === "import-name").map(n => n.value);
@@ -173,7 +178,7 @@ export class Grammar {
                 })
 
             } catch (e: any) {
-                throw new Error(`Failed loading expression from: ${url}. Error details: ${e.message}`);
+                throw new Error(`Failed loading expression from: "${url}". Error details: "${e.message}"`);
             }
 
         }
@@ -321,9 +326,14 @@ export class Grammar {
         this._parseContext.patternsByName.set(name, alias)
     }
 
-    static parse(expression: string) {
-        const grammar = new Grammar();
+    static parse(expression: string, options?: GrammarOptions) {
+        const grammar = new Grammar(options);
         return grammar.parse(expression);
+    }
+
+    static parseString(expression: string) {
+        const grammar = new Grammar();
+        return grammar.parseString(expression);
     }
 
 }

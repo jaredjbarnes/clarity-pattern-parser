@@ -13,7 +13,7 @@ describe("Grammar", () => {
             name = "John"
         `;
 
-        const patterns = Grammar.parse(expression);
+        const patterns = Grammar.parseString(expression);
         const namePattern = patterns.get("name");
         const expected = new Literal("name", "John");
 
@@ -25,7 +25,7 @@ describe("Grammar", () => {
             name = /\\w/
         `;
 
-        const patterns = Grammar.parse(expression);
+        const patterns = Grammar.parseString(expression);
         const pattern = patterns.get("name");
         const name = new Regex("name", "\\w");
 
@@ -39,7 +39,7 @@ describe("Grammar", () => {
             names = john | jane
         `;
 
-        const patterns = Grammar.parse(expression);
+        const patterns = Grammar.parseString(expression);
         const pattern = patterns.get("names");
         const john = new Literal("john", "John");
         const jane = new Literal("jane", "Jane");
@@ -56,7 +56,7 @@ describe("Grammar", () => {
             full-name = first-name & space & last-name
         `;
 
-        const patterns = Grammar.parse(expression);
+        const patterns = Grammar.parseString(expression);
         const pattern = patterns.get("full-name");
         const space = new Literal("space", " ");
         const firstName = new Regex("first-name", "\\w");
@@ -76,7 +76,7 @@ describe("Grammar", () => {
             full-name = first-name & space & middle-name-with-space? & last-name
         `;
 
-        const patterns = Grammar.parse(expression);
+        const patterns = Grammar.parseString(expression);
         const pattern = patterns.get("full-name");
         const space = new Literal("space", " ");
         const firstName = new Regex("first-name", "\\w");
@@ -99,7 +99,7 @@ describe("Grammar", () => {
             full-name = !jack & first-name & space & middle-name-with-space? & last-name
         `;
 
-        const patterns = Grammar.parse(expression);
+        const patterns = Grammar.parseString(expression);
         const pattern = patterns.get("full-name");
         const space = new Literal("space", " ");
         const firstName = new Regex("first-name", "\\w");
@@ -119,7 +119,7 @@ describe("Grammar", () => {
             digits = (digit)+
         `;
 
-        const patterns = Grammar.parse(expression);
+        const patterns = Grammar.parseString(expression);
         const pattern = patterns.get("digits");
         const digit = new Regex("digit", "\\d");
         const digits = new Repeat("digits", digit);
@@ -133,7 +133,7 @@ describe("Grammar", () => {
             digits = (digit)*
         `;
 
-        const patterns = Grammar.parse(expression);
+        const patterns = Grammar.parseString(expression);
         const pattern = patterns.get("digits");
         const digit = new Regex("digit", "\\d");
         const digits = new Repeat("digits", digit, { min: 0 });
@@ -147,7 +147,7 @@ describe("Grammar", () => {
             digits = (digit){1,}
         `;
 
-        const patterns = Grammar.parse(expression);
+        const patterns = Grammar.parseString(expression);
         const pattern = patterns.get("digits");
         const digit = new Regex("digit", "\\d+");
         const digits = new Repeat("digits", digit, { min: 1 });
@@ -161,7 +161,7 @@ describe("Grammar", () => {
             digits = (digit){1,3}
         `;
 
-        const patterns = Grammar.parse(expression);
+        const patterns = Grammar.parseString(expression);
         const pattern = patterns.get("digits");
         const digit = new Regex("digit", "\\d+");
         const digits = new Repeat("digits", digit, { min: 1, max: 3 });
@@ -175,7 +175,7 @@ describe("Grammar", () => {
             digits = (digit){,3}
         `;
 
-        const patterns = Grammar.parse(expression);
+        const patterns = Grammar.parseString(expression);
         const pattern = patterns.get("digits");
         const digit = new Regex("digit", "\\d+");
         const digits = new Repeat("digits", digit, { min: 0, max: 3 });
@@ -189,7 +189,7 @@ describe("Grammar", () => {
             digits = (digit){3}
         `;
 
-        const patterns = Grammar.parse(expression);
+        const patterns = Grammar.parseString(expression);
         const pattern = patterns.get("digits");
         const digit = new Regex("digit", "\\d+");
         const digits = new Repeat("digits", digit, { min: 3, max: 3 });
@@ -204,7 +204,7 @@ describe("Grammar", () => {
             digits = (digit, comma){3}
         `;
 
-        const patterns = Grammar.parse(expression);
+        const patterns = Grammar.parseString(expression);
         const pattern = patterns.get("digits");
         const digit = new Regex("digit", "\\d+");
         const divider = new Literal("comma", ",");
@@ -220,7 +220,7 @@ describe("Grammar", () => {
             digits = (digit, comma){3} -t
         `;
 
-        const patterns = Grammar.parse(expression);
+        const patterns = Grammar.parseString(expression);
         const pattern = patterns.get("digits");
         const digit = new Regex("digit", "\\d+");
         const divider = new Literal("comma", ",");
@@ -236,7 +236,7 @@ describe("Grammar", () => {
             digits = (digit?, comma)+
         `;
 
-        const patterns = Grammar.parse(expression);
+        const patterns = Grammar.parseString(expression);
         const pattern = patterns.get("digits") as Pattern;
         const digit = new Regex("digit", "\\d+", true);
         const comma = new Literal("comma", ",");
@@ -257,7 +257,7 @@ describe("Grammar", () => {
             array = open-bracket & spaces? & array-items? & spaces? & close-bracket
         `;
 
-        const patterns = Grammar.parse(expression);
+        const patterns = Grammar.parseString(expression);
         const pattern = patterns.get("array") as Pattern;
 
         let text = "[1, []]";
@@ -272,8 +272,8 @@ describe("Grammar", () => {
             alias = name
         `;
 
-        const patterns = Grammar.parse(expression);
-        
+        const patterns = Grammar.parseString(expression);
+
         const name = patterns.get("name");
         const expectedName = new Regex("name", "regex");
 
@@ -288,7 +288,7 @@ describe("Grammar", () => {
 
         expect(() => {
             const expression = `Just Junk`;
-            Grammar.parse(expression);
+            Grammar.parseString(expression);
         }).toThrowError("[Parse Error] Found: 'Just Junk', expected: ' ='.");
 
     });
@@ -299,8 +299,48 @@ describe("Grammar", () => {
             const expression = `name = /\\w/
                 age = /()
             `;
-            Grammar.parse(expression);
+            Grammar.parseString(expression);
         }).toThrowError("[Parse Error] Found: '    age = /()\n      ', expected: '    age = !' or '    age = (' or '    age = [Pattern Name]' or '    age = [Regular Expression]' or '    age = [String]'.")
 
+    });
+
+    test("Import", async () => {
+        const importExpression = `first-name = "John"`;
+        const expression = `
+        import { first-name } from "some/path/to/file.cpat"
+        last-name = "Doe"
+        space = " "
+        full-name = first-name & space & last-name
+        `
+        function resolveImport(path: string) {
+            expect(path).toBe("some/path/to/file.cpat");
+            return Promise.resolve(importExpression);
+        }
+
+        const patterns = await Grammar.parse(expression, { resolveImport });
+        const fullname = patterns.get("full-name") as Pattern;
+        const result = fullname.exec("John Doe");
+
+        expect(result?.ast?.value).toBe("John Doe");
+    });
+
+    test("Bad Import", async () => {
+        const importExpression = ``;
+        const expression = `
+        import { first-name } from "some/path/to/file.cpat"
+        last-name = "Doe"
+        space = " "
+        full-name = first-name & space & last-name
+        `
+        function resolveImport(path: string) {
+            expect(path).toBe("some/path/to/file.cpat");
+            return Promise.resolve(importExpression);
+        }
+
+        const patterns = await Grammar.parse(expression, { resolveImport });
+        const fullname = patterns.get("full-name") as Pattern;
+        const result = fullname.exec("John Doe");
+
+        expect(result?.ast?.value).toBe("John Doe");
     });
 });

@@ -10,8 +10,10 @@ const whitespace = new Regex("whitespace", "[ \\t]+");
 const newLine = new Regex("new-line", "(\\r?\\n)+");
 
 whitespace.setTokens([" "]);
-newLine.setTokens(["\n"])
+newLine.setTokens(["\n"]);
 
+
+const allWhitespace = new Regex("spaces", "\\s+", true);
 const line = new Or("line", [
     comment,
     statement,
@@ -20,4 +22,4 @@ const line = new Or("line", [
 
 const bodyBlock = new Repeat("body-block", line, { divider: newLine })
 
-export const grammar = new And("grammer", [importBlock, bodyBlock]);
+export const grammar = new And("grammer", [allWhitespace, importBlock, bodyBlock]);

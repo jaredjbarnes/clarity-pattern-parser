@@ -10,6 +10,7 @@ export class Or implements Pattern {
   private _parent: Pattern | null;
   private _children: Pattern[];
   private _isOptional: boolean;
+  private _isGreedy: boolean;
   private _firstIndex: number;
 
   get type(): string {
@@ -36,7 +37,7 @@ export class Or implements Pattern {
     return this._isOptional;
   }
 
-  constructor(name: string, options: Pattern[], isOptional: boolean = false) {
+  constructor(name: string, options: Pattern[], isOptional = false, isGreedy = false) {
     if (options.length === 0) {
       throw new Error("Need at least one pattern with an 'or' pattern.");
     }
@@ -50,6 +51,7 @@ export class Or implements Pattern {
     this._children = children;
     this._isOptional = isOptional;
     this._firstIndex = 0;
+    this._isGreedy = isGreedy;
   }
 
   private _assignChildrenToParent(children: Pattern[]): void {
@@ -96,18 +98,26 @@ export class Or implements Pattern {
   }
 
   private _tryToParse(cursor: Cursor): Node | null {
+    const results: (Node | null)[] = [];
+
     for (const pattern of this._children) {
       cursor.moveTo(this._firstIndex);
       const result = pattern.parse(cursor);
+      if (this._isGreedy) {
+        results.push(result);
+      }
 
-      if (!cursor.hasError) {
+      if (!cursor.hasError && !this._isGreedy) {
         return result;
       }
 
       cursor.resolveError();
     }
 
-    return null
+    const nonNullResults = results.filter(r => r != null) as Node[];
+    nonNullResults.sort((a, b) => b.endIndex - a.endIndex);
+
+    return nonNullResults[0] || null;
   }
 
   getTokens(): string[] {

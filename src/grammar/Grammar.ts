@@ -15,20 +15,27 @@ class ParseContext {
     importedPatternsByName = new Map<string, Pattern>();
 }
 
-function defaultImportResolver(_path: string): Promise<string> {
+function defaultImportResolver(_path: string, _basePath: string | null): Promise<string> {
     throw new Error("No import resolver supplied.");
 }
 
+export interface GrammarMeta {
+    url?: string;
+}
+
 export interface GrammarOptions {
-    resolveImport?: (path: string) => Promise<string>;
+    resolveImport?: (path: string, basePath: string | null) => Promise<string>;
+    meta?: GrammarMeta | null;
 }
 
 export class Grammar {
-    private _resolveImport: (path: string) => Promise<string>;
+    private _meta: GrammarMeta | null;
+    private _resolveImport: (path: string, basePath: string | null) => Promise<string>;
     private _parseContext: ParseContext;
     private _autoComplete: AutoComplete;
 
     constructor(options: GrammarOptions = {}) {
+        this._meta = options.meta == null ? null : options.meta;
         this._resolveImport = options.resolveImport == null ? defaultImportResolver : options.resolveImport;
         this._parseContext = new ParseContext();
         this._autoComplete = new AutoComplete(grammar, {
@@ -40,6 +47,13 @@ export class Grammar {
                 "pattern-name": ["[Pattern Name]"]
             }
         });
+    }
+
+    async import(path: string) {
+        const expression = await this._resolveImport(path, null);
+        const grammar = new Grammar({ resolveImport: this._resolveImport, meta: { url: path } });
+
+        return grammar.parse(expression);
     }
 
     async parse(expression: string) {
@@ -106,9 +120,9 @@ export class Grammar {
     }
 
     private _buildPatterns(ast: Node) {
-        const bodyBlock = ast.find(n=>n.name === "body-block");
+        const bodyBlock = ast.find(n => n.name === "body-block");
 
-        if (bodyBlock == null){
+        if (bodyBlock == null) {
             throw new Error("No Patterns were found in expression.");
         }
 
@@ -157,8 +171,8 @@ export class Grammar {
             const urlNode = importStatement.find(n => n.name === "url") as Node;
 
             const url = urlNode.value.slice(1, -1);
-            const expression = await this._resolveImport(url);
-            const grammer = new Grammar({ resolveImport: this._resolveImport });
+            const expression = await this._resolveImport(url, this._meta?.url || null);
+            const grammer = new Grammar({ resolveImport: this._resolveImport, meta: { url } });
 
             try {
                 const patterns = await grammer.parse(expression);
@@ -329,6 +343,11 @@ export class Grammar {
     static parse(expression: string, options?: GrammarOptions) {
         const grammar = new Grammar(options);
         return grammar.parse(expression);
+    }
+
+    static import(path: string, options?: GrammarOptions) {
+        const grammar = new Grammar(options);
+        return grammar.import(path);
     }
 
     static parseString(expression: string) {

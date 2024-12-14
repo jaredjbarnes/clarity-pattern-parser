@@ -2103,11 +2103,12 @@ class ParseContext {
         this.importedPatternsByName = new Map();
     }
 }
-function defaultImportResolver(_path) {
+function defaultImportResolver(_path, _basePath) {
     throw new Error("No import resolver supplied.");
 }
 class Grammar {
     constructor(options = {}) {
+        this._meta = options.meta == null ? null : options.meta;
         this._resolveImport = options.resolveImport == null ? defaultImportResolver : options.resolveImport;
         this._parseContext = new ParseContext();
         this._autoComplete = new AutoComplete(grammar, {
@@ -2118,6 +2119,13 @@ class Grammar {
                 "name": ["[Pattern Name]"],
                 "pattern-name": ["[Pattern Name]"]
             }
+        });
+    }
+    import(path) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const expression = yield this._resolveImport(path, null);
+            const grammar = new Grammar({ resolveImport: this._resolveImport, meta: { url: path } });
+            return grammar.parse(expression);
         });
     }
     parse(expression) {
@@ -2207,6 +2215,7 @@ class Grammar {
         });
     }
     _resolveImports(ast) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             const parseContext = this._parseContext;
             const importBlock = ast.find(n => n.name === "import-block");
@@ -2216,8 +2225,8 @@ class Grammar {
             for (const importStatement of importBlock.children) {
                 const urlNode = importStatement.find(n => n.name === "url");
                 const url = urlNode.value.slice(1, -1);
-                const expression = yield this._resolveImport(url);
-                const grammer = new Grammar({ resolveImport: this._resolveImport });
+                const expression = yield this._resolveImport(url, ((_a = this._meta) === null || _a === void 0 ? void 0 : _a.url) || null);
+                const grammer = new Grammar({ resolveImport: this._resolveImport, meta: { url } });
                 try {
                     const patterns = yield grammer.parse(expression);
                     const importNames = importStatement.findAll(n => n.name === "import-name").map(n => n.value);
@@ -2355,6 +2364,10 @@ class Grammar {
     static parse(expression, options) {
         const grammar = new Grammar(options);
         return grammar.parse(expression);
+    }
+    static import(path, options) {
+        const grammar = new Grammar(options);
+        return grammar.import(path);
     }
     static parseString(expression) {
         const grammar = new Grammar();

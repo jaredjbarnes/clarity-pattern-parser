@@ -64,7 +64,7 @@ export class Node {
     firstIndex: number,
     lastIndex: number,
     children: Node[] = [],
-    value: string = ""
+    value = ""
   ) {
     this._type = type;
     this._name = name;

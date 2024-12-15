@@ -1,2 +1,2 @@
-import { Repeat } from "../../patterns/Repeat";
-export declare const importBlock: Repeat;
+import { And } from "../../patterns/And";
+export declare const importStatement: And;

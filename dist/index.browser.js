@@ -1774,42 +1774,31 @@
     const closeBracket = new Literal("close-bracket", "}");
     const name = new Regex("import-name", "[^}\\s,]+");
     const importedNames = new Repeat("imported-names", name, { divider: importNameDivider });
-    const optionalLinespaces = spaces$1.clone("optional-spaces", true);
     const optionalSpaces = spaces.clone("optional-spaces", true);
-    const newLine$1 = new Regex("new-line", "(\\r?\\n)+");
-    const importStatement = new And("import-statment", [
+    const importStatement = new And("import-statement", [
         importKeyword,
-        spaces,
+        optionalSpaces,
         openBracket,
         optionalSpaces,
         importedNames,
         optionalSpaces,
         closeBracket,
-        spaces,
+        optionalSpaces,
         fromKeyword,
         spaces,
         literal.clone("url"),
-        optionalLinespaces,
-        newLine$1
     ]);
-    const importBlock = new Repeat("import-block", importStatement, {
-        divider: newLine$1,
-        min: 0,
-        trimDivider: true
-    });
 
     const whitespace = new Regex("whitespace", "[ \\t]+");
-    const newLine = new Regex("new-line", "(\\r?\\n)+");
+    const newLine = new Regex("new-line", "([ \\t]+)?(\\r?\\n)+([ \\t]+)?");
     whitespace.setTokens([" "]);
     newLine.setTokens(["\n"]);
-    const allWhitespace = new Regex("spaces", "\\s+", true);
     const line = new Or("line", [
+        importStatement,
         comment,
         statement,
-        whitespace
     ], true);
-    const bodyBlock = new Repeat("body-block", line, { divider: newLine });
-    const grammar = new And("grammer", [allWhitespace, importBlock, bodyBlock]);
+    const grammar = new Repeat("grammer", line, { divider: newLine, min: 1 });
 
     class Not {
         get type() {
@@ -2185,11 +2174,7 @@
                 n.name.includes("comment")).forEach(n => n.remove());
         }
         _buildPatterns(ast) {
-            const bodyBlock = ast.find(n => n.name === "body-block");
-            if (bodyBlock == null) {
-                throw new Error("No Patterns were found in expression.");
-            }
-            bodyBlock.children.forEach((n) => {
+            ast.children.forEach((n) => {
                 const typeNode = n.find(n => n.name.includes("literal"));
                 const type = (typeNode === null || typeNode === void 0 ? void 0 : typeNode.name) || "unknown";
                 switch (type) {
@@ -2224,11 +2209,8 @@
             var _a;
             return __awaiter(this, void 0, void 0, function* () {
                 const parseContext = this._parseContext;
-                const importBlock = ast.find(n => n.name === "import-block");
-                if (importBlock == null || importBlock.children.length === 0) {
-                    return;
-                }
-                for (const importStatement of importBlock.children) {
+                const importStatements = ast.findAll(n => n.name === "import-statement");
+                for (const importStatement of importStatements) {
                     const urlNode = importStatement.find(n => n.name === "url");
                     const url = urlNode.value.slice(1, -1);
                     const expression = yield this._resolveImport(url, ((_a = this._meta) === null || _a === void 0 ? void 0 : _a.url) || null);

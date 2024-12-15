@@ -323,4 +323,30 @@ describe("Grammar", () => {
 
         expect(result?.ast?.value).toBe("John Doe");
     });
+
+    test("Imports", async () => {
+        const importExpression = `first-name = "John"`;
+        const spaceExpression = `space = " "`
+
+        const pathMap: Record<string, string> = {
+            "space.cpat": spaceExpression,
+            "first-name.cpat": importExpression
+        };
+
+        const expression = `
+        import { first-name } from "first-name.cpat"
+        import { space } from "space.cpat"
+        last-name = "Doe"
+        full-name = first-name & space & last-name
+        `
+        function resolveImport(path: string) {
+            return Promise.resolve(pathMap[path]);
+        }
+
+        const patterns = await Grammar.parse(expression, { resolveImport });
+        const fullname = patterns.get("full-name") as Pattern;
+        const result = fullname.exec("John Doe");
+        expect(result?.ast?.value).toBe("John Doe");
+    });
+
 });

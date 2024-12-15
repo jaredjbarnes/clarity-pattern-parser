@@ -3,23 +3,20 @@ import { Regex } from "../../patterns/Regex";
 import { Repeat } from "../../patterns/Repeat";
 import { comment } from "./comment";
 import { statement } from "./statement";
-import { importBlock } from './import';
-import { And } from "../../patterns/And";
+import { importStatement } from './import';
 
 const whitespace = new Regex("whitespace", "[ \\t]+");
-const newLine = new Regex("new-line", "(\\r?\\n)+");
+const newLine = new Regex("new-line", "([ \\t]+)?(\\r?\\n)+([ \\t]+)?");
 
 whitespace.setTokens([" "]);
 newLine.setTokens(["\n"]);
 
-
-const allWhitespace = new Regex("spaces", "\\s+", true);
 const line = new Or("line", [
+    importStatement,
     comment,
     statement,
-    whitespace
 ], true);
 
-const bodyBlock = new Repeat("body-block", line, { divider: newLine })
 
-export const grammar = new And("grammer", [allWhitespace, importBlock, bodyBlock]);
+
+export const grammar = new Repeat("grammer", line, { divider: newLine, min: 1 });

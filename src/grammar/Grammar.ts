@@ -120,13 +120,7 @@ export class Grammar {
     }
 
     private _buildPatterns(ast: Node) {
-        const bodyBlock = ast.find(n => n.name === "body-block");
-
-        if (bodyBlock == null) {
-            throw new Error("No Patterns were found in expression.");
-        }
-
-        bodyBlock.children.forEach((n) => {
+        ast.children.forEach((n) => {
             const typeNode = n.find(n => n.name.includes("literal"));
             const type = typeNode?.name || "unknown";
 
@@ -155,19 +149,18 @@ export class Grammar {
                     this._buildAlias(n)
                     break;
                 }
+                default: {
+                    break;
+                }
             }
         });
     }
 
     private async _resolveImports(ast: Node) {
         const parseContext = this._parseContext;
-        const importBlock = ast.find(n => n.name === "import-block");
+        const importStatements = ast.findAll(n=>n.name === "import-statement");
 
-        if (importBlock == null || importBlock.children.length === 0) {
-            return;
-        }
-
-        for (const importStatement of importBlock.children) {
+        for (const importStatement of importStatements) {
             const urlNode = importStatement.find(n => n.name === "url") as Node;
 
             const url = urlNode.value.slice(1, -1);

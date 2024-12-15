@@ -232,6 +232,20 @@ export class Node {
     );
   }
 
+  normalize(startIndex = this._firstIndex): number {
+    let length = 0;
+
+    if (this.children.length === 0) {
+      length = this._value.length;
+    } else {
+      length = this.children.reduce((acc, c) => acc + c.normalize(acc+startIndex), startIndex);
+    }
+
+    this._firstIndex = startIndex;
+    this._lastIndex = Math.max(startIndex + length - 1, 0);
+    return length;
+  }
+
   toString(): string {
     if (this._children.length === 0) {
       return this._value;

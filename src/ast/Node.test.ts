@@ -188,7 +188,7 @@ describe("Node", () => {
         const b = new Node("b", "b", 0, 0, [], "B");
         const parent = new Node("parent", "parent", 0, 0, [a, b]);
 
-        parent.find(p=>p.name === "b")?.remove();
+        parent.find(p => p.name === "b")?.remove();
 
         expect(parent.children.length).toBe(1);
         expect(parent.value).toBe("A")
@@ -380,6 +380,32 @@ describe("Node", () => {
         const child = new Node("child", "child", 0, 0, []);
         const result = child.findAncester(p => p.name === "parent")
         expect(result).toBeNull()
+    });
+
+    test("Normalize values and index", () => {
+        const firstChild = new Node("literal", "first", 0, 0, [], "first");
+        const secondChild = new Node("literal", "second", 0, 0, [], "second");
+        const parent = new Node("literal", "parent", 0, 0);
+
+        parent.appendChild(firstChild);
+        parent.appendChild(secondChild);
+
+        parent.normalize();
+
+        expect(parent.startIndex).toBe(0);
+        expect(parent.firstIndex).toBe(0);
+        expect(parent.lastIndex).toBe(10);
+        expect(parent.endIndex).toBe(11);
+    });
+
+    test("Normalize values with no values", () => {
+        const node = new Node("literal", "node", 0, 0, [], "");
+        node.normalize();
+
+        expect(node.startIndex).toBe(0);
+        expect(node.firstIndex).toBe(0);
+        expect(node.lastIndex).toBe(0);
+        expect(node.endIndex).toBe(1);
     });
 
 });

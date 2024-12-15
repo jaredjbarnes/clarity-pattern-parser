@@ -19,4 +19,4 @@ const line = new Or("line", [
 
 
 
-export const grammar = new Repeat("grammer", line, { divider: newLine, min: 1 });
+export const grammar = new Repeat("grammer", line, { divider: newLine });

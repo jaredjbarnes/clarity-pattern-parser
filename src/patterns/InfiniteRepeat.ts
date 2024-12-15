@@ -208,6 +208,17 @@ export class InfiniteRepeat implements Pattern {
       cursor.moveTo(dividerNode.firstIndex);
     }
 
+    if (this._nodes.length === 0) {
+      if (this._min === 0) {
+        cursor.moveTo(this._firstIndex);
+      } else {
+        const lastIndex = cursor.index;
+        cursor.moveTo(this._firstIndex);
+        cursor.recordErrorAt(this._firstIndex, lastIndex, this);
+      }
+      return null;
+    }
+
     const lastIndex = this._nodes[this._nodes.length - 1].lastIndex;
     cursor.moveTo(lastIndex);
 

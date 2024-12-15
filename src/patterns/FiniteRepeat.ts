@@ -111,8 +111,9 @@ export class FiniteRepeat implements Pattern {
         }
 
         if (matchCount < this._min) {
+            const lastIndex = cursor.index;
             cursor.moveTo(startIndex);
-            cursor.recordErrorAt(startIndex, startIndex, this);
+            cursor.recordErrorAt(startIndex, lastIndex, this);
             return null;
         } else if (nodes.length === 0) {
             cursor.resolveError();

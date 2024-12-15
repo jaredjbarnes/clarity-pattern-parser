@@ -44,6 +44,7 @@ export declare class Node {
     reduce(): void;
     remove(): void;
     clone(): Node;
+    normalize(startIndex?: number): number;
     toString(): string;
     toCycleFreeObject(): CycleFreeNode;
     toJson(space?: number): string;

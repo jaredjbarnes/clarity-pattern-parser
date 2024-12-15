@@ -157,6 +157,18 @@ class Node {
     clone() {
         return new Node(this._type, this._name, this._firstIndex, this._lastIndex, this._children.map((c) => c.clone()), this._value);
     }
+    normalize(startIndex = this._firstIndex) {
+        let length = 0;
+        if (this.children.length === 0) {
+            length = this._value.length;
+        }
+        else {
+            length = this.children.reduce((acc, c) => acc + c.normalize(acc + startIndex), startIndex);
+        }
+        this._firstIndex = startIndex;
+        this._lastIndex = Math.max(startIndex + length - 1, 0);
+        return length;
+    }
     toString() {
         if (this._children.length === 0) {
             return this._value;

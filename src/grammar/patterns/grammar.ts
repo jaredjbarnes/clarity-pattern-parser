@@ -5,18 +5,18 @@ import { comment } from "./comment";
 import { statement } from "./statement";
 import { importStatement } from './import';
 
-const whitespace = new Regex("whitespace", "[ \\t]+");
-const newLine = new Regex("new-line", "([ \\t]+)?(\\r?\\n)+([ \\t]+)?");
+const whitespace = new Regex("whitespace", "[ \\t]+((\\r?\\n)+)?");
+const newLine = new Regex("new-line", "(\\r?\\n)+");
 
 whitespace.setTokens([" "]);
 newLine.setTokens(["\n"]);
 
 const line = new Or("line", [
-    importStatement,
+    newLine,
+    whitespace,
     comment,
-    statement,
-], true);
+    importStatement,
+    statement
+]);
 
-
-
-export const grammar = new Repeat("grammer", line, { divider: newLine });
+export const grammar = new Repeat("grammer", line);

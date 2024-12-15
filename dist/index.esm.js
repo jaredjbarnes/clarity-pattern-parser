@@ -1000,8 +1000,9 @@ class FiniteRepeat {
             }
         }
         if (matchCount < this._min) {
+            const lastIndex = cursor.index;
             cursor.moveTo(startIndex);
-            cursor.recordErrorAt(startIndex, startIndex, this);
+            cursor.recordErrorAt(startIndex, lastIndex, this);
             return null;
         }
         else if (nodes.length === 0) {
@@ -1118,10 +1119,10 @@ class InfiniteRepeat {
         const divider = options.divider;
         let children;
         if (divider != null) {
-            children = [pattern.clone(), divider.clone(divider.name, false)];
+            children = [pattern.clone(pattern.name, false), divider.clone(divider.name, false)];
         }
         else {
-            children = [pattern.clone()];
+            children = [pattern.clone(pattern.name, false)];
         }
         this._assignChildrenToParent(children);
         this._type = "infinite-repeat";
@@ -1241,6 +1242,10 @@ class InfiniteRepeat {
             const dividerNode = this._nodes.pop();
             cursor.moveTo(dividerNode.firstIndex);
         }
+        // if (this._nodes.length === 0) {
+        //   cursor.moveTo(this._firstIndex);
+        //   return null;
+        // }
         const lastIndex = this._nodes[this._nodes.length - 1].lastIndex;
         cursor.moveTo(lastIndex);
         return new Node(this._type, this._name, this._firstIndex, lastIndex, this._nodes);
@@ -1783,16 +1788,18 @@ const importStatement = new And("import-statement", [
     literal.clone("url"),
 ]);
 
-const whitespace = new Regex("whitespace", "[ \\t]+");
-const newLine = new Regex("new-line", "([ \\t]+)?(\\r?\\n)+([ \\t]+)?");
+const whitespace = new Regex("whitespace", "[ \\t]+((\\r?\\n)+)?");
+const newLine = new Regex("new-line", "(\\r?\\n)+");
 whitespace.setTokens([" "]);
 newLine.setTokens(["\n"]);
 const line = new Or("line", [
-    importStatement,
+    newLine,
+    whitespace,
     comment,
-    statement,
-], true);
-const grammar = new Repeat("grammer", line, { divider: newLine, min: 1 });
+    importStatement,
+    statement
+]);
+const grammar = new Repeat("grammer", line);
 
 class Not {
     get type() {

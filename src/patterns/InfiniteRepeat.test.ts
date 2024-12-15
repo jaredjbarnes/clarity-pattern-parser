@@ -109,29 +109,6 @@ describe("InfiniteRepeat", () => {
         expect(cursor.hasError).toBeFalsy()
     });
 
-    test("Optional Repeating Pattern", () => {
-        const digit = new Regex("digit", "\\d+", true);
-        const divider = new Regex("divider", "\\s");
-        const integer = new InfiniteRepeat("number", digit, { divider });
-        const cursor = new Cursor(
-            "\n" +
-            "3\n" +
-            "\n" +
-            "\n"
-        );
-        const result = integer.parse(cursor);
-        const expected = new Node("infinite-repeat", "number", 0, 4, [
-            new Node("regex", "divider", 0, 0, [], "\n"),
-            new Node("regex", "digit", 1, 1, [], "3"),
-            new Node("regex", "divider", 2, 2, [], "\n"),
-            new Node("regex", "divider", 3, 3, [], "\n"),
-            new Node("regex", "divider", 4, 4, [], "\n"),
-        ]);
-
-        expect(result).toEqual(expected)
-        expect(cursor.hasError).toBeFalsy()
-    });
-
     test("Failed (Optional)", () => {
         const digit = new Regex("digit", "\\d");
         const integer = new InfiniteRepeat("number", digit, { min: 0 });
@@ -292,6 +269,13 @@ describe("InfiniteRepeat", () => {
         expected = new InfiniteRepeat("cloned-numbers", new Regex("number", "\\d"), { min: 1 });
 
         expect(clone).toEqual(expected);
+    });
+
+    test("No Results, min is 0", () => {
+        const numbers = new InfiniteRepeat("numbers", new Regex("number", "\\d"), { divider: new Literal(",", ","), min: 0 });
+        const result = numbers.exec("j");
+        expect(result.ast).toBeNull();
+        expect(result.cursor.index).toBe(0);
     });
 
 

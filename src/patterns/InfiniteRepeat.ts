@@ -56,9 +56,9 @@ export class InfiniteRepeat implements Pattern {
     let children: Pattern[];
 
     if (divider != null) {
-      children = [pattern.clone(), divider.clone(divider.name, false)]
+      children = [pattern.clone(pattern.name, false), divider.clone(divider.name, false)]
     } else {
-      children = [pattern.clone()]
+      children = [pattern.clone(pattern.name, false)]
     }
 
     this._assignChildrenToParent(children);
@@ -208,16 +208,10 @@ export class InfiniteRepeat implements Pattern {
       cursor.moveTo(dividerNode.firstIndex);
     }
 
-    if (this._nodes.length === 0) {
-      if (this._min === 0) {
-        cursor.moveTo(this._firstIndex);
-      } else {
-        const lastIndex = cursor.index;
-        cursor.moveTo(this._firstIndex);
-        cursor.recordErrorAt(this._firstIndex, lastIndex, this);
-      }
-      return null;
-    }
+    // if (this._nodes.length === 0) {
+    //   cursor.moveTo(this._firstIndex);
+    //   return null;
+    // }
 
     const lastIndex = this._nodes[this._nodes.length - 1].lastIndex;
     cursor.moveTo(lastIndex);

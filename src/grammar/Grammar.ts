@@ -15,22 +15,27 @@ class ParseContext {
     importedPatternsByName = new Map<string, Pattern>();
 }
 
-function defaultImportResolver(_path: string, _basePath: string | null): Promise<string> {
+function defaultImportResolver(_path: string, _basePath: string | null): Promise<GrammarFile> {
     throw new Error("No import resolver supplied.");
 }
 
 export interface GrammarMeta {
-    url?: string;
+    originPath?: string;
+}
+
+export interface GrammarFile {
+    path: string;
+    expression: string;
 }
 
 export interface GrammarOptions {
-    resolveImport?: (path: string, basePath: string | null) => Promise<string>;
+    resolveImport?: (path: string, originPath: string | null) => Promise<GrammarFile>;
     meta?: GrammarMeta | null;
 }
 
 export class Grammar {
     private _meta: GrammarMeta | null;
-    private _resolveImport: (path: string, basePath: string | null) => Promise<string>;
+    private _resolveImport: (path: string, basePath: string | null) => Promise<GrammarFile>;
     private _parseContext: ParseContext;
     private _autoComplete: AutoComplete;
 
@@ -50,10 +55,10 @@ export class Grammar {
     }
 
     async import(path: string) {
-        const expression = await this._resolveImport(path, null);
-        const grammar = new Grammar({ resolveImport: this._resolveImport, meta: { url: path } });
+        const grammarFile = await this._resolveImport(path, null);
+        const grammar = new Grammar({ resolveImport: this._resolveImport, meta: { originPath: grammarFile.path } });
 
-        return grammar.parse(expression);
+        return grammar.parse(grammarFile.expression);
     }
 
     async parse(expression: string) {
@@ -158,17 +163,17 @@ export class Grammar {
 
     private async _resolveImports(ast: Node) {
         const parseContext = this._parseContext;
-        const importStatements = ast.findAll(n=>n.name === "import-statement");
+        const importStatements = ast.findAll(n => n.name === "import-statement");
 
         for (const importStatement of importStatements) {
             const urlNode = importStatement.find(n => n.name === "url") as Node;
 
             const url = urlNode.value.slice(1, -1);
-            const expression = await this._resolveImport(url, this._meta?.url || null);
-            const grammer = new Grammar({ resolveImport: this._resolveImport, meta: { url } });
+            const grammarFile = await this._resolveImport(url, this._meta?.originPath || null);
+            const grammar = new Grammar({ resolveImport: this._resolveImport, meta: { originPath: grammarFile.path } });
 
             try {
-                const patterns = await grammer.parse(expression);
+                const patterns = await grammar.parse(grammarFile.expression);
                 const importNames = importStatement.findAll(n => n.name === "import-name").map(n => n.value);
 
                 importNames.forEach((importName) => {

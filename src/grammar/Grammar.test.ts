@@ -314,7 +314,7 @@ describe("Grammar", () => {
         `
         function resolveImport(path: string) {
             expect(path).toBe("some/path/to/file.cpat");
-            return Promise.resolve(importExpression);
+            return Promise.resolve({ expression: importExpression, path });
         }
 
         const patterns = await Grammar.parse(expression, { resolveImport });
@@ -340,7 +340,7 @@ describe("Grammar", () => {
         full-name = first-name & space & last-name
         `
         function resolveImport(path: string) {
-            return Promise.resolve(pathMap[path]);
+            return Promise.resolve({ expression: pathMap[path], path });
         }
 
         const patterns = await Grammar.parse(expression, { resolveImport });

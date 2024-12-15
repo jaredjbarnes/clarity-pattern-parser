@@ -2116,9 +2116,9 @@ class Grammar {
     }
     import(path) {
         return __awaiter(this, void 0, void 0, function* () {
-            const expression = yield this._resolveImport(path, null);
-            const grammar = new Grammar({ resolveImport: this._resolveImport, meta: { url: path } });
-            return grammar.parse(expression);
+            const grammarFile = yield this._resolveImport(path, null);
+            const grammar = new Grammar({ resolveImport: this._resolveImport, meta: { originPath: grammarFile.path } });
+            return grammar.parse(grammarFile.expression);
         });
     }
     parse(expression) {
@@ -2211,10 +2211,10 @@ class Grammar {
             for (const importStatement of importStatements) {
                 const urlNode = importStatement.find(n => n.name === "url");
                 const url = urlNode.value.slice(1, -1);
-                const expression = yield this._resolveImport(url, ((_a = this._meta) === null || _a === void 0 ? void 0 : _a.url) || null);
-                const grammer = new Grammar({ resolveImport: this._resolveImport, meta: { url } });
+                const grammarFile = yield this._resolveImport(url, ((_a = this._meta) === null || _a === void 0 ? void 0 : _a.originPath) || null);
+                const grammar = new Grammar({ resolveImport: this._resolveImport, meta: { originPath: grammarFile.path } });
                 try {
-                    const patterns = yield grammer.parse(expression);
+                    const patterns = yield grammar.parse(grammarFile.expression);
                     const importNames = importStatement.findAll(n => n.name === "import-name").map(n => n.value);
                     importNames.forEach((importName) => {
                         if (parseContext.importedPatternsByName.has(importName)) {

@@ -1,9 +1,13 @@
 import { Pattern } from "../patterns/Pattern";
 export interface GrammarMeta {
-    url?: string;
+    originPath?: string;
+}
+export interface GrammarFile {
+    path: string;
+    expression: string;
 }
 export interface GrammarOptions {
-    resolveImport?: (path: string, basePath: string | null) => Promise<string>;
+    resolveImport?: (path: string, originPath: string | null) => Promise<GrammarFile>;
     meta?: GrammarMeta | null;
 }
 export declare class Grammar {

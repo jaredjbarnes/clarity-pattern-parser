@@ -2364,5 +2364,5 @@ class Grammar {
     }
 }
 
-export { And, AutoComplete, Cursor, CursorHistory, Grammar, Literal, Node, Not, Or, ParseError, Reference, Regex, Repeat };
+export { And, AutoComplete, Cursor, CursorHistory, Grammar, Literal, Node, Not, Or, ParseError, Reference, Regex, Repeat, grammar };
 //# sourceMappingURL=index.esm.js.map

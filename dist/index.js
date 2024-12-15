@@ -2381,4 +2381,5 @@ exports.ParseError = ParseError;
 exports.Reference = Reference;
 exports.Regex = Regex;
 exports.Repeat = Repeat;
+exports.grammar = grammar;
 //# sourceMappingURL=index.js.map

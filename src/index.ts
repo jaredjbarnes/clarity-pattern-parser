@@ -15,6 +15,7 @@ import { Pattern } from "./patterns/Pattern";
 import { Reference } from "./patterns/Reference";
 import { CursorHistory, Match } from "./patterns/CursorHistory";
 import { ParseResult } from "./patterns/ParseResult";
+import { grammar } from "./grammar/patterns/grammar";
 
 export {
   Node,
@@ -36,4 +37,5 @@ export {
   Reference,
   Regex,
   Repeat,
+  grammar
 };

@@ -2383,6 +2383,7 @@
     exports.Reference = Reference;
     exports.Regex = Regex;
     exports.Repeat = Repeat;
+    exports.grammar = grammar;
 
     Object.defineProperty(exports, '__esModule', { value: true });
 

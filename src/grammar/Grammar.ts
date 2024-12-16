@@ -67,7 +67,6 @@ export class Grammar {
 
         await this._resolveImports(ast);
         this._buildPatterns(ast);
-        this._cleanAst(ast);
 
         return this._parseContext.patternsByName;
     }
@@ -81,8 +80,6 @@ export class Grammar {
         }
 
         this._buildPatterns(ast);
-        this._cleanAst(ast);
-
         return this._parseContext.patternsByName;
     }
 
@@ -112,16 +109,6 @@ export class Grammar {
         }
 
         return importBlock && importBlock.children.length > 0;
-    }
-
-    private _cleanAst(ast: Node) {
-        ast.findAll(
-            n => n.name === "spaces" ||
-                n.name === "optional-spaces" ||
-                n.name === "new-line" ||
-                n.name.includes("whitespace") ||
-                n.name.includes("comment")
-        ).forEach(n => n.remove());
     }
 
     private _buildPatterns(ast: Node) {

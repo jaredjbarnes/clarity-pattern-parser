@@ -62,6 +62,11 @@ class Node {
             referenceNode._parent = null;
         }
     }
+    replaceWith(newNode) {
+        if (this._parent != null) {
+            this._parent.replaceChild(newNode, this);
+        }
+    }
     insertBefore(newNode, referenceNode) {
         newNode._parent = this;
         if (referenceNode == null) {
@@ -128,12 +133,14 @@ class Node {
         return null;
     }
     walkUp(callback) {
-        this.children.forEach(c => c.walkUp(callback));
+        const childrenCopy = this._children.slice();
+        childrenCopy.forEach(c => c.walkUp(callback));
         callback(this);
     }
     walkDown(callback) {
+        const childrenCopy = this._children.slice();
         callback(this);
-        this.children.forEach(c => c.walkDown(callback));
+        childrenCopy.forEach(c => c.walkDown(callback));
     }
     flatten() {
         const nodes = [];

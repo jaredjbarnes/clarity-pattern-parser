@@ -408,4 +408,22 @@ describe("Node", () => {
         expect(node.endIndex).toBe(1);
     });
 
+    test("ReplaceWith", () => {
+        const parent = new Node("node", "parent", 0, 0, [
+            new Node("node", "first", 0, 0, [], "first"),
+            new Node("node", "second", 0, 0, [], "second"),
+        ]);
+
+        const first = parent.find(n => n.name === "first") as Node;
+        const newNode = new Node("node", "new", 0, 0, [], "new");
+        first.replaceWith(newNode);
+
+        const result = parent.find(n => n.name === "new") as Node;
+
+        expect(result).toBe(newNode);
+        expect(first.parent).toBeNull();
+        expect(result.parent).toBe(parent);
+
+    });
+
 });

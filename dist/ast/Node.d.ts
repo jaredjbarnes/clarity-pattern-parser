@@ -30,6 +30,7 @@ export declare class Node {
     removeChild(node: Node): void;
     removeAllChildren(): void;
     replaceChild(newNode: Node, referenceNode: Node): void;
+    replaceWith(newNode: Node): void;
     insertBefore(newNode: Node, referenceNode: Node | null): void;
     appendChild(newNode: Node): void;
     spliceChildren(index: number, deleteCount: number, ...items: Node[]): Node[];

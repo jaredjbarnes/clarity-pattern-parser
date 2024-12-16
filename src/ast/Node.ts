@@ -101,6 +101,12 @@ export class Node {
     }
   }
 
+  replaceWith(newNode: Node) {
+    if (this._parent != null) {
+      this._parent.replaceChild(newNode, this);
+    }
+  }
+
   insertBefore(newNode: Node, referenceNode: Node | null) {
     newNode._parent = this;
 
@@ -188,13 +194,17 @@ export class Node {
   }
 
   walkUp(callback: (node: Node) => void) {
-    this.children.forEach(c => c.walkUp(callback))
+    const childrenCopy = this._children.slice();
+
+    childrenCopy.forEach(c => c.walkUp(callback))
     callback(this);
   }
 
   walkDown(callback: (node: Node) => void) {
+    const childrenCopy = this._children.slice();
+
     callback(this);
-    this.children.forEach(c => c.walkDown(callback))
+    childrenCopy.forEach(c => c.walkDown(callback))
   }
 
   flatten() {
@@ -238,7 +248,7 @@ export class Node {
     if (this.children.length === 0) {
       length = this._value.length;
     } else {
-      length = this.children.reduce((acc, c) => acc + c.normalize(acc+startIndex), startIndex);
+      length = this.children.reduce((acc, c) => acc + c.normalize(acc + startIndex), startIndex);
     }
 
     this._firstIndex = startIndex;

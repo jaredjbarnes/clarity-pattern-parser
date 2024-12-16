@@ -2143,7 +2143,6 @@
                 const ast = this._tryToParse(expression);
                 yield this._resolveImports(ast);
                 this._buildPatterns(ast);
-                this._cleanAst(ast);
                 return this._parseContext.patternsByName;
             });
         }
@@ -2154,7 +2153,6 @@
                 throw new Error("Cannot use imports on parseString, use parse instead.");
             }
             this._buildPatterns(ast);
-            this._cleanAst(ast);
             return this._parseContext.patternsByName;
         }
         _tryToParse(expression) {
@@ -2179,13 +2177,6 @@
                 return false;
             }
             return importBlock && importBlock.children.length > 0;
-        }
-        _cleanAst(ast) {
-            ast.findAll(n => n.name === "spaces" ||
-                n.name === "optional-spaces" ||
-                n.name === "new-line" ||
-                n.name.includes("whitespace") ||
-                n.name.includes("comment")).forEach(n => n.remove());
         }
         _buildPatterns(ast) {
             ast.children.forEach((n) => {

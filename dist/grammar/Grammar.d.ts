@@ -21,7 +21,6 @@ export declare class Grammar {
     parseString(expression: string): Map<string, Pattern>;
     private _tryToParse;
     private _hasImports;
-    private _cleanAst;
     private _buildPatterns;
     private _resolveImports;
     private _buildLiteral;

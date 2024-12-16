@@ -229,22 +229,6 @@ describe("Grammar", () => {
         expect(pattern).toEqual(digits);
     });
 
-    test("Repeat Divider With Optional Pattern", () => {
-        const expression = `
-            digit = /\\d+/
-            comma = ","
-            digits = (digit?, comma)+
-        `;
-
-        const patterns = Grammar.parseString(expression);
-        const pattern = patterns.get("digits") as Pattern;
-        const digit = new Regex("digit", "\\d+", true);
-        const comma = new Literal("comma", ",");
-        const digits = new Repeat("digits", digit, { divider: comma });
-
-        expect(pattern).toEqual(digits)
-    });
-
     test("Reference", () => {
         const expression = `
             digit = /\\d+/

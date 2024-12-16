@@ -271,8 +271,7 @@ export class Grammar {
     private _buildRepeat(statementNode: Node) {
         const nameNode = statementNode.find(n => n.name === "name") as Node;
         const repeatNode = statementNode.find(n => n.name === "repeat-literal") as Node;
-        const patternNode = repeatNode.find(n => n.name === "pattern") as Node;
-        const patternNameNode = patternNode.find(n => n.name === "pattern-name") as Node;
+        const patternNameNode = statementNode.find(n => n.name === "pattern-name") as Node;
         const dividerNode = repeatNode.find(n => n.name === "divider-pattern");
         const bounds = repeatNode.find(n => n.name === "bounds");
         const exactCount = repeatNode.find(n => n.name === "exact-count");

@@ -1678,17 +1678,17 @@ class And {
 const name$1 = new Regex("name", "[a-zA-Z_-]+[a-zA-Z0-9_-]*");
 
 const optionalNot = new Literal("not", "!", true);
-const optionalIsOptional$1 = new Literal("is-optional", "?", true);
+const optionalIsOptional = new Literal("is-optional", "?", true);
 const patternName$1 = name$1.clone("pattern-name");
-const pattern$1 = new And("pattern", [
+const pattern = new And("pattern", [
     optionalNot,
     patternName$1,
-    optionalIsOptional$1,
+    optionalIsOptional,
 ]);
 
 const divider$1 = new Regex("and-divider", "\\s*[&]\\s*");
 divider$1.setTokens([" & "]);
-const andLiteral = new Repeat("and-literal", pattern$1, { divider: divider$1, min: 2 });
+const andLiteral = new Repeat("and-literal", pattern, { divider: divider$1, min: 2 });
 
 const divider = new Regex("or-divider", "\\s*[|]\\s*");
 divider.setTokens([" | "]);
@@ -1699,12 +1699,7 @@ const regexLiteral = new Regex("regex-literal", "/(\\\\/|[^/\\n\\r])*/");
 const spaces$1 = new Regex("spaces", "[ \\t]+");
 spaces$1.setTokens([" "]);
 
-const optionalIsOptional = new Literal("is-optional", "?", true);
 const patternName = name$1.clone("pattern-name");
-const pattern = new And("pattern", [
-    patternName,
-    optionalIsOptional,
-]);
 const optionalSpaces$2 = spaces$1.clone("optional-spaces", true);
 const dividerPattern = name$1.clone("divider-pattern");
 const openBracket$1 = new Literal("open-bracket", "{");
@@ -1747,7 +1742,7 @@ dividerComma.setTokens([", "]);
 const repeatLiteral = new And("repeat-literal", [
     openParen,
     optionalSpaces$2,
-    pattern,
+    patternName,
     optional,
     new And("optional-divider-section", [dividerComma, dividerPattern], true),
     optionalSpaces$2,
@@ -2309,8 +2304,7 @@ class Grammar {
     _buildRepeat(statementNode) {
         const nameNode = statementNode.find(n => n.name === "name");
         const repeatNode = statementNode.find(n => n.name === "repeat-literal");
-        const patternNode = repeatNode.find(n => n.name === "pattern");
-        const patternNameNode = patternNode.find(n => n.name === "pattern-name");
+        const patternNameNode = statementNode.find(n => n.name === "pattern-name");
         const dividerNode = repeatNode.find(n => n.name === "divider-pattern");
         const bounds = repeatNode.find(n => n.name === "bounds");
         const exactCount = repeatNode.find(n => n.name === "exact-count");

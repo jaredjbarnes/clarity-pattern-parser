@@ -5,13 +5,7 @@ import { Regex } from "../../patterns/Regex";
 import { name } from "./name";
 import { spaces } from "./spaces";
 
-const optionalIsOptional = new Literal("is-optional", "?", true);
 const patternName = name.clone("pattern-name");
-
-export const pattern = new And("pattern", [
-    patternName,
-    optionalIsOptional,
-]);
 
 const optionalSpaces = spaces.clone("optional-spaces", true);
 const dividerPattern = name.clone("divider-pattern");
@@ -62,7 +56,7 @@ dividerComma.setTokens([", "]);
 export const repeatLiteral = new And("repeat-literal", [
     openParen,
     optionalSpaces,
-    pattern,
+    patternName,
     optional,
     new And("optional-divider-section", [dividerComma, dividerPattern], true),
     optionalSpaces,

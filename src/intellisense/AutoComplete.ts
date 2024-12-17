@@ -99,9 +99,16 @@ export class AutoComplete {
   private _getAllOptions() {
     const errorMatches = this._getOptionsFromErrors();
     const leafMatches = this._cursor.leafMatches.map((m) => this._createSuggestionsFromMatch(m)).flat();
-    const finalResults = errorMatches.filter(m => leafMatches.findIndex(l => l.text === m.text) === -1);
+    const finalResults: SuggestionOption[] = [];
 
-    return [...leafMatches, ...finalResults]
+    [...leafMatches, ...errorMatches].forEach(m=>{
+      const index = finalResults.findIndex(f=> m.text === f.text);
+      if (index === -1){
+        finalResults.push(m);
+      }
+    });
+
+    return finalResults
   }
 
   private _getOptionsFromErrors() {

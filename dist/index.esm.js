@@ -1980,8 +1980,14 @@ class AutoComplete {
     _getAllOptions() {
         const errorMatches = this._getOptionsFromErrors();
         const leafMatches = this._cursor.leafMatches.map((m) => this._createSuggestionsFromMatch(m)).flat();
-        const finalResults = errorMatches.filter(m => leafMatches.findIndex(l => l.text === m.text) === -1);
-        return [...leafMatches, ...finalResults];
+        const finalResults = [];
+        [...leafMatches, ...errorMatches].forEach(m => {
+            const index = finalResults.findIndex(f => m.text === f.text);
+            if (index === -1) {
+                finalResults.push(m);
+            }
+        });
+        return finalResults;
     }
     _getOptionsFromErrors() {
         // These errored because the length of the string.

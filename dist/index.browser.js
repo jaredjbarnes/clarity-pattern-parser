@@ -1703,11 +1703,11 @@
 
     const divider$1 = new Regex("and-divider", "\\s*[&]\\s*");
     divider$1.setTokens([" & "]);
-    const andLiteral = new Repeat("and-literal", pattern, { divider: divider$1, min: 2 });
+    const andLiteral = new Repeat("and-literal", pattern, { divider: divider$1, min: 2, trimDivider: true });
 
     const divider = new Regex("or-divider", "\\s*[|]\\s*");
     divider.setTokens([" | "]);
-    const orLiteral = new Repeat("or-literal", name$1.clone("pattern-name"), { divider, min: 2 });
+    const orLiteral = new Repeat("or-literal", name$1.clone("pattern-name"), { divider, min: 2, trimDivider: true });
 
     const regexLiteral = new Regex("regex-literal", "/(\\\\/|[^/\\n\\r])*/");
 

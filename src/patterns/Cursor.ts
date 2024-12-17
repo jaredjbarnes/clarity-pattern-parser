@@ -29,6 +29,14 @@ export class Cursor {
     return this._history.rootMatch;
   }
 
+  get allMatchedNodes(): Node[] {
+    return this._history.nodes;
+  }
+
+  get allMatchedPatterns(): Pattern[] {
+    return this._history.patterns;
+  }
+
   get leafMatch(): Match {
     return this._history.leafMatch;
   }

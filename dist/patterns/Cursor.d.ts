@@ -12,6 +12,8 @@ export declare class Cursor {
     get isOnLast(): boolean;
     get isRecording(): boolean;
     get rootMatch(): Match;
+    get allMatchedNodes(): Node[];
+    get allMatchedPatterns(): Pattern[];
     get leafMatch(): Match;
     get leafMatches(): Match[];
     get furthestError(): ParseError | null;

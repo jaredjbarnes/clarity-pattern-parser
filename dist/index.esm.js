@@ -343,6 +343,12 @@ class Cursor {
     get rootMatch() {
         return this._history.rootMatch;
     }
+    get allMatchedNodes() {
+        return this._history.nodes;
+    }
+    get allMatchedPatterns() {
+        return this._history.patterns;
+    }
     get leafMatch() {
         return this._history.leafMatch;
     }

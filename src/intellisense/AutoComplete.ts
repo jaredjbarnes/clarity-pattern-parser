@@ -121,7 +121,9 @@ export class AutoComplete {
     const tokens = this._pattern.getTokens();
 
     for (const token of tokens) {
-      suggestions.push(this._createSuggestion("", token));
+      if (suggestions.findIndex(s => s.text === token) === -1) {
+        suggestions.push(this._createSuggestion("", token));
+      }
     }
 
     return suggestions;

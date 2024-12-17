@@ -475,4 +475,18 @@ describe("AutoComplete", () => {
         expect(results.errorAtIndex).toBe(5);
     });
 
+    test("Dedup suggestions", () => {
+        const branchOne = new And("branch-1", [new Literal("space", " "), new Literal("A", "A")]);
+        const branchTwo = new And("branch-2", [new Literal("space", " "), new Literal("B", "B")]);
+        const eitherBranch = new Or("either-branch", [branchOne, branchTwo]);
+
+        const autoComplete = new AutoComplete(eitherBranch);
+        const results = autoComplete.suggestFor("");
+        const expected = [{
+            startIndex: 0,
+            text: " "
+        }];
+        expect(results.options).toEqual(expected);
+    });
+
 });

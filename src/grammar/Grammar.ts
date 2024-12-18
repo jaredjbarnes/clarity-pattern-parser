@@ -186,7 +186,11 @@ export class Grammar {
                 const importStatements = importStatement.findAll(n => n.name === "import-name" || n.name === "import-alias");
 
                 importStatements.forEach((node) => {
-                    if (node.name === "import-name") {
+                    if (node.name === "import-name" && node.parent?.name === "import-alias"){
+                        return;
+                    }
+
+                    if (node.name === "import-name" && node.parent?.name !== "import-alias") {
                         const importName = node.value;
 
                         if (parseContext.importedPatternsByName.has(importName)) {
@@ -214,7 +218,7 @@ export class Grammar {
                             throw new Error(`Couldn't find pattern with name: ${importName}, from import: ${resource}.`);
                         }
 
-                        parseContext.importedPatternsByName.set(alias, pattern);
+                        parseContext.importedPatternsByName.set(alias, pattern.clone(alias));
                     }
                 });
 

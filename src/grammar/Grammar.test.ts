@@ -401,16 +401,26 @@ describe("Grammar", () => {
     test("Import Alias", async () => {
         const expression = `
         import { value as alias } from "resource1"
-        name = alias
+        import { export-value } from "resource2" with params {
+            param = alias
+        }
+        name = export-value
         `
 
         const resource1 = `
         value = "Value"
         `;
 
+        const resource2 = `
+        use params {
+            param
+        }
+        export-value = param
+        `
 
         const pathMap: Record<string, string> = {
             "resource1": resource1,
+            "resource2": resource2
         };
 
         function resolveImport(resource: string) {

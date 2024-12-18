@@ -2321,7 +2321,11 @@ class Grammar {
                     const patterns = yield grammar.parse(grammarFile.expression);
                     const importStatements = importStatement.findAll(n => n.name === "import-name" || n.name === "import-alias");
                     importStatements.forEach((node) => {
-                        if (node.name === "import-name") {
+                        var _a, _b;
+                        if (node.name === "import-name" && ((_a = node.parent) === null || _a === void 0 ? void 0 : _a.name) === "import-alias") {
+                            return;
+                        }
+                        if (node.name === "import-name" && ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.name) !== "import-alias") {
                             const importName = node.value;
                             if (parseContext.importedPatternsByName.has(importName)) {
                                 throw new Error(`'${importName}' was already used within another import.`);
@@ -2344,7 +2348,7 @@ class Grammar {
                             if (pattern == null) {
                                 throw new Error(`Couldn't find pattern with name: ${importName}, from import: ${resource}.`);
                             }
-                            parseContext.importedPatternsByName.set(alias, pattern);
+                            parseContext.importedPatternsByName.set(alias, pattern.clone(alias));
                         }
                     });
                 }

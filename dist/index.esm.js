@@ -1778,7 +1778,7 @@ const statements = new Or("statements", [
     repeatLiteral,
     name$1.clone("alias-literal"),
 ]);
-const statement = new And("statement", [
+const assignStatement = new And("assign-statement", [
     optionalSpaces$1,
     name$1,
     optionalSpaces$1,
@@ -1786,6 +1786,7 @@ const statement = new And("statement", [
     optionalSpaces$1,
     statements
 ]);
+const statement = new Or("statement", [assignStatement, name$1.clone("export-name")]);
 
 const bodyLineContent = new Or("body-line-content", [
     comment,
@@ -1798,18 +1799,21 @@ const bodyLine = new And("body-line", [
 ]);
 const body = new Repeat("body", bodyLine, { divider: newLine$1, min: 0 });
 
+const optionalSpaces = allSpaces.clone("optional-spaces", true);
+const optionalLineSpaces = lineSpaces$1.clone("options-line-spaces", true);
 const importNameDivider = new Regex("import-name-divider", "(\\s+)?,(\\s+)?");
 const importKeyword = new Literal("import", "import");
 const useParamsKeyword = new Literal("use-params", "use params");
+const asKeyword = new Literal("as", "as");
 const fromKeyword = new Literal("from", "from");
 const openBracket = new Literal("open-bracket", "{");
 const closeBracket = new Literal("close-bracket", "}");
 const name = new Regex("import-name", "[^}\\s,]+");
-const importedNames = new Repeat("imported-names", name, { divider: importNameDivider });
+const importNameAlias = name.clone("import-name-alias");
+const importAlias = new And("import-alias", [name, lineSpaces$1, asKeyword, lineSpaces$1, importNameAlias]);
+const importedNames = new Repeat("imported-names", new Or("import-names", [importAlias, name]), { divider: importNameDivider });
 const paramName = name.clone("param-name");
 const paramNames = new Repeat("param-names", paramName, { divider: importNameDivider });
-const optionalSpaces = allSpaces.clone("optional-spaces", true);
-const optionalLineSpaces = lineSpaces$1.clone("options-line-spaces", true);
 const resource = literal.clone("resource");
 const useParams = new And("import-params", [
     useParamsKeyword,
@@ -1826,7 +1830,7 @@ const withParamsStatement = new And("with-params-statement", [
     optionalLineSpaces,
     openBracket,
     optionalSpaces,
-    body,
+    body.clone("with-params-body"),
     optionalSpaces,
     closeBracket
 ], true);
@@ -2255,9 +2259,13 @@ class Grammar {
         return importBlock && importBlock.children.length > 0;
     }
     _buildPatterns(ast) {
-        ast.findAll(n => n.name === "statement").forEach((n) => {
+        const body = ast.find(n => n.name === "body");
+        if (body == null) {
+            return;
+        }
+        body.findAll(n => n.name === "assign-statement" || n.name === "export-name").forEach((n) => {
             const typeNode = n.find(n => n.name.includes("literal"));
-            const type = (typeNode === null || typeNode === void 0 ? void 0 : typeNode.name) || "unknown";
+            const type = n.name === "export-name" ? "export-name" : (typeNode === null || typeNode === void 0 ? void 0 : typeNode.name) || "unknown";
             switch (type) {
                 case "literal": {
                     this._buildLiteral(n);
@@ -2283,6 +2291,11 @@ class Grammar {
                     this._buildAlias(n);
                     break;
                 }
+                case "export-name": {
+                    const pattern = this._getPattern(n.value);
+                    this._parseContext.patternsByName.set(n.value, pattern);
+                    break;
+                }
             }
         });
     }
@@ -2302,16 +2315,33 @@ class Grammar {
                 });
                 try {
                     const patterns = yield grammar.parse(grammarFile.expression);
-                    const importNames = importStatement.findAll(n => n.name === "import-name").map(n => n.value);
-                    importNames.forEach((importName) => {
-                        if (parseContext.importedPatternsByName.has(importName)) {
-                            throw new Error(`'${importName}' was already used within another import.`);
+                    const importStatements = importStatement.findAll(n => n.name === "import-name" || n.name === "import-alias");
+                    importStatements.forEach((node) => {
+                        if (node.name === "import-name") {
+                            const importName = node.value;
+                            if (parseContext.importedPatternsByName.has(importName)) {
+                                throw new Error(`'${importName}' was already used within another import.`);
+                            }
+                            const pattern = patterns.get(importName);
+                            if (pattern == null) {
+                                throw new Error(`Couldn't find pattern with name: ${importName}, from import: ${resource}.`);
+                            }
+                            parseContext.importedPatternsByName.set(importName, pattern);
                         }
-                        const pattern = patterns.get(importName);
-                        if (pattern == null) {
-                            throw new Error(`Couldn't find pattern with name: ${importName}, from import: ${resource}.`);
+                        else {
+                            const importNameNode = node.find(n => n.name === "import-name");
+                            const importName = importNameNode.value;
+                            const aliasNode = node.find(n => n.name === "import-name-alias");
+                            const alias = aliasNode.value;
+                            if (parseContext.importedPatternsByName.has(alias)) {
+                                throw new Error(`'${alias}' was already used within another import.`);
+                            }
+                            const pattern = patterns.get(importName);
+                            if (pattern == null) {
+                                throw new Error(`Couldn't find pattern with name: ${importName}, from import: ${resource}.`);
+                            }
+                            parseContext.importedPatternsByName.set(alias, pattern);
                         }
-                        parseContext.importedPatternsByName.set(importName, pattern);
                     });
                 }
                 catch (e) {
@@ -2324,7 +2354,7 @@ class Grammar {
         let params = [];
         const paramsStatement = importStatement.find(n => n.name === "with-params-statement");
         if (paramsStatement != null) {
-            const statements = paramsStatement.find(n => n.name === "body");
+            const statements = paramsStatement.find(n => n.name === "with-params-body");
             if (statements != null) {
                 const expression = statements.toString();
                 const importedValues = Array.from(this

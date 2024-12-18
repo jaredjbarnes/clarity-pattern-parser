@@ -21,7 +21,7 @@ const statements = new Or("statements", [
     name.clone("alias-literal"),
 ]);
 
-export const statement = new And("statement", [
+const assignStatement = new And("assign-statement", [
     optionalSpaces,
     name,
     optionalSpaces,
@@ -29,3 +29,5 @@ export const statement = new And("statement", [
     optionalSpaces,
     statements
 ]);
+
+export const statement = new Or("statement", [assignStatement, name.clone("export-name")]);

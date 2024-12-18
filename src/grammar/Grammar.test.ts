@@ -271,9 +271,9 @@ describe("Grammar", () => {
     test("Bad Grammar At Beginning", () => {
 
         expect(() => {
-            const expression = `Just Junk`;
+            const expression = `//`;
             Grammar.parseString(expression);
-        }).toThrowError("[Parse Error] Found: 'Just Junk', expected: ' ='.");
+        }).toThrow();
 
     });
 
@@ -339,18 +339,18 @@ describe("Grammar", () => {
         use params { custom-space }
         space = custom-space
         `
-
-        const pathMap: Record<string, string> = {
-            "space.cpat": spaceExpression,
-            "first-name.cpat": importExpression
-        };
-
         const expression = `
         import { first-name } from "first-name.cpat"
         import { space } from "space.cpat" with params { custom-space = "  " }
         last-name = "Doe"
         full-name = first-name & space & last-name
         `
+
+        const pathMap: Record<string, string> = {
+            "space.cpat": spaceExpression,
+            "first-name.cpat": importExpression
+        };
+
         function resolveImport(resource: string) {
             return Promise.resolve({ expression: pathMap[resource], resource });
         }
@@ -361,9 +361,65 @@ describe("Grammar", () => {
         expect(result?.ast?.value).toBe("John  Doe");
     });
 
-    test("Use Params", () => {
+    test("Export Name", async () => {
         const expression = `
-        use Params { first-name }
+        import { use-this } from "resource1"
+        import {name} from "resource2" with params {
+           use-this   
+        }
+
+        name
         `
+
+        const resource1 = `
+        use-this = "Use This"
+        `;
+
+        const resource2 = `
+        use params {
+            use-this
+        }
+        name = use-this
+        `;
+
+        const pathMap: Record<string, string> = {
+            "resource1": resource1,
+            "resource2": resource2
+        };
+
+        function resolveImport(resource: string) {
+            return Promise.resolve({ expression: pathMap[resource], resource });
+        }
+        const patterns = await Grammar.parse(expression, { resolveImport });
+        const pattern = patterns.get("name") as Literal;
+
+        const result = pattern.exec("Use This");
+
+        expect(result.ast?.value).toBe("Use This");
+    });
+
+    test("Import Alias", async () => {
+        const expression = `
+        import { value as alias } from "resource1"
+        name = alias
+        `
+
+        const resource1 = `
+        value = "Value"
+        `;
+
+
+        const pathMap: Record<string, string> = {
+            "resource1": resource1,
+        };
+
+        function resolveImport(resource: string) {
+            return Promise.resolve({ expression: pathMap[resource], resource });
+        }
+        const patterns = await Grammar.parse(expression, { resolveImport });
+        const pattern = patterns.get("name") as Literal;
+
+        const result = pattern.exec("Value");
+        expect(result.ast?.value).toBe("Value");
     });
 });

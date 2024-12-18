@@ -119,9 +119,15 @@ export class Grammar {
     }
 
     private _buildPatterns(ast: Node) {
-        ast.findAll(n => n.name === "statement").forEach((n) => {
+        const body = ast.find(n => n.name === "body");
+
+        if (body == null) {
+            return;
+        }
+
+        body.findAll(n => n.name === "assign-statement" || n.name === "export-name").forEach((n) => {
             const typeNode = n.find(n => n.name.includes("literal"));
-            const type = typeNode?.name || "unknown";
+            const type = n.name === "export-name" ? "export-name" : typeNode?.name || "unknown";
 
             switch (type) {
                 case "literal": {
@@ -148,6 +154,11 @@ export class Grammar {
                     this._buildAlias(n)
                     break;
                 }
+                case "export-name": {
+                    const pattern = this._getPattern(n.value);
+                    this._parseContext.patternsByName.set(n.value, pattern);
+                    break;
+                }
                 default: {
                     break;
                 }
@@ -172,20 +183,42 @@ export class Grammar {
 
             try {
                 const patterns = await grammar.parse(grammarFile.expression);
-                const importNames = importStatement.findAll(n => n.name === "import-name").map(n => n.value);
+                const importStatements = importStatement.findAll(n => n.name === "import-name" || n.name === "import-alias");
 
-                importNames.forEach((importName) => {
-                    if (parseContext.importedPatternsByName.has(importName)) {
-                        throw new Error(`'${importName}' was already used within another import.`);
+                importStatements.forEach((node) => {
+                    if (node.name === "import-name") {
+                        const importName = node.value;
+
+                        if (parseContext.importedPatternsByName.has(importName)) {
+                            throw new Error(`'${importName}' was already used within another import.`);
+                        }
+
+                        const pattern = patterns.get(importName);
+                        if (pattern == null) {
+                            throw new Error(`Couldn't find pattern with name: ${importName}, from import: ${resource}.`);
+                        }
+
+                        parseContext.importedPatternsByName.set(importName, pattern);
+                    } else {
+                        const importNameNode = node.find(n => n.name === "import-name") as Node;
+                        const importName = importNameNode.value;
+                        const aliasNode = node.find(n => n.name === "import-name-alias") as Node;
+                        const alias = aliasNode.value;
+
+                        if (parseContext.importedPatternsByName.has(alias)) {
+                            throw new Error(`'${alias}' was already used within another import.`);
+                        }
+
+                        const pattern = patterns.get(importName);
+                        if (pattern == null) {
+                            throw new Error(`Couldn't find pattern with name: ${importName}, from import: ${resource}.`);
+                        }
+
+                        parseContext.importedPatternsByName.set(alias, pattern);
                     }
+                });
 
-                    const pattern = patterns.get(importName);
-                    if (pattern == null) {
-                        throw new Error(`Couldn't find pattern with name: ${importName}, from import: ${resource}.`);
-                    }
 
-                    parseContext.importedPatternsByName.set(importName, pattern);
-                })
 
             } catch (e: any) {
                 throw new Error(`Failed loading expression from: "${resource}". Error details: "${e.message}"`);
@@ -199,7 +232,7 @@ export class Grammar {
         const paramsStatement = importStatement.find(n => n.name === "with-params-statement");
 
         if (paramsStatement != null) {
-            const statements = paramsStatement.find(n => n.name === "body");
+            const statements = paramsStatement.find(n => n.name === "with-params-body");
 
             if (statements != null) {
                 const expression = statements.toString();

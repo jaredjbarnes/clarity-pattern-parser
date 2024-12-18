@@ -59,7 +59,11 @@ export class Grammar {
 
     async import(path: string) {
         const grammarFile = await this._resolveImport(path, null);
-        const grammar = new Grammar({ resolveImport: this._resolveImport, originResource: grammarFile.resource });
+        const grammar = new Grammar({
+            resolveImport: this._resolveImport,
+            originResource: grammarFile.resource,
+            params: this._params
+        });
 
         return grammar.parse(grammarFile.expression);
     }
@@ -374,8 +378,8 @@ export class Grammar {
         return grammar.import(path);
     }
 
-    static parseString(expression: string) {
-        const grammar = new Grammar();
+    static parseString(expression: string, options?: GrammarOptions) {
+        const grammar = new Grammar(options);
         return grammar.parseString(expression);
     }
 

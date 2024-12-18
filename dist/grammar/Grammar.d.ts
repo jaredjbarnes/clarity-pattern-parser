@@ -1,17 +1,16 @@
 import { Pattern } from "../patterns/Pattern";
-export interface GrammarMeta {
-    originPath?: string;
-}
 export interface GrammarFile {
-    path: string;
+    resource: string;
     expression: string;
 }
 export interface GrammarOptions {
-    resolveImport?: (path: string, originPath: string | null) => Promise<GrammarFile>;
-    meta?: GrammarMeta | null;
+    resolveImport?: (resource: string, originResource: string | null) => Promise<GrammarFile>;
+    originResource?: string | null;
+    params?: Pattern[];
 }
 export declare class Grammar {
-    private _meta;
+    private _params;
+    private _originResource?;
     private _resolveImport;
     private _parseContext;
     private _autoComplete;
@@ -23,6 +22,7 @@ export declare class Grammar {
     private _hasImports;
     private _buildPatterns;
     private _resolveImports;
+    private _getParams;
     private _buildLiteral;
     private _buildRegex;
     private _buildOr;
@@ -32,5 +32,5 @@ export declare class Grammar {
     private _buildAlias;
     static parse(expression: string, options?: GrammarOptions): Promise<Map<string, Pattern>>;
     static import(path: string, options?: GrammarOptions): Promise<Map<string, Pattern>>;
-    static parseString(expression: string): Map<string, Pattern>;
+    static parseString(expression: string, options?: GrammarOptions): Map<string, Pattern>;
 }

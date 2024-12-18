@@ -1688,6 +1688,17 @@ class And {
     }
 }
 
+const literal = new Regex("literal", "\"(?:\\\\[\"\\\\]|[^\n\"\\\\])*\"");
+
+const tabs$1 = new Regex("tabs", "\\t+");
+const spaces$1 = new Regex("spaces", "[ ]+");
+const newLine$1 = new Regex("new-line", "(\\r?\\n)+");
+spaces$1.setTokens([" "]);
+tabs$1.setTokens(["\t"]);
+newLine$1.setTokens(["\n"]);
+const lineSpaces$1 = new Repeat("line-spaces", new Or("line-space", [tabs$1, spaces$1]));
+const allSpaces = new Regex("all-spaces", "\\s+", true);
+
 const name$1 = new Regex("name", "[a-zA-Z_-]+[a-zA-Z0-9_-]*");
 
 const optionalNot = new Literal("not", "!", true);
@@ -1708,9 +1719,6 @@ divider.setTokens([" | "]);
 const orLiteral = new Repeat("or-literal", name$1.clone("pattern-name"), { divider, min: 2, trimDivider: true });
 
 const regexLiteral = new Regex("regex-literal", "/(\\\\/|[^/\\n\\r])*/");
-
-const spaces$1 = new Regex("spaces", "[ \\t]+");
-spaces$1.setTokens([" "]);
 
 const patternName = name$1.clone("pattern-name");
 const optionalSpaces$2 = spaces$1.clone("optional-spaces", true);
@@ -1764,11 +1772,8 @@ const repeatLiteral = new And("repeat-literal", [
     new And("optional-trim-divider-section", [spaces$1, trimDivider], true)
 ]);
 
-const literal = new Regex("literal", "\"(?:\\\\[\"\\\\]|[^\n\"\\\\])*\"");
-
 const optionalSpaces$1 = spaces$1.clone("optional-spaces", true);
 const assignOperator = new Literal("assign-operator", "=");
-const optionalComment = comment.clone("inline-comment", true);
 const statements = new Or("statements", [
     literal,
     regexLiteral,
@@ -1783,47 +1788,96 @@ const statement = new And("statement", [
     optionalSpaces$1,
     assignOperator,
     optionalSpaces$1,
-    statements,
-    optionalSpaces$1,
-    optionalComment,
-    optionalSpaces$1,
+    statements
 ]);
 
-const spaces = new Regex("spaces", "\\s+", true);
+const bodyLineContent = new Or("body-line-content", [
+    comment,
+    statement
+]);
+const bodyLine = new And("body-line", [
+    lineSpaces$1.clone("line-spaces", true),
+    bodyLineContent,
+    lineSpaces$1.clone("line-spaces", true),
+]);
+const body = new Repeat("body", bodyLine, { divider: newLine$1, min: 0 });
+
 const importNameDivider = new Regex("import-name-divider", "(\\s+)?,(\\s+)?");
 const importKeyword = new Literal("import", "import");
+const useParamsKeyword = new Literal("use-params", "use params");
 const fromKeyword = new Literal("from", "from");
 const openBracket = new Literal("open-bracket", "{");
 const closeBracket = new Literal("close-bracket", "}");
 const name = new Regex("import-name", "[^}\\s,]+");
 const importedNames = new Repeat("imported-names", name, { divider: importNameDivider });
-const optionalSpaces = spaces.clone("optional-spaces", true);
-const importStatement = new And("import-statement", [
-    importKeyword,
+const paramName = name.clone("param-name");
+const paramNames = new Repeat("param-names", paramName, { divider: importNameDivider });
+const optionalSpaces = allSpaces.clone("optional-spaces", true);
+const optionalLineSpaces = lineSpaces$1.clone("options-line-spaces", true);
+const resource = literal.clone("resource");
+const useParams = new And("import-params", [
+    useParamsKeyword,
+    optionalLineSpaces,
+    openBracket,
     optionalSpaces,
+    paramNames,
+    optionalSpaces,
+    closeBracket
+]);
+const withParamsKeyword = new Literal("with-params", "with params");
+const withParamsStatement = new And("with-params-statement", [
+    withParamsKeyword,
+    optionalLineSpaces,
+    openBracket,
+    optionalSpaces,
+    body,
+    optionalSpaces,
+    closeBracket
+], true);
+const importFromStatement = new And("import-from", [
+    importKeyword,
+    optionalLineSpaces,
     openBracket,
     optionalSpaces,
     importedNames,
     optionalSpaces,
     closeBracket,
-    optionalSpaces,
+    optionalLineSpaces,
     fromKeyword,
-    spaces,
-    literal.clone("url"),
+    optionalLineSpaces,
+    resource,
+    optionalLineSpaces,
+    withParamsStatement
+]);
+const importStatement = new Or("import-statement", [
+    useParams,
+    importFromStatement
 ]);
 
-const whitespace = new Regex("whitespace", "[ \\t]+((\\r?\\n)+)?");
+const tabs = new Regex("tabs", "\\t+");
+const spaces = new Regex("spaces", "[ ]+");
 const newLine = new Regex("new-line", "(\\r?\\n)+");
-whitespace.setTokens([" "]);
+spaces.setTokens([" "]);
+tabs.setTokens(["\t"]);
 newLine.setTokens(["\n"]);
-const line = new Or("line", [
-    newLine,
-    whitespace,
+const lineSpaces = new Repeat("line-spaces", new Or("line-space", [tabs, spaces]));
+const headLineContent = new Or("head-line-content", [
     comment,
-    importStatement,
-    statement
+    importStatement
 ]);
-const grammar = new Repeat("grammer", line);
+const headLine = new And("head-line-content", [
+    lineSpaces.clone("line-spaces", true),
+    headLineContent,
+    lineSpaces.clone("line-spaces", true),
+]);
+const head = new Repeat("head", headLine, { divider: newLine, min: 0 });
+const grammar = new And("grammar", [
+    allSpaces,
+    head,
+    allSpaces,
+    body,
+    allSpaces
+]);
 
 class Not {
     get type() {
@@ -2126,9 +2180,11 @@ function getFurthestOptions(options) {
 }
 
 class ParseContext {
-    constructor() {
+    constructor(params) {
         this.patternsByName = new Map();
         this.importedPatternsByName = new Map();
+        this.paramsByName = new Map();
+        params.forEach(p => this.paramsByName.set(p.name, p));
     }
 }
 function defaultImportResolver(_path, _basePath) {
@@ -2136,9 +2192,10 @@ function defaultImportResolver(_path, _basePath) {
 }
 class Grammar {
     constructor(options = {}) {
-        this._meta = options.meta == null ? null : options.meta;
+        this._params = (options === null || options === void 0 ? void 0 : options.params) == null ? [] : options.params;
+        this._originResource = (options === null || options === void 0 ? void 0 : options.originResource) == null ? null : options.originResource;
         this._resolveImport = options.resolveImport == null ? defaultImportResolver : options.resolveImport;
-        this._parseContext = new ParseContext();
+        this._parseContext = new ParseContext(this._params);
         this._autoComplete = new AutoComplete(grammar, {
             greedyPatternNames: ["spaces", "optional-spaces", "whitespace", "new-line"],
             customTokens: {
@@ -2152,13 +2209,17 @@ class Grammar {
     import(path) {
         return __awaiter(this, void 0, void 0, function* () {
             const grammarFile = yield this._resolveImport(path, null);
-            const grammar = new Grammar({ resolveImport: this._resolveImport, meta: { originPath: grammarFile.path } });
+            const grammar = new Grammar({
+                resolveImport: this._resolveImport,
+                originResource: grammarFile.resource,
+                params: this._params
+            });
             return grammar.parse(grammarFile.expression);
         });
     }
     parse(expression) {
         return __awaiter(this, void 0, void 0, function* () {
-            this._parseContext = new ParseContext();
+            this._parseContext = new ParseContext(this._params);
             const ast = this._tryToParse(expression);
             yield this._resolveImports(ast);
             this._buildPatterns(ast);
@@ -2166,7 +2227,7 @@ class Grammar {
         });
     }
     parseString(expression) {
-        this._parseContext = new ParseContext();
+        this._parseContext = new ParseContext(this._params);
         const ast = this._tryToParse(expression);
         if (this._hasImports(ast)) {
             throw new Error("Cannot use imports on parseString, use parse instead.");
@@ -2198,7 +2259,7 @@ class Grammar {
         return importBlock && importBlock.children.length > 0;
     }
     _buildPatterns(ast) {
-        ast.children.forEach((n) => {
+        ast.findAll(n => n.name === "statement").forEach((n) => {
             const typeNode = n.find(n => n.name.includes("literal"));
             const type = (typeNode === null || typeNode === void 0 ? void 0 : typeNode.name) || "unknown";
             switch (type) {
@@ -2230,15 +2291,19 @@ class Grammar {
         });
     }
     _resolveImports(ast) {
-        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             const parseContext = this._parseContext;
-            const importStatements = ast.findAll(n => n.name === "import-statement");
+            const importStatements = ast.findAll(n => n.name === "import-from");
             for (const importStatement of importStatements) {
-                const urlNode = importStatement.find(n => n.name === "url");
-                const url = urlNode.value.slice(1, -1);
-                const grammarFile = yield this._resolveImport(url, ((_a = this._meta) === null || _a === void 0 ? void 0 : _a.originPath) || null);
-                const grammar = new Grammar({ resolveImport: this._resolveImport, meta: { originPath: grammarFile.path } });
+                const resourceNode = importStatement.find(n => n.name === "resource");
+                const params = this._getParams(importStatement);
+                const resource = resourceNode.value.slice(1, -1);
+                const grammarFile = yield this._resolveImport(resource, this._originResource || null);
+                const grammar = new Grammar({
+                    resolveImport: this._resolveImport,
+                    originResource: grammarFile.resource,
+                    params
+                });
                 try {
                     const patterns = yield grammar.parse(grammarFile.expression);
                     const importNames = importStatement.findAll(n => n.name === "import-name").map(n => n.value);
@@ -2248,16 +2313,38 @@ class Grammar {
                         }
                         const pattern = patterns.get(importName);
                         if (pattern == null) {
-                            throw new Error(`Couldn't find pattern with name: ${importName}, from import: ${url}.`);
+                            throw new Error(`Couldn't find pattern with name: ${importName}, from import: ${resource}.`);
                         }
                         parseContext.importedPatternsByName.set(importName, pattern);
                     });
                 }
                 catch (e) {
-                    throw new Error(`Failed loading expression from: "${url}". Error details: "${e.message}"`);
+                    throw new Error(`Failed loading expression from: "${resource}". Error details: "${e.message}"`);
                 }
             }
         });
+    }
+    _getParams(importStatement) {
+        let params = [];
+        const paramsStatement = importStatement.find(n => n.name === "with-params-statement");
+        if (paramsStatement != null) {
+            const statements = paramsStatement.find(n => n.name === "body");
+            if (statements != null) {
+                const expression = statements.toString();
+                const importedValues = Array.from(this
+                    ._parseContext
+                    .importedPatternsByName
+                    .values());
+                const grammar = new Grammar({
+                    params: importedValues,
+                    originResource: this._originResource,
+                    resolveImport: this._resolveImport
+                });
+                const patterns = grammar.parseString(expression);
+                params = Array.from(patterns.values());
+            }
+        }
+        return params;
     }
     _buildLiteral(statementNode) {
         const nameNode = statementNode.find(n => n.name === "name");
@@ -2288,6 +2375,9 @@ class Grammar {
         let pattern = this._parseContext.patternsByName.get(name);
         if (pattern == null) {
             pattern = this._parseContext.importedPatternsByName.get(name);
+        }
+        if (pattern == null) {
+            pattern = this._parseContext.paramsByName.get(name);
         }
         if (pattern == null) {
             return new Reference(name);
@@ -2380,8 +2470,8 @@ class Grammar {
         const grammar = new Grammar(options);
         return grammar.import(path);
     }
-    static parseString(expression) {
-        const grammar = new Grammar();
+    static parseString(expression, options) {
+        const grammar = new Grammar(options);
         return grammar.parseString(expression);
     }
 }

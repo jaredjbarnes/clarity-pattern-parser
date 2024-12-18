@@ -1,2 +1,2 @@
-import { And } from "../../patterns/And";
-export declare const importStatement: And;
+import { Or } from "../../patterns/Or";
+export declare const importStatement: Or;

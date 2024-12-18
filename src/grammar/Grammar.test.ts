@@ -296,9 +296,9 @@ describe("Grammar", () => {
         space = " "
         full-name = first-name & space & last-name
         `
-        function resolveImport(path: string) {
-            expect(path).toBe("some/path/to/file.cpat");
-            return Promise.resolve({ expression: importExpression, path });
+        function resolveImport(resource: string) {
+            expect(resource).toBe("some/path/to/file.cpat");
+            return Promise.resolve({ expression: importExpression, resource });
         }
 
         const patterns = await Grammar.parse(expression, { resolveImport });
@@ -323,8 +323,8 @@ describe("Grammar", () => {
         last-name = "Doe"
         full-name = first-name & space & last-name
         `
-        function resolveImport(path: string) {
-            return Promise.resolve({ expression: pathMap[path], path });
+        function resolveImport(resource: string) {
+            return Promise.resolve({ expression: pathMap[resource], resource });
         }
 
         const patterns = await Grammar.parse(expression, { resolveImport });
@@ -333,4 +333,37 @@ describe("Grammar", () => {
         expect(result?.ast?.value).toBe("John Doe");
     });
 
+    test("Imports with Params", async () => {
+        const importExpression = `first-name = "John"`;
+        const spaceExpression = `
+        use params { custom-space }
+        space = custom-space
+        `
+
+        const pathMap: Record<string, string> = {
+            "space.cpat": spaceExpression,
+            "first-name.cpat": importExpression
+        };
+
+        const expression = `
+        import { first-name } from "first-name.cpat"
+        import { space } from "space.cpat" with params { custom-space = "  " }
+        last-name = "Doe"
+        full-name = first-name & space & last-name
+        `
+        function resolveImport(resource: string) {
+            return Promise.resolve({ expression: pathMap[resource], resource });
+        }
+
+        const patterns = await Grammar.parse(expression, { resolveImport });
+        const fullname = patterns.get("full-name") as Pattern;
+        const result = fullname.exec("John  Doe");
+        expect(result?.ast?.value).toBe("John  Doe");
+    });
+
+    test("Use Params", () => {
+        const expression = `
+        use Params { first-name }
+        `
+    });
 });

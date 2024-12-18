@@ -11,38 +11,41 @@ import { Repeat, RepeatOptions } from "../patterns/Repeat";
 import { AutoComplete } from "../intellisense/AutoComplete";
 
 class ParseContext {
+    constructor(params: Pattern[]) {
+        params.forEach(p => this.paramsByName.set(p.name, p));
+    }
     patternsByName = new Map<string, Pattern>();
     importedPatternsByName = new Map<string, Pattern>();
+    paramsByName = new Map<string, Pattern>();
 }
 
 function defaultImportResolver(_path: string, _basePath: string | null): Promise<GrammarFile> {
     throw new Error("No import resolver supplied.");
 }
 
-export interface GrammarMeta {
-    originPath?: string;
-}
-
 export interface GrammarFile {
-    path: string;
+    resource: string;
     expression: string;
 }
 
 export interface GrammarOptions {
-    resolveImport?: (path: string, originPath: string | null) => Promise<GrammarFile>;
-    meta?: GrammarMeta | null;
+    resolveImport?: (resource: string, originResource: string | null) => Promise<GrammarFile>;
+    originResource?: string | null;
+    params?: Pattern[];
 }
 
 export class Grammar {
-    private _meta: GrammarMeta | null;
-    private _resolveImport: (path: string, basePath: string | null) => Promise<GrammarFile>;
+    private _params: Pattern[];
+    private _originResource?: string | null;
+    private _resolveImport: (resource: string, originResource: string | null) => Promise<GrammarFile>;
     private _parseContext: ParseContext;
     private _autoComplete: AutoComplete;
 
     constructor(options: GrammarOptions = {}) {
-        this._meta = options.meta == null ? null : options.meta;
+        this._params = options?.params == null ? [] : options.params;
+        this._originResource = options?.originResource == null ? null : options.originResource;
         this._resolveImport = options.resolveImport == null ? defaultImportResolver : options.resolveImport;
-        this._parseContext = new ParseContext();
+        this._parseContext = new ParseContext(this._params);
         this._autoComplete = new AutoComplete(grammar, {
             greedyPatternNames: ["spaces", "optional-spaces", "whitespace", "new-line"],
             customTokens: {
@@ -56,13 +59,13 @@ export class Grammar {
 
     async import(path: string) {
         const grammarFile = await this._resolveImport(path, null);
-        const grammar = new Grammar({ resolveImport: this._resolveImport, meta: { originPath: grammarFile.path } });
+        const grammar = new Grammar({ resolveImport: this._resolveImport, originResource: grammarFile.resource });
 
         return grammar.parse(grammarFile.expression);
     }
 
     async parse(expression: string) {
-        this._parseContext = new ParseContext();
+        this._parseContext = new ParseContext(this._params);
         const ast = this._tryToParse(expression);
 
         await this._resolveImports(ast);
@@ -72,7 +75,7 @@ export class Grammar {
     }
 
     parseString(expression: string) {
-        this._parseContext = new ParseContext();
+        this._parseContext = new ParseContext(this._params);
         const ast = this._tryToParse(expression);
 
         if (this._hasImports(ast)) {
@@ -112,7 +115,7 @@ export class Grammar {
     }
 
     private _buildPatterns(ast: Node) {
-        ast.children.forEach((n) => {
+        ast.findAll(n => n.name === "statement").forEach((n) => {
             const typeNode = n.find(n => n.name.includes("literal"));
             const type = typeNode?.name || "unknown";
 
@@ -150,14 +153,18 @@ export class Grammar {
 
     private async _resolveImports(ast: Node) {
         const parseContext = this._parseContext;
-        const importStatements = ast.findAll(n => n.name === "import-statement");
+        const importStatements = ast.findAll(n => n.name === "import-from");
 
         for (const importStatement of importStatements) {
-            const urlNode = importStatement.find(n => n.name === "url") as Node;
-
-            const url = urlNode.value.slice(1, -1);
-            const grammarFile = await this._resolveImport(url, this._meta?.originPath || null);
-            const grammar = new Grammar({ resolveImport: this._resolveImport, meta: { originPath: grammarFile.path } });
+            const resourceNode = importStatement.find(n => n.name === "resource") as Node;
+            const params = this._getParams(importStatement);
+            const resource = resourceNode.value.slice(1, -1);
+            const grammarFile = await this._resolveImport(resource, this._originResource || null);
+            const grammar = new Grammar({
+                resolveImport: this._resolveImport,
+                originResource: grammarFile.resource,
+                params
+            });
 
             try {
                 const patterns = await grammar.parse(grammarFile.expression);
@@ -170,17 +177,46 @@ export class Grammar {
 
                     const pattern = patterns.get(importName);
                     if (pattern == null) {
-                        throw new Error(`Couldn't find pattern with name: ${importName}, from import: ${url}.`);
+                        throw new Error(`Couldn't find pattern with name: ${importName}, from import: ${resource}.`);
                     }
 
                     parseContext.importedPatternsByName.set(importName, pattern);
                 })
 
             } catch (e: any) {
-                throw new Error(`Failed loading expression from: "${url}". Error details: "${e.message}"`);
+                throw new Error(`Failed loading expression from: "${resource}". Error details: "${e.message}"`);
             }
 
         }
+    }
+
+    private _getParams(importStatement: Node) {
+        let params: Pattern[] = [];
+        const paramsStatement = importStatement.find(n => n.name === "with-params-statement");
+
+        if (paramsStatement != null) {
+            const statements = paramsStatement.find(n => n.name === "body");
+
+            if (statements != null) {
+                const expression = statements.toString();
+                const importedValues = Array.from(this
+                    ._parseContext
+                    .importedPatternsByName
+                    .values()
+                )
+
+                const grammar = new Grammar({
+                    params: importedValues,
+                    originResource: this._originResource,
+                    resolveImport: this._resolveImport
+                });
+
+                const patterns = grammar.parseString(expression);
+                params = Array.from(patterns.values());
+            }
+        }
+
+        return params;
     }
 
     private _buildLiteral(statementNode: Node) {
@@ -221,6 +257,10 @@ export class Grammar {
 
         if (pattern == null) {
             pattern = this._parseContext.importedPatternsByName.get(name);
+        }
+
+        if (pattern == null) {
+            pattern = this._parseContext.paramsByName.get(name);
         }
 
         if (pattern == null) {

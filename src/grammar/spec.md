@@ -164,3 +164,27 @@ import { last-name } from "https://some.cdn.com/some/last-name.cpat"
 
 full-name = first-name & spaces & last-name
 ```
+
+### Import Params
+This allows you to inject patterns within another pattern.
+```ts
+const firstName = new Literal("first-name", "Jared");
+const grammar = Grammar.import('file.cpat', {params: [firstName, LastName]})
+```
+file.cpat
+```
+import params { first-names, last-names } 
+
+full-name = first-names & spaces & last-names
+```
+
+### Imports with Params
+```
+import params { other-pattern }
+import { first-names, last-names } from "some-file.cpat" with params {
+    some-pattern = "Some Pattern"
+    some-pattern2 = other-pattern
+}
+
+full-name = first-names & spaces & last-names
+```

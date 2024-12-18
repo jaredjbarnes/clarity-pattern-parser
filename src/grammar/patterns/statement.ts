@@ -8,11 +8,9 @@ import { regexLiteral } from "./regexLiteral";
 import { repeatLiteral } from "./repeatLiteral";
 import { spaces } from "./spaces";
 import { literal } from "./literal";
-import { comment } from "./comment";
 
 const optionalSpaces = spaces.clone("optional-spaces", true);
 const assignOperator = new Literal("assign-operator", "=");
-const optionalComment = comment.clone("inline-comment", true);
 
 const statements = new Or("statements", [
     literal,
@@ -29,8 +27,5 @@ export const statement = new And("statement", [
     optionalSpaces,
     assignOperator,
     optionalSpaces,
-    statements,
-    optionalSpaces,
-    optionalComment,
-    optionalSpaces,
+    statements
 ]);

@@ -24,6 +24,7 @@ export declare class Grammar {
     private _resolveImports;
     private _getParams;
     private _buildLiteral;
+    private _resolveStringValue;
     private _buildRegex;
     private _buildOr;
     private _getPattern;

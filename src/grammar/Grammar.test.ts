@@ -20,6 +20,17 @@ describe("Grammar", () => {
         expect(namePattern).toEqual(expected);
     });
 
+    test("Literal With Escaped Characters", () => {
+        const expression = `
+            chars = "\\n\\r\\t\\b\\f\\v\\0\\x00\\u0000\\"\\\\"
+        `;
+        const patterns = Grammar.parseString(expression);
+        const namePattern = patterns.get("chars");
+        const expected = new Literal("chars", "\n\r\t\b\f\v\0\x00\u0000\"\\");
+
+        expect(namePattern).toEqual(expected);
+    });
+
     test("Regex", () => {
         const expression = `
             name = /\\w/

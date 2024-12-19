@@ -186,7 +186,7 @@ export class Grammar {
                 const importStatements = importStatement.findAll(n => n.name === "import-name" || n.name === "import-alias");
 
                 importStatements.forEach((node) => {
-                    if (node.name === "import-name" && node.parent?.name === "import-alias"){
+                    if (node.name === "import-name" && node.parent?.name === "import-alias") {
                         return;
                     }
 
@@ -263,11 +263,24 @@ export class Grammar {
     private _buildLiteral(statementNode: Node) {
         const nameNode = statementNode.find(n => n.name === "name") as Node;
         const literalNode = statementNode.find(n => n.name === "literal") as Node;
-        const value = literalNode.value.slice(1, literalNode.value.length - 1);
         const name = nameNode.value;
+        const value = this._resolveStringValue(literalNode.value.slice(1, -1));
         const literal = new Literal(name, value);
 
         this._parseContext.patternsByName.set(name, literal)
+    }
+
+    private _resolveStringValue(value: string) {
+        return value.replace(/\\n/g, '\n')
+            .replace(/\\r/g, '\r')
+            .replace(/\\t/g, '\t')
+            .replace(/\\b/g, '\b')
+            .replace(/\\f/g, '\f')
+            .replace(/\\v/g, '\v')
+            .replace(/\\0/g, '\0')
+            .replace(/\\x([0-9A-Fa-f]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+            .replace(/\\u([0-9A-Fa-f]{4})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+            .replace(/\\(.)/g, '$1');
     }
 
     private _buildRegex(statementNode: Node) {

@@ -1684,7 +1684,7 @@ class And {
     }
 }
 
-const literal = new Regex("literal", "\"(?:\\\\[\"\\\\]|[^\n\"\\\\])*\"");
+const literal = new Regex("literal", '"((?:\\\\.|[^"\\\\])*)"');
 
 const tabs$1 = new Regex("tabs", "\\t+");
 const spaces$1 = new Regex("spaces", "[ ]+");
@@ -2379,10 +2379,22 @@ class Grammar {
     _buildLiteral(statementNode) {
         const nameNode = statementNode.find(n => n.name === "name");
         const literalNode = statementNode.find(n => n.name === "literal");
-        const value = literalNode.value.slice(1, literalNode.value.length - 1);
         const name = nameNode.value;
+        const value = this._resolveStringValue(literalNode.value.slice(1, -1));
         const literal = new Literal(name, value);
         this._parseContext.patternsByName.set(name, literal);
+    }
+    _resolveStringValue(value) {
+        return value.replace(/\\n/g, '\n')
+            .replace(/\\r/g, '\r')
+            .replace(/\\t/g, '\t')
+            .replace(/\\b/g, '\b')
+            .replace(/\\f/g, '\f')
+            .replace(/\\v/g, '\v')
+            .replace(/\\0/g, '\0')
+            .replace(/\\x([0-9A-Fa-f]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+            .replace(/\\u([0-9A-Fa-f]{4})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+            .replace(/\\(.)/g, '$1');
     }
     _buildRegex(statementNode) {
         const nameNode = statementNode.find(n => n.name === "name");

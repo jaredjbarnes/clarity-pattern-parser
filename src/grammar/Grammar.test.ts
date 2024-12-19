@@ -31,6 +31,17 @@ describe("Grammar", () => {
         expect(namePattern).toEqual(expected);
     });
 
+    test("Literal With Escaped Quotes", () => {
+        const expression = `
+            content = "With Con\\"tent"
+        `;
+        const patterns = Grammar.parseString(expression);
+        const namePattern = patterns.get("content");
+        const expected = new Literal("content", "With Con\"tent");
+
+        expect(namePattern).toEqual(expected);
+    });
+
     test("Regex", () => {
         const expression = `
             name = /\\w/

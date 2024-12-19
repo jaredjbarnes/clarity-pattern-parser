@@ -1690,7 +1690,7 @@
         }
     }
 
-    const literal = new Regex("literal", '"((?:\\\\.|[^"\\\\])*)"');
+    const literal = new Regex("literal", '"(?:\\\\.|[^"\\\\])*"');
 
     const tabs$1 = new Regex("tabs", "\\t+");
     const spaces$1 = new Regex("spaces", "[ ]+");

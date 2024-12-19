@@ -267,7 +267,7 @@ export class Grammar {
         const value = this._resolveStringValue(literalNode.value.slice(1, -1));
         const literal = new Literal(name, value);
 
-        this._parseContext.patternsByName.set(name, literal)
+        this._parseContext.patternsByName.set(name, literal);
     }
 
     private _resolveStringValue(value: string) {

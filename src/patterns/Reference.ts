@@ -2,6 +2,7 @@ import { Node } from "../ast/Node";
 import { Cursor } from "./Cursor";
 import { Pattern } from "./Pattern";
 import { findPattern } from "./findPattern";
+import { ParseResult } from "./ParseResult";
 
 export class Reference implements Pattern {
   private _type: string;
@@ -51,8 +52,10 @@ export class Reference implements Pattern {
     return ast?.value === text;
   }
 
-  exec(text: string) {
+  exec(text: string, record = false): ParseResult {
     const cursor = new Cursor(text);
+    record && cursor.startRecording();
+    
     const ast = this.parse(cursor);
 
     return {

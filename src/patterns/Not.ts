@@ -1,5 +1,6 @@
 import { Node } from "../ast/Node";
 import { Cursor } from "./Cursor";
+import { ParseResult } from "./ParseResult";
 import { Pattern } from "./Pattern";
 
 export class Not implements Pattern {
@@ -47,17 +48,21 @@ export class Not implements Pattern {
     return !cursor.hasError;
   }
 
-  exec(text: string) {
+  exec(text: string, record = false): ParseResult {
     const cursor = new Cursor(text);
+    record && cursor.startRecording();
+    
     const ast = this.parse(cursor);
 
     return {
-      ast,
+      ast: ast?.value === text ? ast : null,
       cursor
     };
   }
 
   parse(cursor: Cursor): Node | null {
+    cursor.pushPatternStack(this);
+
     const firstIndex = cursor.index;
     this._children[0].parse(cursor);
 
@@ -70,6 +75,7 @@ export class Not implements Pattern {
       cursor.recordErrorAt(firstIndex, firstIndex, this);
     }
 
+    cursor.popPatternStack();
     return null;
   }
 

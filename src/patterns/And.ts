@@ -68,8 +68,10 @@ export class And implements Pattern {
     return ast?.value === text;
   }
 
-  exec(text: string) {
+  exec(text: string, record = false) {
     const cursor = new Cursor(text);
+    record && cursor.startRecording();
+
     const ast = this.parse(cursor);
 
     return {
@@ -79,6 +81,8 @@ export class And implements Pattern {
   }
 
   parse(cursor: Cursor): Node | null {
+    cursor.pushPatternStack(this);
+
     this._firstIndex = cursor.index;
     this._nodes = [];
 
@@ -91,6 +95,7 @@ export class And implements Pattern {
         cursor.recordMatch(this, node);
       }
 
+      cursor.popPatternStack();
       return node;
     }
 
@@ -98,6 +103,7 @@ export class And implements Pattern {
       cursor.resolveError();
     }
 
+    cursor.popPatternStack();
     return null;
   }
 

@@ -3,6 +3,7 @@ import { Cursor } from "./Cursor";
 import { Pattern } from "./Pattern";
 import { clonePatterns } from "./clonePatterns";
 import { findPattern } from "./findPattern";
+import { ParseResult } from "./ParseResult";
 
 export class Or implements Pattern {
   private _type: string;
@@ -67,8 +68,10 @@ export class Or implements Pattern {
     return ast?.value === text;
   }
 
-  exec(text: string) {
+  exec(text: string, record = false): ParseResult {
     const cursor = new Cursor(text);
+    record && cursor.startRecording();
+    
     const ast = this.parse(cursor);
 
     return {
@@ -78,6 +81,7 @@ export class Or implements Pattern {
   }
 
   parse(cursor: Cursor): Node | null {
+    cursor.pushPatternStack(this);
     this._firstIndex = cursor.index;
 
     const node = this._tryToParse(cursor);
@@ -85,16 +89,22 @@ export class Or implements Pattern {
     if (node != null) {
       cursor.moveTo(node.lastIndex);
       cursor.resolveError();
-      return node
+
+      cursor.popPatternStack();
+      return node;
     }
 
     if (!this._isOptional) {
-      cursor.recordErrorAt(this._firstIndex, this._firstIndex, this)
+      cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
+
+      cursor.popPatternStack();
       return null;
     }
 
     cursor.resolveError();
     cursor.moveTo(this._firstIndex);
+
+    cursor.popPatternStack();
     return null;
   }
 

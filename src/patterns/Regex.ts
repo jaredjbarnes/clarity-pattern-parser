@@ -1,6 +1,7 @@
 import { Node } from "../ast/Node";
 import { Pattern } from "./Pattern";
 import { Cursor } from "./Cursor";
+import { ParseResult } from "./ParseResult";
 
 export class Regex implements Pattern {
   private _type: string;
@@ -76,8 +77,10 @@ export class Regex implements Pattern {
     return ast?.value === text;
   }
 
-  exec(text: string) {
+  exec(text: string, record = false): ParseResult {
     const cursor = new Cursor(text);
+    record && cursor.startRecording();
+
     const ast = this.parse(cursor);
 
     return {
@@ -87,10 +90,13 @@ export class Regex implements Pattern {
   }
 
   parse(cursor: Cursor) {
+    cursor.pushPatternStack(this);
+
     this._firstIndex = cursor.index;
     this.resetState(cursor);
     this.tryToParse(cursor);
 
+    cursor.popPatternStack();
     return this._node;
   }
 

@@ -72,18 +72,19 @@ export class FiniteRepeat implements Pattern {
     }
 
     parse(cursor: Cursor): Node | null {
+        cursor.pushPatternStack(this);
+
         const startIndex = cursor.index;
         const nodes: Node[] = [];
         const modulo = this._hasDivider ? 2 : 1;
         let matchCount = 0;
-
 
         for (let i = 0; i < this._children.length; i++) {
             const childPattern = this._children[i];
             const node = childPattern.parse(cursor);
 
             if (i % modulo === 0 && !cursor.hasError) {
-                matchCount++
+                matchCount++;
             }
 
             if (cursor.hasError) {
@@ -106,7 +107,7 @@ export class FiniteRepeat implements Pattern {
         if (this._trimDivider && this._hasDivider) {
             if (cursor.leafMatch.pattern === this.children[1]) {
                 const node = nodes.pop() as Node;
-                cursor.moveTo(node.firstIndex)
+                cursor.moveTo(node.firstIndex);
             }
         }
 
@@ -114,10 +115,12 @@ export class FiniteRepeat implements Pattern {
             const lastIndex = cursor.index;
             cursor.moveTo(startIndex);
             cursor.recordErrorAt(startIndex, lastIndex, this);
+            cursor.popPatternStack();
             return null;
         } else if (nodes.length === 0) {
             cursor.resolveError();
-            cursor.moveTo(startIndex)
+            cursor.moveTo(startIndex);
+            cursor.popPatternStack();
             return null;
         }
 
@@ -126,6 +129,7 @@ export class FiniteRepeat implements Pattern {
 
         cursor.moveTo(lastIndex);
 
+        cursor.popPatternStack();
         return new Node(this._type, this.name, firstIndex, lastIndex, nodes);
     }
 
@@ -136,8 +140,10 @@ export class FiniteRepeat implements Pattern {
         return ast?.value === text;
     }
 
-    exec(text: string): ParseResult {
+    exec(text: string, record = false): ParseResult {
         const cursor = new Cursor(text);
+        record && cursor.startRecording();
+
         const ast = this.parse(cursor);
 
         return {

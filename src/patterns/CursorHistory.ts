@@ -2,6 +2,11 @@ import { Node } from "../ast/Node";
 import { ParseError } from "./ParseError";
 import { Pattern } from "./Pattern";
 
+export interface Trace {
+  patternName: string;
+  cursorIndex: number;
+}
+
 export interface Match {
   pattern: Pattern | null;
   node: Node | null;
@@ -16,6 +21,7 @@ export class CursorHistory {
   private _patterns: Pattern[] = [];
   private _nodes: Node[] = [];
   private _errors: ParseError[] = [];
+  private _trace: Trace[] = [];
 
   get isRecording(): boolean {
     return this._isRecording;
@@ -42,7 +48,7 @@ export class CursorHistory {
   }
 
   get error(): ParseError | null {
-    return this._currentError
+    return this._currentError;
   }
 
   get nodes(): Node[] {
@@ -51,6 +57,10 @@ export class CursorHistory {
 
   get patterns(): Pattern[] {
     return this._patterns;
+  }
+
+  get trace(): Trace[] {
+    return this._trace;
   }
 
   recordMatch(pattern: Pattern, node: Node): void {
@@ -67,7 +77,7 @@ export class CursorHistory {
       leafMatch.node === null || node.lastIndex > leafMatch.node.lastIndex;
 
     const isSameIndexMatch =
-      leafMatch.node === null || node.lastIndex === leafMatch.node.lastIndex
+      leafMatch.node === null || node.lastIndex === leafMatch.node.lastIndex;
 
     if (isFurthestMatch) {
       // This is to save on GC churn.
@@ -85,10 +95,10 @@ export class CursorHistory {
           if (parent === pattern.parent) {
             return true;
           }
-          parent = parent.parent
+          parent = parent.parent;
         }
         return false;
-      })
+      });
 
       if (!isAncestor) {
         this._leafMatches.unshift({ pattern, node });
@@ -119,6 +129,12 @@ export class CursorHistory {
 
   resolveError() {
     this._currentError = null;
+  }
+
+  pushStackTrace(trace: Trace) {
+    if (this._isRecording) {
+      this._trace.push(trace);
+    }
   }
 
 }

@@ -2,21 +2,18 @@ import { And } from "../../patterns/And";
 import { Literal } from "../../patterns/Literal";
 import { Or } from "../../patterns/Or";
 import { Regex } from "../../patterns/Regex";
+import { inlinePattern } from "./inlinePattern";
 import { name } from "./name";
 import { spaces } from "./spaces";
 
-const patternName = name.clone("pattern-name");
-
 const optionalSpaces = spaces.clone("optional-spaces", true);
-const dividerPattern = name.clone("divider-pattern");
-
 const openBracket = new Literal("open-bracket", "{");
 const closeBracket = new Literal("close-bracket", "}");
 const comma = new Literal("comma", ",");
 const integer = new Regex("integer", "([1-9][0-9]*)|0");
 integer.setTokens(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]);
 
-const optionalInteger = integer.clone("integer", true)
+const optionalInteger = integer.clone("integer", true);
 
 const bounds = new And("bounds", [
     openBracket,
@@ -48,15 +45,20 @@ const quantifier = new Or("quantifier", [
 
 const optional = new Literal("is-optional", "?", true);
 const trimDivider = new Literal("trim-divider", "-t");
-const openParen = new Literal("open-paren", "(");
-const closeParen = new Literal("close-paren", ")");
+const openParen = new Literal("repeat-open-paren", "(");
+const closeParen = new Literal("repeat-close-paren", ")");
 const dividerComma = new Regex("divider-comma", "\\s*,\\s*");
 dividerComma.setTokens([", "]);
+
+
+const patternName = name.clone("pattern-name");
+const patterns = new Or("or-patterns", [patternName, inlinePattern]);
+const dividerPattern = patterns.clone("divider-pattern");
 
 export const repeatLiteral = new And("repeat-literal", [
     openParen,
     optionalSpaces,
-    patternName,
+    patterns,
     optional,
     new And("optional-divider-section", [dividerComma, dividerPattern], true),
     optionalSpaces,

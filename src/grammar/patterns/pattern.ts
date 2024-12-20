@@ -1,13 +1,21 @@
+import { Or } from "../../patterns/Or";
+import { literal } from "./literal";
+import { regexLiteral } from "./regexLiteral";
+import { repeatLiteral } from "./repeatLiteral";
+import { andLiteral } from "./andLiteral";
+import { orLiteral } from "./orLiteral";
+import { inlinePattern } from "./inlinePattern";
 import { And } from "../../patterns/And";
 import { Literal } from "../../patterns/Literal";
-import { name } from "./name";
 
-const optionalNot = new Literal("not", "!", true);
 const optionalIsOptional = new Literal("is-optional", "?", true);
-const patternName = name.clone("pattern-name");
+const configurableInlinePattern = new And("configurable-inline-pattern", [inlinePattern, optionalIsOptional]);
 
-export const pattern = new And("pattern", [
-    optionalNot,
-    patternName,
-    optionalIsOptional,
-]);
+export const pattern = new Or("pattern", [
+    literal,
+    regexLiteral,
+    repeatLiteral,
+    orLiteral,
+    andLiteral,
+    configurableInlinePattern,
+], false, true);

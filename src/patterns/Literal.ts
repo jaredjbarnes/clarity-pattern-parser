@@ -1,5 +1,6 @@
 import { Node } from "../ast/Node";
 import { Cursor } from "./Cursor";
+import { ParseResult } from "./ParseResult";
 import { Pattern } from "./Pattern";
 
 export class Literal implements Pattern {
@@ -60,8 +61,10 @@ export class Literal implements Pattern {
     return ast?.value === text;
   }
 
-  exec(text: string) {
+  exec(text: string, record = false): ParseResult {
     const cursor = new Cursor(text);
+    record && cursor.startRecording();
+    
     const ast = this.parse(cursor);
 
     return {
@@ -71,6 +74,8 @@ export class Literal implements Pattern {
   }
 
   parse(cursor: Cursor): Node | null {
+    cursor.pushPatternStack(this);
+
     this._firstIndex = cursor.index;
 
     const passed = this._tryToParse(cursor);
@@ -80,16 +85,21 @@ export class Literal implements Pattern {
       const node = this._createNode();
       cursor.recordMatch(this, node);
 
+      cursor.popPatternStack();
       return node;
     }
 
     if (!this._isOptional) {
-      cursor.recordErrorAt(this._firstIndex, this._endIndex, this)
+      cursor.recordErrorAt(this._firstIndex, this._endIndex, this);
+
+      cursor.popPatternStack();
       return null;
     }
 
     cursor.resolveError();
     cursor.moveTo(this._firstIndex);
+    
+    cursor.popPatternStack();
     return null;
   }
 
@@ -103,7 +113,7 @@ export class Literal implements Pattern {
 
       if (literalRune !== cursorRune) {
         this._endIndex = cursor.index;
-        break
+        break;
       }
 
       if (i + 1 === literalRuneLength) {

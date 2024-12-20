@@ -126,12 +126,14 @@ export class Grammar {
         }
 
         body.findAll(n => n.name === "assign-statement" || n.name === "export-name").forEach((n) => {
+            
+
             const typeNode = n.find(n => n.name.includes("literal"));
             const type = n.name === "export-name" ? "export-name" : typeNode?.name || "unknown";
 
             switch (type) {
                 case "literal": {
-                    this._buildLiteral(n)
+                    this._buildLiteral(n);
                     break;
                 }
                 case "regex-literal": {
@@ -151,7 +153,7 @@ export class Grammar {
                     break;
                 }
                 case "alias-literal": {
-                    this._buildAlias(n)
+                    this._buildAlias(n);
                     break;
                 }
                 case "export-name": {

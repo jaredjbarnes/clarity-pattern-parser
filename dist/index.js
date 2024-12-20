@@ -1701,26 +1701,13 @@ const allSpaces = new Regex("all-spaces", "\\s+", true);
 
 const name$1 = new Regex("name", "[a-zA-Z_-]+[a-zA-Z0-9_-]*");
 
-const optionalNot = new Literal("not", "!", true);
-const optionalIsOptional = new Literal("is-optional", "?", true);
-const patternName$1 = name$1.clone("pattern-name");
-const pattern = new And("pattern", [
-    optionalNot,
-    patternName$1,
-    optionalIsOptional,
-]);
-
-const divider$1 = new Regex("and-divider", "\\s*[&]\\s*");
-divider$1.setTokens([" & "]);
-const andLiteral = new Repeat("and-literal", pattern, { divider: divider$1, min: 2, trimDivider: true });
-
-const divider = new Regex("or-divider", "\\s*[|]\\s*");
-divider.setTokens([" | "]);
-const orLiteral = new Repeat("or-literal", name$1.clone("pattern-name"), { divider, min: 2, trimDivider: true });
+const divider$1 = new Regex("or-divider", "\\s*[|]\\s*");
+divider$1.setTokens([" | "]);
+const orLiteral = new Repeat("or-literal", name$1.clone("pattern-name"), { divider: divider$1, min: 2, trimDivider: true });
 
 const regexLiteral = new Regex("regex-literal", "/(\\\\/|[^/\\n\\r])*/");
 
-const patternName = name$1.clone("pattern-name");
+const patternName$1 = name$1.clone("pattern-name");
 const optionalSpaces$2 = spaces$1.clone("optional-spaces", true);
 const dividerPattern = name$1.clone("divider-pattern");
 const openBracket$1 = new Literal("open-bracket", "{");
@@ -1763,7 +1750,7 @@ dividerComma.setTokens([", "]);
 const repeatLiteral = new And("repeat-literal", [
     openParen,
     optionalSpaces$2,
-    patternName,
+    patternName$1,
     optional,
     new And("optional-divider-section", [dividerComma, dividerPattern], true),
     optionalSpaces$2,
@@ -1771,6 +1758,40 @@ const repeatLiteral = new And("repeat-literal", [
     new And("quantifier-section", [optionalSpaces$2, quantifier]),
     new And("optional-trim-divider-section", [spaces$1, trimDivider], true)
 ]);
+
+const inlinePatternOpenParen = new Literal("inline-pattern-open-paren", "(");
+const inlinePatternCloseParen = new Literal("inline-pattern-close-paren", ")");
+const optionalLineSpaces$1 = lineSpaces$1.clone(undefined, true);
+const patterns = new Or("patterns", [
+    literal,
+    regexLiteral,
+    orLiteral,
+    andLiteral,
+    repeatLiteral,
+    name$1.clone("alias-literal"),
+    new Reference("inline-pattern")
+]);
+const inlinePattern = new And("inline-pattern", [
+    inlinePatternOpenParen,
+    optionalLineSpaces$1,
+    patterns,
+    optionalLineSpaces$1,
+    inlinePatternCloseParen
+]);
+
+const optionalNot = new Literal("not", "!", true);
+const optionalIsOptional = new Literal("is-optional", "?", true);
+const patternName = name$1.clone("pattern-name");
+const patternOptions = new Or("pattern-options", [patternName, inlinePattern]);
+const pattern = new And("pattern", [
+    optionalNot,
+    patternOptions,
+    optionalIsOptional,
+]);
+
+const divider = new Regex("and-divider", "\\s*[&]\\s*");
+divider.setTokens([" & "]);
+const andLiteral = new Repeat("and-literal", pattern, { divider, min: 2, trimDivider: true });
 
 const optionalSpaces$1 = spaces$1.clone("optional-spaces", true);
 const assignOperator = new Literal("assign-operator", "=");

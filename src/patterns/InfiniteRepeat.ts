@@ -3,6 +3,7 @@ import { Cursor } from "./Cursor";
 import { Pattern } from "./Pattern";
 import { clonePatterns } from "./clonePatterns";
 import { findPattern } from "./findPattern";
+import { ParseResult } from "./ParseResult";
 
 export interface InfiniteRepeatOptions {
   divider?: Pattern;
@@ -88,8 +89,10 @@ export class InfiniteRepeat implements Pattern {
     return ast?.value === text;
   }
 
-  exec(text: string) {
+  exec(text: string, record = false): ParseResult {
     const cursor = new Cursor(text);
+    record && cursor.startRecording();
+
     const ast = this.parse(cursor);
 
     return {
@@ -99,6 +102,8 @@ export class InfiniteRepeat implements Pattern {
   }
 
   parse(cursor: Cursor): Node | null {
+    cursor.pushPatternStack(this);
+
     this._firstIndex = cursor.index;
     this._nodes = [];
 
@@ -113,14 +118,17 @@ export class InfiniteRepeat implements Pattern {
         cursor.recordMatch(this, node);
       }
 
+      cursor.popPatternStack();
       return node;
     }
 
     if (this._min > 0) {
+      cursor.popPatternStack();
       return null;
     }
 
     cursor.resolveError();
+    cursor.popPatternStack();
     return null;
   }
 

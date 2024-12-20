@@ -1,5 +1,5 @@
 import { Node } from "../ast/Node";
-import { CursorHistory, Match } from "./CursorHistory";
+import { CursorHistory, Match, Trace } from "./CursorHistory";
 import { ParseError } from "./ParseError";
 import { Pattern } from "./Pattern";
 
@@ -8,6 +8,7 @@ export class Cursor {
   private _index: number;
   private _length: number;
   private _history: CursorHistory;
+  private _stackTrace: Trace[];
 
   get text(): string {
     return this._text;
@@ -66,11 +67,11 @@ export class Cursor {
   }
 
   get hasError(): boolean {
-    return this._history.error != null
+    return this._history.error != null;
   }
 
   get currentChar(): string {
-    return this._text[this._index]
+    return this._text[this._index];
   }
 
   constructor(text: string) {
@@ -78,6 +79,7 @@ export class Cursor {
     this._index = 0;
     this._length = text.length;
     this._history = new CursorHistory();
+    this._stackTrace = [];
   }
 
   hasNext(): boolean {
@@ -131,7 +133,7 @@ export class Cursor {
   }
 
   resolveError(): void {
-    this._history.resolveError()
+    this._history.resolveError();
   }
 
   startRecording(): void {
@@ -140,6 +142,35 @@ export class Cursor {
 
   stopRecording(): void {
     this._history.stopRecording();
+  }
+
+  pushPatternStack(pattern: Pattern) {
+    const patternName = pattern.name;
+
+    const trace = {
+      patternName,
+      cursorIndex: this.index
+    };
+
+    if (this._stackTrace.find(p => p.patternName === patternName && this.index === p.cursorIndex)) {
+      throw new Error(`Cyclical Pattern: ${this._stackTrace.map(r => `${r.patternName}{${r.cursorIndex}}`).join(" -> ")} -> ${patternName}{${this.index}}.`);
+    }
+
+    this._history.pushStackTrace(trace);
+    this._stackTrace.push(trace);
+  }
+
+  popPatternStack() {
+    this._stackTrace.pop();
+  }
+
+  audit() {
+    return this._history.trace.map(t => {
+      const onChar = this.getChars(t.cursorIndex, t.cursorIndex);
+      const restChars = this.getChars(t.cursorIndex + 1, t.cursorIndex + 5);
+      const context = `{${t.cursorIndex}}[${onChar}]${restChars}`;
+      return `${t.patternName}-->${context}`;
+    });
   }
 
 }

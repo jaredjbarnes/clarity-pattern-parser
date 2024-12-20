@@ -306,7 +306,7 @@ describe("Grammar", () => {
                 age = /()
             `;
             Grammar.parseString(expression);
-        }).toThrowError("[Parse Error] Found: '    age = /()\n      ', expected: '    age = !' or '    age = (' or '    age = [Pattern Name]' or '    age = [Regular Expression]' or '    age = [String]'.")
+        }).toThrowError("[Parse Error] Found: '    age = /()\n      ', expected: '    age = !' or '    age = (' or '    age = [Pattern Name]' or '    age = [Regular Expression]' or '    age = [String]'.");
 
     });
 
@@ -317,7 +317,7 @@ describe("Grammar", () => {
         last-name = "Doe"
         space = " "
         full-name = first-name & space & last-name
-        `
+        `;
         function resolveImport(resource: string) {
             expect(resource).toBe("some/path/to/file.cpat");
             return Promise.resolve({ expression: importExpression, resource });
@@ -332,7 +332,7 @@ describe("Grammar", () => {
 
     test("Imports", async () => {
         const importExpression = `first-name = "John"`;
-        const spaceExpression = `space = " "`
+        const spaceExpression = `space = " "`;
 
         const pathMap: Record<string, string> = {
             "space.cpat": spaceExpression,
@@ -344,7 +344,7 @@ describe("Grammar", () => {
         import { space } from "space.cpat"
         last-name = "Doe"
         full-name = first-name & space & last-name
-        `
+        `;
         function resolveImport(resource: string) {
             return Promise.resolve({ expression: pathMap[resource], resource });
         }
@@ -360,13 +360,13 @@ describe("Grammar", () => {
         const spaceExpression = `
         use params { custom-space }
         space = custom-space
-        `
+        `;
         const expression = `
         import { first-name } from "first-name.cpat"
         import { space } from "space.cpat" with params { custom-space = "  " }
         last-name = "Doe"
         full-name = first-name & space & last-name
-        `
+        `;
 
         const pathMap: Record<string, string> = {
             "space.cpat": spaceExpression,
@@ -391,7 +391,7 @@ describe("Grammar", () => {
         }
 
         name
-        `
+        `;
 
         const resource1 = `
         use-this = "Use This"
@@ -427,7 +427,7 @@ describe("Grammar", () => {
             param = alias
         }
         name = export-value
-        `
+        `;
 
         const resource1 = `
         value = "Value"
@@ -438,7 +438,7 @@ describe("Grammar", () => {
             param
         }
         export-value = param
-        `
+        `;
 
         const pathMap: Record<string, string> = {
             "resource1": resource1,

@@ -5,7 +5,10 @@ import { clonePatterns } from "./clonePatterns";
 import { findPattern } from "./findPattern";
 import { ParseResult } from "./ParseResult";
 
+let idIndex = 0;
+
 export class Or implements Pattern {
+  private _id: string;
   private _type: string;
   private _name: string;
   private _parent: Pattern | null;
@@ -13,6 +16,10 @@ export class Or implements Pattern {
   private _isOptional: boolean;
   private _isGreedy: boolean;
   private _firstIndex: number;
+
+  get id(): string {
+    return this._id;
+  }
 
   get type(): string {
     return this._type;
@@ -46,6 +53,7 @@ export class Or implements Pattern {
     const children = clonePatterns(options, false);
     this._assignChildrenToParent(children);
 
+    this._id = `or-${idIndex++}`;
     this._type = "or";
     this._name = name;
     this._parent = null;
@@ -71,7 +79,7 @@ export class Or implements Pattern {
   exec(text: string, record = false): ParseResult {
     const cursor = new Cursor(text);
     record && cursor.startRecording();
-    
+
     const ast = this.parse(cursor);
 
     return {
@@ -81,7 +89,7 @@ export class Or implements Pattern {
   }
 
   parse(cursor: Cursor): Node | null {
-    cursor.pushPatternStack(this);
+    cursor.startParseWith(this);
     this._firstIndex = cursor.index;
 
     const node = this._tryToParse(cursor);
@@ -90,21 +98,21 @@ export class Or implements Pattern {
       cursor.moveTo(node.lastIndex);
       cursor.resolveError();
 
-      cursor.popPatternStack();
+      cursor.endParse();
       return node;
     }
 
     if (!this._isOptional) {
       cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
 
-      cursor.popPatternStack();
+      cursor.endParse();
       return null;
     }
 
     cursor.resolveError();
     cursor.moveTo(this._firstIndex);
 
-    cursor.popPatternStack();
+    cursor.endParse();
     return null;
   }
 
@@ -151,7 +159,7 @@ export class Or implements Pattern {
 
   getNextTokens(): string[] {
     if (this._parent == null) {
-      return []
+      return [];
     }
 
     return this._parent.getTokensAfter(this);
@@ -172,7 +180,7 @@ export class Or implements Pattern {
       return [];
     }
 
-    return this._parent.getPatternsAfter(this)
+    return this._parent.getPatternsAfter(this);
   }
 
   getNextPatterns(): Pattern[] {
@@ -180,7 +188,7 @@ export class Or implements Pattern {
       return [];
     }
 
-    return this.parent.getPatternsAfter(this)
+    return this.parent.getPatternsAfter(this);
   }
 
   find(predicate: (p: Pattern) => boolean): Pattern | null {
@@ -189,6 +197,7 @@ export class Or implements Pattern {
 
   clone(name = this._name, isOptional = this._isOptional): Pattern {
     const or = new Or(name, this._children, isOptional, this._isGreedy);
+    or._id = this._id;
     return or;
   }
 }

@@ -3,6 +3,7 @@ import { ParseError } from "./ParseError";
 import { Pattern } from "./Pattern";
 
 export interface Trace {
+  id: string;
   patternName: string;
   cursorIndex: number;
 }

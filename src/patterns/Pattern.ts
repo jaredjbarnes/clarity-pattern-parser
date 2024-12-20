@@ -1,8 +1,9 @@
 import { Cursor } from "./Cursor";
 import { Node } from "../ast/Node";
-import { ParseResult } from "./ParseResult"
+import { ParseResult } from "./ParseResult";
 
 export interface Pattern {
+  id: string;
   type: string;
   name: string;
   parent: Pattern | null;

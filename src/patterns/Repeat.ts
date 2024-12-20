@@ -5,6 +5,8 @@ import { InfiniteRepeat } from "./InfiniteRepeat";
 import { ParseResult } from "./ParseResult";
 import { Pattern } from "./Pattern";
 
+let idIndex = 0;
+
 export interface RepeatOptions {
     min?: number;
     max?: number;
@@ -19,11 +21,16 @@ interface InternalRepeatOptions {
 }
 
 export class Repeat implements Pattern {
+    private _id: string;
     private _repeatPattern: InfiniteRepeat | FiniteRepeat;
     private _parent: Pattern | null;
     private _pattern: Pattern;
     private _options: InternalRepeatOptions;
     private _children: Pattern[];
+
+    get id() {
+        return this._id;
+    }
 
     get type() {
         return this._repeatPattern.type;
@@ -50,6 +57,7 @@ export class Repeat implements Pattern {
     }
 
     constructor(name: string, pattern: Pattern, options: RepeatOptions = {}) {
+        this._id = `repeat-${idIndex++}`;
         this._pattern = pattern;
         this._parent = null;
         this._options = {
@@ -61,10 +69,10 @@ export class Repeat implements Pattern {
         if (this._options.max !== Infinity) {
             this._repeatPattern = new FiniteRepeat(name, pattern, this._options.max, this._options);
         } else {
-            this._repeatPattern = new InfiniteRepeat(name, pattern, this._options)
+            this._repeatPattern = new InfiniteRepeat(name, pattern, this._options);
         }
 
-        this._children = [this._repeatPattern]
+        this._children = [this._repeatPattern];
         this._repeatPattern.parent = this;
     }
 
@@ -85,13 +93,15 @@ export class Repeat implements Pattern {
 
         if (isOptional != null) {
             if (isOptional) {
-                min = 0
+                min = 0;
             } else {
                 min = Math.max(this._options.min, 1);
             }
         }
 
-        return new Repeat(name, this._pattern, { ...this._options, min });
+        const clone = new Repeat(name, this._pattern, { ...this._options, min });
+        clone._id = this._id;
+        return clone;
     }
 
     getTokens(): string[] {
@@ -100,7 +110,7 @@ export class Repeat implements Pattern {
 
     getTokensAfter(_childReference: Pattern): string[] {
         if (this._parent == null) {
-            return []
+            return [];
         }
 
         return this._parent.getTokensAfter(this);
@@ -108,7 +118,7 @@ export class Repeat implements Pattern {
 
     getNextTokens(): string[] {
         if (this._parent == null) {
-            return []
+            return [];
         }
 
         return this._parent.getTokensAfter(this);
@@ -120,7 +130,7 @@ export class Repeat implements Pattern {
 
     getPatternsAfter(_childReference: Pattern): Pattern[] {
         if (this._parent == null) {
-            return []
+            return [];
         }
 
         return this._parent.getPatternsAfter(this);
@@ -128,7 +138,7 @@ export class Repeat implements Pattern {
 
     getNextPatterns(): Pattern[] {
         if (this._parent == null) {
-            return []
+            return [];
         }
 
         return this._parent.getPatternsAfter(this);

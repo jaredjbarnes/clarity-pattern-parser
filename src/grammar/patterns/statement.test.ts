@@ -2,7 +2,7 @@ import { statement } from "./statement";
 
 describe("Statement pattern", () => {
     test("inline", () => {
-        const expression = 'name = pattern1 + pattern';
+        const expression = 'name = ("Hello" + "World") | "Hello"';
         const result = statement.exec(expression, true);
         expect(result).toBe(result);
     });

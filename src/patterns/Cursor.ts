@@ -144,23 +144,24 @@ export class Cursor {
     this._history.stopRecording();
   }
 
-  pushPatternStack(pattern: Pattern) {
+  startParseWith(pattern: Pattern) {
     const patternName = pattern.name;
 
     const trace = {
+      id: pattern.id,
       patternName,
       cursorIndex: this.index
     };
 
-    if (this._stackTrace.find(p => p.patternName === patternName && this.index === p.cursorIndex)) {
-      throw new Error(`Cyclical Pattern: ${this._stackTrace.map(r => `${r.patternName}{${r.cursorIndex}}`).join(" -> ")} -> ${patternName}{${this.index}}.`);
+    if (this._stackTrace.find(p => p.id === pattern.id && this.index === p.cursorIndex)) {
+      throw new Error(`Cyclical Pattern: ${this._stackTrace.map(r => `${r.patternName}#${r.id}{${r.cursorIndex}}`).join(" -> ")} -> ${patternName}#${pattern.id}{${this.index}}.`);
     }
 
     this._history.pushStackTrace(trace);
     this._stackTrace.push(trace);
   }
 
-  popPatternStack() {
+  endParse() {
     this._stackTrace.pop();
   }
 

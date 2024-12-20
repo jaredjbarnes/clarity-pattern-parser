@@ -3,7 +3,10 @@ import { Cursor } from "./Cursor";
 import { ParseResult } from "./ParseResult";
 import { Pattern } from "./Pattern";
 
+let idIndex = 0;
+
 export class Literal implements Pattern {
+  private _id: string;
   private _type: string;
   private _name: string;
   private _parent: Pattern | null;
@@ -13,6 +16,10 @@ export class Literal implements Pattern {
   private _firstIndex: number;
   private _lastIndex: number;
   private _endIndex: number;
+
+  get id(): string {
+    return this._id;
+  }
 
   get type(): string {
     return this._type;
@@ -43,6 +50,7 @@ export class Literal implements Pattern {
       throw new Error("Value Cannot be empty.");
     }
 
+    this._id = `literal-${idIndex++}`;
     this._type = "literal";
     this._name = name;
     this._literal = value;
@@ -64,7 +72,7 @@ export class Literal implements Pattern {
   exec(text: string, record = false): ParseResult {
     const cursor = new Cursor(text);
     record && cursor.startRecording();
-    
+
     const ast = this.parse(cursor);
 
     return {
@@ -74,7 +82,7 @@ export class Literal implements Pattern {
   }
 
   parse(cursor: Cursor): Node | null {
-    cursor.pushPatternStack(this);
+    cursor.startParseWith(this);
 
     this._firstIndex = cursor.index;
 
@@ -85,21 +93,21 @@ export class Literal implements Pattern {
       const node = this._createNode();
       cursor.recordMatch(this, node);
 
-      cursor.popPatternStack();
+      cursor.endParse();
       return node;
     }
 
     if (!this._isOptional) {
       cursor.recordErrorAt(this._firstIndex, this._endIndex, this);
 
-      cursor.popPatternStack();
+      cursor.endParse();
       return null;
     }
 
     cursor.resolveError();
     cursor.moveTo(this._firstIndex);
-    
-    cursor.popPatternStack();
+
+    cursor.endParse();
     return null;
   }
 
@@ -130,7 +138,7 @@ export class Literal implements Pattern {
       cursor.next();
     }
 
-    return passed
+    return passed;
   }
 
   private _createNode(): Node {
@@ -146,6 +154,7 @@ export class Literal implements Pattern {
 
   clone(name = this._name, isOptional = this._isOptional): Pattern {
     const clone = new Literal(name, this._literal, isOptional);
+    clone._id = this._id;
     return clone;
   }
 
@@ -159,7 +168,7 @@ export class Literal implements Pattern {
 
   getNextTokens(): string[] {
     if (this.parent == null) {
-      return []
+      return [];
     }
 
     return this.parent.getTokensAfter(this);
@@ -170,7 +179,7 @@ export class Literal implements Pattern {
   }
 
   getPatternsAfter(): Pattern[] {
-    return []
+    return [];
   }
 
   getNextPatterns(): Pattern[] {
@@ -178,7 +187,7 @@ export class Literal implements Pattern {
       return [];
     }
 
-    return this.parent.getPatternsAfter(this)
+    return this.parent.getPatternsAfter(this);
   }
 
   find(_predicate: (p: Pattern) => boolean): Pattern | null {

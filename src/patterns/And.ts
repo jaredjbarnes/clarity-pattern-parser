@@ -5,7 +5,10 @@ import { clonePatterns } from "./clonePatterns";
 import { filterOutNull } from "./filterOutNull";
 import { findPattern } from "./findPattern";
 
+let idIndex = 0;
+
 export class And implements Pattern {
+  private _id: string;
   private _type: string;
   private _name: string;
   private _parent: Pattern | null;
@@ -13,6 +16,10 @@ export class And implements Pattern {
   private _isOptional: boolean;
   private _nodes: (Node | null)[];
   private _firstIndex: number;
+
+  get id(): string {
+    return this._id;
+  }
 
   get type(): string {
     return this._type;
@@ -44,14 +51,15 @@ export class And implements Pattern {
     }
 
     const children = clonePatterns(sequence);
-    this._assignChildrenToParent(children)
+    this._assignChildrenToParent(children);
 
+    this._id = `and-${idIndex++}`;
     this._type = "and";
     this._name = name;
     this._isOptional = isOptional;
     this._parent = null;
     this._children = children;
-    this._firstIndex = -1
+    this._firstIndex = -1;
     this._nodes = [];
   }
 
@@ -81,7 +89,7 @@ export class And implements Pattern {
   }
 
   parse(cursor: Cursor): Node | null {
-    cursor.pushPatternStack(this);
+    cursor.startParseWith(this);
 
     this._firstIndex = cursor.index;
     this._nodes = [];
@@ -95,7 +103,7 @@ export class And implements Pattern {
         cursor.recordMatch(this, node);
       }
 
-      cursor.popPatternStack();
+      cursor.endParse();
       return node;
     }
 
@@ -103,7 +111,7 @@ export class And implements Pattern {
       cursor.resolveError();
     }
 
-    cursor.popPatternStack();
+    cursor.endParse();
     return null;
   }
 
@@ -197,7 +205,7 @@ export class And implements Pattern {
 
     const lastIndex = children[children.length - 1].lastIndex;
 
-    cursor.moveTo(lastIndex)
+    cursor.moveTo(lastIndex);
 
     return new Node(
       "and",
@@ -233,7 +241,7 @@ export class And implements Pattern {
 
   getNextTokens(): string[] {
     if (this.parent == null) {
-      return []
+      return [];
     }
 
     return this.parent.getTokensAfter(this);
@@ -300,7 +308,7 @@ export class And implements Pattern {
       return [];
     }
 
-    return this.parent.getPatternsAfter(this)
+    return this.parent.getPatternsAfter(this);
   }
 
   find(predicate: (p: Pattern) => boolean): Pattern | null {
@@ -308,6 +316,9 @@ export class And implements Pattern {
   }
 
   clone(name = this._name, isOptional = this._isOptional): Pattern {
-    return new And(name, this._children, isOptional)
+    const clone = new And(name, this._children, isOptional);
+    clone._id = this._id;
+
+    return clone;
   }
 }

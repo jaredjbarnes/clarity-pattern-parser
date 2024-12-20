@@ -5,6 +5,8 @@ import { clonePatterns } from "./clonePatterns";
 import { findPattern } from "./findPattern";
 import { ParseResult } from "./ParseResult";
 
+let idIndex = 0;
+
 export interface InfiniteRepeatOptions {
   divider?: Pattern;
   min?: number;
@@ -12,6 +14,7 @@ export interface InfiniteRepeatOptions {
 }
 
 export class InfiniteRepeat implements Pattern {
+  private _id: string;
   private _type: string;
   private _name: string;
   private _parent: Pattern | null;
@@ -22,6 +25,10 @@ export class InfiniteRepeat implements Pattern {
   private _firstIndex: number;
   private _min: number;
   private _trimDivider: boolean;
+
+  get id(): string {
+    return this._id;
+  }
 
   get type(): string {
     return this._type;
@@ -57,13 +64,14 @@ export class InfiniteRepeat implements Pattern {
     let children: Pattern[];
 
     if (divider != null) {
-      children = [pattern.clone(pattern.name, false), divider.clone(divider.name, false)]
+      children = [pattern.clone(pattern.name, false), divider.clone(divider.name, false)];
     } else {
-      children = [pattern.clone(pattern.name, false)]
+      children = [pattern.clone(pattern.name, false)];
     }
 
     this._assignChildrenToParent(children);
 
+    this._id = `infinite-repeat-${idIndex++}`;
     this._type = "infinite-repeat";
     this._name = name;
     this._min = min;
@@ -71,7 +79,7 @@ export class InfiniteRepeat implements Pattern {
     this._children = children;
     this._pattern = children[0];
     this._divider = children[1];
-    this._firstIndex = -1
+    this._firstIndex = -1;
     this._nodes = [];
     this._trimDivider = options.trimDivider == null ? false : options.trimDivider;
   }
@@ -102,7 +110,7 @@ export class InfiniteRepeat implements Pattern {
   }
 
   parse(cursor: Cursor): Node | null {
-    cursor.pushPatternStack(this);
+    cursor.startParseWith(this);
 
     this._firstIndex = cursor.index;
     this._nodes = [];
@@ -118,17 +126,17 @@ export class InfiniteRepeat implements Pattern {
         cursor.recordMatch(this, node);
       }
 
-      cursor.popPatternStack();
+      cursor.endParse();
       return node;
     }
 
     if (this._min > 0) {
-      cursor.popPatternStack();
+      cursor.endParse();
       return null;
     }
 
     cursor.resolveError();
-    cursor.popPatternStack();
+    cursor.endParse();
     return null;
   }
 
@@ -258,7 +266,7 @@ export class InfiniteRepeat implements Pattern {
 
   getNextTokens(): string[] {
     if (this._parent == null) {
-      return []
+      return [];
     }
 
     return this._parent.getTokensAfter(this);
@@ -311,7 +319,7 @@ export class InfiniteRepeat implements Pattern {
       return [];
     }
 
-    return this._parent.getPatternsAfter(this)
+    return this._parent.getPatternsAfter(this);
   }
 
   find(predicate: (p: Pattern) => boolean): Pattern | null {
@@ -323,13 +331,13 @@ export class InfiniteRepeat implements Pattern {
 
     if (isOptional != null) {
       if (isOptional) {
-        min = 0
+        min = 0;
       } else {
         min = Math.max(this._min, 1);
       }
     }
 
-    return new InfiniteRepeat(
+    const clone = new InfiniteRepeat(
       name,
       this._pattern,
       {
@@ -338,6 +346,10 @@ export class InfiniteRepeat implements Pattern {
         trimDivider: this._trimDivider
       }
     );
+
+    clone._id = this._id;
+
+    return clone;
   }
 }
 

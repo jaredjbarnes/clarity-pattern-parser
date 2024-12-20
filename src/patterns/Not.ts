@@ -3,11 +3,18 @@ import { Cursor } from "./Cursor";
 import { ParseResult } from "./ParseResult";
 import { Pattern } from "./Pattern";
 
+let idIndex = 0;
+
 export class Not implements Pattern {
+  private _id: string;
   private _type: string;
   private _name: string;
   private _parent: Pattern | null;
   private _children: Pattern[];
+
+  get id(): string {
+    return this._id;
+  }
 
   get type(): string {
     return this._type;
@@ -34,6 +41,7 @@ export class Not implements Pattern {
   }
 
   constructor(name: string, pattern: Pattern) {
+    this._id = `not-${idIndex++}`;
     this._type = "not";
     this._name = name;
     this._parent = null;
@@ -51,7 +59,7 @@ export class Not implements Pattern {
   exec(text: string, record = false): ParseResult {
     const cursor = new Cursor(text);
     record && cursor.startRecording();
-    
+
     const ast = this.parse(cursor);
 
     return {
@@ -61,7 +69,7 @@ export class Not implements Pattern {
   }
 
   parse(cursor: Cursor): Node | null {
-    cursor.pushPatternStack(this);
+    cursor.startParseWith(this);
 
     const firstIndex = cursor.index;
     this._children[0].parse(cursor);
@@ -75,12 +83,13 @@ export class Not implements Pattern {
       cursor.recordErrorAt(firstIndex, firstIndex, this);
     }
 
-    cursor.popPatternStack();
+    cursor.endParse();
     return null;
   }
 
   clone(name = this._name): Pattern {
     const not = new Not(name, this._children[0]);
+    not._id = this._id;
     return not;
   }
 
@@ -106,7 +115,7 @@ export class Not implements Pattern {
 
   getNextTokens(): string[] {
     if (this.parent == null) {
-      return []
+      return [];
     }
 
     return this.parent.getTokensAfter(this);
@@ -123,7 +132,7 @@ export class Not implements Pattern {
       return parent.getPatternsAfter(this);
     }
 
-    return []
+    return [];
   }
 
   getNextPatterns(): Pattern[] {
@@ -131,7 +140,7 @@ export class Not implements Pattern {
       return [];
     }
 
-    return this.parent.getPatternsAfter(this)
+    return this.parent.getPatternsAfter(this);
   }
 
   find(predicate: (p: Pattern) => boolean): Pattern | null {

@@ -11,7 +11,7 @@ const optionalIsOptional = new Literal("is-optional", "?", true);
 const patternName = name.clone("pattern-name");
 const patterns = new Or("and-patterns", [patternName, inlinePattern]);
 
-export const pattern = new And("and-pattern", [
+export const pattern = new And("and-child-pattern", [
     optionalNot,
     patterns,
     optionalIsOptional,

@@ -4,13 +4,20 @@ import { Pattern } from "./Pattern";
 import { findPattern } from "./findPattern";
 import { ParseResult } from "./ParseResult";
 
+let idIndex = 0;
+
 export class Reference implements Pattern {
+  private _id: string;
   private _type: string;
   private _name: string;
   private _parent: Pattern | null;
   private _isOptional: boolean;
   private _pattern: Pattern | null;
   private _children: Pattern[];
+
+  get id(): string {
+    return this._id;
+  }
 
   get type(): string {
     return this._type;
@@ -29,7 +36,7 @@ export class Reference implements Pattern {
   }
 
   get children(): Pattern[] {
-    return this._children
+    return this._children;
   }
 
   get isOptional(): boolean {
@@ -37,6 +44,7 @@ export class Reference implements Pattern {
   }
 
   constructor(name: string, isOptional = false) {
+    this._id = `reference-${idIndex++}`;
     this._type = "reference";
     this._name = name;
     this._parent = null;
@@ -55,7 +63,7 @@ export class Reference implements Pattern {
   exec(text: string, record = false): ParseResult {
     const cursor = new Cursor(text);
     record && cursor.startRecording();
-    
+
     const ast = this.parse(cursor);
 
     return {
@@ -103,7 +111,7 @@ export class Reference implements Pattern {
       if (parent == null) {
         break;
       } else {
-        node = parent
+        node = parent;
       }
     }
 
@@ -124,7 +132,7 @@ export class Reference implements Pattern {
 
   getNextTokens(): string[] {
     if (this.parent == null) {
-      return []
+      return [];
     }
 
     return this.parent.getTokensAfter(this);
@@ -147,7 +155,7 @@ export class Reference implements Pattern {
       return [];
     }
 
-    return this.parent.getPatternsAfter(this)
+    return this.parent.getPatternsAfter(this);
   }
 
   find(_predicate: (p: Pattern) => boolean): Pattern | null {
@@ -155,6 +163,8 @@ export class Reference implements Pattern {
   }
 
   clone(name = this._name, isOptional = this._isOptional): Pattern {
-    return new Reference(name, isOptional);
+    const clone = new Reference(name, isOptional);
+    clone._id = this._id;
+    return clone;
   }
 }

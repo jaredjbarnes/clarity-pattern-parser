@@ -3,7 +3,10 @@ import { Pattern } from "./Pattern";
 import { Cursor } from "./Cursor";
 import { ParseResult } from "./ParseResult";
 
+let idIndex = 0;
+
 export class Regex implements Pattern {
+  private _id: string;
   private _type: string;
   private _name: string;
   private _isOptional: boolean;
@@ -15,6 +18,10 @@ export class Regex implements Pattern {
   private _firstIndex = -1;
   private _substring = "";
   private _tokens: string[] = [];
+
+  get id(): string {
+    return this._id;
+  }
 
   get type(): string {
     return this._type;
@@ -41,7 +48,8 @@ export class Regex implements Pattern {
   }
 
   constructor(name: string, regex: string, isOptional = false) {
-    this._type = "regex"
+    this._id = `regex-${idIndex++}`;
+    this._type = "regex";
     this._name = name;
     this._isOptional = isOptional;
     this._parent = null;
@@ -90,13 +98,13 @@ export class Regex implements Pattern {
   }
 
   parse(cursor: Cursor) {
-    cursor.pushPatternStack(this);
+    cursor.startParseWith(this);
 
     this._firstIndex = cursor.index;
     this.resetState(cursor);
     this.tryToParse(cursor);
 
-    cursor.popPatternStack();
+    cursor.endParse();
     return this._node;
   }
 
@@ -143,10 +151,11 @@ export class Regex implements Pattern {
   }
 
   clone(name = this._name, isOptional = this._isOptional) {
-    const pattern = new Regex(name, this._originalRegexString, isOptional);
-    pattern._tokens = this._tokens.slice();
+    const clone = new Regex(name, this._originalRegexString, isOptional);
+    clone._tokens = this._tokens.slice();
 
-    return pattern;
+    clone._id = this._id;
+    return clone;
   }
 
   getTokens() {

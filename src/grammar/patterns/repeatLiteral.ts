@@ -14,6 +14,11 @@ const integer = new Regex("integer", "([1-9][0-9]*)|0");
 integer.setTokens(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]);
 
 const optionalInteger = integer.clone("integer", true);
+const trimFlag = new Literal("trim-flag", "t", true);
+const greedyFlag = new Literal("greedy-flag", "g", true);
+const flags1 = new And("flags-pattern-one", [trimFlag, greedyFlag]);
+const flags2 = new And("flags-pattern-two", [greedyFlag, trimFlag]);
+const flags = new Or("flags", [flags1, flags2]);
 
 const bounds = new And("bounds", [
     openBracket,
@@ -24,6 +29,16 @@ const bounds = new And("bounds", [
     optionalSpaces,
     optionalInteger.clone("max"),
     optionalSpaces,
+    comma,
+    optionalSpaces,
+    flags,
+    optionalSpaces,
+    closeBracket
+]);
+
+const justFlags = new And("bounds", [
+    openBracket,
+    flags,
     closeBracket
 ]);
 
@@ -39,12 +54,11 @@ const quantifierShorthand = new Regex("quantifier-shorthand", "\\*|\\+");
 quantifierShorthand.setTokens(["*", "+"]);
 const quantifier = new Or("quantifier", [
     quantifierShorthand,
+    justFlags,
     exactCount,
     bounds
 ]);
 
-const optional = new Literal("is-optional", "?", true);
-const trimDivider = new Literal("trim-divider", "-t");
 const openParen = new Literal("repeat-open-paren", "(");
 const closeParen = new Literal("repeat-close-paren", ")");
 const dividerComma = new Regex("divider-comma", "\\s*,\\s*");
@@ -59,10 +73,8 @@ export const repeatLiteral = new And("repeat-literal", [
     openParen,
     optionalSpaces,
     patterns,
-    optional,
     new And("optional-divider-section", [dividerComma, dividerPattern], true),
     optionalSpaces,
     closeParen,
-    new And("quantifier-section", [optionalSpaces, quantifier]),
-    new And("optional-trim-divider-section", [spaces, trimDivider], true)
+    new And("quantifier-section", [quantifier]),
 ]);

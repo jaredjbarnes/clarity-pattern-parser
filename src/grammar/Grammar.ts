@@ -126,7 +126,7 @@ export class Grammar {
         }
 
         body.findAll(n => n.name === "assign-statement" || n.name === "export-name").forEach((n) => {
-            
+
 
             const typeNode = n.find(n => n.name.includes("literal"));
             const type = n.name === "export-name" ? "export-name" : typeNode?.name || "unknown";
@@ -359,8 +359,7 @@ export class Grammar {
         const bounds = repeatNode.find(n => n.name === "bounds");
         const exactCount = repeatNode.find(n => n.name === "exact-count");
         const quantifier = repeatNode.find(n => n.name === "quantifier-shorthand");
-        const isPatternOptional = repeatNode.find(n => n.name === "is-optional") != null;
-        const trimDivider = repeatNode.find(n => n.name === "trim-divider") != null;
+        const trimDivider = repeatNode.find(n => n.name === "trim-flag") != null;
 
         const name = nameNode.value;
         const pattern = this._getPattern(patternNameNode.value);
@@ -404,7 +403,7 @@ export class Grammar {
             }
         }
 
-        const repeat = new Repeat(name, pattern.clone(pattern.name, isPatternOptional), options);
+        const repeat = new Repeat(name, pattern.clone(pattern.name), options);
 
         this._parseContext.patternsByName.set(name, repeat);
     }

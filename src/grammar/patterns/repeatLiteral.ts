@@ -2,7 +2,7 @@ import { And } from "../../patterns/And";
 import { Literal } from "../../patterns/Literal";
 import { Or } from "../../patterns/Or";
 import { Regex } from "../../patterns/Regex";
-import { inlinePattern } from "./inlinePattern";
+import { anonymousPattern } from "./anonymousPattern";
 import { name } from "./name";
 import { spaces } from "./spaces";
 
@@ -15,10 +15,12 @@ integer.setTokens(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]);
 
 const optionalInteger = integer.clone("integer", true);
 const trimFlag = new Literal("trim-flag", "t", true);
-const greedyFlag = new Literal("greedy-flag", "g", true);
-const flags1 = new And("flags-pattern-one", [trimFlag, greedyFlag]);
-const flags2 = new And("flags-pattern-two", [greedyFlag, trimFlag]);
-const flags = new Or("flags", [flags1, flags2]);
+const optionalFlag = new And("optional-trim-flag", [
+    optionalSpaces,
+    comma,
+    optionalSpaces,
+    trimFlag,
+], true);
 
 const bounds = new And("bounds", [
     openBracket,
@@ -28,17 +30,14 @@ const bounds = new And("bounds", [
     comma,
     optionalSpaces,
     optionalInteger.clone("max"),
-    optionalSpaces,
-    comma,
-    optionalSpaces,
-    flags,
+    optionalFlag,
     optionalSpaces,
     closeBracket
 ]);
 
-const justFlags = new And("bounds", [
+const justFlag = new And("bounds", [
     openBracket,
-    flags,
+    trimFlag,
     closeBracket
 ]);
 
@@ -54,7 +53,7 @@ const quantifierShorthand = new Regex("quantifier-shorthand", "\\*|\\+");
 quantifierShorthand.setTokens(["*", "+"]);
 const quantifier = new Or("quantifier", [
     quantifierShorthand,
-    justFlags,
+    justFlag,
     exactCount,
     bounds
 ]);
@@ -66,7 +65,7 @@ dividerComma.setTokens([", "]);
 
 
 const patternName = name.clone("pattern-name");
-const patterns = new Or("or-patterns", [patternName, inlinePattern]);
+const patterns = new Or("or-patterns", [patternName, anonymousPattern]);
 const dividerPattern = patterns.clone("divider-pattern");
 
 export const repeatLiteral = new And("repeat-literal", [

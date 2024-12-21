@@ -79,7 +79,7 @@ digits = (digit, comma)*
 ```
 digit = /\d/
 comma = ","
-digits = (digit, comma)* -t
+digits = (digit, comma){t}
 ```
 
 This is a useful feature if you don't want the divider to be the last pattern found. Let's look at the example below to understand.
@@ -88,7 +88,7 @@ This is a useful feature if you don't want the divider to be the last pattern fo
 const expression = `
     digit = /\d/
     comma = ","
-    digits = (digit, comma)* -t
+    digits = (digit, comma){t}
 `;
 
 const { digits } = Gammar.parse(expression);
@@ -100,20 +100,12 @@ result = digits.exec("1,2,");
 expect(result.ast).toBeNull();
 ```
 
-### Zero Or More With Optional Repeated Pattern
+### Zero Or More
 
 ```
 digit = /\d/
 comma = ","
-digits = (digit?, comma)*
-```
-
-### One Or More With Optional Repeated Pattern
-
-```
-digit = /\d/
-comma = ","
-digits = (digit?, comma)+
+digits = (digit, comma)*
 ```
 
 ### Upper Limit

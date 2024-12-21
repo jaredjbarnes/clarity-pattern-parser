@@ -1,4 +1,5 @@
 import { And } from "../patterns/And";
+import { arePatternsEqual } from "../patterns/arePatternsEqual";
 import { Literal } from "../patterns/Literal";
 import { Not } from "../patterns/Not";
 import { Or } from "../patterns/Or";
@@ -17,7 +18,7 @@ describe("Grammar", () => {
         const namePattern = patterns.get("name");
         const expected = new Literal("name", "John");
 
-        expect(namePattern).toEqual(expected);
+        expect(arePatternsEqual(namePattern, expected)).toBeTruthy();
     });
 
     test("Literal With Escaped Characters", () => {
@@ -28,7 +29,7 @@ describe("Grammar", () => {
         const namePattern = patterns.get("chars");
         const expected = new Literal("chars", "\n\r\t\b\f\v\0\x00\u0000\"\\");
 
-        expect(namePattern).toEqual(expected);
+        expect(arePatternsEqual(namePattern, expected)).toBeTruthy();
     });
 
     test("Literal With Escaped Quotes", () => {
@@ -39,7 +40,7 @@ describe("Grammar", () => {
         const namePattern = patterns.get("content");
         const expected = new Literal("content", "With Con\"tent");
 
-        expect(namePattern).toEqual(expected);
+        expect(arePatternsEqual(namePattern, expected)).toBeTruthy();
     });
 
     test("Regex", () => {
@@ -51,7 +52,7 @@ describe("Grammar", () => {
         const pattern = patterns.get("name");
         const name = new Regex("name", "\\w");
 
-        expect(pattern).toEqual(name);
+        expect(arePatternsEqual(pattern, name)).toBeTruthy();
     });
 
     test("Or", () => {
@@ -67,7 +68,7 @@ describe("Grammar", () => {
         const jane = new Literal("jane", "Jane");
         const names = new Or("names", [john, jane], false, true);
 
-        expect(pattern).toEqual(names);
+        expect(arePatternsEqual(pattern, names)).toBeTruthy();
     });
 
     test("And", () => {
@@ -75,7 +76,7 @@ describe("Grammar", () => {
             space = " "
             first-name = /\\w/
             last-name = /\\w/
-            full-name = first-name & space & last-name
+            full-name = first-name + space + last-name
         `;
 
         const patterns = Grammar.parseString(expression);
@@ -85,7 +86,7 @@ describe("Grammar", () => {
         const lastName = new Regex("last-name", "\\w");
         const fullName = new And("full-name", [firstName, space, lastName]);
 
-        expect(pattern).toEqual(fullName);
+        expect(arePatternsEqual(pattern, fullName)).toBeTruthy();
     });
 
     test("And With Optional Pattern", () => {
@@ -94,8 +95,8 @@ describe("Grammar", () => {
             first-name = /\\w/
             last-name = /\\w/
             middle-name = /\\w/
-            middle-name-with-space = middle-name & space
-            full-name = first-name & space & middle-name-with-space? & last-name
+            middle-name-with-space = middle-name + space
+            full-name = first-name + space + middle-name-with-space? + last-name
         `;
 
         const patterns = Grammar.parseString(expression);
@@ -107,7 +108,7 @@ describe("Grammar", () => {
         const middleNameWithSpace = new And("middle-name-with-space", [middleName, space], true);
         const fullName = new And("full-name", [firstName, space, middleNameWithSpace, lastName]);
 
-        expect(pattern).toEqual(fullName);
+        expect(arePatternsEqual(pattern, fullName)).toBeTruthy();
     });
 
     test("And With Not Pattern", () => {
@@ -117,8 +118,8 @@ describe("Grammar", () => {
             last-name = /\\w/
             middle-name = /\\w/
             jack = "Jack"
-            middle-name-with-space = middle-name & space
-            full-name = !jack & first-name & space & middle-name-with-space? & last-name
+            middle-name-with-space = middle-name + space
+            full-name = !jack + first-name + space + middle-name-with-space? + last-name
         `;
 
         const patterns = Grammar.parseString(expression);
@@ -131,8 +132,7 @@ describe("Grammar", () => {
         const notJack = new Not("not-jack", jack);
         const middleNameWithSpace = new And("middle-name-with-space", [middleName, space], true);
         const fullName = new And("full-name", [notJack, firstName, space, middleNameWithSpace, lastName]);
-
-        expect(pattern).toEqual(fullName);
+        expect(arePatternsEqual(pattern, fullName)).toBeTruthy();
     });
 
     test("Repeat", () => {
@@ -146,7 +146,7 @@ describe("Grammar", () => {
         const digit = new Regex("digit", "\\d");
         const digits = new Repeat("digits", digit);
 
-        expect(pattern).toEqual(digits);
+        expect(arePatternsEqual(pattern, digits)).toBeTruthy();
     });
 
     test("Repeat Zero Or More", () => {
@@ -160,7 +160,7 @@ describe("Grammar", () => {
         const digit = new Regex("digit", "\\d");
         const digits = new Repeat("digits", digit, { min: 0 });
 
-        expect(pattern).toEqual(digits);
+        expect(arePatternsEqual(pattern, digits)).toBeTruthy();
     });
 
     test("Repeat Lower Limit", () => {
@@ -174,7 +174,7 @@ describe("Grammar", () => {
         const digit = new Regex("digit", "\\d+");
         const digits = new Repeat("digits", digit, { min: 1 });
 
-        expect(pattern).toEqual(digits);
+        expect(arePatternsEqual(pattern, digits)).toBeTruthy();
     });
 
     test("Repeat Bounded", () => {
@@ -188,7 +188,7 @@ describe("Grammar", () => {
         const digit = new Regex("digit", "\\d+");
         const digits = new Repeat("digits", digit, { min: 1, max: 3 });
 
-        expect(pattern).toEqual(digits);
+        expect(arePatternsEqual(pattern, digits)).toBeTruthy();
     });
 
     test("Repeat Upper Limit", () => {
@@ -202,7 +202,7 @@ describe("Grammar", () => {
         const digit = new Regex("digit", "\\d+");
         const digits = new Repeat("digits", digit, { min: 0, max: 3 });
 
-        expect(pattern).toEqual(digits);
+        expect(arePatternsEqual(pattern, digits)).toBeTruthy();
     });
 
     test("Repeat Exact", () => {
@@ -216,7 +216,7 @@ describe("Grammar", () => {
         const digit = new Regex("digit", "\\d+");
         const digits = new Repeat("digits", digit, { min: 3, max: 3 });
 
-        expect(pattern).toEqual(digits);
+        expect(arePatternsEqual(pattern, digits)).toBeTruthy();
     });
 
     test("Repeat Divider", () => {
@@ -231,8 +231,8 @@ describe("Grammar", () => {
         const digit = new Regex("digit", "\\d+");
         const divider = new Literal("comma", ",");
         const digits = new Repeat("digits", digit, { divider, min: 3, max: 3 });
-
-        expect(pattern).toEqual(digits);
+debugger;
+        expect(arePatternsEqual(pattern, digits)).toBeTruthy();
     });
 
     test("Repeat Divider With Trim Divider", () => {
@@ -248,7 +248,7 @@ describe("Grammar", () => {
         const divider = new Literal("comma", ",");
         const digits = new Repeat("digits", digit, { divider, min: 3, max: 3, trimDivider: true });
 
-        expect(pattern).toEqual(digits);
+        expect(arePatternsEqual(pattern, digits)).toBeTruthy();
     });
 
     test("Reference", () => {
@@ -286,8 +286,8 @@ describe("Grammar", () => {
         const alias = patterns.get("alias");
         const expectedAlias = new Regex("alias", "regex");
 
-        expect(name).toEqual(expectedName);
-        expect(alias).toEqual(expectedAlias);
+        expect(arePatternsEqual(name, expectedName)).toBeTruthy();
+        expect(arePatternsEqual(alias, expectedAlias)).toBeTruthy();
     });
 
     test("Bad Grammar At Beginning", () => {

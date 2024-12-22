@@ -2573,8 +2573,8 @@ class Grammar {
         const patterns = patternNodes.map(n => {
             const patternNode = n.children[0].name === "not" ? n.children[1] : n.children[0];
             const isNot = n.find(n => n.name === "not") != null;
-            const isOptional = n.find(n => n.name === "is-optional") != null;
-            const pattern = this._buildPattern(patternNode).clone(undefined, isOptional);
+            const isOptional = n.find(n => n.name === "is-optional");
+            const pattern = this._buildPattern(patternNode).clone(undefined, isOptional == null ? undefined : true);
             if (isNot) {
                 return new Not(`not-${pattern.name}`, pattern);
             }

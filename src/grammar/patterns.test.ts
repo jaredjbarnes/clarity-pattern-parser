@@ -14,14 +14,24 @@ describe("Patterns String Template Literal", ()=>{
     });
 
     test("Simple Markup", ()=>{
-        const {openTag} = patterns`
+        const {body} = patterns`
         tag-name = /[a-zA-Z_-]+[a-zA-Z0-9_-]*/
         space = /\\s+/
-        open-tag = ("<" + tag-name + space? + ">")
+        opening-tag = "<" + tag-name + space? + ">"
+        closing-tag = "</" + tag-name + space? + ">"
+        child = space? + element + space?
+        children = (child)*
+        element = opening-tag + children + closing-tag
+        body = space? + element + space?
         `;
 
         debugger;
-        const result = openTag.exec("<div>", true);
-        expect(result?.ast?.value).toBe("<div>");
+        const result = body.exec(`
+        <div>
+            <div></div>    
+        </div>
+        `, true);
+        result && result.ast && result.ast.findAll(n=>n.name.includes("space")).forEach(n=>n.remove());
+        expect(result?.ast?.value).toBe("<div></div>");
     });
 });

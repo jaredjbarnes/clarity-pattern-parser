@@ -2353,6 +2353,15 @@ function getFurthestOptions(options) {
 }
 
 let anonymousIndexId = 0;
+const patternNodes = {
+    "literal": true,
+    "regex-literal": true,
+    "or-literal": true,
+    "and-literal": true,
+    "repeat-literal": true,
+    "alias-literal": true,
+    "configurable-anonymous-pattern": true
+};
 class ParseContext {
     constructor(params) {
         this.patternsByName = new Map();
@@ -2438,9 +2447,11 @@ class Grammar {
             return;
         }
         body.findAll(n => n.name === "assign-statement").forEach((n) => {
-            const typeNode = n.find(n => n.name.includes("literal"));
-            const type = (typeNode === null || typeNode === void 0 ? void 0 : typeNode.name) || "unknown";
-            switch (type) {
+            const patternNode = n.children.find(n => patternNodes[n.name] != null);
+            if (patternNode == null) {
+                return;
+            }
+            switch (patternNode.name) {
                 case "literal": {
                     this._saveLiteral(n);
                     break;
@@ -2472,8 +2483,8 @@ class Grammar {
             }
         });
         body.findAll(n => n.name === "export-name").forEach((n) => {
-            const pattern = this._getPattern(n.value);
-            this._parseContext.patternsByName.set(n.value, pattern.clone(n.value));
+            const pattern = this._getPattern(n.value).clone();
+            this._parseContext.patternsByName.set(n.value, pattern);
         });
     }
     _saveLiteral(statementNode) {
@@ -2527,13 +2538,13 @@ class Grammar {
         const name = `anonymous-pattern-${anonymousIndexId++}`;
         switch (type) {
             case "pattern-name": {
-                return this._getPattern(node.value);
+                return this._getPattern(node.value).clone();
             }
             case "literal": {
-                return this._buildLiteral(name, node);
+                return this._buildLiteral(node.value.slice(1, -1), node);
             }
             case "regex-literal": {
-                return this._buildRegex(name, node);
+                return this._buildRegex(node.value.slice(1, -1), node);
             }
             case "repeat-literal": {
                 return this._buildRegex(name, node);
@@ -2627,7 +2638,7 @@ class Grammar {
     _saveConfigurableAnonymous(node) {
         const nameNode = node.find(n => n.name === "name");
         const name = nameNode.value;
-        const anonymousNode = node.children[0];
+        const anonymousNode = node.find(n => n.name === "complex-anonymous-pattern");
         const isOptional = node.children[1] != null;
         const anonymous = this._buildPattern(anonymousNode).clone(name, isOptional);
         this._parseContext.patternsByName.set(name, anonymous);
@@ -2731,8 +2742,7 @@ class Grammar {
         const aliasNode = statementNode.find(n => n.name === "alias-literal");
         const aliasName = aliasNode.value;
         const name = nameNode.value;
-        const pattern = this._getPattern(aliasName);
-        const alias = pattern.clone(name);
+        const alias = this._getPattern(aliasName).clone(name);
         this._parseContext.patternsByName.set(name, alias);
     }
     static parse(expression, options) {

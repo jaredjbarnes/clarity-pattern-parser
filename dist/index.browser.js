@@ -1898,12 +1898,12 @@
     const dividerComma = new Regex("divider-comma", "\\s*,\\s*");
     dividerComma.setTokens([", "]);
     const patternName$2 = name$1.clone("pattern-name");
-    const patterns$2 = new Or("or-patterns", [patternName$2, anonymousPattern]);
-    const dividerPattern = patterns$2.clone("divider-pattern");
+    const patterns$3 = new Or("or-patterns", [patternName$2, anonymousPattern]);
+    const dividerPattern = patterns$3.clone("divider-pattern");
     const repeatLiteral = new And("repeat-literal", [
         openParen,
         optionalSpaces$2,
-        patterns$2,
+        patterns$3,
         new And("optional-divider-section", [dividerComma, dividerPattern], true),
         optionalSpaces$2,
         closeParen,
@@ -1913,10 +1913,10 @@
     const optionalNot = new Literal("not", "!", true);
     const optionalIsOptional$1 = new Literal("is-optional", "?", true);
     const patternName$1 = name$1.clone("pattern-name");
-    const patterns$1 = new Or("and-patterns", [patternName$1, anonymousPattern]);
+    const patterns$2 = new Or("and-patterns", [patternName$1, anonymousPattern]);
     const pattern$1 = new And("and-child-pattern", [
         optionalNot,
-        patterns$1,
+        patterns$2,
         optionalIsOptional$1,
     ]);
     const divider$1 = new Regex("and-divider", "\\s*[+]\\s*");
@@ -1924,10 +1924,10 @@
     const andLiteral = new Repeat("and-literal", pattern$1, { divider: divider$1, min: 2, trimDivider: true });
 
     const patternName = name$1.clone("pattern-name");
-    const patterns = new Or("or-patterns", [patternName, anonymousPattern]);
+    const patterns$1 = new Or("or-patterns", [patternName, anonymousPattern]);
     const divider = new Regex("or-divider", "\\s*[|]\\s*");
     divider.setTokens([" | "]);
-    const orLiteral = new Repeat("or-literal", patterns, { divider, min: 2, trimDivider: true });
+    const orLiteral = new Repeat("or-literal", patterns$1, { divider, min: 2, trimDivider: true });
 
     const aliasLiteral = name$1.clone("alias-literal");
     const optionalIsOptional = new Literal("is-optional", "?", true);
@@ -2764,6 +2764,20 @@
             a.children.every((c, index) => arePatternsEqual(c, b.children[index]));
     }
 
+    const kebabRegex = /-([a-z])/g; // Define the regex once
+    function kebabToCamelCase(str) {
+        return str.replace(kebabRegex, (_, char) => char.toUpperCase());
+    }
+    function patterns(strings, ...values) {
+        const combinedString = strings.reduce((result, str, i) => result + str + (values[i] || ''), '');
+        const result = {};
+        const patterns = Grammar.parseString(combinedString);
+        Object.keys(patterns).forEach(k => {
+            result[kebabToCamelCase(k)] = patterns[k];
+        });
+        return result;
+    }
+
     exports.And = And;
     exports.AutoComplete = AutoComplete;
     exports.Cursor = Cursor;
@@ -2779,6 +2793,7 @@
     exports.Repeat = Repeat;
     exports.arePatternsEqual = arePatternsEqual;
     exports.grammar = grammar;
+    exports.patterns = patterns;
 
     Object.defineProperty(exports, '__esModule', { value: true });
 

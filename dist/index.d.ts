@@ -17,4 +17,5 @@ import { CursorHistory, Match } from "./patterns/CursorHistory";
 import { ParseResult } from "./patterns/ParseResult";
 import { grammar } from "./grammar/patterns/grammar";
 import { arePatternsEqual } from "./patterns/arePatternsEqual";
-export { Node, Grammar, AutoComplete, AutoCompleteOptions, Suggestion, SuggestionOption, And, Cursor, CursorHistory, Match, Literal, Not, Or, ParseError, ParseResult, Pattern, Reference, Regex, Repeat, grammar, arePatternsEqual };
+import { patterns } from "./grammar/patterns";
+export { Node, Grammar, AutoComplete, AutoCompleteOptions, Suggestion, SuggestionOption, And, Cursor, CursorHistory, Match, Literal, Not, Or, ParseError, ParseResult, Pattern, Reference, Regex, Repeat, grammar, arePatternsEqual, patterns };

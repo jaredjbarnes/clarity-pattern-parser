@@ -231,7 +231,7 @@ describe("Grammar", () => {
         const digit = new Regex("digit", "\\d+");
         const divider = new Literal("comma", ",");
         const digits = new Repeat("digits", digit, { divider, min: 3, max: 3 });
-        
+
         expect(arePatternsEqual(pattern, digits)).toBeTruthy();
     });
 
@@ -468,5 +468,15 @@ describe("Grammar", () => {
 
         const result = pattern.exec("Value");
         expect(result.ast?.value).toBe("Value");
+    });
+
+    test("Anonymous Patterns", () => {
+        const expression = `
+            complex-expression = "Text" + /regex/ + ("Text" <|> /regex/ <|> (pattern)+)
+        `;
+
+        const patterns = Grammar.parseString(expression);
+        debugger;
+        expect(patterns).toBe(patterns);
     });
 });

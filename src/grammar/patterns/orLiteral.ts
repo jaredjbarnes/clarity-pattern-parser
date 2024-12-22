@@ -6,8 +6,11 @@ import { Or } from "../../patterns/Or";
 
 const patternName = name.clone("pattern-name");
 const patterns = new Or("or-patterns", [patternName, anonymousPattern]);
+const defaultDivider = new Regex("default-divider", "\\s*[|]\\s*");
+const greedyDivider = new Regex("greedy-divider", "\\s*[<][|][>]\\s*");
 
-const divider = new Regex("or-divider", "\\s*[|]\\s*");
-divider.setTokens([" | "]);
+const divider = new Or("or-divider", [defaultDivider, greedyDivider]);
+defaultDivider.setTokens([" | "]);
+greedyDivider.setTokens([" <|> "]);
 
 export const orLiteral = new Repeat("or-literal", patterns, { divider, min: 2, trimDivider: true });

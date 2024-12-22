@@ -234,9 +234,10 @@ export class Grammar {
     }
 
     private _buildOr(name: string, node: Node) {
-        const patternNodes = node.children.filter(n => n.name === "pattern-name");
+        const patternNodes = node.children.filter(n => n.name !== "default-divider" && n.name !== "greedy-divider");
+        const isGreedy = node.find(n => n.name === "greedy-divider") != null;
         const patterns = patternNodes.map(n => this._buildPattern(n));
-        const or = new Or(name, patterns, false, true);
+        const or = new Or(name, patterns, false, isGreedy);
 
         return or;
     }
@@ -256,7 +257,7 @@ export class Grammar {
                 return this._buildRegex(node.value.slice(1, -1), node);
             }
             case "repeat-literal": {
-                return this._buildRegex(name, node);
+                return this._buildRepeat(name, node);
             }
             case "or-literal": {
                 return this._buildOr(name, node);

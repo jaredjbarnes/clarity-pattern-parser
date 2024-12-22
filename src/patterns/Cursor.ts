@@ -167,9 +167,8 @@ export class Cursor {
 
   audit() {
     return this._history.trace.map(t => {
-      const onChar = this.getChars(t.cursorIndex, t.cursorIndex);
-      const restChars = this.getChars(t.cursorIndex + 1, t.cursorIndex + 5);
-      const context = `{${t.cursorIndex}}[${onChar}]${restChars}`;
+      const characters = this.getChars(t.cursorIndex, t.cursorIndex + 5);
+      const context = `{${t.cursorIndex}}${characters}`;
       return `${t.patternName}-->${context}`;
     });
   }

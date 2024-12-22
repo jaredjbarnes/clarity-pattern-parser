@@ -145,7 +145,7 @@ describe("InfiniteRepeat", () => {
         const manyA = new InfiniteRepeat("many-a", a, { divider });
         const parent = new And("parent", [manyA, b]);
 
-        const clonedManyA = findPattern(parent, p => p.name == "many-a");
+        const clonedManyA = findPattern(parent, p => p.name === "many-a");
         let tokens = clonedManyA?.getTokensAfter(clonedManyA.children[0]);
         let expected = [",", "B"];
 
@@ -163,7 +163,7 @@ describe("InfiniteRepeat", () => {
         const manyA = new InfiniteRepeat("many-a", a);
         const parent = new And("parent", [manyA, b]);
 
-        const clonedManyA = findPattern(parent, p => p.name == "many-a");
+        const clonedManyA = findPattern(parent, p => p.name === "many-a");
         const tokens = clonedManyA?.getTokensAfter(clonedManyA.children[0]);
         const expected = ["A", "B"];
 

@@ -77,7 +77,7 @@ export class Grammar {
         await this._resolveImports(ast);
         this._buildPatterns(ast);
 
-        return this._parseContext.patternsByName;
+        return Object.fromEntries(this._parseContext.patternsByName) as Record<string, Pattern>;
     }
 
     parseString(expression: string) {
@@ -89,7 +89,7 @@ export class Grammar {
         }
 
         this._buildPatterns(ast);
-        return this._parseContext.patternsByName;
+        return Object.fromEntries(this._parseContext.patternsByName) as Record<string, Pattern>;
     }
 
     private _tryToParse(expression: string): Node {
@@ -395,7 +395,7 @@ export class Grammar {
                             throw new Error(`'${importName}' was already used within another import.`);
                         }
 
-                        const pattern = patterns.get(importName);
+                        const pattern = patterns[importName];
                         if (pattern == null) {
                             throw new Error(`Couldn't find pattern with name: ${importName}, from import: ${resource}.`);
                         }
@@ -411,7 +411,7 @@ export class Grammar {
                             throw new Error(`'${alias}' was already used within another import.`);
                         }
 
-                        const pattern = patterns.get(importName);
+                        const pattern = patterns[importName];
                         if (pattern == null) {
                             throw new Error(`Couldn't find pattern with name: ${importName}, from import: ${resource}.`);
                         }
@@ -451,7 +451,7 @@ export class Grammar {
                 });
 
                 const patterns = grammar.parseString(expression);
-                params = Array.from(patterns.values());
+                params = Array.from(Object.values(patterns));
             }
         }
 

@@ -15,9 +15,9 @@ export declare class Grammar {
     private _parseContext;
     private _autoComplete;
     constructor(options?: GrammarOptions);
-    import(path: string): Promise<Map<string, Pattern>>;
-    parse(expression: string): Promise<Map<string, Pattern>>;
-    parseString(expression: string): Map<string, Pattern>;
+    import(path: string): Promise<Record<string, Pattern>>;
+    parse(expression: string): Promise<Record<string, Pattern>>;
+    parseString(expression: string): Record<string, Pattern>;
     private _tryToParse;
     private _hasImports;
     private _buildPatterns;
@@ -39,7 +39,7 @@ export declare class Grammar {
     private _getParams;
     private _getPattern;
     private _saveAlias;
-    static parse(expression: string, options?: GrammarOptions): Promise<Map<string, Pattern>>;
-    static import(path: string, options?: GrammarOptions): Promise<Map<string, Pattern>>;
-    static parseString(expression: string, options?: GrammarOptions): Map<string, Pattern>;
+    static parse(expression: string, options?: GrammarOptions): Promise<Record<string, Pattern>>;
+    static import(path: string, options?: GrammarOptions): Promise<Record<string, Pattern>>;
+    static parseString(expression: string, options?: GrammarOptions): Record<string, Pattern>;
 }

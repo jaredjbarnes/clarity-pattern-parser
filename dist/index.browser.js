@@ -464,9 +464,8 @@
         }
         audit() {
             return this._history.trace.map(t => {
-                const onChar = this.getChars(t.cursorIndex, t.cursorIndex);
-                const restChars = this.getChars(t.cursorIndex + 1, t.cursorIndex + 5);
-                const context = `{${t.cursorIndex}}[${onChar}]${restChars}`;
+                const characters = this.getChars(t.cursorIndex, t.cursorIndex + 5);
+                const context = `{${t.cursorIndex}}${characters}`;
                 return `${t.patternName}-->${context}`;
             });
         }
@@ -2400,7 +2399,7 @@
                 const ast = this._tryToParse(expression);
                 yield this._resolveImports(ast);
                 this._buildPatterns(ast);
-                return this._parseContext.patternsByName;
+                return Object.fromEntries(this._parseContext.patternsByName);
             });
         }
         parseString(expression) {
@@ -2410,7 +2409,7 @@
                 throw new Error("Cannot use imports on parseString, use parse instead.");
             }
             this._buildPatterns(ast);
-            return this._parseContext.patternsByName;
+            return Object.fromEntries(this._parseContext.patternsByName);
         }
         _tryToParse(expression) {
             const { ast, cursor, options, isComplete } = this._autoComplete.suggestFor(expression);
@@ -2666,7 +2665,7 @@
                                 if (parseContext.importedPatternsByName.has(importName)) {
                                     throw new Error(`'${importName}' was already used within another import.`);
                                 }
-                                const pattern = patterns.get(importName);
+                                const pattern = patterns[importName];
                                 if (pattern == null) {
                                     throw new Error(`Couldn't find pattern with name: ${importName}, from import: ${resource}.`);
                                 }
@@ -2680,7 +2679,7 @@
                                 if (parseContext.importedPatternsByName.has(alias)) {
                                     throw new Error(`'${alias}' was already used within another import.`);
                                 }
-                                const pattern = patterns.get(importName);
+                                const pattern = patterns[importName];
                                 if (pattern == null) {
                                     throw new Error(`Couldn't find pattern with name: ${importName}, from import: ${resource}.`);
                                 }
@@ -2711,7 +2710,7 @@
                         resolveImport: this._resolveImport
                     });
                     const patterns = grammar.parseString(expression);
-                    params = Array.from(patterns.values());
+                    params = Array.from(Object.values(patterns));
                 }
             }
             return params;

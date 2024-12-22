@@ -195,7 +195,7 @@ export class Grammar {
             .replace(/\\0/g, '\0')
             .replace(/\\x([0-9A-Fa-f]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
             .replace(/\\u([0-9A-Fa-f]{4})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
-            .replace(/\\(.)/g, '$1');
+            .replace(/\\(.)/g, '$1').slice(1, -1);
     }
 
     private _saveRegex(statementNode: Node) {

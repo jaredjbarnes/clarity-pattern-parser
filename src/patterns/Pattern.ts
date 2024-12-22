@@ -11,8 +11,8 @@ export interface Pattern {
   isOptional: boolean;
 
   parse(cursor: Cursor): Node | null;
-  exec(text: string): ParseResult;
-  test(text: string): boolean;
+  exec(text: string, record?: boolean): ParseResult;
+  test(text: string, record?: boolean): boolean;
   clone(name?: string, isOptional?: boolean): Pattern;
   getTokens(): string[];
   getTokensAfter(childReference: Pattern): string[];

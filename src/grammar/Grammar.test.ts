@@ -231,7 +231,7 @@ describe("Grammar", () => {
         const digit = new Regex("digit", "\\d+");
         const divider = new Literal("comma", ",");
         const digits = new Repeat("digits", digit, { divider, min: 3, max: 3 });
-debugger;
+        
         expect(arePatternsEqual(pattern, digits)).toBeTruthy();
     });
 
@@ -239,7 +239,23 @@ debugger;
         const expression = `
             digit = /\\d+/
             comma = ","
-            digits = (digit, comma){3} -t
+            digits = (digit, comma){t}
+        `;
+
+        const patterns = Grammar.parseString(expression);
+        const pattern = patterns.get("digits");
+        const digit = new Regex("digit", "\\d+");
+        const divider = new Literal("comma", ",");
+        const digits = new Repeat("digits", digit, { divider, min: 0, trimDivider: true });
+        debugger;
+        expect(arePatternsEqual(pattern, digits)).toBeTruthy();
+    });
+
+    test("Repeat Divider With Trim Divider And Bounds", () => {
+        const expression = `
+            digit = /\\d+/
+            comma = ","
+            digits = (digit, comma){3, 3, t}
         `;
 
         const patterns = Grammar.parseString(expression);
@@ -259,15 +275,14 @@ debugger;
             close-bracket = "]"
             spaces = /\\s+/
             items = digit | array
-            array-items = (items, divider)* -t
-            array = open-bracket & spaces? & array-items? & spaces? & close-bracket
+            array-items = (items, divider){t}
+            array = open-bracket + spaces? + array-items? + spaces? + close-bracket
         `;
 
         const patterns = Grammar.parseString(expression);
         const pattern = patterns.get("array") as Pattern;
-
         let text = "[1, []]";
-        let result = pattern.exec(text);
+        let result = pattern.exec(text, true);
 
         expect(result.ast?.value).toEqual("[1, []]");
     });
@@ -316,7 +331,7 @@ debugger;
         import { first-name } from "some/path/to/file.cpat"
         last-name = "Doe"
         space = " "
-        full-name = first-name & space & last-name
+        full-name = first-name + space + last-name
         `;
         function resolveImport(resource: string) {
             expect(resource).toBe("some/path/to/file.cpat");
@@ -343,7 +358,7 @@ debugger;
         import { first-name } from "first-name.cpat"
         import { space } from "space.cpat"
         last-name = "Doe"
-        full-name = first-name & space & last-name
+        full-name = first-name + space + last-name
         `;
         function resolveImport(resource: string) {
             return Promise.resolve({ expression: pathMap[resource], resource });
@@ -365,7 +380,7 @@ debugger;
         import { first-name } from "first-name.cpat"
         import { space } from "space.cpat" with params { custom-space = "  " }
         last-name = "Doe"
-        full-name = first-name & space & last-name
+        full-name = first-name + space + last-name
         `;
 
         const pathMap: Record<string, string> = {

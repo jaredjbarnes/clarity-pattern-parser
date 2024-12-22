@@ -239,14 +239,14 @@ describe("Grammar", () => {
         const expression = `
             digit = /\\d+/
             comma = ","
-            digits = (digit, comma){t}
+            digits = (digit, comma trim)+
         `;
 
         const patterns = Grammar.parseString(expression);
         const pattern = patterns["digits"];
         const digit = new Regex("digit", "\\d+");
         const divider = new Literal("comma", ",");
-        const digits = new Repeat("digits", digit, { divider, min: 0, trimDivider: true });
+        const digits = new Repeat("digits", digit, { divider, min: 1, trimDivider: true });
         debugger;
         expect(arePatternsEqual(pattern, digits)).toBeTruthy();
     });
@@ -255,7 +255,7 @@ describe("Grammar", () => {
         const expression = `
             digit = /\\d+/
             comma = ","
-            digits = (digit, comma){3, 3, t}
+            digits = (digit, comma trim){3, 3}
         `;
 
         const patterns = Grammar.parseString(expression);
@@ -275,7 +275,7 @@ describe("Grammar", () => {
             close-bracket = "]"
             spaces = /\\s+/
             items = digit | array
-            array-items = (items, divider){t}
+            array-items = (items, divider trim)*
             array = open-bracket + spaces? + array-items? + spaces? + close-bracket
         `;
 

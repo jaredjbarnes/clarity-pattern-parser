@@ -28,6 +28,7 @@ describe("Patterns String Template Literal", ()=>{
         debugger;
         const result = body.exec(`
         <div>
+            <div></div>
             <div></div>    
         </div>
         `, true);

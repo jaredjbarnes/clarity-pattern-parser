@@ -8,6 +8,7 @@ export interface FiniteRepeatOptions {
     trimDivider?: boolean;
 }
 export declare class FiniteRepeat implements Pattern {
+    private _id;
     private _type;
     private _name;
     private _parent;
@@ -16,6 +17,7 @@ export declare class FiniteRepeat implements Pattern {
     private _min;
     private _max;
     private _trimDivider;
+    get id(): string;
     get type(): string;
     get name(): string;
     get parent(): Pattern | null;
@@ -27,7 +29,7 @@ export declare class FiniteRepeat implements Pattern {
     constructor(name: string, pattern: Pattern, repeatAmount: number, options?: FiniteRepeatOptions);
     parse(cursor: Cursor): Node | null;
     test(text: string): boolean;
-    exec(text: string): ParseResult;
+    exec(text: string, record?: boolean): ParseResult;
     clone(name?: string, isOptional?: boolean): Pattern;
     getTokens(): string[];
     getTokensAfter(childReference: Pattern): string[];

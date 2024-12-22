@@ -4,6 +4,7 @@ import { Regex } from "./Regex";
 import { Node } from "../ast/Node";
 import { Literal } from "./Literal";
 import { And } from "./And";
+import { arePatternsEqual } from "./arePatternsEqual";
 
 describe("BoundedRepeat", () => {
     test("Bounds Without Divider", () => {
@@ -62,7 +63,7 @@ describe("BoundedRepeat", () => {
     });
 
     test("Bounds Are Equal Without Divider", () => {
-        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), 3, { min: 3});
+        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), 3, { min: 3 });
 
         let cursor = new Cursor("1");
         let result = numbers.parse(cursor);
@@ -286,22 +287,22 @@ describe("BoundedRepeat", () => {
         let clone = numbers.clone();
         let expected = new FiniteRepeat("numbers", new Regex("number", "\\d"), 3, { min: 0 });
 
-        expect(clone).toEqual(expected);
+        expect(arePatternsEqual(clone, expected)).toBeTruthy();
 
         clone = numbers.clone("cloned-numbers");
         expected = new FiniteRepeat("cloned-numbers", new Regex("number", "\\d"), 3, { min: 0 });
 
-        expect(clone).toEqual(expected);
+        expect(arePatternsEqual(clone, expected)).toBeTruthy();
 
         clone = numbers.clone("cloned-numbers", true);
         expected = new FiniteRepeat("cloned-numbers", new Regex("number", "\\d"), 3, { min: 0 });
 
-        expect(clone).toEqual(expected);
+        expect(arePatternsEqual(clone, expected)).toBeTruthy();
 
         clone = numbers.clone("cloned-numbers", false);
         expected = new FiniteRepeat("cloned-numbers", new Regex("number", "\\d"), 3, { min: 1 });
 
-        expect(clone).toEqual(expected);
+        expect(arePatternsEqual(clone, expected)).toBeTruthy();
     });
 
     test("Get Tokens", () => {

@@ -6,6 +6,7 @@ import { Literal } from "./Literal";
 import { Pattern } from "./Pattern";
 import { Regex } from "./Regex";
 import { InfiniteRepeat } from "./InfiniteRepeat";
+import { arePatternsEqual } from "./arePatternsEqual";
 
 describe("InfiniteRepeat", () => {
     test("Successful Parse", () => {
@@ -253,22 +254,22 @@ describe("InfiniteRepeat", () => {
         let clone = numbers.clone();
         let expected = new InfiniteRepeat("numbers", new Regex("number", "\\d"), { min: 0 });
 
-        expect(clone).toEqual(expected);
+        expect(arePatternsEqual(clone, expected)).toBeTruthy();
 
         clone = numbers.clone("cloned-numbers");
         expected = new InfiniteRepeat("cloned-numbers", new Regex("number", "\\d"), { min: 0 });
 
-        expect(clone).toEqual(expected);
+        expect(arePatternsEqual(clone, expected)).toBeTruthy();
 
         clone = numbers.clone("cloned-numbers", true);
         expected = new InfiniteRepeat("cloned-numbers", new Regex("number", "\\d"), { min: 0 });
 
-        expect(clone).toEqual(expected);
+        expect(arePatternsEqual(clone, expected)).toBeTruthy();
 
         clone = numbers.clone("cloned-numbers", false);
         expected = new InfiniteRepeat("cloned-numbers", new Regex("number", "\\d"), { min: 1 });
 
-        expect(clone).toEqual(expected);
+        expect(arePatternsEqual(clone, expected)).toBeTruthy();
     });
 
     test("No Results, min is 0", () => {

@@ -1,13 +1,16 @@
 import { Node } from "../ast/Node";
 import { Cursor } from "./Cursor";
 import { Pattern } from "./Pattern";
+import { ParseResult } from "./ParseResult";
 export declare class Reference implements Pattern {
+    private _id;
     private _type;
     private _name;
     private _parent;
     private _isOptional;
     private _pattern;
     private _children;
+    get id(): string;
     get type(): string;
     get name(): string;
     get parent(): Pattern | null;
@@ -16,10 +19,7 @@ export declare class Reference implements Pattern {
     get isOptional(): boolean;
     constructor(name: string, isOptional?: boolean);
     test(text: string): boolean;
-    exec(text: string): {
-        ast: Node | null;
-        cursor: Cursor;
-    };
+    exec(text: string, record?: boolean): ParseResult;
     parse(cursor: Cursor): Node | null;
     private _getPatternSafely;
     private _findPattern;

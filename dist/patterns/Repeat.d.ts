@@ -9,11 +9,13 @@ export interface RepeatOptions {
     trimDivider?: boolean;
 }
 export declare class Repeat implements Pattern {
+    private _id;
     private _repeatPattern;
     private _parent;
     private _pattern;
     private _options;
     private _children;
+    get id(): string;
     get type(): string;
     get name(): string;
     get parent(): Pattern | null;

@@ -1,5 +1,6 @@
 import { Node } from "../ast/Node";
 import { And } from "./And";
+import { arePatternsEqual } from "./arePatternsEqual";
 import { Cursor } from "./Cursor";
 import { InfiniteRepeat } from "./InfiniteRepeat";
 import { Literal } from "./Literal";
@@ -26,7 +27,7 @@ describe("Repeat", () => {
             new Node("regex", "number", 0, 0, [], "1")
         ]);
 
-        expect(result).toEqual(expected);
+        expect(result?.toJson()).toEqual(expected.toJson());
         expect(cursor.hasError).toBeFalsy();
 
         cursor = new Cursor("12");
@@ -36,7 +37,7 @@ describe("Repeat", () => {
             new Node("regex", "number", 1, 1, [], "2")
         ]);
 
-        expect(result).toEqual(expected);
+        expect(result?.toJson()).toEqual(expected.toJson());
         expect(cursor.hasError).toBeFalsy();
 
         cursor = new Cursor("123");
@@ -46,7 +47,7 @@ describe("Repeat", () => {
             new Node("regex", "number", 1, 1, [], "2")
         ]);
 
-        expect(result).toEqual(expected);
+        expect(result?.toJson()).toEqual(expected.toJson());
         expect(cursor.hasError).toBeFalsy();
         expect(cursor.index).toBe(1);
     });
@@ -76,7 +77,7 @@ describe("Repeat", () => {
             new Node("regex", "number", 1, 1, [], "2")
         ]);
 
-        expect(result).toEqual(expected);
+        expect(result?.toJson()).toEqual(expected.toJson());
         expect(cursor.hasError).toBeFalsy();
 
         cursor = new Cursor("123");
@@ -86,7 +87,7 @@ describe("Repeat", () => {
             new Node("regex", "number", 1, 1, [], "2")
         ]);
 
-        expect(result).toEqual(expected);
+        expect(result?.toJson()).toEqual(expected.toJson());
         expect(cursor.hasError).toBeFalsy();
         expect(cursor.index).toBe(1);
     });
@@ -202,21 +203,21 @@ describe("Repeat", () => {
         let repeatClone = repeat.clone();
         let expected = new Repeat("numbers", number);
 
-        expect(repeatClone).toEqual(expected);
+        expect(arePatternsEqual(repeatClone, expected)).toBeTruthy();
 
         repeatClone = repeat.clone("new-name");
         expected = new Repeat("new-name", number);
 
-        expect(repeatClone).toEqual(expected);
+        expect(arePatternsEqual(repeatClone, expected)).toBeTruthy();
 
         repeatClone = repeat.clone("new-name", false);
         expected = new Repeat("new-name", number);
 
-        expect(repeatClone).toEqual(expected);
+        expect(arePatternsEqual(repeatClone, expected)).toBeTruthy();
 
         repeatClone = repeat.clone("new-name", true);
         expected = new Repeat("new-name", number, { min: 0 });
 
-        expect(repeatClone).toEqual(expected);
+        expect(arePatternsEqual(repeatClone, expected)).toBeTruthy();
     });
 });

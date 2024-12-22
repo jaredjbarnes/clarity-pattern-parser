@@ -2,6 +2,7 @@ import { Cursor } from "./Cursor";
 import { Pattern } from "./Pattern";
 import { Node } from "../ast/Node";
 export declare class And implements Pattern {
+    private _id;
     private _type;
     private _name;
     private _parent;
@@ -9,6 +10,7 @@ export declare class And implements Pattern {
     private _isOptional;
     private _nodes;
     private _firstIndex;
+    get id(): string;
     get type(): string;
     get name(): string;
     get parent(): Pattern | null;
@@ -18,7 +20,7 @@ export declare class And implements Pattern {
     constructor(name: string, sequence: Pattern[], isOptional?: boolean);
     private _assignChildrenToParent;
     test(text: string): boolean;
-    exec(text: string): {
+    exec(text: string, record?: boolean): {
         ast: Node | null;
         cursor: Cursor;
     };

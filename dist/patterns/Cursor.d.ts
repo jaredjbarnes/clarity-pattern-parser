@@ -7,6 +7,7 @@ export declare class Cursor {
     private _index;
     private _length;
     private _history;
+    private _stackTrace;
     get text(): string;
     get isOnFirst(): boolean;
     get isOnLast(): boolean;
@@ -38,4 +39,7 @@ export declare class Cursor {
     resolveError(): void;
     startRecording(): void;
     stopRecording(): void;
+    startParseWith(pattern: Pattern): void;
+    endParse(): void;
+    audit(): string[];
 }

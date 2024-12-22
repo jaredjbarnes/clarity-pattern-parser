@@ -1,12 +1,14 @@
 import { Node } from "../ast/Node";
 import { Cursor } from "./Cursor";
 import { Pattern } from "./Pattern";
+import { ParseResult } from "./ParseResult";
 export interface InfiniteRepeatOptions {
     divider?: Pattern;
     min?: number;
     trimDivider?: boolean;
 }
 export declare class InfiniteRepeat implements Pattern {
+    private _id;
     private _type;
     private _name;
     private _parent;
@@ -17,6 +19,7 @@ export declare class InfiniteRepeat implements Pattern {
     private _firstIndex;
     private _min;
     private _trimDivider;
+    get id(): string;
     get type(): string;
     get name(): string;
     get parent(): Pattern | null;
@@ -27,10 +30,7 @@ export declare class InfiniteRepeat implements Pattern {
     constructor(name: string, pattern: Pattern, options?: InfiniteRepeatOptions);
     private _assignChildrenToParent;
     test(text: string): boolean;
-    exec(text: string): {
-        ast: Node | null;
-        cursor: Cursor;
-    };
+    exec(text: string, record?: boolean): ParseResult;
     parse(cursor: Cursor): Node | null;
     private _meetsMin;
     private _tryToParse;

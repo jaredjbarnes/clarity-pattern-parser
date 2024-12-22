@@ -1,7 +1,9 @@
 import { Node } from "../ast/Node";
 import { Pattern } from "./Pattern";
 import { Cursor } from "./Cursor";
+import { ParseResult } from "./ParseResult";
 export declare class Regex implements Pattern {
+    private _id;
     private _type;
     private _name;
     private _isOptional;
@@ -13,6 +15,7 @@ export declare class Regex implements Pattern {
     private _firstIndex;
     private _substring;
     private _tokens;
+    get id(): string;
     get type(): string;
     get name(): string;
     get parent(): Pattern | null;
@@ -22,10 +25,7 @@ export declare class Regex implements Pattern {
     constructor(name: string, regex: string, isOptional?: boolean);
     private assertArguments;
     test(text: string): boolean;
-    exec(text: string): {
-        ast: Node | null;
-        cursor: Cursor;
-    };
+    exec(text: string, record?: boolean): ParseResult;
     parse(cursor: Cursor): Node | null;
     private resetState;
     private tryToParse;

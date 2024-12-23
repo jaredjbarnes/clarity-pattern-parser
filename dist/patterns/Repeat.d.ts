@@ -34,4 +34,5 @@ export declare class Repeat implements Pattern {
     getPatternsAfter(_childReference: Pattern): Pattern[];
     getNextPatterns(): Pattern[];
     find(predicate: (p: Pattern) => boolean): Pattern | null;
+    isEqual(pattern: Repeat): boolean;
 }

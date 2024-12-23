@@ -38,4 +38,5 @@ export declare class FiniteRepeat implements Pattern {
     getPatternsAfter(childReference: Pattern): Pattern[];
     getNextPatterns(): Pattern[];
     find(predicate: (p: Pattern) => boolean): Pattern | null;
+    isEqual(pattern: FiniteRepeat): boolean;
 }

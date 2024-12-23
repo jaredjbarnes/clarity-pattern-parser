@@ -8,7 +8,7 @@ export declare class Literal implements Pattern {
     private _name;
     private _parent;
     private _isOptional;
-    private _literal;
+    private _text;
     private _runes;
     private _firstIndex;
     private _lastIndex;
@@ -34,4 +34,5 @@ export declare class Literal implements Pattern {
     getPatternsAfter(): Pattern[];
     getNextPatterns(): Pattern[];
     find(_predicate: (p: Pattern) => boolean): Pattern | null;
+    isEqual(pattern: Literal): boolean;
 }

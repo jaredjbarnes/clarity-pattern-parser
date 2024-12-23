@@ -200,4 +200,8 @@ export class Or implements Pattern {
     or._id = this._id;
     return or;
   }
+
+  isEqual(pattern: Or): boolean {
+    return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
+  }
 }

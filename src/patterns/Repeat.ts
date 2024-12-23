@@ -148,4 +148,7 @@ export class Repeat implements Pattern {
         return this._repeatPattern.find(predicate);
     }
 
+    isEqual(pattern: Repeat): boolean {
+        return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
+    }
 }

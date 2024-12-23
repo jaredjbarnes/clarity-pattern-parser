@@ -40,4 +40,5 @@ export declare class Regex implements Pattern {
     getNextPatterns(): Pattern[];
     find(_predicate: (p: Pattern) => boolean): Pattern | null;
     setTokens(tokens: string[]): void;
+    isEqual(pattern: Regex): boolean;
 }

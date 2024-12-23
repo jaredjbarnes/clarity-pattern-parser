@@ -27,4 +27,5 @@ export declare class Not implements Pattern {
     getPatternsAfter(_childReference: Pattern): Pattern[];
     getNextPatterns(): Pattern[];
     find(predicate: (p: Pattern) => boolean): Pattern | null;
+    isEqual(pattern: Not): boolean;
 }

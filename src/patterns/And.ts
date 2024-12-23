@@ -321,4 +321,8 @@ export class And implements Pattern {
 
     return clone;
   }
+
+  isEqual(pattern: And): boolean {
+    return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
+  }
 }

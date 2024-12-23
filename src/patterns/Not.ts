@@ -147,4 +147,7 @@ export class Not implements Pattern {
     return predicate(this._children[0]) ? this._children[0] : null;
   }
 
+  isEqual(pattern: Not): boolean {
+    return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
+  }
 }

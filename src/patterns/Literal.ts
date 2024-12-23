@@ -11,7 +11,7 @@ export class Literal implements Pattern {
   private _name: string;
   private _parent: Pattern | null;
   private _isOptional: boolean;
-  private _literal: string;
+  private _text: string;
   private _runes: string[];
   private _firstIndex: number;
   private _lastIndex: number;
@@ -53,7 +53,7 @@ export class Literal implements Pattern {
     this._id = `literal-${idIndex++}`;
     this._type = "literal";
     this._name = name;
-    this._literal = value;
+    this._text = value;
     this._runes = Array.from(value);
     this._isOptional = isOptional;
     this._parent = null;
@@ -125,7 +125,7 @@ export class Literal implements Pattern {
       }
 
       if (i + 1 === literalRuneLength) {
-        this._lastIndex = this._firstIndex + this._literal.length - 1;
+        this._lastIndex = this._firstIndex + this._text.length - 1;
         passed = true;
         break;
       }
@@ -148,18 +148,18 @@ export class Literal implements Pattern {
       this._firstIndex,
       this._lastIndex,
       undefined,
-      this._literal
+      this._text
     );
   }
 
   clone(name = this._name, isOptional = this._isOptional): Pattern {
-    const clone = new Literal(name, this._literal, isOptional);
+    const clone = new Literal(name, this._text, isOptional);
     clone._id = this._id;
     return clone;
   }
 
   getTokens(): string[] {
-    return [this._literal];
+    return [this._text];
   }
 
   getTokensAfter(_lastMatched: Pattern): string[] {
@@ -194,4 +194,7 @@ export class Literal implements Pattern {
     return null;
   }
 
+  isEqual(pattern: Literal) {
+    return pattern.type === this.type && pattern._text === this._text;
+  }
 }

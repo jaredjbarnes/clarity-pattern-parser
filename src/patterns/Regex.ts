@@ -198,4 +198,8 @@ export class Regex implements Pattern {
     this._tokens = tokens;
   }
 
+  isEqual(pattern: Regex): boolean {
+    return pattern.type === this.type && pattern._originalRegexString === this._originalRegexString;
+  }
+
 }

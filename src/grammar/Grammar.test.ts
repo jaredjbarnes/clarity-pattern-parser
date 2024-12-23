@@ -4,6 +4,7 @@ import { Literal } from "../patterns/Literal";
 import { Not } from "../patterns/Not";
 import { Or } from "../patterns/Or";
 import { Pattern } from "../patterns/Pattern";
+import { Reference } from "../patterns/Reference";
 import { Regex } from "../patterns/Regex";
 import { Repeat } from "../patterns/Repeat";
 import { Grammar } from "./Grammar";
@@ -472,11 +473,28 @@ describe("Grammar", () => {
 
     test("Anonymous Patterns", () => {
         const expression = `
-            complex-expression = "Text" + /regex/ + ("Text" <|> /regex/ <|> (pattern)+)
+            complex-expression = !"NOT_THIS" + "Text"? + /regex/ + ("Text" <|> /regex/ <|> (pattern)+) + (pattern | pattern)
         `;
 
         const patterns = Grammar.parseString(expression);
-        debugger;
-        expect(patterns).toBe(patterns);
+        const expected = new And("complex-expression", [
+            new Not("not-NOT_THIS", new Literal("NOT_THIS", "NOT_THIS")),
+            new Literal("Text", "Text", true),
+            new Regex("regex", "regex"),
+            new Or("anonymous-pattern-4", [
+                new Literal("Text", "Text"),
+                new Regex("regex", "regex"),
+                new Repeat("anonymous-pattern-7", new Reference("pattern")),
+            ],
+                false,
+                true
+            ),
+            new Or("anonymous-pattern-10", [
+                new Reference("pattern"),
+                new Reference("pattern")
+            ])
+        ]);
+
+        expect(arePatternsEqual(patterns["complex-expression"], expected)).toBeTruthy();
     });
 });

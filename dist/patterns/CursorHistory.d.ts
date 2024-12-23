@@ -2,8 +2,7 @@ import { Node } from "../ast/Node";
 import { ParseError } from "./ParseError";
 import { Pattern } from "./Pattern";
 export interface Trace {
-    id: string;
-    patternName: string;
+    pattern: Pattern;
     cursorIndex: number;
 }
 export interface Match {

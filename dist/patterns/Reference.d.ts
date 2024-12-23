@@ -32,4 +32,5 @@ export declare class Reference implements Pattern {
     getNextPatterns(): Pattern[];
     find(_predicate: (p: Pattern) => boolean): Pattern | null;
     clone(name?: string, isOptional?: boolean): Pattern;
+    isEqual(pattern: Reference): boolean;
 }

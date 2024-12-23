@@ -167,4 +167,8 @@ export class Reference implements Pattern {
     clone._id = this._id;
     return clone;
   }
+
+  isEqual(pattern: Reference): boolean {
+    return pattern.type === this.type && pattern.name === this.name;
+  }
 }

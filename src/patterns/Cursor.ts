@@ -148,13 +148,12 @@ export class Cursor {
     const patternName = pattern.name;
 
     const trace = {
-      id: pattern.id,
-      patternName,
+      pattern,
       cursorIndex: this.index
     };
 
-    if (this._stackTrace.find(p => p.id === pattern.id && this.index === p.cursorIndex)) {
-      throw new Error(`Cyclical Pattern: ${this._stackTrace.map(r => `${r.patternName}#${r.id}{${r.cursorIndex}}`).join(" -> ")} -> ${patternName}#${pattern.id}{${this.index}}.`);
+    if (this._stackTrace.find(t => t.pattern.id === pattern.id && this.index === t.cursorIndex)) {
+      throw new Error(`Cyclical Pattern: ${this._stackTrace.map(t => `${t.pattern.name}#${t.pattern.id}{${t.cursorIndex}}`).join(" -> ")} -> ${patternName}#${pattern.id}{${this.index}}.`);
     }
 
     this._history.pushStackTrace(trace);
@@ -167,10 +166,18 @@ export class Cursor {
 
   audit() {
     return this._history.trace.map(t => {
-      const characters = this.getChars(t.cursorIndex, t.cursorIndex + 5);
-      const context = `{${t.cursorIndex}}${characters}`;
-      return `${t.patternName}-->${context}`;
+      const onChar = this.getChars(t.cursorIndex, t.cursorIndex);
+      const restChars = this.getChars(t.cursorIndex + 1, t.cursorIndex + 5);
+      const context = `{${t.cursorIndex}}[${onChar}]${restChars}`;
+      return `${this._buildPatternContext(t.pattern)}-->${context}`;
     });
+  }
+
+  private _buildPatternContext(pattern: Pattern) {
+    if (pattern.parent != null) {
+      return `${pattern.parent.name}.${pattern.name}`;
+    }
+    return pattern.name;
   }
 
 }

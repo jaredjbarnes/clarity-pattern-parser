@@ -247,4 +247,8 @@ export class FiniteRepeat implements Pattern {
         return findPattern(this, predicate);
     }
 
+    isEqual(pattern: FiniteRepeat): boolean {
+        return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
+    }
+
 }

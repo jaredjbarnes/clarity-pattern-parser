@@ -449,12 +449,11 @@
         startParseWith(pattern) {
             const patternName = pattern.name;
             const trace = {
-                id: pattern.id,
-                patternName,
+                pattern,
                 cursorIndex: this.index
             };
-            if (this._stackTrace.find(p => p.id === pattern.id && this.index === p.cursorIndex)) {
-                throw new Error(`Cyclical Pattern: ${this._stackTrace.map(r => `${r.patternName}#${r.id}{${r.cursorIndex}}`).join(" -> ")} -> ${patternName}#${pattern.id}{${this.index}}.`);
+            if (this._stackTrace.find(t => t.pattern.id === pattern.id && this.index === t.cursorIndex)) {
+                throw new Error(`Cyclical Pattern: ${this._stackTrace.map(t => `${t.pattern.name}#${t.pattern.id}{${t.cursorIndex}}`).join(" -> ")} -> ${patternName}#${pattern.id}{${this.index}}.`);
             }
             this._history.pushStackTrace(trace);
             this._stackTrace.push(trace);
@@ -464,10 +463,17 @@
         }
         audit() {
             return this._history.trace.map(t => {
-                const characters = this.getChars(t.cursorIndex, t.cursorIndex + 5);
-                const context = `{${t.cursorIndex}}${characters}`;
-                return `${t.patternName}-->${context}`;
+                const onChar = this.getChars(t.cursorIndex, t.cursorIndex);
+                const restChars = this.getChars(t.cursorIndex + 1, t.cursorIndex + 5);
+                const context = `{${t.cursorIndex}}[${onChar}]${restChars}`;
+                return `${this._buildPatternContext(t.pattern)}-->${context}`;
             });
+        }
+        _buildPatternContext(pattern) {
+            if (pattern.parent != null) {
+                return `${pattern.parent.name}.${pattern.name}`;
+            }
+            return pattern.name;
         }
     }
 
@@ -501,7 +507,7 @@
             this._id = `literal-${idIndex$8++}`;
             this._type = "literal";
             this._name = name;
-            this._literal = value;
+            this._text = value;
             this._runes = Array.from(value);
             this._isOptional = isOptional;
             this._parent = null;
@@ -555,7 +561,7 @@
                     break;
                 }
                 if (i + 1 === literalRuneLength) {
-                    this._lastIndex = this._firstIndex + this._literal.length - 1;
+                    this._lastIndex = this._firstIndex + this._text.length - 1;
                     passed = true;
                     break;
                 }
@@ -568,15 +574,15 @@
             return passed;
         }
         _createNode() {
-            return new Node("literal", this._name, this._firstIndex, this._lastIndex, undefined, this._literal);
+            return new Node("literal", this._name, this._firstIndex, this._lastIndex, undefined, this._text);
         }
         clone(name = this._name, isOptional = this._isOptional) {
-            const clone = new Literal(name, this._literal, isOptional);
+            const clone = new Literal(name, this._text, isOptional);
             clone._id = this._id;
             return clone;
         }
         getTokens() {
-            return [this._literal];
+            return [this._text];
         }
         getTokensAfter(_lastMatched) {
             return [];
@@ -601,6 +607,9 @@
         }
         find(_predicate) {
             return null;
+        }
+        isEqual(pattern) {
+            return pattern.type === this.type && pattern._text === this._text;
         }
     }
 
@@ -738,6 +747,9 @@
         }
         setTokens(tokens) {
             this._tokens = tokens;
+        }
+        isEqual(pattern) {
+            return pattern.type === this.type && pattern._originalRegexString === this._originalRegexString;
         }
     }
 
@@ -881,6 +893,9 @@
             const clone = new Reference(name, isOptional);
             clone._id = this._id;
             return clone;
+        }
+        isEqual(pattern) {
+            return pattern.type === this.type && pattern.name === this.name;
         }
     }
 
@@ -1027,6 +1042,9 @@
             const or = new Or(name, this._children, isOptional, this._isGreedy);
             or._id = this._id;
             return or;
+        }
+        isEqual(pattern) {
+            return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
         }
     }
 
@@ -1204,6 +1222,9 @@
         }
         find(predicate) {
             return findPattern(this, predicate);
+        }
+        isEqual(pattern) {
+            return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
         }
     }
 
@@ -1457,6 +1478,9 @@
             clone._id = this._id;
             return clone;
         }
+        isEqual(pattern) {
+            return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
+        }
     }
 
     let idIndex$2 = 0;
@@ -1551,6 +1575,9 @@
         }
         find(predicate) {
             return this._repeatPattern.find(predicate);
+        }
+        isEqual(pattern) {
+            return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
         }
     }
 
@@ -1802,6 +1829,9 @@
             clone._id = this._id;
             return clone;
         }
+        isEqual(pattern) {
+            return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
+        }
     }
 
     const literal = new Regex("literal", '"(?:\\\\.|[^"\\\\])*"');
@@ -1854,13 +1884,8 @@
     const integer = new Regex("integer", "([1-9][0-9]*)|0");
     integer.setTokens(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]);
     const optionalInteger = integer.clone("integer", true);
-    const trimFlag = new Literal("trim-flag", "t", true);
-    const optionalFlag = new And("optional-trim-flag", [
-        optionalSpaces$2,
-        comma,
-        optionalSpaces$2,
-        trimFlag,
-    ], true);
+    const trimKeyword = new Literal("trim-keyword", "trim", true);
+    const trimFlag = new And("trim-flag", [lineSpaces$1, trimKeyword], true);
     const bounds = new And("bounds", [
         openBracket$1,
         optionalSpaces$2,
@@ -1869,13 +1894,6 @@
         comma,
         optionalSpaces$2,
         optionalInteger.clone("max"),
-        optionalFlag,
-        optionalSpaces$2,
-        closeBracket$1
-    ]);
-    const justFlag = new And("bounds", [
-        openBracket$1,
-        trimFlag,
         closeBracket$1
     ]);
     const exactCount = new And("exact-count", [
@@ -1889,7 +1907,6 @@
     quantifierShorthand.setTokens(["*", "+"]);
     const quantifier = new Or("quantifier", [
         quantifierShorthand,
-        justFlag,
         exactCount,
         bounds
     ]);
@@ -1904,7 +1921,7 @@
         openParen,
         optionalSpaces$2,
         patterns$3,
-        new And("optional-divider-section", [dividerComma, dividerPattern], true),
+        new And("optional-divider-section", [dividerComma, dividerPattern, trimFlag], true),
         optionalSpaces$2,
         closeParen,
         new And("quantifier-section", [quantifier]),
@@ -1925,8 +1942,11 @@
 
     const patternName = name$1.clone("pattern-name");
     const patterns$1 = new Or("or-patterns", [patternName, anonymousPattern]);
-    const divider = new Regex("or-divider", "\\s*[|]\\s*");
-    divider.setTokens([" | "]);
+    const defaultDivider = new Regex("default-divider", "\\s*[|]\\s*");
+    const greedyDivider = new Regex("greedy-divider", "\\s*[<][|][>]\\s*");
+    const divider = new Or("or-divider", [defaultDivider, greedyDivider]);
+    defaultDivider.setTokens([" | "]);
+    greedyDivider.setTokens([" <|> "]);
     const orLiteral = new Repeat("or-literal", patterns$1, { divider, min: 2, trimDivider: true });
 
     const aliasLiteral = name$1.clone("alias-literal");
@@ -2149,6 +2169,9 @@
         }
         find(predicate) {
             return predicate(this._children[0]) ? this._children[0] : null;
+        }
+        isEqual(pattern) {
+            return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
         }
     }
 
@@ -2530,9 +2553,10 @@
             this._parseContext.patternsByName.set(name, or);
         }
         _buildOr(name, node) {
-            const patternNodes = node.children.filter(n => n.name === "pattern-name");
+            const patternNodes = node.children.filter(n => n.name !== "default-divider" && n.name !== "greedy-divider");
+            const isGreedy = node.find(n => n.name === "greedy-divider") != null;
             const patterns = patternNodes.map(n => this._buildPattern(n));
-            const or = new Or(name, patterns, false, true);
+            const or = new Or(name, patterns, false, isGreedy);
             return or;
         }
         _buildPattern(node) {
@@ -2549,7 +2573,7 @@
                     return this._buildRegex(node.value.slice(1, -1), node);
                 }
                 case "repeat-literal": {
-                    return this._buildRegex(name, node);
+                    return this._buildRepeat(name, node);
                 }
                 case "or-literal": {
                     return this._buildOr(name, node);
@@ -2768,10 +2792,7 @@
         else if (a == null || b == null) {
             return false;
         }
-        return a.type === b.type &&
-            a.name === b.name &&
-            a.isOptional === b.isOptional &&
-            a.children.every((c, index) => arePatternsEqual(c, b.children[index]));
+        return a.isEqual(b);
     }
 
     const kebabRegex = /-([a-z])/g; // Define the regex once

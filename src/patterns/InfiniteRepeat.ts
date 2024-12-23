@@ -351,5 +351,9 @@ export class InfiniteRepeat implements Pattern {
 
     return clone;
   }
+
+  isEqual(pattern: InfiniteRepeat): boolean {
+    return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
+  }
 }
 

@@ -42,4 +42,5 @@ export declare class Cursor {
     startParseWith(pattern: Pattern): void;
     endParse(): void;
     audit(): string[];
+    private _buildPatternContext;
 }

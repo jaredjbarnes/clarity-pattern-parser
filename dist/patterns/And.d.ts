@@ -37,4 +37,5 @@ export declare class And implements Pattern {
     getNextPatterns(): Pattern[];
     find(predicate: (p: Pattern) => boolean): Pattern | null;
     clone(name?: string, isOptional?: boolean): Pattern;
+    isEqual(pattern: And): boolean;
 }

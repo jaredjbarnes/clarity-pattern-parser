@@ -2,16 +2,16 @@ import { Repeat } from "../../patterns/Repeat"
 import { Regex } from "../../patterns/Regex";
 import { name } from "./name";
 import { anonymousPattern } from "./anonymousPattern";
-import { Or } from "../../patterns/Or";
-import { And } from "../../patterns/And";
+import { Options } from "../../patterns/Options";
+import { Sequence } from "../../patterns/Sequence";
 import { Literal } from "../../patterns/Literal";
 
 const optionalNot = new Literal("not", "!", true);
 const optionalIsOptional = new Literal("is-optional", "?", true);
 const patternName = name.clone("pattern-name");
-const patterns = new Or("and-patterns", [patternName, anonymousPattern]);
+const patterns = new Options("and-patterns", [patternName, anonymousPattern]);
 
-export const pattern = new And("and-child-pattern", [
+export const pattern = new Sequence("and-child-pattern", [
     optionalNot,
     patterns,
     optionalIsOptional,
@@ -20,4 +20,4 @@ export const pattern = new And("and-child-pattern", [
 const divider = new Regex("and-divider", "\\s*[+]\\s*");
 divider.setTokens([" + "]);
 
-export const andLiteral = new Repeat("and-literal", pattern, { divider, min: 2, trimDivider: true });
+export const sequenceLiteral = new Repeat("sequence-literal", pattern, { divider, min: 2, trimDivider: true });

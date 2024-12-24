@@ -5,10 +5,10 @@ import { SuggestionOption } from "./intellisense/SuggestionOption";
 import { AutoComplete, AutoCompleteOptions } from './intellisense/AutoComplete';
 import { Cursor } from "./patterns/Cursor";
 import { Regex } from "./patterns/Regex";
-import { And } from "./patterns/And";
+import { Sequence } from "./patterns/Sequence";
 import { Literal } from "./patterns/Literal";
 import { Not } from "./patterns/Not";
-import { Or } from "./patterns/Or";
+import { Options } from "./patterns/Options";
 import { Repeat } from "./patterns/Repeat";
 import { ParseError } from "./patterns/ParseError";
 import { Pattern } from "./patterns/Pattern";
@@ -26,13 +26,13 @@ export {
   AutoCompleteOptions,
   Suggestion,
   SuggestionOption,
-  And,
+  Sequence as And,
   Cursor,
   CursorHistory,
   Match,
   Literal,
   Not,
-  Or,
+  Options as Or,
   ParseError,
   ParseResult,
   Pattern,

@@ -1,6 +1,6 @@
-import { And } from "../../patterns/And";
+import { Sequence } from "../../patterns/Sequence";
 import { Literal } from "../../patterns/Literal";
-import { Or } from "../../patterns/Or";
+import { Options } from "../../patterns/Options";
 import { Reference } from "../../patterns/Reference";
 import { Regex } from "../../patterns/Regex";
 import { Repeat } from "../../patterns/Repeat";
@@ -18,19 +18,19 @@ const space = new Regex("space", "\\s+")
 const newKeyword = new Literal("new-keyword", "new");
 const deleteKeyword = new Literal("delete-keyword", "delete");
 
-const newExpression = new And("new-expression", [
+const newExpression = new Sequence("new-expression", [
     newKeyword,
     space,
     new Reference("expression")
 ]);
 
-const deleteExpression = new And("delete-expression", [
+const deleteExpression = new Sequence("delete-expression", [
     deleteKeyword,
     space,
     new Reference("expression")
 ]);
 
-const groupExpression = new And("group-expression", [
+const groupExpression = new Sequence("group-expression", [
     new Literal("open-paren", "("),
     optionalSpaces,
     new Reference("expression"),
@@ -38,13 +38,13 @@ const groupExpression = new And("group-expression", [
     new Literal("close-paren", ")")
 ]);
 
-const prefixExpression = new And("prefix-expression", [
+const prefixExpression = new Sequence("prefix-expression", [
     prefixOperator,
     new Reference("expression")
 ]);
 
 const memberAccess = new Repeat("member-access",
-    new Or("member-access", [
+    new Options("member-access", [
         invocation,
         propertyAccess,
     ])
@@ -53,7 +53,7 @@ const memberAccess = new Repeat("member-access",
 
 var variableName = name.clone("variable-name");
 
-const expressions = new Or("expressions", [
+const expressions = new Options("expressions", [
     newExpression,
     deleteExpression,
     literal,
@@ -64,24 +64,24 @@ const expressions = new Or("expressions", [
     prefixExpression
 ]);
 
-const expressionBody = new And("expression-body", [
+const expressionBody = new Sequence("expression-body", [
     expressions,
     memberAccess.clone(undefined, true),
 ]);
 
-const infixExpression = new And("infix-expression", [
+const infixExpression = new Sequence("infix-expression", [
     expressionBody,
     optionalSpaces,
     infixOperator,
     optionalSpaces,
-    new Or("infix-right-operand", [
+    new Options("infix-right-operand", [
         new Reference("infix-expression"),
         expressionBody,
     ])
 ]);
 
-const ternaryExpression = new And("ternary", [
-    new Or("ternary-condition", [
+const ternaryExpression = new Sequence("ternary", [
+    new Options("ternary-condition", [
         infixExpression,
         expressionBody
     ]),
@@ -95,7 +95,7 @@ const ternaryExpression = new And("ternary", [
     new Reference("expression")
 ]);
 
-const expression = new Or("expression", [
+const expression = new Options("expression", [
     ternaryExpression,
     infixExpression,
     expressionBody

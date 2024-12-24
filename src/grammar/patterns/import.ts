@@ -1,9 +1,9 @@
-import { And } from "../../patterns/And";
+import { Sequence } from "../../patterns/Sequence";
 import { Repeat } from "../../patterns/Repeat";
 import { Literal } from "../../patterns/Literal";
 import { Regex } from "../../patterns/Regex";
 import { literal } from "./literal";
-import { Or } from "../../patterns/Or";
+import { Options } from "../../patterns/Options";
 import { body } from "./body";
 import { allSpaces, lineSpaces } from "./spaces";
 
@@ -11,21 +11,26 @@ const optionalSpaces = allSpaces.clone("optional-spaces", true);
 const optionalLineSpaces = lineSpaces.clone("options-line-spaces", true);
 
 const importNameDivider = new Regex("import-name-divider", "(\\s+)?,(\\s+)?");
+importNameDivider.setTokens([", "]);
+
+const name = new Regex("import-name", "[^}\\s,]+");
+name.setTokens(["[IMPORT_NAME]"]);
+
 const importKeyword = new Literal("import", "import");
 const useParamsKeyword = new Literal("use-params", "use params");
 const asKeyword = new Literal("as", "as");
 const fromKeyword = new Literal("from", "from");
 const openBracket = new Literal("open-bracket", "{");
 const closeBracket = new Literal("close-bracket", "}");
-const name = new Regex("import-name", "[^}\\s,]+");
+
 const importNameAlias = name.clone("import-name-alias");
-const importAlias = new And("import-alias", [name, lineSpaces, asKeyword, lineSpaces, importNameAlias]);
-const importedNames = new Repeat("imported-names", new Or("import-names", [importAlias, name]), { divider: importNameDivider });
+const importAlias = new Sequence("import-alias", [name, lineSpaces, asKeyword, lineSpaces, importNameAlias]);
+const importedNames = new Repeat("imported-names", new Options("import-names", [importAlias, name]), { divider: importNameDivider });
 const paramName = name.clone("param-name");
 const paramNames = new Repeat("param-names", paramName, { divider: importNameDivider });
 const resource = literal.clone("resource");
 
-const useParams = new And("import-params", [
+const useParams = new Sequence("import-params", [
     useParamsKeyword,
     optionalLineSpaces,
     openBracket,
@@ -36,7 +41,7 @@ const useParams = new And("import-params", [
 ]);
 
 const withParamsKeyword = new Literal("with-params", "with params");
-const withParamsStatement = new And("with-params-statement", [
+const withParamsStatement = new Sequence("with-params-statement", [
     withParamsKeyword,
     optionalLineSpaces,
     openBracket,
@@ -46,7 +51,7 @@ const withParamsStatement = new And("with-params-statement", [
     closeBracket
 ], true);
 
-const importFromStatement = new And("import-from", [
+const importFromStatement = new Sequence("import-from", [
     importKeyword,
     optionalLineSpaces,
     openBracket,
@@ -62,7 +67,7 @@ const importFromStatement = new And("import-from", [
     withParamsStatement
 ]);
 
-export const importStatement = new Or("import-statement", [
+export const importStatement = new Options("import-statement", [
     useParams,
     importFromStatement
 ]);

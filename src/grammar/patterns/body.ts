@@ -1,16 +1,16 @@
-import { And } from "../../patterns/And";
-import { Or } from "../../patterns/Or";
+import { Sequence } from "../../patterns/Sequence";
+import { Options } from "../../patterns/Options";
 import { Repeat } from "../../patterns/Repeat";
 import { comment } from "./comment";
 import { lineSpaces, newLine } from "./spaces";
 import { statement } from "./statement";
 
-const bodyLineContent = new Or("body-line-content", [
+const bodyLineContent = new Options("body-line-content", [
     comment,
     statement
 ]);
 
-const bodyLine = new And("body-line", [
+const bodyLine = new Sequence("body-line", [
     lineSpaces.clone("line-spaces", true),
     bodyLineContent,
     lineSpaces.clone("line-spaces", true),

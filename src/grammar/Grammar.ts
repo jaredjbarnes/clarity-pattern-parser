@@ -4,9 +4,9 @@ import { Pattern } from "../patterns/Pattern";
 import { Regex } from "../patterns/Regex";
 import { Reference } from "../patterns/Reference";
 import { grammar } from "./patterns/grammar";
-import { Or } from "../patterns/Or";
+import { Options } from "../patterns/Options";
 import { Not } from "../patterns/Not";
-import { And } from "../patterns/And";
+import { Sequence } from "../patterns/Sequence";
 import { Repeat, RepeatOptions } from "../patterns/Repeat";
 import { AutoComplete } from "../intellisense/AutoComplete";
 
@@ -16,7 +16,7 @@ const patternNodes: Record<string, boolean> = {
     "literal": true,
     "regex-literal": true,
     "or-literal": true,
-    "and-literal": true,
+    "sequence-literal": true,
     "repeat-literal": true,
     "alias-literal": true,
     "configurable-anonymous-pattern": true
@@ -156,7 +156,7 @@ export class Grammar {
                     this._saveOr(n);
                     break;
                 }
-                case "and-literal": {
+                case "sequence-literal": {
                     this._saveAnd(n);
                     break;
                 }
@@ -237,7 +237,7 @@ export class Grammar {
         const patternNodes = node.children.filter(n => n.name !== "default-divider" && n.name !== "greedy-divider");
         const isGreedy = node.find(n => n.name === "greedy-divider") != null;
         const patterns = patternNodes.map(n => this._buildPattern(n));
-        const or = new Or(name, patterns, false, isGreedy);
+        const or = new Options(name, patterns, false, isGreedy);
 
         return or;
     }
@@ -262,7 +262,7 @@ export class Grammar {
             case "or-literal": {
                 return this._buildOr(name, node);
             }
-            case "and-literal": {
+            case "sequence-literal": {
                 return this._buildAnd(name, node);
             }
             case "complex-anonymous-pattern": {
@@ -276,7 +276,7 @@ export class Grammar {
     private _saveAnd(statementNode: Node) {
         const nameNode = statementNode.find(n => n.name === "name") as Node;
         const name = nameNode.value;
-        const andNode = statementNode.find(n => n.name === "and-literal") as Node;
+        const andNode = statementNode.find(n => n.name === "sequence-literal") as Node;
         const and = this._buildAnd(name, andNode);
 
         this._parseContext.patternsByName.set(name, and);
@@ -298,7 +298,7 @@ export class Grammar {
             return pattern;
         });
 
-        return new And(name, patterns);
+        return new Sequence(name, patterns);
     }
 
     private _saveRepeat(statementNode: Node) {

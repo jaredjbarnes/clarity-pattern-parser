@@ -1,9 +1,9 @@
-import { Or } from "../../patterns/Or";
+import { Options } from "../../patterns/Options";
 import { Regex } from "../../patterns/Regex";
 import { Repeat } from "../../patterns/Repeat";
 import { comment } from "./comment";
 import { importStatement } from './import';
-import { And } from "../../patterns/And";
+import { Sequence } from "../../patterns/Sequence";
 import { allSpaces } from "./spaces";
 import { body } from "./body";
 
@@ -15,14 +15,14 @@ spaces.setTokens([" "]);
 tabs.setTokens(["\t"]);
 newLine.setTokens(["\n"]);
 
-const lineSpaces = new Repeat("line-spaces", new Or("line-space", [tabs, spaces]));
+const lineSpaces = new Repeat("line-spaces", new Options("line-space", [tabs, spaces]));
 
-const headLineContent = new Or("head-line-content", [
+const headLineContent = new Options("head-line-content", [
     comment,
     importStatement
 ]);
 
-const headLine = new And("head-line-content", [
+const headLine = new Sequence("head-line-content", [
     lineSpaces.clone("line-spaces", true),
     headLineContent,
     lineSpaces.clone("line-spaces", true),
@@ -30,7 +30,7 @@ const headLine = new And("head-line-content", [
 
 const head = new Repeat("head", headLine, { divider: newLine, min: 0 });
 
-export const grammar = new And("grammar", [
+export const grammar = new Sequence("grammar", [
     allSpaces,
     head,
     allSpaces,

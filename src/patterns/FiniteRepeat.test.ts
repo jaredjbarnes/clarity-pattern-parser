@@ -3,7 +3,7 @@ import { Cursor } from "./Cursor";
 import { Regex } from "./Regex";
 import { Node } from "../ast/Node";
 import { Literal } from "./Literal";
-import { And } from "./And";
+import { Sequence } from "./Sequence";
 import { arePatternsEqual } from "./arePatternsEqual";
 
 describe("BoundedRepeat", () => {
@@ -358,7 +358,7 @@ describe("BoundedRepeat", () => {
                 min: 0
             });
 
-        const parent = new And("parent", [numbers, new Literal("b", "B")]);
+        const parent = new Sequence("parent", [numbers, new Literal("b", "B")]);
         const numbersClone = parent.children[0];
         let child = numbersClone.children[0];
         let tokens = numbersClone.getTokensAfter(child);
@@ -388,7 +388,7 @@ describe("BoundedRepeat", () => {
             }
         );
 
-        const parent = new And("parent", [numbers, new Literal("b", "B")]);
+        const parent = new Sequence("parent", [numbers, new Literal("b", "B")]);
         const numbersClone = parent.children[0];
         const tokens = numbersClone.getNextTokens();
 
@@ -456,7 +456,7 @@ describe("BoundedRepeat", () => {
             }
         );
 
-        const parent = new And("parent", [numbers, new Literal("b", "B")]);
+        const parent = new Sequence("parent", [numbers, new Literal("b", "B")]);
         const numbersClone = parent.children[0];
 
         const patterns = numbersClone.getNextPatterns();

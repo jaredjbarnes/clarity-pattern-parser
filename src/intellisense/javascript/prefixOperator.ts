@@ -1,8 +1,7 @@
 import { Literal } from "../../patterns/Literal";
-import { Or } from "../../patterns/Or";
-import { Regex } from "../../patterns/Regex";
+import { Options } from "../../patterns/Options";
 
-const prefixOperator = new Or("prefix-operator", [
+const prefixOperator = new Options("prefix-operator", [
     new Literal("typeof", "typeof "),
     new Literal("to-number", "+"),
     new Literal("negate", "-"),

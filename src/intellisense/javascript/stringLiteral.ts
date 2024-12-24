@@ -1,14 +1,14 @@
-import { And } from "../../patterns/And";
+import { Sequence } from "../../patterns/Sequence";
 import { Literal } from "../../patterns/Literal";
-import { Or } from "../../patterns/Or";
+import { Options } from "../../patterns/Options";
 import { Regex } from "../../patterns/Regex";
 import { Repeat } from "../../patterns/Repeat";
 import { escapedCharacter } from "./escapedCharacter";
 
-const doubleQuoteStringLiteral = new And("double-string-literal", [
+const doubleQuoteStringLiteral = new Sequence("double-string-literal", [
     new Literal("double-quote", "\""),
     new Repeat("characters",
-        new Or("characters", [
+        new Options("characters", [
             new Regex("normal-characters", "[^\\\"]+"),
             escapedCharacter
         ]),
@@ -17,10 +17,10 @@ const doubleQuoteStringLiteral = new And("double-string-literal", [
     new Literal("double-quote", "\""),
 ]);
 
-const singleQuoteStringLiteral = new And("single-string-literal", [
+const singleQuoteStringLiteral = new Sequence("single-string-literal", [
     new Literal("single-quote", "'"),
     new Repeat("characters",
-        new Or("characters", [
+        new Options("characters", [
             new Regex("normal-characters", "[^\\']+"),
             escapedCharacter
         ]),
@@ -29,6 +29,6 @@ const singleQuoteStringLiteral = new And("single-string-literal", [
     new Literal("single-quote", "'"),
 ]);
 
-const stringLiteral = new Or("string-literal", [doubleQuoteStringLiteral, singleQuoteStringLiteral]);
+const stringLiteral = new Options("string-literal", [doubleQuoteStringLiteral, singleQuoteStringLiteral]);
 
 export { stringLiteral }

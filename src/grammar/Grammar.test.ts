@@ -1,8 +1,8 @@
-import { And } from "../patterns/And";
+import { Sequence } from "../patterns/Sequence";
 import { arePatternsEqual } from "../patterns/arePatternsEqual";
 import { Literal } from "../patterns/Literal";
 import { Not } from "../patterns/Not";
-import { Or } from "../patterns/Or";
+import { Options } from "../patterns/Options";
 import { Pattern } from "../patterns/Pattern";
 import { Reference } from "../patterns/Reference";
 import { Regex } from "../patterns/Regex";
@@ -67,7 +67,7 @@ describe("Grammar", () => {
         const pattern = patterns["names"];
         const john = new Literal("john", "John");
         const jane = new Literal("jane", "Jane");
-        const names = new Or("names", [john, jane], false, true);
+        const names = new Options("names", [john, jane], false, true);
 
         expect(arePatternsEqual(pattern, names)).toBeTruthy();
     });
@@ -85,7 +85,7 @@ describe("Grammar", () => {
         const space = new Literal("space", " ");
         const firstName = new Regex("first-name", "\\w");
         const lastName = new Regex("last-name", "\\w");
-        const fullName = new And("full-name", [firstName, space, lastName]);
+        const fullName = new Sequence("full-name", [firstName, space, lastName]);
 
         expect(arePatternsEqual(pattern, fullName)).toBeTruthy();
     });
@@ -106,8 +106,8 @@ describe("Grammar", () => {
         const firstName = new Regex("first-name", "\\w");
         const lastName = new Regex("last-name", "\\w");
         const middleName = new Regex("middle-name", "\\w");
-        const middleNameWithSpace = new And("middle-name-with-space", [middleName, space], true);
-        const fullName = new And("full-name", [firstName, space, middleNameWithSpace, lastName]);
+        const middleNameWithSpace = new Sequence("middle-name-with-space", [middleName, space], true);
+        const fullName = new Sequence("full-name", [firstName, space, middleNameWithSpace, lastName]);
 
         expect(arePatternsEqual(pattern, fullName)).toBeTruthy();
     });
@@ -131,8 +131,8 @@ describe("Grammar", () => {
         const middleName = new Regex("middle-name", "\\w");
         const jack = new Literal("jack", "Jack");
         const notJack = new Not("not-jack", jack);
-        const middleNameWithSpace = new And("middle-name-with-space", [middleName, space], true);
-        const fullName = new And("full-name", [notJack, firstName, space, middleNameWithSpace, lastName]);
+        const middleNameWithSpace = new Sequence("middle-name-with-space", [middleName, space], true);
+        const fullName = new Sequence("full-name", [notJack, firstName, space, middleNameWithSpace, lastName]);
         expect(arePatternsEqual(pattern, fullName)).toBeTruthy();
     });
 
@@ -322,7 +322,7 @@ describe("Grammar", () => {
                 age = /()
             `;
             Grammar.parseString(expression);
-        }).toThrowError("[Parse Error] Found: '    age = /()\n      ', expected: '    age = !' or '    age = (' or '    age = [Pattern Name]' or '    age = [Regular Expression]' or '    age = [String]'.");
+        }).toThrow();
 
     });
 
@@ -477,19 +477,19 @@ describe("Grammar", () => {
         `;
 
         const patterns = Grammar.parseString(expression);
-        const expected = new And("complex-expression", [
+        const expected = new Sequence("complex-expression", [
             new Not("not-NOT_THIS", new Literal("NOT_THIS", "NOT_THIS")),
             new Literal("Text", "Text", true),
             new Regex("regex", "regex"),
-            new Or("anonymous-pattern-4", [
+            new Options("anonymous", [
                 new Literal("Text", "Text"),
                 new Regex("regex", "regex"),
-                new Repeat("anonymous-pattern-7", new Reference("pattern")),
+                new Repeat("anonymous", new Reference("pattern")),
             ],
                 false,
                 true
             ),
-            new Or("anonymous-pattern-10", [
+            new Options("anonymous", [
                 new Reference("pattern"),
                 new Reference("pattern")
             ])

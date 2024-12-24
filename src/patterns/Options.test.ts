@@ -1,19 +1,19 @@
 import { Cursor } from "./Cursor";
 import { Node } from "../ast/Node";
 import { Literal } from "./Literal";
-import { Or } from "./Or";
-import { And } from "./And";
+import { Options } from "./Options";
+import { Sequence } from "./Sequence";
 import { Pattern } from "./Pattern";
 
-describe("Or", () => {
+describe("Options", () => {
     test("Empty Options", () => {
         expect(() => {
-            new Or("bad", []);
+            new Options("bad", []);
         }).toThrowError();
     });
 
     test("One Option Successful", () => {
-        const a = new Or("a", [new Literal("a", "A")]);
+        const a = new Options("a", [new Literal("a", "A")]);
         const cursor = new Cursor("A");
         const result = a.parse(cursor);
         const expected = new Node("literal", "a", 0, 0, [], "A")
@@ -22,7 +22,7 @@ describe("Or", () => {
     });
 
     test("One Option Failed", () => {
-        const a = new Or("a", [new Literal("a", "A")]);
+        const a = new Options("a", [new Literal("a", "A")]);
         const cursor = new Cursor("B");
         const result = a.parse(cursor);
 
@@ -32,7 +32,7 @@ describe("Or", () => {
     });
 
     test("Two Option", () => {
-        const a = new Or("a-b", [new Literal("a", "A"), new Literal("b", "B")]);
+        const a = new Options("a-b", [new Literal("a", "A"), new Literal("b", "B")]);
         const cursor = new Cursor("AB");
         let result = a.parse(cursor);
         let expected = new Node("literal", "a", 0, 0, [], "A")
@@ -48,7 +48,7 @@ describe("Or", () => {
     });
 
     test("Failed (Optional)", () => {
-        const a = new Or("a", [new Literal("a", "A")], true);
+        const a = new Options("a", [new Literal("a", "A")], true);
         const cursor = new Cursor("B");
         const result = a.parse(cursor);
 
@@ -57,7 +57,7 @@ describe("Or", () => {
     });
 
     test("Get Tokens", () => {
-        const aOrB = new Or("a-b", [new Literal("a", "A"), new Literal("b", "B")]);
+        const aOrB = new Options("a-b", [new Literal("a", "A"), new Literal("b", "B")]);
         const tokens = aOrB.getTokens();
         const expected = ["A", "B"];
 
@@ -65,8 +65,8 @@ describe("Or", () => {
     });
 
     test("Get Tokens After", () => {
-        const a = new Or("a", [new Literal("a", "A")]);
-        const parent = new And("parent", [a, new Literal("b", "B")]);
+        const a = new Options("a", [new Literal("a", "A")]);
+        const parent = new Sequence("parent", [a, new Literal("b", "B")]);
         const tokens = parent.children[0].getTokensAfter(parent.children[0].children[0]);
         const expected = ["B"];
 
@@ -74,7 +74,7 @@ describe("Or", () => {
     });
 
     test("Get Tokens After Without A Parent", () => {
-        const a = new Or("a", [new Literal("a", "A")]);
+        const a = new Options("a", [new Literal("a", "A")]);
         const tokens = a.getTokensAfter(a.children[0]);
         const expected: string[] = [];
 
@@ -82,7 +82,7 @@ describe("Or", () => {
     });
 
     test("Properties", () => {
-        const a = new Or("a", [new Literal("a", "A")]);
+        const a = new Options("a", [new Literal("a", "A")]);
 
         expect(a.type).toBe("or");
         expect(a.name).toBe("a");
@@ -92,26 +92,26 @@ describe("Or", () => {
     });
 
     test("Exec", () => {
-        const a = new Or("a", [new Literal("a", "A")]);
+        const a = new Options("a", [new Literal("a", "A")]);
         const { ast: result } = a.exec("B");
         expect(result).toBeNull();
     });
 
     test("Test No Match", () => {
-        const a = new Or("a", [new Literal("a", "A")]);
+        const a = new Options("a", [new Literal("a", "A")]);
         const result = a.test("B");
         expect(result).toBeFalsy();
     });
 
     test("Test With Match", () => {
-        const a = new Or("a", [new Literal("a", "A")]);
+        const a = new Options("a", [new Literal("a", "A")]);
         const result = a.test("A");
         expect(result).toBeTruthy();
     });
 
     test("Get Next Tokens", () => {
-        const sequence = new And("sequence", [
-            new Or("a-or-b", [
+        const sequence = new Sequence("sequence", [
+            new Options("a-or-b", [
                 new Literal("a", "A"),
                 new Literal("b", "B")
             ]),
@@ -126,7 +126,7 @@ describe("Or", () => {
     });
 
     test("Get Next Tokens With Null Parent", () => {
-        const or = new Or("a-or-b", [
+        const or = new Options("a-or-b", [
             new Literal("a", "A"),
             new Literal("b", "B")
         ])
@@ -137,8 +137,8 @@ describe("Or", () => {
 
 
     test("Get Tokens After", () => {
-        const sequence = new And("sequence", [
-            new Or("a-or-b", [
+        const sequence = new Sequence("sequence", [
+            new Options("a-or-b", [
                 new Literal("a", "A"),
                 new Literal("b", "B")
             ]),
@@ -154,7 +154,7 @@ describe("Or", () => {
     });
 
     test("Get Patterns", () => {
-        const aOrB = new Or("a-b", [new Literal("a", "A"), new Literal("b", "B")]);
+        const aOrB = new Options("a-b", [new Literal("a", "A"), new Literal("b", "B")]);
         const patterns = aOrB.getPatterns();
         const expected = [
             aOrB.find(p => p.name === "a"),
@@ -165,8 +165,8 @@ describe("Or", () => {
     });
 
     test("Get Patterns After", () => {
-        const sequence = new And("sequence", [
-            new Or("a-or-b", [
+        const sequence = new Sequence("sequence", [
+            new Options("a-or-b", [
                 new Literal("a", "A"),
                 new Literal("b", "B")
             ]),
@@ -182,7 +182,7 @@ describe("Or", () => {
     });
 
     test("Get Patterns After With Null Parent", () => {
-        const or = new Or("a-or-b", [
+        const or = new Options("a-or-b", [
             new Literal("a", "A"),
             new Literal("b", "B")
         ])
@@ -193,8 +193,8 @@ describe("Or", () => {
     });
 
     test("Get Next Patterns", () => {
-        const sequence = new And("sequence", [
-            new Or("a-or-b", [
+        const sequence = new Sequence("sequence", [
+            new Options("a-or-b", [
                 new Literal("a", "A"),
                 new Literal("b", "B")
             ]),
@@ -209,7 +209,7 @@ describe("Or", () => {
     });
 
     test("Get Next Patterns With Null Parent", () => {
-        const or = new Or("a-or-b", [
+        const or = new Options("a-or-b", [
             new Literal("a", "A"),
             new Literal("b", "B")
         ])
@@ -225,11 +225,11 @@ describe("Or", () => {
         const smith = new Literal("smith", "Smith");
         const space = new Literal("space", " ");
 
-        const firstName = new Or("first-name", [john, jane], false, true);
-        const lastName = new Or("last-name", [doe, smith], false, true);
+        const firstName = new Options("first-name", [john, jane], false, true);
+        const lastName = new Options("last-name", [doe, smith], false, true);
         const johnJohnson = new Literal("john-johnson", "John Johnson");
-        const fullName = new And("full-name", [firstName, space, lastName]);
-        const names = new Or("names", [fullName, johnJohnson], false, true);
+        const fullName = new Sequence("full-name", [firstName, space, lastName]);
+        const names = new Options("names", [fullName, johnJohnson], false, true);
 
         const result = names.exec("John Johnson");
         expect(result.ast?.value).toBe("John Johnson");
@@ -242,11 +242,11 @@ describe("Or", () => {
         const smith = new Literal("smith", "Smith");
         const space = new Literal("space", " ");
 
-        const firstName = new Or("first-name", [john, jane], false, true);
-        const lastName = new Or("last-name", [doe, smith], false, true);
+        const firstName = new Options("first-name", [john, jane], false, true);
+        const lastName = new Options("last-name", [doe, smith], false, true);
         const johnJohnson = new Literal("john-johnson", "John Johnson");
-        const fullName = new And("full-name", [firstName, space, lastName]);
-        const names = new Or("names", [johnJohnson, fullName], false, true);
+        const fullName = new Sequence("full-name", [firstName, space, lastName]);
+        const names = new Options("names", [johnJohnson, fullName], false, true);
 
         const result = names.exec("John Johnson");
         expect(result.ast?.value).toBe("John Johnson");
@@ -259,12 +259,12 @@ describe("Or", () => {
         const smith = new Literal("smith", "Smith");
         const space = new Literal("space", " ");
 
-        const firstName = new Or("first-name", [john, jane], false, true);
-        const lastName = new Or("last-name", [doe, smith], false, true);
+        const firstName = new Options("first-name", [john, jane], false, true);
+        const lastName = new Options("last-name", [doe, smith], false, true);
         const johnJohnson = new Literal("john-johnson", "John Johnson");
         const johnStockton = new Literal("john-stockton", "John Stockton");
-        const fullName = new And("full-name", [firstName, space, lastName]);
-        const names = new Or("names", [johnStockton, johnJohnson, fullName], false, true);
+        const fullName = new Sequence("full-name", [firstName, space, lastName]);
+        const names = new Options("names", [johnStockton, johnJohnson, fullName], false, true);
 
         const result = names.exec("John Johnson");
         expect(result.ast?.value).toBe("John Johnson");

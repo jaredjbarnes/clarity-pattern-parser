@@ -1,9 +1,9 @@
 import { Node } from "../ast/Node";
-import { And } from "./And";
+import { Sequence } from "./Sequence";
 import { Cursor } from "./Cursor";
 import { findPattern } from "./findPattern";
 import { Literal } from "./Literal";
-import { Or } from "./Or";
+import { Options } from "./Options";
 import { Pattern } from "./Pattern";
 import { Reference } from "./Reference";
 import { Regex } from "./Regex";
@@ -20,8 +20,8 @@ function createValuePattern() {
 
     const valueRef = new Reference("value");
     const values = new Repeat("values", valueRef, { divider });
-    const array = new And("array", [openBracket, values, closeBracket]);
-    const value = new Or("value", [number, array]);
+    const array = new Sequence("array", [openBracket, values, closeBracket]);
+    const value = new Options("value", [number, array]);
 
     return value;
 }
@@ -32,7 +32,7 @@ describe("Reference", () => {
         const cursor = new Cursor("[1, 2]");
         const result = value.parse(cursor);
 
-        const expected = new Node("and", "array", 0, 5, [
+        const expected = new Node("sequence", "array", 0, 5, [
             new Node("literal", "open-bracket", 0, 0, [], "["),
             new Node("infinite-repeat", "values", 1, 4, [
                 new Node("regex", "number", 1, 1, [], "1"),

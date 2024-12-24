@@ -7,7 +7,7 @@ import { findPattern } from "./findPattern";
 
 let idIndex = 0;
 
-export class And implements Pattern {
+export class Sequence implements Pattern {
   private _id: string;
   private _type: string;
   private _name: string;
@@ -47,14 +47,14 @@ export class And implements Pattern {
 
   constructor(name: string, sequence: Pattern[], isOptional = false) {
     if (sequence.length === 0) {
-      throw new Error("Need at least one pattern with an 'and' pattern.");
+      throw new Error("Need at least one pattern with a 'sequence' pattern.");
     }
 
     const children = clonePatterns(sequence);
     this._assignChildrenToParent(children);
 
-    this._id = `and-${idIndex++}`;
-    this._type = "and";
+    this._id = `sequence-${idIndex++}`;
+    this._type = "sequence";
     this._name = name;
     this._isOptional = isOptional;
     this._parent = null;
@@ -208,7 +208,7 @@ export class And implements Pattern {
     cursor.moveTo(lastIndex);
 
     return new Node(
-      "and",
+      "sequence",
       this._name,
       this._firstIndex,
       lastIndex,
@@ -316,13 +316,13 @@ export class And implements Pattern {
   }
 
   clone(name = this._name, isOptional = this._isOptional): Pattern {
-    const clone = new And(name, this._children, isOptional);
+    const clone = new Sequence(name, this._children, isOptional);
     clone._id = this._id;
 
     return clone;
   }
 
-  isEqual(pattern: And): boolean {
+  isEqual(pattern: Sequence): boolean {
     return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
   }
 }

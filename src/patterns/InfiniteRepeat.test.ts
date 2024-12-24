@@ -1,5 +1,5 @@
 import { Node } from "../ast/Node";
-import { And } from "./And";
+import { Sequence } from "./Sequence";
 import { Cursor } from "./Cursor";
 import { findPattern } from "./findPattern";
 import { Literal } from "./Literal";
@@ -143,7 +143,7 @@ describe("InfiniteRepeat", () => {
         const b = new Literal("b", "B");
         const divider = new Literal("divider", ",");
         const manyA = new InfiniteRepeat("many-a", a, { divider });
-        const parent = new And("parent", [manyA, b]);
+        const parent = new Sequence("parent", [manyA, b]);
 
         const clonedManyA = findPattern(parent, p => p.name === "many-a");
         let tokens = clonedManyA?.getTokensAfter(clonedManyA.children[0]);
@@ -161,7 +161,7 @@ describe("InfiniteRepeat", () => {
         const a = new Literal("a", "A");
         const b = new Literal("b", "B");
         const manyA = new InfiniteRepeat("many-a", a);
-        const parent = new And("parent", [manyA, b]);
+        const parent = new Sequence("parent", [manyA, b]);
 
         const clonedManyA = findPattern(parent, p => p.name === "many-a");
         const tokens = clonedManyA?.getTokensAfter(clonedManyA.children[0]);
@@ -201,7 +201,7 @@ describe("InfiniteRepeat", () => {
 
     test("Get Next Tokens", () => {
         const integer = new InfiniteRepeat("integer", new Regex("digit", "\\d"));
-        const parent = new And("parent", [integer, new Literal("pow", "!")]);
+        const parent = new Sequence("parent", [integer, new Literal("pow", "!")]);
         const integerClone = parent.find(p => p.name === "integer") as Pattern;
         const tokens = integerClone.getNextTokens();
 
@@ -233,7 +233,7 @@ describe("InfiniteRepeat", () => {
 
     test("Get Next Patterns", () => {
         const integer = new InfiniteRepeat("integer", new Regex("digit", "\\d"));
-        const parent = new And("parent", [integer, new Literal("pow", "!")]);
+        const parent = new Sequence("parent", [integer, new Literal("pow", "!")]);
         const integerClone = parent.find(p => p.name === "integer") as Pattern;
         const powClone = parent.find(p => p.name === "pow") as Pattern;
         const patterns = integerClone.getNextPatterns();

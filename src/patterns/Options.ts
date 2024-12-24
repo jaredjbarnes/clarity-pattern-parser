@@ -7,7 +7,7 @@ import { ParseResult } from "./ParseResult";
 
 let idIndex = 0;
 
-export class Or implements Pattern {
+export class Options implements Pattern {
   private _id: string;
   private _type: string;
   private _name: string;
@@ -196,12 +196,12 @@ export class Or implements Pattern {
   }
 
   clone(name = this._name, isOptional = this._isOptional): Pattern {
-    const or = new Or(name, this._children, isOptional, this._isGreedy);
+    const or = new Options(name, this._children, isOptional, this._isGreedy);
     or._id = this._id;
     return or;
   }
 
-  isEqual(pattern: Or): boolean {
+  isEqual(pattern: Options): boolean {
     return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
   }
 }

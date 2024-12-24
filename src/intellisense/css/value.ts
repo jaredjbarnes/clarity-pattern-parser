@@ -3,7 +3,7 @@ import hex from "./hex";
 import number from "./number";
 import method from "./method";
 import name from "./name"
-import { Or } from "../../patterns/Or";
+import { Options } from "../../patterns/Options";
 
 const value = new Or("value", [hex, method, unit, number, name]);
 

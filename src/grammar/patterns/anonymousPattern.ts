@@ -1,14 +1,14 @@
 import { Literal } from "../../patterns/Literal";
-import { And } from "../../patterns/And";
+import { Sequence } from "../../patterns/Sequence";
 import { lineSpaces } from "./spaces";
 import { anonymousLiterals, anonymousWrappedLiterals } from './literals';
-import { Or } from "../../patterns/Or";
+import { Options } from "../../patterns/Options";
 
 const inlinePatternOpenParen = new Literal("anonymous-pattern-open-paren", "(");
 const inlinePatternCloseParen = new Literal("anonymous-pattern-close-paren", ")");
 const optionalLineSpaces = lineSpaces.clone(undefined, true);
 
-const complexAnonymousPattern = new And("complex-anonymous-pattern", [
+const complexAnonymousPattern = new Sequence("complex-anonymous-pattern", [
     inlinePatternOpenParen,
     optionalLineSpaces,
     anonymousWrappedLiterals,
@@ -16,7 +16,7 @@ const complexAnonymousPattern = new And("complex-anonymous-pattern", [
     inlinePatternCloseParen,
 ]);
 
-export const anonymousPattern = new Or("anonymous-pattern", [
+export const anonymousPattern = new Options("anonymous-pattern", [
     anonymousLiterals,
     complexAnonymousPattern
 ]);

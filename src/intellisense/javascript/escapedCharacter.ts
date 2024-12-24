@@ -1,6 +1,6 @@
-import { And } from "../../patterns/And";
+import { Sequence } from "../../patterns/Sequence";
 import { Literal } from "../../patterns/Literal";
-import { Or } from "../../patterns/Or";
+import { Options } from "../../patterns/Options";
 import { Regex } from "../../patterns/Regex";
 
 const backslash = new Literal("backslash", "\\");
@@ -20,7 +20,7 @@ hexDigit.setTokens([
     "A", "B", "C", "D", "E", "F",
 ]);
 
-const unicode = new And("hex", [
+const unicode = new Sequence("hex", [
     new Literal("u", "u"),
     hexDigit,
     hexDigit,
@@ -28,7 +28,7 @@ const unicode = new And("hex", [
     hexDigit
 ]);
 
-const specialCharacter = new Or("special-character", [
+const specialCharacter = new Options("special-character", [
     doubleQuote,
     singleQuote,
     backslash,
@@ -41,7 +41,7 @@ const specialCharacter = new Or("special-character", [
     unicode,
 ]);
 
-const escapedCharacter = new And("escaped-character", [backslash, specialCharacter])
+const escapedCharacter = new Sequence("escaped-character", [backslash, specialCharacter])
 
 export {
     escapedCharacter

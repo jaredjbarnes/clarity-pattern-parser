@@ -1,4 +1,4 @@
-import { And } from "./And";
+import { Sequence } from "./Sequence";
 import { Cursor } from "./Cursor";
 import { Literal } from "./Literal";
 import { Not } from "./Not";
@@ -86,7 +86,7 @@ describe("Not", () => {
 
     test("Get Next Tokens", () => {
         const notAboutUs = new Not("not-about-us", new Literal("about-us", "About Us"));
-        const sequence = new And("sequence", [notAboutUs, new Literal("about-them", "About Them")]);
+        const sequence = new Sequence("sequence", [notAboutUs, new Literal("about-them", "About Them")]);
 
         const cloneNotAboutUs = sequence.find(p => p.name === "not-about-us") as Pattern;
         const nextTokens = cloneNotAboutUs.getNextTokens() || [];
@@ -103,7 +103,7 @@ describe("Not", () => {
 
     test("Get Tokens", () => {
         const notAboutUs = new Not("not-about-us", new Literal("about-us", "About Us"));
-        const sequence = new And("sequence", [notAboutUs, new Literal("about-them", "About Them")]);
+        const sequence = new Sequence("sequence", [notAboutUs, new Literal("about-them", "About Them")]);
 
         const cloneNotAboutUs = sequence.find(p => p.name === "not-about-us") as Pattern;
         const nextTokens = cloneNotAboutUs.getTokens() || [];
@@ -113,7 +113,7 @@ describe("Not", () => {
 
     test("Get Tokens After", () => {
         const notAboutUs = new Not("not-about-us", new Literal("about-us", "About Us"));
-        const sequence = new And("sequence", [notAboutUs, new Literal("about-them", "About Them")]);
+        const sequence = new Sequence("sequence", [notAboutUs, new Literal("about-them", "About Them")]);
         const notAboutUsClone = sequence.find(p => p.name === "not-about-us") as Pattern;
         const aboutUsClone = sequence.find(p => p.name === "about-us") as Pattern;
         const nextTokens = notAboutUsClone.getTokensAfter(aboutUsClone) || [];
@@ -130,7 +130,7 @@ describe("Not", () => {
 
     test("Get Patterns", () => {
         const notAboutUs = new Not("not-about-us", new Literal("about-us", "About Us"));
-        const sequence = new And("sequence", [notAboutUs, new Literal("about-them", "About Them")]);
+        const sequence = new Sequence("sequence", [notAboutUs, new Literal("about-them", "About Them")]);
 
         const cloneNotAboutUs = sequence.find(p => p.name === "not-about-us") as Pattern;
         const nextPatterns = cloneNotAboutUs.getPatterns();
@@ -141,7 +141,7 @@ describe("Not", () => {
 
     test("Get Next Patterns", () => {
         const notAboutUs = new Not("not-about-us", new Literal("about-us", "About Us"));
-        const sequence = new And("sequence", [notAboutUs, new Literal("about-them", "About Them")]);
+        const sequence = new Sequence("sequence", [notAboutUs, new Literal("about-them", "About Them")]);
 
         const cloneNotAboutUs = sequence.find(p => p.name === "not-about-us") as Pattern;
         const patterns = cloneNotAboutUs.getNextPatterns() || [];
@@ -159,7 +159,7 @@ describe("Not", () => {
 
     test("Get Patterns After", () => {
         const notAboutUs = new Not("not-about-us", new Literal("about-us", "About Us"));
-        const sequence = new And("sequence", [notAboutUs, new Literal("about-them", "About Them")]);
+        const sequence = new Sequence("sequence", [notAboutUs, new Literal("about-them", "About Them")]);
         const notAboutUsClone = sequence.find(p => p.name === "not-about-us") as Pattern;
         const aboutUsClone = sequence.find(p => p.name === "about-us") as Pattern;
         const patterns = notAboutUsClone.getPatternsAfter(aboutUsClone) || [];

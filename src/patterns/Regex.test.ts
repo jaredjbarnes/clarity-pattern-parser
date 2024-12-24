@@ -1,7 +1,7 @@
 import { Cursor } from "./Cursor";
 import { Regex } from "./Regex";
 import { Node } from "../ast/Node"
-import { And } from "./And";
+import { Sequence } from "./Sequence";
 import { Literal } from "./Literal";
 import { Pattern } from "./Pattern";
 
@@ -85,7 +85,7 @@ describe("Regex", () => {
     });
 
     test("Get Next Tokens", () => {
-        const parent = new And("parent", [new Regex("a", "A"), new Literal("b", "B")]);
+        const parent = new Sequence("parent", [new Regex("a", "A"), new Literal("b", "B")]);
         const aClone = parent.find(p => p.name === "a") as Pattern;
         const tokens = aClone.getNextTokens();
 
@@ -123,7 +123,7 @@ describe("Regex", () => {
     });
 
     test("Get Next Patterns", () => {
-        const parent = new And("parent", [new Regex("a", "A"), new Literal("b", "B")]);
+        const parent = new Sequence("parent", [new Regex("a", "A"), new Literal("b", "B")]);
         const aClone = parent.find(p => p.name === "a") as Pattern;
         const bClone = parent.find(p => p.name === "b") as Pattern;
         const patterns = aClone.getNextPatterns();

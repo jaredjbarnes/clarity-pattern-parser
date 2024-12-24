@@ -1,6 +1,6 @@
-import { And } from "../patterns/And";
+import { Sequence } from "../patterns/Sequence";
 import { Literal } from "../patterns/Literal";
-import { Or } from "../patterns/Or";
+import { Options } from "../patterns/Options";
 import { Pattern } from "../patterns/Pattern";
 import { Reference } from "../patterns/Reference";
 import { Regex } from "../patterns/Regex";
@@ -19,7 +19,7 @@ function generateFlagPattern(flagNames: string[]): Pattern {
         return new Literal('flag-name', singleFlagOption);
     }
 
-    const flagPattern = new Or('flags', generateFlagFromList(flagNames));
+    const flagPattern = new Options('flags', generateFlagFromList(flagNames));
     return flagPattern;
 }
 
@@ -40,25 +40,25 @@ export function generateExpression(flagNames: string[]): Repeat {
     const openParen = new Literal('open-paren', '(');
     const closeParen = new Literal('close-paren', ')');
     const space = new Regex('[space]', '\\s');
-    const and = new Literal('and-literal', 'AND');
+    const and = new Literal('sequence-literal', 'AND');
     const or = new Literal('or-literal', 'OR');
     const not = new Literal('not', 'NOT ');
-    const booleanOperator = new Or('booleanOperator', [and, or]);
-    const operatorWithSpaces = new And('operator-with-spaces', [
+    const booleanOperator = new Options('booleanOperator', [and, or]);
+    const operatorWithSpaces = new Sequence('operator-with-spaces', [
         space,
         booleanOperator,
         space,
     ]);
     const flag = generateFlagPattern(flagNames);
-    const group = new And('group', [
+    const group = new Sequence('group', [
         openParen,
         new Reference('flag-expression'),
         closeParen,
     ]);
-    const flagOrGroup = new Or('flag-or-group', [flag, group]);
-    const expressionBody = new And('flag-body', [
+    const flagOptionsGroup = new Options('flag-or-group', [flag, group]);
+    const expressionBody = new Sequence('flag-body', [
         not.clone('optional-not', true),
-        flagOrGroup,
+        flagOptionsGroup,
     ]);
     const flagExpression = new Repeat(
         'flag-expression',
@@ -85,7 +85,7 @@ describe("AutoComplete", () => {
         const space = new Literal("space", " ");
         const doe = new Literal("doe", "Doe");
         const smith = new Literal("smith", "Smith");
-        const name = new And("name", [john, space, new Or("last-name", [smith, doe])]);
+        const name = new Sequence("name", [john, space, new Options("last-name", [smith, doe])]);
 
         const autoComplete = new AutoComplete(name);
         const result = autoComplete.suggestFor("John Doe");
@@ -102,7 +102,7 @@ describe("AutoComplete", () => {
         const space = new Literal("space", " ");
         const doe = new Literal("doe", "Doe");
         const smith = new Literal("smith", "Smith");
-        const name = new And("name", [john, space, new Or("last-name", [smith, doe])]);
+        const name = new Sequence("name", [john, space, new Options("last-name", [smith, doe])]);
 
         const text = "John "
         const autoComplete = new AutoComplete(name);
@@ -127,7 +127,7 @@ describe("AutoComplete", () => {
         const space = new Literal("space", " ");
         const doe = new Literal("doe", "Doe");
         const smith = new Literal("smith", "Smith");
-        const name = new And("name", [john, space, new Or("last-name", [smith, doe])]);
+        const name = new Sequence("name", [john, space, new Options("last-name", [smith, doe])]);
         const divider = new Regex("divider", "\\s+,\\s+");
 
         divider.setTokens([", "])
@@ -207,9 +207,9 @@ describe("AutoComplete", () => {
         const space = new Literal("space", " ");
         const doe = new Literal("doe", "Doe");
         const smith = new Literal("smith", "Smith");
-        const firstName = new Or("first-name", [jack, john]);
-        const lastName = new Or("last-name", [doe, smith]);
-        const fullName = new And("full-name", [firstName, space, lastName]);
+        const firstName = new Options("first-name", [jack, john]);
+        const lastName = new Options("last-name", [doe, smith]);
+        const fullName = new Sequence("full-name", [firstName, space, lastName]);
 
         const text = "Jack";
         const autoComplete = new AutoComplete(fullName, autoCompleteOptions);
@@ -248,9 +248,9 @@ describe("AutoComplete", () => {
         const space = new Literal("space", " ");
         const doe = new Literal("doe", "Doe");
         const smith = new Literal("smith", "Smith");
-        const firstName = new Or("first-name", [jack, john]);
-        const lastName = new Or("last-name", [doe, smith]);
-        const fullName = new And("full-name", [firstName, space, lastName]);
+        const firstName = new Options("first-name", [jack, john]);
+        const lastName = new Options("last-name", [doe, smith]);
+        const fullName = new Sequence("full-name", [firstName, space, lastName]);
 
         const text = "Jack";
         const autoComplete = new AutoComplete(fullName, autoCompleteOptions);
@@ -282,10 +282,10 @@ describe("AutoComplete", () => {
         const a = new Literal("a", "a bank.");
         const the = new Literal("the", "the store.");
 
-        const first = new And("first", [start, a]);
-        const second = new And("second", [start, the]);
+        const first = new Sequence("first", [start, a]);
+        const second = new Sequence("second", [start, the]);
 
-        const both = new Or("both", [first, second]);
+        const both = new Options("both", [first, second]);
 
         const autoComplete = new AutoComplete(both);
         const result = autoComplete.suggestFor("John went to a gas station.");
@@ -297,7 +297,7 @@ describe("AutoComplete", () => {
     });
 
     test("Options on errors because of string ending, with match", () => {
-        const smalls = new Or("kahns", [
+        const smalls = new Options("kahns", [
             new Literal("large", "kahnnnnnn"),
             new Literal("medium", "kahnnnnn"),
             new Literal("small", "kahn"),
@@ -316,7 +316,7 @@ describe("AutoComplete", () => {
     });
 
     test("Options on errors because of string ending, between matches", () => {
-        const smalls = new Or("kahns", [
+        const smalls = new Options("kahns", [
             new Literal("large", "kahnnnnnn"),
             new Literal("medium", "kahnnnnn"),
             new Literal("small", "kahn"),
@@ -335,7 +335,7 @@ describe("AutoComplete", () => {
     });
 
     test("Options on errors because of string ending, match middle", () => {
-        const smalls = new Or("kahns", [
+        const smalls = new Options("kahns", [
             new Literal("large", "kahnnnnnn"),
             new Literal("medium", "kahnnnnn"),
             new Literal("small", "kahn"),
@@ -354,7 +354,7 @@ describe("AutoComplete", () => {
 
 
     test("Options on errors because of string ending on a variety, with match", () => {
-        const smalls = new Or("kahns", [
+        const smalls = new Options("kahns", [
             new Literal("different-3", "kahnnnnnnn3"),
             new Literal("different-21", "kahnnnnnn21"),
             new Literal("different-22", "kahnnnnnn22"),
@@ -382,10 +382,10 @@ describe("AutoComplete", () => {
     });
 
     test("Options on errors because of string ending on different branches, with match", () => {
-        const smalls = new Or("kahns", [
-            new And("kahn-combo-3", [new Literal("kah", "kah"), new And('partial', [new Literal("n", "n"), new Literal("three", "3")])]),
-            new And("kahn-combo", [new Literal("kahn", "kahn"), new Literal("one", "1")]),
-            new And("kahn-combo-2", [new Literal("kahn", "kahn"), new Literal("two", "2")]),
+        const smalls = new Options("kahns", [
+            new Sequence("kahn-combo-3", [new Literal("kah", "kah"), new Sequence('partial', [new Literal("n", "n"), new Literal("three", "3")])]),
+            new Sequence("kahn-combo", [new Literal("kahn", "kahn"), new Literal("one", "1")]),
+            new Sequence("kahn-combo-2", [new Literal("kahn", "kahn"), new Literal("two", "2")]),
             new Literal("small", "kahn"),
         ]);
 
@@ -436,19 +436,19 @@ describe("AutoComplete", () => {
         expect(result.errorAtIndex).toBe(15);
     });
 
-    test("Greedy Or", () => {
+    test("Greedy Options", () => {
         const john = new Literal("john", "John");
         const doe = new Literal("doe", "Doe");
         const jane = new Literal("jane", "Jane");
         const smith = new Literal("smith", "Smith");
         const space = new Literal("space", " ");
 
-        const firstName = new Or("first-name", [john, jane], false, true);
-        const lastName = new Or("last-name", [doe, smith], false, true);
+        const firstName = new Options("first-name", [john, jane], false, true);
+        const lastName = new Options("last-name", [doe, smith], false, true);
         const johnJohnson = new Literal("john-johnson", "John Johnson");
         const johnStockton = new Literal("john-stockton", "John Stockton");
-        const fullName = new And("full-name", [firstName, space, lastName]);
-        const names = new Or("names", [johnStockton, johnJohnson, fullName], false, true);
+        const fullName = new Sequence("full-name", [firstName, space, lastName]);
+        const names = new Options("names", [johnStockton, johnJohnson, fullName], false, true);
 
         const autoComplete = new AutoComplete(names);
         const results = autoComplete.suggestFor("John ");
@@ -476,9 +476,9 @@ describe("AutoComplete", () => {
     });
 
     test("Dedup suggestions", () => {
-        const branchOne = new And("branch-1", [new Literal("space", " "), new Literal("A", "A")]);
-        const branchTwo = new And("branch-2", [new Literal("space", " "), new Literal("B", "B")]);
-        const eitherBranch = new Or("either-branch", [branchOne, branchTwo]);
+        const branchOne = new Sequence("branch-1", [new Literal("space", " "), new Literal("A", "A")]);
+        const branchTwo = new Sequence("branch-2", [new Literal("space", " "), new Literal("B", "B")]);
+        const eitherBranch = new Options("either-branch", [branchOne, branchTwo]);
 
         const autoComplete = new AutoComplete(eitherBranch);
         const results = autoComplete.suggestFor("");

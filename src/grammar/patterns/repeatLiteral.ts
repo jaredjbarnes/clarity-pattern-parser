@@ -1,6 +1,6 @@
-import { And } from "../../patterns/And";
+import { Sequence } from "../../patterns/Sequence";
 import { Literal } from "../../patterns/Literal";
-import { Or } from "../../patterns/Or";
+import { Options } from "../../patterns/Options";
 import { Regex } from "../../patterns/Regex";
 import { anonymousPattern } from "./anonymousPattern";
 import { name } from "./name";
@@ -10,14 +10,15 @@ const optionalSpaces = spaces.clone("optional-spaces", true);
 const openBracket = new Literal("open-bracket", "{");
 const closeBracket = new Literal("close-bracket", "}");
 const comma = new Literal("comma", ",");
+
 const integer = new Regex("integer", "([1-9][0-9]*)|0");
 integer.setTokens(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]);
 
 const optionalInteger = integer.clone("integer", true);
 const trimKeyword = new Literal("trim-keyword", "trim", true);
-const trimFlag = new And("trim-flag", [lineSpaces, trimKeyword], true);
+const trimFlag = new Sequence("trim-flag", [lineSpaces, trimKeyword], true);
 
-const bounds = new And("bounds", [
+const bounds = new Sequence("bounds", [
     openBracket,
     optionalSpaces,
     optionalInteger.clone("min"),
@@ -28,7 +29,7 @@ const bounds = new And("bounds", [
     closeBracket
 ]);
 
-const exactCount = new And("exact-count", [
+const exactCount = new Sequence("exact-count", [
     openBracket,
     optionalSpaces,
     integer,
@@ -38,7 +39,8 @@ const exactCount = new And("exact-count", [
 
 const quantifierShorthand = new Regex("quantifier-shorthand", "\\*|\\+");
 quantifierShorthand.setTokens(["*", "+"]);
-const quantifier = new Or("quantifier", [
+
+const quantifier = new Options("quantifier", [
     quantifierShorthand,
     exactCount,
     bounds
@@ -51,15 +53,15 @@ dividerComma.setTokens([", "]);
 
 
 const patternName = name.clone("pattern-name");
-const patterns = new Or("or-patterns", [patternName, anonymousPattern]);
+const patterns = new Options("or-patterns", [patternName, anonymousPattern]);
 const dividerPattern = patterns.clone("divider-pattern");
 
-export const repeatLiteral = new And("repeat-literal", [
+export const repeatLiteral = new Sequence("repeat-literal", [
     openParen,
     optionalSpaces,
     patterns,
-    new And("optional-divider-section", [dividerComma, dividerPattern, trimFlag], true),
+    new Sequence("optional-divider-section", [dividerComma, dividerPattern, trimFlag], true),
     optionalSpaces,
     closeParen,
-    new And("quantifier-section", [quantifier]),
+    new Sequence("quantifier-section", [quantifier]),
 ]);

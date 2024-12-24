@@ -1,4 +1,4 @@
-import { And } from "../../patterns/And";
+import { Sequence } from "../../patterns/Sequence";
 import { Literal } from "../../patterns/Literal";
 import { Regex } from "../../patterns/Regex";
 import { Repeat } from "../../patterns/Repeat";
@@ -9,7 +9,7 @@ divider.setTokens([", "]);
 
 const optionalSpace = new Regex("optional-space", "\\s", true)
 
-const parameters = new And("parameters", [
+const parameters = new Sequence("parameters", [
     new Literal("open-paren", "("),
     optionalSpace,
     new Repeat("arguments", name, { divider, trimDivider: true }),

@@ -1,5 +1,5 @@
 import { Node } from "../ast/Node";
-import { And } from "./And";
+import { Sequence } from "./Sequence";
 import { arePatternsEqual } from "./arePatternsEqual";
 import { Cursor } from "./Cursor";
 import { InfiniteRepeat } from "./InfiniteRepeat";
@@ -116,7 +116,7 @@ describe("Repeat", () => {
     test("Get Tokens After", () => {
         const number = new Literal("number", "1");
         const repeat = new Repeat("numbers", number);
-        const parent = new And("parent", [repeat, new Literal("b", "B")]);
+        const parent = new Sequence("parent", [repeat, new Literal("b", "B")]);
         const numberClone = parent.find(p => p.name === "number") as Pattern;
         const repeatClone = parent.children[0];
 
@@ -129,7 +129,7 @@ describe("Repeat", () => {
     test("Get Next Tokens", () => {
         const number = new Literal("number", "1");
         const repeat = new Repeat("numbers", number);
-        const parent = new And("parent", [repeat, new Literal("b", "B")]);
+        const parent = new Sequence("parent", [repeat, new Literal("b", "B")]);
         const repeatClone = parent.children[0];
 
         let tokens = repeatClone.getNextTokens();
@@ -141,7 +141,7 @@ describe("Repeat", () => {
     test("Get Next Patterns", () => {
         const number = new Literal("number", "1");
         const repeat = new Repeat("numbers", number);
-        const parent = new And("parent", [repeat, new Literal("b", "B")]);
+        const parent = new Sequence("parent", [repeat, new Literal("b", "B")]);
         const repeatClone = parent.children[0];
         const bClone = parent.find(p => p.name === "b") as Pattern;
 

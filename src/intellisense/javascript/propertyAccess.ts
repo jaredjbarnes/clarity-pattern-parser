@@ -1,26 +1,26 @@
-import { And } from "../../patterns/And";
+import { Sequence } from "../../patterns/Sequence";
 import { Literal } from "../../patterns/Literal";
-import { Or } from "../../patterns/Or";
+import { Options } from "../../patterns/Options";
 import { Reference } from "../../patterns/Reference";
 import { name } from "./name";
 
-const dotPropertyAccess = new And("dot-property-access", [
+const dotPropertyAccess = new Sequence("dot-property-access", [
     new Literal("period", "."),
     name.clone("property-name")
 ]);
 
-const bracketPropertyAccess = new And("bracket-property-access", [
+const bracketPropertyAccess = new Sequence("bracket-property-access", [
     new Literal("open-square-bracket", "["),
     new Reference("expression"),
     new Literal("close-square-bracket", "]"),
 ]);
 
-const propertyAccessTypes = new Or("property-access-types", [
+const propertyAccessTypes = new Options("property-access-types", [
     dotPropertyAccess,
     bracketPropertyAccess
 ]);
 
-const propertyAccess = new And("property-access", [
+const propertyAccess = new Sequence("property-access", [
     propertyAccessTypes,
     new Reference("property-access", true)
 ]);

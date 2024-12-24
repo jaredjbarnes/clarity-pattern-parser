@@ -1,5 +1,5 @@
 import { Node } from "../ast/Node";
-import { And } from "./And";
+import { Sequence } from "./Sequence";
 import { Cursor } from "./Cursor";
 import { Literal } from "./Literal"
 
@@ -118,8 +118,8 @@ describe("Literal", () => {
     });
 
     test("Get Next Tokens", () => {
-        const sequence = new And("sequence", [new Literal("a", "A")]);
-        const parent = new And("parent", [sequence, new Literal("b", "B")]);
+        const sequence = new Sequence("sequence", [new Literal("a", "A")]);
+        const parent = new Sequence("parent", [sequence, new Literal("b", "B")]);
 
         const a = parent.find(p => p.name === "a");
         const tokens = a?.getNextTokens() || [];
@@ -144,8 +144,8 @@ describe("Literal", () => {
     });
 
     test("Get Next Patterns", () => {
-        const sequence = new And("sequence", [new Literal("a", "A")]);
-        const parent = new And("parent", [sequence, new Literal("b", "B")]);
+        const sequence = new Sequence("sequence", [new Literal("a", "A")]);
+        const parent = new Sequence("parent", [sequence, new Literal("b", "B")]);
 
         const a = parent.find(p => p.name === "a");
         const nextPatterns = a?.getNextPatterns() || [];

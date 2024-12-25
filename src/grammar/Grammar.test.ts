@@ -68,7 +68,7 @@ describe("Grammar", () => {
         const pattern = patterns["names"];
         const john = new Literal("john", "John");
         const jane = new Literal("jane", "Jane");
-        const names = new Options("names", [john, jane], false, true);
+        const names = new Options("names", [john, jane], true);
 
         expect(arePatternsEqual(pattern, names)).toBeTruthy();
     });
@@ -282,7 +282,7 @@ describe("Grammar", () => {
 
         const patterns = Grammar.parseString(expression);
         const pattern = patterns["array"] as Pattern;
-        
+
         let text = "[1, []]";
         let result = pattern.exec(text, true);
 
@@ -487,7 +487,6 @@ describe("Grammar", () => {
                 new Regex("regex", "regex"),
                 new Repeat("anonymous", new Reference("pattern")),
             ],
-                false,
                 true
             ),
             new Options("anonymous", [

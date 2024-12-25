@@ -238,7 +238,7 @@ export class Grammar {
         const patternNodes = node.children.filter(n => n.name !== "default-divider" && n.name !== "greedy-divider");
         const isGreedy = node.find(n => n.name === "greedy-divider") != null;
         const patterns = patternNodes.map(n => this._buildPattern(n));
-        const or = new Options(name, patterns, false, isGreedy);
+        const or = new Options(name, patterns, isGreedy);
 
         return or;
     }

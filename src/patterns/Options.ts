@@ -13,7 +13,6 @@ export class Options implements Pattern {
   private _name: string;
   private _parent: Pattern | null;
   private _children: Pattern[];
-  private _isOptional: boolean;
   private _isGreedy: boolean;
   private _firstIndex: number;
 
@@ -41,11 +40,7 @@ export class Options implements Pattern {
     return this._children;
   }
 
-  get isOptional(): boolean {
-    return this._isOptional;
-  }
-
-  constructor(name: string, options: Pattern[], isOptional = false, isGreedy = false) {
+  constructor(name: string, options: Pattern[], isGreedy = false) {
     if (options.length === 0) {
       throw new Error("Need at least one pattern with an 'or' pattern.");
     }
@@ -58,7 +53,6 @@ export class Options implements Pattern {
     this._name = name;
     this._parent = null;
     this._children = children;
-    this._isOptional = isOptional;
     this._firstIndex = 0;
     this._isGreedy = isGreedy;
   }
@@ -102,16 +96,7 @@ export class Options implements Pattern {
       return node;
     }
 
-    if (!this._isOptional) {
-      cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
-
-      cursor.endParse();
-      return null;
-    }
-
-    cursor.resolveError();
-    cursor.moveTo(this._firstIndex);
-
+    cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
     cursor.endParse();
     return null;
   }
@@ -122,7 +107,7 @@ export class Options implements Pattern {
     for (const pattern of this._children) {
       cursor.moveTo(this._firstIndex);
       const result = pattern.parse(cursor);
-      
+
       if (this._isGreedy) {
         results.push(result);
       }
@@ -196,8 +181,8 @@ export class Options implements Pattern {
     return findPattern(this, predicate);
   }
 
-  clone(name = this._name, isOptional = this._isOptional): Pattern {
-    const or = new Options(name, this._children, isOptional, this._isGreedy);
+  clone(name = this._name): Pattern {
+    const or = new Options(name, this._children, this._isGreedy);
     or._id = this._id;
     return or;
   }

@@ -24,4 +24,4 @@ export const pattern = new Options("pattern", [
     optionsLiteral,
     sequenceLiteral,
     configurableAnonymousPattern,
-], false, true);
+],  true);

@@ -48,15 +48,6 @@ describe("Options", () => {
         ], "B");
     });
 
-    test("Failed (Optional)", () => {
-        const a = new Options("a", [new Literal("a", "A")], true);
-        const cursor = new Cursor("B");
-        const result = a.parse(cursor);
-
-        expect(result).toBeNull();
-        expect(cursor.hasError).toBeFalsy();
-    });
-
     test("Get Tokens", () => {
         const aOrB = new Options("a-b", [new Literal("a", "A"), new Literal("b", "B")]);
         const tokens = aOrB.getTokens();
@@ -87,7 +78,6 @@ describe("Options", () => {
 
         expect(a.type).toBe("or");
         expect(a.name).toBe("a");
-        expect(a.isOptional).toBeFalsy();
         expect(a.parent).toBeNull();
         expect(a.children[0].name).toBe("a");
     });
@@ -226,11 +216,11 @@ describe("Options", () => {
         const smith = new Literal("smith", "Smith");
         const space = new Literal("space", " ");
 
-        const firstName = new Options("first-name", [john, jane], false, true);
-        const lastName = new Options("last-name", [doe, smith], false, true);
+        const firstName = new Options("first-name", [john, jane], true);
+        const lastName = new Options("last-name", [doe, smith], true);
         const johnJohnson = new Literal("john-johnson", "John Johnson");
         const fullName = new Sequence("full-name", [firstName, space, lastName]);
-        const names = new Options("names", [fullName, johnJohnson], false, true);
+        const names = new Options("names", [fullName, johnJohnson], true);
 
         const result = names.exec("John Johnson");
         expect(result.ast?.value).toBe("John Johnson");
@@ -243,11 +233,11 @@ describe("Options", () => {
         const smith = new Literal("smith", "Smith");
         const space = new Literal("space", " ");
 
-        const firstName = new Options("first-name", [john, jane], false, true);
-        const lastName = new Options("last-name", [doe, smith], false, true);
+        const firstName = new Options("first-name", [john, jane], true);
+        const lastName = new Options("last-name", [doe, smith], true);
         const johnJohnson = new Literal("john-johnson", "John Johnson");
         const fullName = new Sequence("full-name", [firstName, space, lastName]);
-        const names = new Options("names", [johnJohnson, fullName], false, true);
+        const names = new Options("names", [johnJohnson, fullName], true);
 
         const result = names.exec("John Johnson");
         expect(result.ast?.value).toBe("John Johnson");
@@ -260,12 +250,12 @@ describe("Options", () => {
         const smith = new Literal("smith", "Smith");
         const space = new Literal("space", " ");
 
-        const firstName = new Options("first-name", [john, jane], false, true);
-        const lastName = new Options("last-name", [doe, smith], false, true);
+        const firstName = new Options("first-name", [john, jane], true);
+        const lastName = new Options("last-name", [doe, smith], true);
         const johnJohnson = new Literal("john-johnson", "John Johnson");
         const johnStockton = new Literal("john-stockton", "John Stockton");
         const fullName = new Sequence("full-name", [firstName, space, lastName]);
-        const names = new Options("names", [johnStockton, johnJohnson, fullName], false, true);
+        const names = new Options("names", [johnStockton, johnJohnson, fullName], true);
 
         const result = names.exec("John Johnson");
         expect(result.ast?.value).toBe("John Johnson");
@@ -275,8 +265,8 @@ describe("Options", () => {
     test("Optional option", () => {
         const john = new Optional("optional-john", new Literal("john", "John"));
         const jane = new Literal("jane", "Jane");
-        
-        const firstName = new Options("first-name", [john, jane], false, true);
+
+        const firstName = new Options("first-name", [john, jane], true);
 
         const result = firstName.exec("Jane");
         expect(result.ast?.value).toBe("Jane");

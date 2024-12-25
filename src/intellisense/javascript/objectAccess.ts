@@ -1,5 +1,4 @@
 import { Sequence } from "../../patterns/Sequence";
-import { Reference } from "../../patterns/Reference";
 import { name } from "./name";
 import { propertyAccess } from "./propertyAccess";
 

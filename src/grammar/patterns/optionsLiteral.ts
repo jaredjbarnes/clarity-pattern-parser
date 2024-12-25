@@ -14,6 +14,6 @@ defaultDivider.setTokens(["|"]);
 const greedyDivider = new Regex("greedy-divider", "\\s*[<][|][>]\\s*");
 greedyDivider.setTokens(["<|>"]);
 
-const divider = new Options("or-divider", [defaultDivider, greedyDivider]);
+const divider = new Options("options-divider", [defaultDivider, greedyDivider]);
 
-export const orLiteral = new Repeat("or-literal", patterns, { divider, min: 2, trimDivider: true });
+export const optionsLiteral = new Repeat("options-literal", patterns, { divider, min: 2, trimDivider: true });

@@ -5,7 +5,7 @@ import { Pattern } from "./Pattern";
 
 let idIndex = 0;
 
-export class Not implements Pattern {
+export class Optional implements Pattern {
   private _id: string;
   private _type: string;
   private _name: string;
@@ -36,13 +36,9 @@ export class Not implements Pattern {
     return this._children;
   }
 
-  get isOptional(): boolean {
-    return false;
-  }
-
   constructor(name: string, pattern: Pattern) {
-    this._id = `not-${idIndex++}`;
-    this._type = "not";
+    this._id = `optional-${idIndex++}`;
+    this._type = "optional";
     this._name = name;
     this._parent = null;
     this._children = [pattern.clone()];
@@ -72,35 +68,29 @@ export class Not implements Pattern {
     cursor.startParseWith(this);
 
     const firstIndex = cursor.index;
-    this._children[0].parse(cursor);
+    const node = this._children[0].parse(cursor);
 
     if (cursor.hasError) {
       cursor.resolveError();
       cursor.moveTo(firstIndex);
+
+      cursor.endParse();
+      return null;
     } else {
-      cursor.moveTo(firstIndex);
-      cursor.resolveError();
-      cursor.recordErrorAt(firstIndex, firstIndex, this);
+      cursor.endParse();
+      return node;
     }
 
-    cursor.endParse();
-    return null;
   }
 
   clone(name = this._name): Pattern {
-    const not = new Not(name, this._children[0]);
-    not._id = this._id;
-    return not;
+    const optional = new Optional(name, this._children[0]);
+    optional._id = this._id;
+    return optional;
   }
 
   getTokens(): string[] {
-    const parent = this._parent;
-
-    if (parent != null) {
-      return parent.getTokensAfter(this);
-    }
-
-    return [];
+    return this._children[0].getTokens();
   }
 
   getTokensAfter(_childReference: Pattern): string[] {
@@ -122,7 +112,7 @@ export class Not implements Pattern {
   }
 
   getPatterns(): Pattern[] {
-    return [...this.getNextPatterns().map(p => p.getPatterns()).flat()];
+    return this._children[0].getPatterns();
   }
 
   getPatternsAfter(_childReference: Pattern): Pattern[] {
@@ -147,7 +137,7 @@ export class Not implements Pattern {
     return predicate(this._children[0]) ? this._children[0] : null;
   }
 
-  isEqual(pattern: Not): boolean {
+  isEqual(pattern: Optional): boolean {
     return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
   }
 }

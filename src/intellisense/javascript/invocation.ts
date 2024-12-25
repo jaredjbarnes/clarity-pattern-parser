@@ -5,13 +5,14 @@ import { Reference } from "../../patterns/Reference";
 import { Regex } from "../../patterns/Regex";
 import { Repeat } from "../../patterns/Repeat";
 import { optionalSpaces } from "./optionalSpaces";
+import { Optional } from "../../patterns/Optional";
 
 const divider = new Regex("invocation-divider", "\\s*,\\s*");
 
 const invocationWithArguments = new Sequence("invocation-with-arguments", [
     new Literal("open-paren", "("),
     optionalSpaces,
-    new Repeat("expressions", new Reference("expression"), { divider, min: 0 }),
+    new Optional("optional-expression", new Repeat("expressions", new Reference("expression"), { divider })),
     optionalSpaces,
     new Literal("close-paren", ")"),
 ]);
@@ -25,4 +26,4 @@ const emptyInvocation = new Sequence("empty-invocation", [
 export const invocation = new Options("invocation", [
     emptyInvocation,
     invocationWithArguments
-])
+]);

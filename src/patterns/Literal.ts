@@ -10,7 +10,6 @@ export class Literal implements Pattern {
   private _type: string;
   private _name: string;
   private _parent: Pattern | null;
-  private _isOptional: boolean;
   private _text: string;
   private _runes: string[];
   private _firstIndex: number;
@@ -41,11 +40,7 @@ export class Literal implements Pattern {
     return [];
   }
 
-  get isOptional(): boolean {
-    return this._isOptional;
-  }
-
-  constructor(name: string, value: string, isOptional = false) {
+  constructor(name: string, value: string) {
     if (value.length === 0) {
       throw new Error("Value Cannot be empty.");
     }
@@ -55,7 +50,6 @@ export class Literal implements Pattern {
     this._name = name;
     this._text = value;
     this._runes = Array.from(value);
-    this._isOptional = isOptional;
     this._parent = null;
     this._firstIndex = 0;
     this._lastIndex = 0;
@@ -97,16 +91,7 @@ export class Literal implements Pattern {
       return node;
     }
 
-    if (!this._isOptional) {
-      cursor.recordErrorAt(this._firstIndex, this._endIndex, this);
-
-      cursor.endParse();
-      return null;
-    }
-
-    cursor.resolveError();
-    cursor.moveTo(this._firstIndex);
-
+    cursor.recordErrorAt(this._firstIndex, this._endIndex, this);
     cursor.endParse();
     return null;
   }
@@ -152,8 +137,8 @@ export class Literal implements Pattern {
     );
   }
 
-  clone(name = this._name, isOptional = this._isOptional): Pattern {
-    const clone = new Literal(name, this._text, isOptional);
+  clone(name = this._name): Pattern {
+    const clone = new Literal(name, this._text);
     clone._id = this._id;
     return clone;
   }

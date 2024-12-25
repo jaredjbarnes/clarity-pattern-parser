@@ -11,7 +11,6 @@ export class Reference implements Pattern {
   private _type: string;
   private _name: string;
   private _parent: Pattern | null;
-  private _isOptional: boolean;
   private _pattern: Pattern | null;
   private _children: Pattern[];
 
@@ -39,16 +38,11 @@ export class Reference implements Pattern {
     return this._children;
   }
 
-  get isOptional(): boolean {
-    return this._isOptional;
-  }
-
-  constructor(name: string, isOptional = false) {
+  constructor(name: string) {
     this._id = `reference-${idIndex++}`;
     this._type = "reference";
     this._name = name;
     this._parent = null;
-    this._isOptional = isOptional;
     this._pattern = null;
     this._children = [];
   }
@@ -84,7 +78,7 @@ export class Reference implements Pattern {
         throw new Error(`Couldn't find '${this._name}' pattern within tree.`);
       }
 
-      const clonedPattern = pattern.clone(this._name, this._isOptional);
+      const clonedPattern = pattern.clone();
       clonedPattern.parent = this;
 
       this._pattern = clonedPattern;
@@ -162,8 +156,8 @@ export class Reference implements Pattern {
     return null;
   }
 
-  clone(name = this._name, isOptional = this._isOptional): Pattern {
-    const clone = new Reference(name, isOptional);
+  clone(name = this._name): Pattern {
+    const clone = new Reference(name);
     clone._id = this._id;
     return clone;
   }

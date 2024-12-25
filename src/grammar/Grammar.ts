@@ -9,13 +9,14 @@ import { Not } from "../patterns/Not";
 import { Sequence } from "../patterns/Sequence";
 import { Repeat, RepeatOptions } from "../patterns/Repeat";
 import { AutoComplete } from "../intellisense/AutoComplete";
+import { Optional } from "../patterns/Optional";
 
 let anonymousIndexId = 0;
 
 const patternNodes: Record<string, boolean> = {
     "literal": true,
     "regex-literal": true,
-    "or-literal": true,
+    "options-literal": true,
     "sequence-literal": true,
     "repeat-literal": true,
     "alias-literal": true,
@@ -152,12 +153,12 @@ export class Grammar {
                     this._saveRegex(n);
                     break;
                 }
-                case "or-literal": {
-                    this._saveOr(n);
+                case "options-literal": {
+                    this._saveOptions(n);
                     break;
                 }
                 case "sequence-literal": {
-                    this._saveAnd(n);
+                    this._saveSequence(n);
                     break;
                 }
                 case "repeat-literal": {
@@ -224,16 +225,16 @@ export class Grammar {
         return new Regex(name, value);
     }
 
-    private _saveOr(statementNode: Node) {
+    private _saveOptions(statementNode: Node) {
         const nameNode = statementNode.find(n => n.name === "name") as Node;
         const name = nameNode.value;
-        const orNode = statementNode.find(n => n.name === "or-literal") as Node;
-        const or = this._buildOr(name, orNode);
+        const optionsNode = statementNode.find(n => n.name === "options-literal") as Node;
+        const options = this._buildOptions(name, optionsNode);
 
-        this._parseContext.patternsByName.set(name, or);
+        this._parseContext.patternsByName.set(name, options);
     }
 
-    private _buildOr(name: string, node: Node) {
+    private _buildOptions(name: string, node: Node) {
         const patternNodes = node.children.filter(n => n.name !== "default-divider" && n.name !== "greedy-divider");
         const isGreedy = node.find(n => n.name === "greedy-divider") != null;
         const patterns = patternNodes.map(n => this._buildPattern(n));
@@ -259,11 +260,11 @@ export class Grammar {
             case "repeat-literal": {
                 return this._buildRepeat(name, node);
             }
-            case "or-literal": {
-                return this._buildOr(name, node);
+            case "options-literal": {
+                return this._buildOptions(name, node);
             }
             case "sequence-literal": {
-                return this._buildAnd(name, node);
+                return this._buildSequence(name, node);
             }
             case "complex-anonymous-pattern": {
                 return this._buildComplexAnonymousPattern(node);
@@ -273,29 +274,30 @@ export class Grammar {
         throw new Error(`Couldn't build node: ${node.name}.`);
     }
 
-    private _saveAnd(statementNode: Node) {
+    private _saveSequence(statementNode: Node) {
         const nameNode = statementNode.find(n => n.name === "name") as Node;
         const name = nameNode.value;
-        const andNode = statementNode.find(n => n.name === "sequence-literal") as Node;
-        const and = this._buildAnd(name, andNode);
+        const sequenceNode = statementNode.find(n => n.name === "sequence-literal") as Node;
+        const sequence = this._buildSequence(name, sequenceNode);
 
-        this._parseContext.patternsByName.set(name, and);
+        this._parseContext.patternsByName.set(name, sequence);
     }
 
-    private _buildAnd(name: string, node: Node) {
+    private _buildSequence(name: string, node: Node) {
         const patternNodes = node.children.filter(n => n.name !== "and-divider");
 
         const patterns = patternNodes.map(n => {
             const patternNode = n.children[0].name === "not" ? n.children[1] : n.children[0];
             const isNot = n.find(n => n.name === "not") != null;
             const isOptional = n.find(n => n.name === "is-optional");
-            const pattern = this._buildPattern(patternNode).clone(undefined, isOptional == null ? undefined : true);
+            const pattern = this._buildPattern(patternNode);
+            const finalPattern = isOptional ? new Optional(pattern.name, pattern) : pattern;
 
             if (isNot) {
-                return new Not(`not-${pattern.name}`, pattern);
+                return new Not(`not-${finalPattern.name}`, finalPattern);
             }
 
-            return pattern;
+            return finalPattern;
         });
 
         return new Sequence(name, patterns);
@@ -311,13 +313,14 @@ export class Grammar {
     }
 
     private _buildRepeat(name: string, repeatNode: Node) {
+        let isOptional = false;
         const bounds = repeatNode.find(n => n.name === "bounds");
         const exactCount = repeatNode.find(n => n.name === "exact-count");
         const quantifier = repeatNode.find(n => n.name === "quantifier-shorthand");
         const trimDivider = repeatNode.find(n => n.name === "trim-flag") != null;
-        const patterNode = repeatNode.children[1].type === "optional-spaces" ? repeatNode.children[2] : repeatNode.children[1];
+        const patterNode = repeatNode.children[1].type === "spaces" ? repeatNode.children[2] : repeatNode.children[1];
         const pattern = this._buildPattern(patterNode);
-        const dividerSectionNode = repeatNode.find(n => n.name === "optional-divider-section");
+        const dividerSectionNode = repeatNode.find(n => n.name === "divider-section");
 
         const options: RepeatOptions = {
             min: 1,
@@ -354,12 +357,11 @@ export class Grammar {
                 options.min = 1;
                 options.max = Infinity;
             } else {
-                options.min = 0;
-                options.max = Infinity;
+                isOptional = true;
             }
         }
 
-        return new Repeat(name, pattern.clone(pattern.name), options);
+        return isOptional ? new Optional(name, new Repeat(name, pattern, options)) : new Repeat(name, pattern, options);
     }
 
     private _saveConfigurableAnonymous(node: Node) {
@@ -368,7 +370,7 @@ export class Grammar {
         const anonymousNode = node.find(n => n.name === "complex-anonymous-pattern") as Node;
         const isOptional = node.children[1] != null;
 
-        const anonymous = this._buildPattern(anonymousNode).clone(name, isOptional);
+        const anonymous = isOptional ? new Optional(name, this._buildPattern(anonymousNode)) : this._buildPattern(anonymousNode);
         this._parseContext.patternsByName.set(name, anonymous);
     }
 

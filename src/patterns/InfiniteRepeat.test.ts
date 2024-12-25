@@ -7,6 +7,7 @@ import { Pattern } from "./Pattern";
 import { Regex } from "./Regex";
 import { InfiniteRepeat } from "./InfiniteRepeat";
 import { arePatternsEqual } from "./arePatternsEqual";
+import { Optional } from "./Optional";
 
 describe("InfiniteRepeat", () => {
     test("Successful Parse", () => {
@@ -20,8 +21,8 @@ describe("InfiniteRepeat", () => {
             new Node("regex", "digit", 2, 2, [], "7"),
         ]);
 
-        expect(result).toEqual(expected)
-        expect(cursor.hasError).toBeFalsy()
+        expect(result).toEqual(expected);
+        expect(cursor.hasError).toBeFalsy();
     });
 
     test("Bounds", () => {
@@ -52,8 +53,8 @@ describe("InfiniteRepeat", () => {
         const cursor = new Cursor("John");
         const result = integer.parse(cursor);
 
-        expect(result).toBeNull()
-        expect(cursor.hasError).toBeTruthy()
+        expect(result).toBeNull();
+        expect(cursor.hasError).toBeTruthy();
     });
 
     test("Successful Parse With Divider", () => {
@@ -70,8 +71,8 @@ describe("InfiniteRepeat", () => {
             new Node("regex", "digit", 4, 4, [], "7"),
         ]);
 
-        expect(result).toEqual(expected)
-        expect(cursor.hasError).toBeFalsy()
+        expect(result).toEqual(expected);
+        expect(cursor.hasError).toBeFalsy();
     });
 
     test("Successful Parse Text Ends With Divider", () => {
@@ -88,8 +89,8 @@ describe("InfiniteRepeat", () => {
             new Node("regex", "digit", 4, 4, [], "7"),
         ]);
 
-        expect(result).toEqual(expected)
-        expect(cursor.hasError).toBeFalsy()
+        expect(result).toEqual(expected);
+        expect(cursor.hasError).toBeFalsy();
     });
 
     test("Successful Parse Trailing Comma", () => {
@@ -106,18 +107,18 @@ describe("InfiniteRepeat", () => {
             new Node("regex", "digit", 4, 4, [], "7"),
         ]);
 
-        expect(result).toEqual(expected)
-        expect(cursor.hasError).toBeFalsy()
+        expect(result).toEqual(expected);
+        expect(cursor.hasError).toBeFalsy();
     });
 
     test("Failed (Optional)", () => {
-        const digit = new Regex("digit", "\\d");
+        const digit = new Optional("optional-digit", new Regex("digit", "\\d"));
         const integer = new InfiniteRepeat("number", digit, { min: 0 });
         const cursor = new Cursor("John");
         const result = integer.parse(cursor);
 
-        expect(result).toBeNull()
-        expect(cursor.hasError).toBeFalsy()
+        expect(result).toBeNull();
+        expect(cursor.hasError).toBeFalsy();
     });
 
     test("Get Tokens", () => {
@@ -126,7 +127,7 @@ describe("InfiniteRepeat", () => {
         const tokens = manyA.getTokens();
         const expected = ["A"];
 
-        expect(tokens).toEqual(expected)
+        expect(tokens).toEqual(expected);
     });
 
     test("Get Tokens After With Bogus Pattern", () => {
@@ -135,7 +136,7 @@ describe("InfiniteRepeat", () => {
         const tokens = manyA.getTokensAfter(new Literal("bogus", "bogus"));
         const expected: string[] = [];
 
-        expect(tokens).toEqual(expected)
+        expect(tokens).toEqual(expected);
     });
 
     test("Get Tokens After With Divider", () => {
@@ -149,12 +150,12 @@ describe("InfiniteRepeat", () => {
         let tokens = clonedManyA?.getTokensAfter(clonedManyA.children[0]);
         let expected = [",", "B"];
 
-        expect(tokens).toEqual(expected)
+        expect(tokens).toEqual(expected);
 
         tokens = clonedManyA?.getTokensAfter(clonedManyA.children[1]);
         expected = ["A"];
 
-        expect(tokens).toEqual(expected)
+        expect(tokens).toEqual(expected);
     });
 
     test("Get Tokens After Without Divider", () => {
@@ -167,7 +168,7 @@ describe("InfiniteRepeat", () => {
         const tokens = clonedManyA?.getTokensAfter(clonedManyA.children[0]);
         const expected = ["A", "B"];
 
-        expect(tokens).toEqual(expected)
+        expect(tokens).toEqual(expected);
     });
 
     test("Properties", () => {
@@ -176,7 +177,6 @@ describe("InfiniteRepeat", () => {
         expect(integer.type).toBe("infinite-repeat");
         expect(integer.name).toBe("integer");
         expect(integer.min).toBe(1);
-        expect(integer.isOptional).toBeFalsy()
         expect(integer.parent).toBeNull();
         expect(integer.children[0].name).toBe("digit");
     });
@@ -184,19 +184,19 @@ describe("InfiniteRepeat", () => {
     test("Exec", () => {
         const integer = new InfiniteRepeat("integer", new Regex("digit", "\\d"));
         const { ast: result } = integer.exec("B");
-        expect(result).toBeNull()
+        expect(result).toBeNull();
     });
 
     test("Test With Match", () => {
         const integer = new InfiniteRepeat("integer", new Regex("digit", "\\d"));
         const result = integer.test("1");
-        expect(result).toBeTruthy()
+        expect(result).toBeTruthy();
     });
 
     test("Test With No Match", () => {
         const integer = new InfiniteRepeat("integer", new Regex("digit", "\\d"));
         const result = integer.test("b");
-        expect(result).toBeFalsy()
+        expect(result).toBeFalsy();
     });
 
     test("Get Next Tokens", () => {
@@ -205,7 +205,7 @@ describe("InfiniteRepeat", () => {
         const integerClone = parent.find(p => p.name === "integer") as Pattern;
         const tokens = integerClone.getNextTokens();
 
-        expect(tokens).toEqual(["!"])
+        expect(tokens).toEqual(["!"]);
     });
 
     test("Get Next Tokens With Null Parents", () => {
@@ -228,7 +228,7 @@ describe("InfiniteRepeat", () => {
         const patterns = manyA.getPatterns();
         const expected = [manyA.find(p => p.name === "a")];
 
-        expect(patterns).toEqual(expected)
+        expect(patterns).toEqual(expected);
     });
 
     test("Get Next Patterns", () => {
@@ -250,24 +250,9 @@ describe("InfiniteRepeat", () => {
     });
 
     test("Clone With Custom Overrides", () => {
-        const numbers = new InfiniteRepeat("numbers", new Regex("number", "\\d"), { min: 0 });
+        const numbers = new InfiniteRepeat("numbers", new Regex("number", "\\d"), { min: 3, divider: new Literal("divider", "divider"), trimDivider: true });
         let clone = numbers.clone();
-        let expected = new InfiniteRepeat("numbers", new Regex("number", "\\d"), { min: 0 });
-
-        expect(arePatternsEqual(clone, expected)).toBeTruthy();
-
-        clone = numbers.clone("cloned-numbers");
-        expected = new InfiniteRepeat("cloned-numbers", new Regex("number", "\\d"), { min: 0 });
-
-        expect(arePatternsEqual(clone, expected)).toBeTruthy();
-
-        clone = numbers.clone("cloned-numbers", true);
-        expected = new InfiniteRepeat("cloned-numbers", new Regex("number", "\\d"), { min: 0 });
-
-        expect(arePatternsEqual(clone, expected)).toBeTruthy();
-
-        clone = numbers.clone("cloned-numbers", false);
-        expected = new InfiniteRepeat("cloned-numbers", new Regex("number", "\\d"), { min: 1 });
+        let expected = new InfiniteRepeat("numbers", new Regex("number", "\\d"), { min: 3, divider: new Literal("divider", "divider"), trimDivider: true });
 
         expect(arePatternsEqual(clone, expected)).toBeTruthy();
     });
@@ -277,6 +262,7 @@ describe("InfiniteRepeat", () => {
         const result = numbers.exec("j");
         expect(result.ast).toBeNull();
         expect(result.cursor.index).toBe(0);
+        expect(result.cursor.hasError).toBeTruthy();
     });
 
 

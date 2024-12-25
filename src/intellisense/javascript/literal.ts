@@ -11,4 +11,4 @@ const literal = new Options("literal", [
     objectLiteral,
 ]);
 
-export { literal }
+export { literal };

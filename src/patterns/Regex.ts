@@ -9,7 +9,6 @@ export class Regex implements Pattern {
   private _id: string;
   private _type: string;
   private _name: string;
-  private _isOptional: boolean;
   private _parent: Pattern | null;
   private _originalRegexString: string;
   private _regex: RegExp;
@@ -43,15 +42,10 @@ export class Regex implements Pattern {
     return [];
   }
 
-  get isOptional(): boolean {
-    return this._isOptional;
-  }
-
-  constructor(name: string, regex: string, isOptional = false) {
+  constructor(name: string, regex: string) {
     this._id = `regex-${idIndex++}`;
     this._type = "regex";
     this._name = name;
-    this._isOptional = isOptional;
     this._parent = null;
     this._originalRegexString = regex;
     this._regex = new RegExp(`^${regex}`, "g");
@@ -143,15 +137,12 @@ export class Regex implements Pattern {
   }
 
   private processError(cursor: Cursor) {
-    if (!this._isOptional) {
-      cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
-    }
-
+    cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
     this._node = null;
   }
 
-  clone(name = this._name, isOptional = this._isOptional) {
-    const clone = new Regex(name, this._originalRegexString, isOptional);
+  clone(name = this._name) {
+    const clone = new Regex(name, this._originalRegexString);
     clone._tokens = this._tokens.slice();
 
     clone._id = this._id;
@@ -168,7 +159,7 @@ export class Regex implements Pattern {
 
   getNextTokens(): string[] {
     if (this.parent == null) {
-      return []
+      return [];
     }
 
     return this.parent.getTokensAfter(this);
@@ -187,7 +178,7 @@ export class Regex implements Pattern {
       return [];
     }
 
-    return this.parent.getPatternsAfter(this)
+    return this.parent.getPatternsAfter(this);
   }
 
   find(_predicate: (p: Pattern) => boolean): Pattern | null {

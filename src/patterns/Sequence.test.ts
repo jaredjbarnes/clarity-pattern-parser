@@ -1,13 +1,14 @@
 import { Cursor } from "./Cursor";
 import { Sequence } from "./Sequence";
 import { Literal } from "./Literal";
-import { Node } from "../ast/Node"
+import { Node } from "../ast/Node";
+import { Optional } from "./Optional";
 
 describe("Sequence", () => {
     test("No Patterns", () => {
         expect(() => {
-            new Sequence("empty", [])
-        }).toThrowError()
+            new Sequence("empty", []);
+        }).toThrowError();
     });
 
     test("One Pattern Match Successful", () => {
@@ -66,19 +67,19 @@ describe("Sequence", () => {
     });
 
     test("One Pattern Match Fails (Optional)", () => {
-        const sequence = new Sequence("sequence", [new Literal("a", "A")], true);
+        const sequence = new Optional("optional-sequence", new Sequence("sequence", [new Literal("a", "A")]));
         const cursor = new Cursor("V");
         const result = sequence.parse(cursor);
 
         expect(result).toEqual(null);
-        expect(cursor.error).toBe(null)
+        expect(cursor.error).toBe(null);
         expect(cursor.index).toBe(0);
     });
 
     test("Trailing Optional Child Patterns", () => {
         const sequence = new Sequence("sequence", [
             new Literal("a", "A"),
-            new Literal("b", "B", true)
+            new Optional("b", new Literal("b", "B"))
         ]);
         const cursor = new Cursor("AD");
         const result = sequence.parse(cursor);
@@ -87,14 +88,14 @@ describe("Sequence", () => {
         ]);
 
         expect(result).toEqual(expected);
-        expect(cursor.error).toBe(null)
+        expect(cursor.error).toBe(null);
         expect(cursor.index).toBe(0);
     });
 
     test("Trailing Optional Child Patterns With No More Text", () => {
         const sequence = new Sequence("sequence", [
             new Literal("a", "A"),
-            new Literal("b", "B", true)
+            new Optional("b", new Literal("b", "B"))
         ]);
         const cursor = new Cursor("A");
         const result = sequence.parse(cursor);
@@ -108,24 +109,24 @@ describe("Sequence", () => {
     });
 
     test("Incomplete Parse (Optional)", () => {
-        const sequence = new Sequence("sequence", [
+        const sequence = new Optional("optional-sequence", new Sequence("sequence", [
             new Literal("a", "A"),
             new Literal("b", "B")
-        ], true);
+        ]));
         const cursor = new Cursor("A");
         const result = sequence.parse(cursor);
 
         expect(result).toEqual(null);
-        expect(cursor.error).toBe(null)
+        expect(cursor.error).toBe(null);
         expect(cursor.index).toBe(0);
     });
 
     test("Optional Child Pattern With More Patterns", () => {
-        const sequence = new Sequence("sequence", [
-            new Literal("a", "A", true),
+        const sequence = new Optional("optional-sequence", new Sequence("sequence", [
+            new Optional("a", new Literal("a", "A")),
             new Literal("b", "B"),
             new Literal("c", "C")
-        ], true);
+        ]));
         const cursor = new Cursor("BC");
         const result = sequence.parse(cursor);
         const expected = new Node("sequence", "sequence", 0, 1, [
@@ -139,40 +140,39 @@ describe("Sequence", () => {
     });
 
     test("Nothing Matched", () => {
-        const sequence = new Sequence("sequence", [
+        const sequence = new Optional("optional-sequence", new Sequence("sequence", [
             new Literal("a", "A"),
-        ], true);
+        ]));
         const cursor = new Cursor("BC");
         const result = sequence.parse(cursor);
 
         expect(result).toEqual(null);
-        expect(cursor.error).toBe(null)
+        expect(cursor.error).toBe(null);
         expect(cursor.index).toBe(0);
     });
 
     test("No Matches On Optional Child Patterns", () => {
-        const sequence = new Sequence("sequence", [
-            new Literal("a", "A", true),
-            new Literal("b", "B", true),
-        ], true);
+        const sequence = new Optional("optional-sequence", new Sequence("sequence", [
+            new Optional("a", new Literal("a", "A")),
+            new Optional("b", new Literal("b", "B")),
+        ]));
         const cursor = new Cursor("XYZ");
         const result = sequence.parse(cursor);
 
         expect(result).toEqual(null);
-        expect(cursor.error).toBe(null)
+        expect(cursor.error).toBe(null);
         expect(cursor.index).toBe(0);
     });
 
     test("Properties", () => {
-        const a = new Literal("a", "A", true)
+        const a = new Literal("a", "A");
         const sequence = new Sequence("sequence", [
             a,
-        ], true);
+        ]);
 
         expect(sequence.type).toBe("sequence");
         expect(sequence.name).toBe("sequence");
         expect(sequence.parent).toBe(null);
-        expect(sequence.isOptional).toBe(true);
         expect(sequence.children[0].type).toBe("literal");
         expect(sequence.children[0].name).toBe("a");
     });
@@ -204,10 +204,10 @@ describe("Sequence", () => {
     });
 
     test("Set Parent", () => {
-        const a = new Literal("a", "A", true)
+        const a = new Optional("a", new Literal("a", "A"));
         const sequence = new Sequence("sequence", [
             a,
-        ], true);
+        ]);
         const parent = new Sequence("parent", [sequence]);
 
         expect(parent.type).toBe("sequence");
@@ -216,10 +216,10 @@ describe("Sequence", () => {
 
     test("Get Tokens", () => {
         const sequence = new Sequence("sequence", [
-            new Literal("a", "A", true),
+            new Optional("a", new Literal("a", "A")),
             new Literal("b", "B"),
-        ], true);
-        const tokens = sequence.getTokens()
+        ]);
+        const tokens = sequence.getTokens();
         const expected = ["A", "B"];
 
         expect(tokens).toEqual(expected);
@@ -228,11 +228,11 @@ describe("Sequence", () => {
     test("Get Tokens After", () => {
         const sequence = new Sequence("sequence", [
             new Literal("a", "A"),
-            new Literal("b", "B", true),
+            new Optional("b", new Literal("b", "B")),
             new Literal("c", "C"),
-        ], true);
+        ]);
 
-        const tokens = sequence.getTokensAfter(sequence.children[0])
+        const tokens = sequence.getTokensAfter(sequence.children[0]);
         const expected = ["B", "C"];
 
         expect(tokens).toEqual(expected);
@@ -241,11 +241,11 @@ describe("Sequence", () => {
     test("Get Tokens After With Invalid Pattern", () => {
         const sequence = new Sequence("sequence", [
             new Literal("a", "A"),
-            new Literal("b", "B", true),
+            new Optional("b", new Literal("b", "B")),
             new Literal("c", "C"),
-        ], true);
+        ]);
 
-        const tokens = sequence.getTokensAfter(new Literal("not-child", "not-child"))
+        const tokens = sequence.getTokensAfter(new Literal("not-child", "not-child"));
 
         expect(tokens).toEqual([]);
     });
@@ -253,7 +253,7 @@ describe("Sequence", () => {
     test("Get Tokens After With Last Child", () => {
         const sequence = new Sequence("sequence", [
             new Literal("a", "A"),
-        ], true);
+        ]);
         const parent = new Sequence("parent", [sequence, new Literal("b", "B")]);
 
 
@@ -265,8 +265,8 @@ describe("Sequence", () => {
     test("Get Tokens After With Last Optional Child", () => {
         const sequence = new Sequence("sequence", [
             new Literal("a", "A"),
-            new Literal("b", "B", true),
-        ], true);
+            new Optional("b", new Literal("b", "B")),
+        ]);
         const parent = new Sequence("parent", [sequence, new Literal("c", "C")]);
 
         const tokens = parent.children[0].getTokensAfter(parent.children[0].children[0])
@@ -293,9 +293,9 @@ describe("Sequence", () => {
 
     test("Get Patterns", () => {
         const sequence = new Sequence("sequence", [
-            new Literal("a", "A", true),
+            new Optional("a", new Literal("a", "A")),
             new Literal("b", "B"),
-        ], true);
+        ]);
         const tokens = sequence.getPatterns();
         const a = sequence.find(p => p.name === "a");
         const b = sequence.find(p => p.name === "b");

@@ -7,15 +7,15 @@ import { Pattern } from "./Pattern";
 
 describe("Regex", () => {
     test("Empty String", () => {
-        expect(() => new Regex("empty", "")).toThrowError()
+        expect(() => new Regex("empty", "")).toThrowError();
     });
 
     test("Starts With ^", () => {
-        expect(() => new Regex("carrot", "^")).toThrowError()
+        expect(() => new Regex("carrot", "^")).toThrowError();
     });
 
     test("Ends With $", () => {
-        expect(() => new Regex("money", ".$")).toThrowError()
+        expect(() => new Regex("money", ".$")).toThrowError();
     });
 
     test("Successful Parse", () => {
@@ -25,8 +25,8 @@ describe("Regex", () => {
         const expected = new Node("regex", "number", 0, 0, [], "1");
 
         expect(result).toEqual(expected);
-        expect(cursor.hasError).toBeFalsy()
-    })
+        expect(cursor.hasError).toBeFalsy();
+    });
 
     test("Failed Parse", () => {
         const number = new Regex("number", "\\d");
@@ -34,7 +34,7 @@ describe("Regex", () => {
         const result = number.parse(cursor);
 
         expect(result).toBeNull();
-        expect(cursor.hasError).toBeTruthy()
+        expect(cursor.hasError).toBeTruthy();
     });
 
 
@@ -54,7 +54,7 @@ describe("Regex", () => {
         const tokens = regex.getTokensAfter(new Literal("bogus", "bogus"));
         const expected: string[] = [];
 
-        expect(tokens).toEqual(expected)
+        expect(tokens).toEqual(expected);
     });
 
     test("Properties", () => {
@@ -93,7 +93,7 @@ describe("Regex", () => {
     });
 
     test("Get Next Tokens With Null Parent", () => {
-        const a = new Regex("a", "A")
+        const a = new Regex("a", "A");
         const tokens = a.getNextTokens();
 
         expect(tokens).toEqual([]);
@@ -109,14 +109,14 @@ describe("Regex", () => {
     });
 
     test("Get Patterns After", () => {
-        const a = new Regex("a", "A")
+        const a = new Regex("a", "A");
         const patterns = a.getPatternsAfter(new Literal("bogus", "bogus"));
 
         expect(patterns).toEqual([]);
     });
 
     test("Find Pattern", () => {
-        const a = new Regex("a", "A")
+        const a = new Regex("a", "A");
         const pattern = a.find(p => p.name === "other");
 
         expect(pattern).toBeNull();
@@ -133,10 +133,10 @@ describe("Regex", () => {
     });
 
     test("Get Next Patterns With Null Parent", () => {
-        const a = new Regex("a", "A")
+        const a = new Regex("a", "A");
         const patterns = a.getNextPatterns();
 
-        expect(patterns).toEqual([])
+        expect(patterns).toEqual([]);
     });
 
 });

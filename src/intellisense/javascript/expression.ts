@@ -13,8 +13,9 @@ import { objectAccess } from "./objectAccess";
 import { optionalSpaces } from "./optionalSpaces";
 import { prefixOperator } from "./prefixOperator";
 import { propertyAccess } from "./propertyAccess";
+import { Optional } from "../../patterns/Optional";
 
-const space = new Regex("space", "\\s+")
+const space = new Regex("space", "\\s+");
 const newKeyword = new Literal("new-keyword", "new");
 const deleteKeyword = new Literal("delete-keyword", "delete");
 
@@ -66,7 +67,7 @@ const expressions = new Options("expressions", [
 
 const expressionBody = new Sequence("expression-body", [
     expressions,
-    memberAccess.clone(undefined, true),
+    new Optional("optional-member-access", memberAccess),
 ]);
 
 const infixExpression = new Sequence("infix-expression", [
@@ -101,5 +102,5 @@ const expression = new Options("expression", [
     expressionBody
 ]);
 
-export { expression }
+export { expression };
 

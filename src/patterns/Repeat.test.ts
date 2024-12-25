@@ -179,7 +179,6 @@ describe("Repeat", () => {
         expect(repeat.type).toBe("infinite-repeat");
         expect(repeat.name).toBe("numbers");
         expect(repeat.parent).toBeNull();
-        expect(repeat.isOptional).toBeFalsy();
     });
 
     test("test", () => {
@@ -207,16 +206,6 @@ describe("Repeat", () => {
 
         repeatClone = repeat.clone("new-name");
         expected = new Repeat("new-name", number);
-
-        expect(arePatternsEqual(repeatClone, expected)).toBeTruthy();
-
-        repeatClone = repeat.clone("new-name", false);
-        expected = new Repeat("new-name", number);
-
-        expect(arePatternsEqual(repeatClone, expected)).toBeTruthy();
-
-        repeatClone = repeat.clone("new-name", true);
-        expected = new Repeat("new-name", number, { min: 0 });
 
         expect(arePatternsEqual(repeatClone, expected)).toBeTruthy();
     });

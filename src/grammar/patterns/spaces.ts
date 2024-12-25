@@ -12,5 +12,5 @@ export const newLine = new Regex("new-line", "(\\r?\\n)+");
 newLine.setTokens(["\n"]);
 
 export const lineSpaces = new Repeat("line-spaces", new Options("line-space", [tabs, spaces]));
-export const allSpaces = new Regex("all-spaces", "\\s+", true);
+export const allSpaces = new Regex("all-spaces", "\\s+");
 allSpaces.setTokens([" "]);

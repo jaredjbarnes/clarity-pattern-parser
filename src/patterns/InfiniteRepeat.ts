@@ -50,23 +50,19 @@ export class InfiniteRepeat implements Pattern {
     return this._children;
   }
 
-  get isOptional(): boolean {
-    return this._min === 0;
-  }
-
   get min(): number {
     return this._min;
   }
 
   constructor(name: string, pattern: Pattern, options: InfiniteRepeatOptions = {}) {
-    const min = options.min != null ? options.min : 1;
+    const min = options.min != null ? Math.max(options.min, 1) : 1;
     const divider = options.divider;
     let children: Pattern[];
 
     if (divider != null) {
-      children = [pattern.clone(pattern.name, false), divider.clone(divider.name, false)];
+      children = [pattern.clone(), divider.clone()];
     } else {
-      children = [pattern.clone(pattern.name, false)];
+      children = [pattern.clone()];
     }
 
     this._assignChildrenToParent(children);
@@ -153,9 +149,14 @@ export class InfiniteRepeat implements Pattern {
 
     while (true) {
       const runningCursorIndex = cursor.index;
-      const repeatedNode = this._pattern.parse(cursor);
+      const repeatNode = this._pattern.parse(cursor);
 
-      if (cursor.hasError) {
+      const hasError = cursor.hasError;
+      const hasNoErrorAndNoResult = !cursor.hasError && repeatNode == null;
+      const hasDivider = this._divider != null;
+      const hasNoDivider = !hasDivider;
+
+      if (hasError) {
         const lastValidNode = this._getLastValidNode();
 
         if (lastValidNode != null) {
@@ -168,8 +169,13 @@ export class InfiniteRepeat implements Pattern {
 
         break;
       } else {
-        if (repeatedNode != null) {
-          this._nodes.push(repeatedNode);
+        if (hasNoErrorAndNoResult && hasNoDivider) {
+          // If we didn't match and didn't error we need to get out. Nothing different will happen.
+          break;
+        }
+
+        if (repeatNode != null) {
+          this._nodes.push(repeatNode);
 
           if (!cursor.hasNext()) {
             passed = true;
@@ -180,20 +186,31 @@ export class InfiniteRepeat implements Pattern {
         }
 
         if (this._divider != null) {
+          const dividerStartIndex = cursor.index;
           const dividerNode = this._divider.parse(cursor);
 
           if (cursor.hasError) {
             passed = true;
             break;
-          } else if (dividerNode != null) {
-            this._nodes.push(dividerNode);
+          } else {
+            if (dividerNode == null) {
+              cursor.moveTo(dividerStartIndex);
 
-            if (!cursor.hasNext()) {
-              passed = true;
-              break;
+              if (dividerNode == null && repeatNode == null) {
+                // If neither the repeat pattern or divider pattern matched get out. 
+                passed = true;
+                break;
+              }
+            } else {
+              this._nodes.push(dividerNode);
+
+              if (!cursor.hasNext()) {
+                passed = true;
+                break;
+              }
+
+              cursor.next();
             }
-
-            cursor.next();
           }
         }
       }
@@ -224,10 +241,10 @@ export class InfiniteRepeat implements Pattern {
       cursor.moveTo(dividerNode.firstIndex);
     }
 
-    // if (this._nodes.length === 0) {
-    //   cursor.moveTo(this._firstIndex);
-    //   return null;
-    // }
+    if (this._nodes.length === 0) {
+      cursor.moveTo(this._firstIndex);
+      return null;
+    }
 
     const lastIndex = this._nodes[this._nodes.length - 1].lastIndex;
     cursor.moveTo(lastIndex);
@@ -326,16 +343,8 @@ export class InfiniteRepeat implements Pattern {
     return findPattern(this, predicate);
   }
 
-  clone(name = this._name, isOptional?: boolean): Pattern {
+  clone(name = this._name): Pattern {
     let min = this._min;
-
-    if (isOptional != null) {
-      if (isOptional) {
-        min = 0;
-      } else {
-        min = Math.max(this._min, 1);
-      }
-    }
 
     const clone = new InfiniteRepeat(
       name,

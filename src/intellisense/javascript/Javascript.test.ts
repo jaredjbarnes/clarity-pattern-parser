@@ -12,45 +12,45 @@ import { prefixOperator } from "./prefixOperator";
 describe("Ecmascript 3", () => {
     test("Escaped Character", () => {
         let result = escapedCharacter.exec(`\\"`);
-        expect(result.ast?.value).toBe(`\\"`)
+        expect(result.ast?.value).toBe(`\\"`);
 
-        result = escapedCharacter.exec(`\\'`)
-        expect(result.ast?.value).toBe(`\\'`)
+        result = escapedCharacter.exec(`\\'`);
+        expect(result.ast?.value).toBe(`\\'`);
 
-        result = escapedCharacter.exec(`\\\\`)
-        expect(result.ast?.value).toBe(`\\\\`)
+        result = escapedCharacter.exec(`\\\\`);
+        expect(result.ast?.value).toBe(`\\\\`);
 
-        result = escapedCharacter.exec(`\\/`)
-        expect(result.ast?.value).toBe(`\\/`)
+        result = escapedCharacter.exec(`\\/`);
+        expect(result.ast?.value).toBe(`\\/`);
 
-        result = escapedCharacter.exec(`\\f`)
-        expect(result.ast?.value).toBe(`\\f`)
+        result = escapedCharacter.exec(`\\f`);
+        expect(result.ast?.value).toBe(`\\f`);
 
-        result = escapedCharacter.exec(`\\t`)
-        expect(result.ast?.value).toBe(`\\t`)
+        result = escapedCharacter.exec(`\\t`);
+        expect(result.ast?.value).toBe(`\\t`);
 
-        result = escapedCharacter.exec(`\\u00E9`)
-        expect(result.ast?.value).toBe(`\\u00E9`)
+        result = escapedCharacter.exec(`\\u00E9`);
+        expect(result.ast?.value).toBe(`\\u00E9`);
     });
 
     test("Exponent", () => {
         let result = exponent.exec("e+1");
-        expect(result.ast?.value).toBe("e+1")
+        expect(result.ast?.value).toBe("e+1");
 
         result = exponent.exec("e-1");
-        expect(result.ast?.value).toBe("e-1")
+        expect(result.ast?.value).toBe("e-1");
 
         result = exponent.exec("E+1");
-        expect(result.ast?.value).toBe("E+1")
+        expect(result.ast?.value).toBe("E+1");
 
         result = exponent.exec("E-1");
-        expect(result.ast?.value).toBe("E-1")
+        expect(result.ast?.value).toBe("E-1");
 
         result = exponent.exec("e+11");
-        expect(result.ast?.value).toBe("e+11")
+        expect(result.ast?.value).toBe("e+11");
 
         result = exponent.exec("11");
-        expect(result.ast).toBeNull()
+        expect(result.ast).toBeNull();
     });
 
     test("Integer", () => {
@@ -155,35 +155,35 @@ describe("Ecmascript 3", () => {
     });
 
     test("Object Literal", () => {
-        let result = expression.exec(`{}`)
+        let result = expression.exec(`{}`, true);
         expect(result.ast?.value).toBe("{}");
 
-        result = expression.exec(`{prop:{}}`)
+        result = expression.exec(`{prop:{}}`);
         expect(result.ast?.value).toBe("{prop:{}}");
 
-        result = expression.exec(`{prop:"value"}`)
+        result = expression.exec(`{prop:"value"}`);
         expect(result.ast?.value).toBe(`{prop:"value"}`);
 
-        result = expression.exec(`{prop:0.9}`)
+        result = expression.exec(`{prop:0.9}`);
         expect(result.ast?.value).toBe(`{prop:0.9}`);
 
-        result = expression.exec(`{prop:1}`)
+        result = expression.exec(`{prop:1}`);
         expect(result.ast?.value).toBe(`{prop:1}`);
 
-        result = expression.exec(`{"prop":1}`)
+        result = expression.exec(`{"prop":1}`);
         expect(result.ast?.value).toBe(`{"prop":1}`);
     });
 
     test("Expression", () => {
 
-        let result = expression.exec("[]")
+        let result = expression.exec("[]");
         expect(result.ast?.value).toBe("[]");
 
         result = expression.exec("[{}, 9, 0.9e-10, [1, 2]]")
         expect(result.ast?.value).toBe("[{}, 9, 0.9e-10, [1, 2]]");
 
         result = expression.exec(`"John"`);
-        expect(result.ast?.value).toBe(`"John"`)
+        expect(result.ast?.value).toBe(`"John"`);
 
         result = expression.exec(`variableName.property`);
         expect(result.ast?.value).toBe(`variableName.property`);
@@ -193,20 +193,19 @@ describe("Ecmascript 3", () => {
 
         const cursor = new Cursor(`name() == name.property === name2 ? {prop: name, blah: [ 0.9e-10 ]} : name`);
         cursor.startRecording();
-        const ast = expression.parse(cursor);
-    })
+    });
 
     test("Expression Statement", () => {
         let result = assignment.exec(`name = "John"`);
         expect(result.ast?.value).toBe(`name = "John"`);
 
-        result = assignment.exec(`name = othername = "John"`)
+        result = assignment.exec(`name = othername = "John"`);
         expect(result.ast?.value).toBe(`name = othername = "John"`);
 
-        result = assignment.exec(`name = othername.prop = "John"`)
+        result = assignment.exec(`name = othername.prop = "John"`);
         expect(result.ast?.value).toBe(`name = othername.prop = "John"`);
 
-        result = assignment.exec(`name = othername.prop += 2`)
+        result = assignment.exec(`name = othername.prop += 2`);
         expect(result.ast?.value).toBe(`name = othername.prop += 2`);
 
         result = assignment.exec(`name.prop().method(blah) = blah.prop() == ha ? first : second`)

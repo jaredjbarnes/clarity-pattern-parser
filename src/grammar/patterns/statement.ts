@@ -4,8 +4,9 @@ import { Options } from "../../patterns/Options";
 import { name } from "./name";
 import { spaces } from "./spaces";
 import { pattern } from "./pattern";
+import { Optional } from "../../patterns/Optional";
 
-const optionalSpaces = spaces.clone("optional-spaces", true);
+const optionalSpaces = new Optional("optional-spaces", spaces);
 const assignOperator = new Literal("assign-operator", "=");
 
 const assignStatement = new Sequence("assign-statement", [

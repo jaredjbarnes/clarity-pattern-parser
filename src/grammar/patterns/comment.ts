@@ -1,4 +1,4 @@
-import { Regex } from "../../patterns/Regex"
+import { Regex } from "../../patterns/Regex";
 
 export const comment = new Regex("comment", "#[^\r\n]+");
 comment.setTokens(["# "]);

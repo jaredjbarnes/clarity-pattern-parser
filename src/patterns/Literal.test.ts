@@ -6,8 +6,8 @@ import { Literal } from "./Literal"
 describe("Literal", () => {
     test("Empty Value", () => {
         expect(() => {
-            new Literal("empty", "")
-        }).toThrowError()
+            new Literal("empty", "");
+        }).toThrowError();
     });
 
     test("Successful Parse", () => {
@@ -20,10 +20,10 @@ describe("Literal", () => {
         expect(result).toEqual(expected);
         expect(cursor.index).toBe(11);
         expect(cursor.error).toBeNull();
-        expect(cursor.leafMatch.node).toEqual(expected)
-        expect(cursor.leafMatch.pattern).toBe(literal)
-        expect(cursor.rootMatch.node).toEqual(expected)
-        expect(cursor.rootMatch.pattern).toBe(literal)
+        expect(cursor.leafMatch.node).toEqual(expected);
+        expect(cursor.leafMatch.pattern).toBe(literal);
+        expect(cursor.rootMatch.node).toEqual(expected);
+        expect(cursor.rootMatch.pattern).toBe(literal);
     });
 
     test("Failed Parse", () => {
@@ -36,7 +36,7 @@ describe("Literal", () => {
         expect(cursor.index).toBe(6);
         expect(cursor.error?.startIndex).toBe(0);
         expect(cursor.error?.endIndex).toBe(6);
-        expect(cursor.error?.pattern).toBe(literal)
+        expect(cursor.error?.pattern).toBe(literal);
     });
 
     test("Failed Parse Because End Of Text", () => {
@@ -49,18 +49,7 @@ describe("Literal", () => {
         expect(cursor.index).toBe(10);
         expect(cursor.error?.startIndex).toBe(0);
         expect(cursor.error?.endIndex).toBe(11);
-        expect(cursor.error?.pattern).toBe(literal)
-    });
-
-    test("Failed Parse (Optional)", () => {
-        const literal = new Literal("greeting", "Hello World!", true);
-
-        const cursor = new Cursor("Hello Saturn!");
-        const result = literal.parse(cursor);
-
-        expect(result).toEqual(null);
-        expect(cursor.index).toBe(0);
-        expect(cursor.error).toBeNull();
+        expect(cursor.error?.pattern).toBe(literal);
     });
 
     test("Clone", () => {
@@ -85,7 +74,7 @@ describe("Literal", () => {
         const tokens = literal.getTokensAfter(new Literal("bogus", "bogus"));
         const expected: string[] = [];
 
-        expect(tokens).toEqual(expected)
+        expect(tokens).toEqual(expected);
     });
 
     test("Properties", () => {
@@ -100,7 +89,7 @@ describe("Literal", () => {
     test("Exec", () => {
         const literal = new Literal("a", "A");
         const { ast: result } = literal.exec("B");
-        expect(result).toBeNull()
+        expect(result).toBeNull();
     });
 
     test("Test With No Match", () => {
@@ -149,7 +138,7 @@ describe("Literal", () => {
 
         const a = parent.find(p => p.name === "a");
         const nextPatterns = a?.getNextPatterns() || [];
-        const b = parent.find(p => p.name === "b")
+        const b = parent.find(p => p.name === "b");
 
         expect(nextPatterns[0]).toBe(b);
     });

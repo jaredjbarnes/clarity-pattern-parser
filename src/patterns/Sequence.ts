@@ -13,7 +13,6 @@ export class Sequence implements Pattern {
   private _name: string;
   private _parent: Pattern | null;
   private _children: Pattern[];
-  private _isOptional: boolean;
   private _nodes: (Node | null)[];
   private _firstIndex: number;
 
@@ -41,11 +40,7 @@ export class Sequence implements Pattern {
     return this._children;
   }
 
-  get isOptional(): boolean {
-    return this._isOptional;
-  }
-
-  constructor(name: string, sequence: Pattern[], isOptional = false) {
+  constructor(name: string, sequence: Pattern[]) {
     if (sequence.length === 0) {
       throw new Error("Need at least one pattern with a 'sequence' pattern.");
     }
@@ -56,7 +51,6 @@ export class Sequence implements Pattern {
     this._id = `sequence-${idIndex++}`;
     this._type = "sequence";
     this._name = name;
-    this._isOptional = isOptional;
     this._parent = null;
     this._children = children;
     this._firstIndex = -1;
@@ -105,10 +99,6 @@ export class Sequence implements Pattern {
 
       cursor.endParse();
       return node;
-    }
-
-    if (this._isOptional) {
-      cursor.resolveError();
     }
 
     cursor.endParse();
@@ -192,7 +182,7 @@ export class Sequence implements Pattern {
 
     for (let i = startOnIndex; i < length; i++) {
       const pattern = this._children[i];
-      if (!pattern.isOptional) {
+      if (pattern.type !== "optional") {
         return false;
       }
     }
@@ -222,7 +212,7 @@ export class Sequence implements Pattern {
     for (const child of this._children) {
       tokens.push(...child.getTokens());
 
-      if (!child.isOptional) {
+      if (child.type !== "optional") {
         break;
       }
     }
@@ -250,10 +240,10 @@ export class Sequence implements Pattern {
   getPatterns(): Pattern[] {
     const patterns: Pattern[] = [];
 
-    for (const pattern of this._children) {
-      patterns.push(...pattern.getPatterns());
+    for (const child of this._children) {
+      patterns.push(...child.getPatterns());
 
-      if (!pattern.isOptional) {
+      if (child.type !== "optional") {
         break;
       }
     }
@@ -290,7 +280,7 @@ export class Sequence implements Pattern {
       const child = this._children[i];
       patterns.push(child);
 
-      if (!child.isOptional) {
+      if (child.type !== "optional") {
         break;
       }
 
@@ -315,8 +305,8 @@ export class Sequence implements Pattern {
     return findPattern(this, predicate);
   }
 
-  clone(name = this._name, isOptional = this._isOptional): Pattern {
-    const clone = new Sequence(name, this._children, isOptional);
+  clone(name = this._name): Pattern {
+    const clone = new Sequence(name, this._children);
     clone._id = this._id;
 
     return clone;

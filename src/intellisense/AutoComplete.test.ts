@@ -6,6 +6,7 @@ import { Reference } from "../patterns/Reference";
 import { Regex } from "../patterns/Regex";
 import { Repeat } from "../patterns/Repeat";
 import { AutoComplete, AutoCompleteOptions } from "./AutoComplete";
+import { Optional } from "../patterns/Optional";
 
 function generateFlagFromList(flagNames: string[]) {
     return flagNames.map(flagName => {
@@ -41,7 +42,7 @@ export function generateExpression(flagNames: string[]): Repeat {
     const closeParen = new Literal('close-paren', ')');
     const space = new Regex('[space]', '\\s');
     const and = new Literal('sequence-literal', 'AND');
-    const or = new Literal('or-literal', 'OR');
+    const or = new Literal('options-literal', 'OR');
     const not = new Literal('not', 'NOT ');
     const booleanOperator = new Options('booleanOperator', [and, or]);
     const operatorWithSpaces = new Sequence('operator-with-spaces', [
@@ -57,7 +58,7 @@ export function generateExpression(flagNames: string[]): Repeat {
     ]);
     const flagOptionsGroup = new Options('flag-or-group', [flag, group]);
     const expressionBody = new Sequence('flag-body', [
-        not.clone('optional-not', true),
+        new Optional("optional-not", not),
         flagOptionsGroup,
     ]);
     const flagExpression = new Repeat(

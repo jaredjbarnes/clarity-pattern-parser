@@ -4,16 +4,19 @@ import { Repeat } from "../../patterns/Repeat";
 import { comment } from "./comment";
 import { lineSpaces, newLine } from "./spaces";
 import { statement } from "./statement";
+import { Optional } from "../../patterns/Optional";
 
 const bodyLineContent = new Options("body-line-content", [
     comment,
     statement
 ]);
 
+const optionalLineSpaces = new Optional("optional-line-spaces", lineSpaces);
+
 const bodyLine = new Sequence("body-line", [
-    lineSpaces.clone("line-spaces", true),
+    optionalLineSpaces,
     bodyLineContent,
-    lineSpaces.clone("line-spaces", true),
+    optionalLineSpaces,
 ]);
 
 export const body = new Repeat("body", bodyLine, {divider: newLine, min: 0});

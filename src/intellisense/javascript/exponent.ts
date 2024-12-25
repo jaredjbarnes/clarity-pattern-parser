@@ -21,4 +21,4 @@ const exponent = new Sequence("exponent", [
     digit,
 ]);
 
-export { exponent }
+export { exponent };

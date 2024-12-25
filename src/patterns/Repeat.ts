@@ -52,10 +52,6 @@ export class Repeat implements Pattern {
         return this._children;
     }
 
-    get isOptional() {
-        return this._repeatPattern.isOptional;
-    }
-
     constructor(name: string, pattern: Pattern, options: RepeatOptions = {}) {
         this._id = `repeat-${idIndex++}`;
         this._pattern = pattern;
@@ -67,7 +63,7 @@ export class Repeat implements Pattern {
         };
 
         if (this._options.max !== Infinity) {
-            this._repeatPattern = new FiniteRepeat(name, pattern, this._options.max, this._options);
+            this._repeatPattern = new FiniteRepeat(name, pattern, this._options);
         } else {
             this._repeatPattern = new InfiniteRepeat(name, pattern, this._options);
         }
@@ -88,18 +84,10 @@ export class Repeat implements Pattern {
         return this._repeatPattern.test(text);
     }
 
-    clone(name = this.name, isOptional?: boolean) {
+    clone(name = this.name) {
         let min = this._options.min;
-
-        if (isOptional != null) {
-            if (isOptional) {
-                min = 0;
-            } else {
-                min = Math.max(this._options.min, 1);
-            }
-        }
-
         const clone = new Repeat(name, this._pattern, { ...this._options, min });
+
         clone._id = this._id;
         return clone;
     }

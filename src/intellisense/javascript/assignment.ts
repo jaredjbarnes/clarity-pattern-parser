@@ -25,4 +25,4 @@ const assignment = new Sequence("assignment", [
 
 
 
-export { assignment }
+export { assignment };

@@ -6,6 +6,7 @@ import { importStatement } from './import';
 import { Sequence } from "../../patterns/Sequence";
 import { allSpaces } from "./spaces";
 import { body } from "./body";
+import { Optional } from "../../patterns/Optional";
 
 const tabs = new Regex("tabs", "\\t+");
 const spaces = new Regex("spaces", "[ ]+");
@@ -16,6 +17,7 @@ tabs.setTokens(["\t"]);
 newLine.setTokens(["\n"]);
 
 const lineSpaces = new Repeat("line-spaces", new Options("line-space", [tabs, spaces]));
+const optionalLineSpaces = new Optional("optional-line-spaces", lineSpaces);
 
 const headLineContent = new Options("head-line-content", [
     comment,
@@ -23,17 +25,18 @@ const headLineContent = new Options("head-line-content", [
 ]);
 
 const headLine = new Sequence("head-line-content", [
-    lineSpaces.clone("line-spaces", true),
+    optionalLineSpaces,
     headLineContent,
-    lineSpaces.clone("line-spaces", true),
+    optionalLineSpaces,
 ]);
 
-const head = new Repeat("head", headLine, { divider: newLine, min: 0 });
+const head = new Optional("optional-head", new Repeat("head", headLine, { divider: newLine }));
+const optionalSpaces = new Optional("optional-spaces", allSpaces);
 
 export const grammar = new Sequence("grammar", [
-    allSpaces,
+    optionalSpaces,
     head,
-    allSpaces,
+    optionalSpaces,
     body,
-    allSpaces
+    optionalSpaces
 ]);

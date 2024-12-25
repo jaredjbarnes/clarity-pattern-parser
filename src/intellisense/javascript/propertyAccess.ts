@@ -3,6 +3,7 @@ import { Literal } from "../../patterns/Literal";
 import { Options } from "../../patterns/Options";
 import { Reference } from "../../patterns/Reference";
 import { name } from "./name";
+import { Optional } from "../../patterns/Optional";
 
 const dotPropertyAccess = new Sequence("dot-property-access", [
     new Literal("period", "."),
@@ -22,7 +23,7 @@ const propertyAccessTypes = new Options("property-access-types", [
 
 const propertyAccess = new Sequence("property-access", [
     propertyAccessTypes,
-    new Reference("property-access", true)
+    new Optional("optional-property-access", new Reference("property-access"))
 ]);
 
-export { propertyAccess }
+export { propertyAccess };

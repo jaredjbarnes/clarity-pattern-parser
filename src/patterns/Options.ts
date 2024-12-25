@@ -50,7 +50,7 @@ export class Options implements Pattern {
       throw new Error("Need at least one pattern with an 'or' pattern.");
     }
 
-    const children = clonePatterns(options, false);
+    const children = clonePatterns(options);
     this._assignChildrenToParent(children);
 
     this._id = `or-${idIndex++}`;

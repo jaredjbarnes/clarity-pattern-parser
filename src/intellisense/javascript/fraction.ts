@@ -8,4 +8,4 @@ const fraction = new Sequence("fraction", [period, digit]);
 
 export {
     fraction
-}
+};

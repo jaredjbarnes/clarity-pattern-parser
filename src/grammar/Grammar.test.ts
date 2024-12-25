@@ -8,6 +8,7 @@ import { Reference } from "../patterns/Reference";
 import { Regex } from "../patterns/Regex";
 import { Repeat } from "../patterns/Repeat";
 import { Grammar } from "./Grammar";
+import { Optional } from "../patterns/Optional";
 
 describe("Grammar", () => {
     test("Literal", () => {
@@ -106,7 +107,7 @@ describe("Grammar", () => {
         const firstName = new Regex("first-name", "\\w");
         const lastName = new Regex("last-name", "\\w");
         const middleName = new Regex("middle-name", "\\w");
-        const middleNameWithSpace = new Sequence("middle-name-with-space", [middleName, space], true);
+        const middleNameWithSpace = new Optional("optional-middle-name-with-space", new Sequence("middle-name-with-space", [middleName, space]));
         const fullName = new Sequence("full-name", [firstName, space, middleNameWithSpace, lastName]);
 
         expect(arePatternsEqual(pattern, fullName)).toBeTruthy();
@@ -131,7 +132,7 @@ describe("Grammar", () => {
         const middleName = new Regex("middle-name", "\\w");
         const jack = new Literal("jack", "Jack");
         const notJack = new Not("not-jack", jack);
-        const middleNameWithSpace = new Sequence("middle-name-with-space", [middleName, space], true);
+        const middleNameWithSpace = new Optional("optional-middle-name-with-space", new Sequence("middle-name-with-space", [middleName, space]));
         const fullName = new Sequence("full-name", [notJack, firstName, space, middleNameWithSpace, lastName]);
         expect(arePatternsEqual(pattern, fullName)).toBeTruthy();
     });
@@ -159,7 +160,7 @@ describe("Grammar", () => {
         const patterns = Grammar.parseString(expression);
         const pattern = patterns["digits"];
         const digit = new Regex("digit", "\\d");
-        const digits = new Repeat("digits", digit, { min: 0 });
+        const digits = new Optional("digits", new Repeat("digits", digit, { min: 0 }));
 
         expect(arePatternsEqual(pattern, digits)).toBeTruthy();
     });
@@ -188,7 +189,6 @@ describe("Grammar", () => {
         const pattern = patterns["digits"];
         const digit = new Regex("digit", "\\d+");
         const digits = new Repeat("digits", digit, { min: 1, max: 3 });
-
         expect(arePatternsEqual(pattern, digits)).toBeTruthy();
     });
 
@@ -277,11 +277,12 @@ describe("Grammar", () => {
             spaces = /\\s+/
             items = digit | array
             array-items = (items, divider trim)*
-            array = open-bracket + spaces? + array-items? + spaces? + close-bracket
+            array = open-bracket + spaces? + array-items + spaces? + close-bracket
         `;
 
         const patterns = Grammar.parseString(expression);
         const pattern = patterns["array"] as Pattern;
+        
         let text = "[1, []]";
         let result = pattern.exec(text, true);
 
@@ -479,7 +480,7 @@ describe("Grammar", () => {
         const patterns = Grammar.parseString(expression);
         const expected = new Sequence("complex-expression", [
             new Not("not-NOT_THIS", new Literal("NOT_THIS", "NOT_THIS")),
-            new Literal("Text", "Text", true),
+            new Optional("Text", new Literal("Text", "Text")),
             new Regex("regex", "regex"),
             new Options("anonymous", [
                 new Literal("Text", "Text"),

@@ -9,6 +9,7 @@ let idIndex = 0;
 export interface FiniteRepeatOptions {
     divider?: Pattern;
     min?: number;
+    max?: number;
     trimDivider?: boolean;
 }
 
@@ -47,10 +48,6 @@ export class FiniteRepeat implements Pattern {
         return this._children;
     }
 
-    get isOptional() {
-        return this._min === 0;
-    }
-
     get min() {
         return this._min;
     }
@@ -59,24 +56,30 @@ export class FiniteRepeat implements Pattern {
         return this._max;
     }
 
-    constructor(name: string, pattern: Pattern, repeatAmount: number, options: FiniteRepeatOptions = {}) {
+    constructor(name: string, pattern: Pattern, options: FiniteRepeatOptions = {}) {
         this._id = `finite-repeat-${idIndex++}`;
         this._type = "finite-repeat";
         this._name = name;
         this._parent = null;
         this._children = [];
         this._hasDivider = options.divider != null;
-        this._min = options.min != null ? options.min : 1;
-        this._max = repeatAmount;
+        this._min = options.min != null ? Math.max(options.min, 1) : 1;
+        this._max = Math.max(this.min, options.max || this.min);
         this._trimDivider = options.trimDivider == null ? false : options.trimDivider;
 
-        for (let i = 0; i < repeatAmount; i++) {
-            this._children.push(pattern.clone(pattern.name));
+        for (let i = 0; i < this._max; i++) {
+            const child = pattern.clone();
+            child.parent = this;
 
-            if (options.divider != null && (i < repeatAmount - 1 || !this._trimDivider)) {
-                this._children.push(options.divider.clone(options.divider.name, false));
+            this._children.push(child);
+
+            if (options.divider != null && (i < this._max - 1 || !this._trimDivider)) {
+                const divider = options.divider.clone();
+                divider.parent = this;
+                this._children.push(divider);
             }
         }
+
     }
 
     parse(cursor: Cursor): Node | null {
@@ -89,18 +92,20 @@ export class FiniteRepeat implements Pattern {
 
         for (let i = 0; i < this._children.length; i++) {
             const childPattern = this._children[i];
+            const runningIndex = cursor.index;
             const node = childPattern.parse(cursor);
+
+            if (cursor.hasError) {
+                break;
+            }
 
             if (i % modulo === 0 && !cursor.hasError) {
                 matchCount++;
             }
 
-            if (cursor.hasError) {
-                cursor.resolveError();
-                break;
-            }
-
-            if (node != null) {
+            if (node == null) {
+                cursor.moveTo(runningIndex);
+            } else {
                 nodes.push(node);
 
                 if (cursor.hasNext()) {
@@ -109,11 +114,11 @@ export class FiniteRepeat implements Pattern {
                     break;
                 }
             }
-
         }
 
         if (this._trimDivider && this._hasDivider) {
-            if (cursor.leafMatch.pattern === this.children[1]) {
+            const isDividerLastMatch = cursor.leafMatch.pattern === this.children[1];
+            if (isDividerLastMatch) {
                 const node = nodes.pop() as Node;
                 cursor.moveTo(node.firstIndex);
             }
@@ -125,8 +130,9 @@ export class FiniteRepeat implements Pattern {
             cursor.recordErrorAt(startIndex, lastIndex, this);
             cursor.endParse();
             return null;
-        } else if (nodes.length === 0) {
-            cursor.resolveError();
+        }
+
+        if (nodes.length === 0 && !cursor.hasError) {
             cursor.moveTo(startIndex);
             cursor.endParse();
             return null;
@@ -135,9 +141,10 @@ export class FiniteRepeat implements Pattern {
         const firstIndex = nodes[0].firstIndex;
         const lastIndex = nodes[nodes.length - 1].lastIndex;
 
+        cursor.resolveError();
         cursor.moveTo(lastIndex);
-
         cursor.endParse();
+
         return new Node(this._type, this.name, firstIndex, lastIndex, nodes);
     }
 
@@ -160,24 +167,17 @@ export class FiniteRepeat implements Pattern {
         };
     }
 
-    clone(name = this._name, isOptional?: boolean): Pattern {
+    clone(name = this._name): Pattern {
         let min = this._min;
-
-        if (isOptional != null) {
-            if (isOptional) {
-                min = 0;
-            } else {
-                min = Math.max(this._min, 1);
-            }
-        }
+        let max = this._max;
 
         const clone = new FiniteRepeat(
             name,
             this._children[0],
-            this._max,
             {
                 divider: this._hasDivider ? this._children[1] : undefined,
                 min,
+                max,
                 trimDivider: this._trimDivider
             }
         );

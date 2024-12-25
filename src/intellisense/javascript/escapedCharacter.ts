@@ -41,9 +41,9 @@ const specialCharacter = new Options("special-character", [
     unicode,
 ]);
 
-const escapedCharacter = new Sequence("escaped-character", [backslash, specialCharacter])
+const escapedCharacter = new Sequence("escaped-character", [backslash, specialCharacter]);
 
 export {
     escapedCharacter
-}
+};
 

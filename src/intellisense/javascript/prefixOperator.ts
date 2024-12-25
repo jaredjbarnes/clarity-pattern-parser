@@ -8,5 +8,5 @@ const prefixOperator = new Options("prefix-operator", [
     new Literal("logical-not", "!"),
 ]);
 
-export { prefixOperator }
+export { prefixOperator };
 

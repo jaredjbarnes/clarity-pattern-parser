@@ -5,11 +5,13 @@ import { Node } from "../ast/Node";
 import { Literal } from "./Literal";
 import { Sequence } from "./Sequence";
 import { arePatternsEqual } from "./arePatternsEqual";
+import { Optional } from "./Optional";
 
 describe("BoundedRepeat", () => {
     test("Bounds Without Divider", () => {
-        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), 3, {
-            min: 2
+        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), {
+            min: 2,
+            max: 3
         });
 
         let cursor = new Cursor("1");
@@ -63,7 +65,7 @@ describe("BoundedRepeat", () => {
     });
 
     test("Bounds Are Equal Without Divider", () => {
-        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), 3, { min: 3 });
+        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), { min: 3, max: 3 });
 
         let cursor = new Cursor("1");
         let result = numbers.parse(cursor);
@@ -105,7 +107,7 @@ describe("BoundedRepeat", () => {
 
     test("Bounds With Divider", () => {
         const divider = new Literal("comma", ",");
-        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), 3, { divider, min: 2, trimDivider: true });
+        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), { divider, min: 2, max: 3, trimDivider: true });
 
         let cursor = new Cursor("1,");
         let result = numbers.parse(cursor);
@@ -152,9 +154,9 @@ describe("BoundedRepeat", () => {
     });
 
     test("Optional Repeating Pattern", () => {
-        const digit = new Regex("digit", "\\d+", true);
+        const digit = new Optional("optional-digit", new Regex("digit", "\\d+"));
         const divider = new Regex("divider", "\\s");
-        const integer = new FiniteRepeat("number", digit, 4, { divider });
+        const integer = new FiniteRepeat("number", digit, { divider, max: 4 });
         const cursor = new Cursor(
             "\n" +
             "3\n" +
@@ -170,13 +172,13 @@ describe("BoundedRepeat", () => {
             new Node("regex", "divider", 4, 4, [], "\n"),
         ]);
 
-        expect(result).toEqual(expected)
-        expect(cursor.hasError).toBeFalsy()
+        expect(result).toEqual(expected);
+        expect(cursor.hasError).toBeFalsy();
     });
 
     test("Bounds Are Equal With Divider", () => {
         const divider = new Literal("comma", ",");
-        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), 3, { divider, min: 3, trimDivider: true });
+        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), { divider, min: 3, max: 3, trimDivider: true });
 
         let cursor = new Cursor("1,");
         let result = numbers.parse(cursor);
@@ -219,14 +221,14 @@ describe("BoundedRepeat", () => {
     });
 
     test("Test", () => {
-        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), 3);
+        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), { max: 3 });
         const result = numbers.test("1");
 
         expect(result).toBeTruthy();
     });
 
     test("Exec", () => {
-        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), 3);
+        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), { max: 3 });
         const result = numbers.exec("1");
 
         expect(result.ast).not.toBeNull();
@@ -234,7 +236,7 @@ describe("BoundedRepeat", () => {
     });
 
     test("Fail", () => {
-        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), 3);
+        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), { max: 3 });
         const result = numbers.exec("f");
 
         expect(result.ast).toBeNull();
@@ -242,7 +244,7 @@ describe("BoundedRepeat", () => {
     });
 
     test("Optional", () => {
-        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), 3, { min: 0 });
+        const numbers = new FiniteRepeat("numbers", new Optional("optional-number", new Regex("number", "\\d")), { min: 0, max: 3 });
         const result = numbers.exec("f");
 
         expect(result.ast).toBeNull();
@@ -250,7 +252,7 @@ describe("BoundedRepeat", () => {
     });
 
     test("Optional With Multiple Matches But Still Below Min", () => {
-        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), 3, { min: 0 });
+        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), { min: 0, max: 3 });
         const result = numbers.exec("12f");
 
         expect(result.ast).toBeNull();
@@ -258,19 +260,18 @@ describe("BoundedRepeat", () => {
     });
 
     test("Properties", () => {
-        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), 3, { min: 0 });
+        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), { min: 1, max: 3 });
 
         expect(numbers.type).toBe("finite-repeat");
         expect(numbers.name).toBe("numbers");
         expect(numbers.parent).toBeNull();
         expect(numbers.children.length).toBe(3);
-        expect(numbers.min).toBe(0);
+        expect(numbers.min).toBe(1);
         expect(numbers.max).toBe(3);
-        expect(numbers.isOptional).toBeTruthy();
     });
 
     test("Clone", () => {
-        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), 3, { min: 0 });
+        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), { min: 0, max: 3 });
         const clone = numbers.clone() as FiniteRepeat;
 
         expect(clone.type).toBe(numbers.type);
@@ -279,28 +280,27 @@ describe("BoundedRepeat", () => {
         expect(clone.children.length).toBe(numbers.children.length);
         expect(clone.min).toBe(numbers.min);
         expect(clone.max).toBe(numbers.max);
-        expect(clone.isOptional).toBe(numbers.isOptional);
     });
 
     test("Clone With Custom Overrides", () => {
-        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), 3, { min: 0 });
+        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), { min: 0, max: 3 });
         let clone = numbers.clone();
-        let expected = new FiniteRepeat("numbers", new Regex("number", "\\d"), 3, { min: 0 });
+        let expected = new FiniteRepeat("numbers", new Regex("number", "\\d"), { min: 0, max: 3 });
 
         expect(arePatternsEqual(clone, expected)).toBeTruthy();
 
         clone = numbers.clone("cloned-numbers");
-        expected = new FiniteRepeat("cloned-numbers", new Regex("number", "\\d"), 3, { min: 0 });
+        expected = new FiniteRepeat("cloned-numbers", new Regex("number", "\\d"), { min: 0, max: 3 });
 
         expect(arePatternsEqual(clone, expected)).toBeTruthy();
 
-        clone = numbers.clone("cloned-numbers", true);
-        expected = new FiniteRepeat("cloned-numbers", new Regex("number", "\\d"), 3, { min: 0 });
+        clone = numbers.clone("cloned-numbers");
+        expected = new FiniteRepeat("cloned-numbers", new Regex("number", "\\d"), { min: 0, max: 3 });
 
         expect(arePatternsEqual(clone, expected)).toBeTruthy();
 
-        clone = numbers.clone("cloned-numbers", false);
-        expected = new FiniteRepeat("cloned-numbers", new Regex("number", "\\d"), 3, { min: 1 });
+        clone = numbers.clone("cloned-numbers");
+        expected = new FiniteRepeat("cloned-numbers", new Regex("number", "\\d"), { min: 0, max: 3 });
 
         expect(arePatternsEqual(clone, expected)).toBeTruthy();
     });
@@ -309,10 +309,10 @@ describe("BoundedRepeat", () => {
         const numbers = new FiniteRepeat(
             "numbers",
             new Literal("one", "1"),
-            3,
             {
                 divider: new Literal("comma", ","),
-                min: 0
+                min: 0,
+                max: 3
             });
 
         const tokens = numbers.getTokens();
@@ -324,10 +324,10 @@ describe("BoundedRepeat", () => {
         const numbers = new FiniteRepeat(
             "numbers",
             new Literal("one", "1"),
-            2,
             {
                 divider: new Literal("comma", ","),
                 min: 0,
+                max: 2,
                 trimDivider: true
             });
 
@@ -351,11 +351,11 @@ describe("BoundedRepeat", () => {
         const numbers = new FiniteRepeat(
             "numbers",
             new Literal("one", "1"),
-            2,
             {
                 divider: new Literal("comma", ","),
                 trimDivider: true,
-                min: 0
+                min: 0,
+                max: 2
             });
 
         const parent = new Sequence("parent", [numbers, new Literal("b", "B")]);
@@ -381,10 +381,10 @@ describe("BoundedRepeat", () => {
         const numbers = new FiniteRepeat(
             "numbers",
             new Literal("one", "1"),
-            2,
             {
                 divider: new Literal("comma", ","),
-                min: 0
+                min: 0,
+                max: 2
             }
         );
 
@@ -400,10 +400,10 @@ describe("BoundedRepeat", () => {
         const numbers = new FiniteRepeat(
             "numbers",
             new Literal("one", "1"),
-            2,
             {
                 divider: new Literal("comma", ","),
-                min: 0
+                min: 0,
+                max: 2
             }
         );
 
@@ -417,10 +417,10 @@ describe("BoundedRepeat", () => {
         const numbers = new FiniteRepeat(
             "numbers",
             new Literal("one", "1"),
-            2,
             {
                 divider: new Literal("comma", ","),
-                min: 0
+                min: 0,
+                max: 2
             }
         );
 
@@ -433,10 +433,10 @@ describe("BoundedRepeat", () => {
         const numbers = new FiniteRepeat(
             "numbers",
             new Literal("one", "1"),
-            2,
             {
                 divider: new Literal("comma", ","),
-                min: 0
+                min: 0,
+                max: 2
             }
         );
 
@@ -449,10 +449,10 @@ describe("BoundedRepeat", () => {
         const numbers = new FiniteRepeat(
             "numbers",
             new Literal("one", "1"),
-            2,
             {
                 divider: new Literal("comma", ","),
-                min: 0
+                min: 0,
+                max: 2
             }
         );
 
@@ -468,10 +468,10 @@ describe("BoundedRepeat", () => {
         const numbers = new FiniteRepeat(
             "numbers",
             new Literal("one", "1"),
-            2,
             {
                 divider: new Literal("comma", ","),
-                min: 0
+                min: 0,
+                max: 2
             }
         );
 

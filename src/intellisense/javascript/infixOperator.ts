@@ -1,4 +1,4 @@
-import { Literal } from "../../patterns/Literal"
+import { Literal } from "../../patterns/Literal";
 import { Options } from "../../patterns/Options";
 
 const multiply = new Literal("multiply", "*");
@@ -35,6 +35,6 @@ const infixOperator = new Options("infix-operator", [
     logicalAnd
 ]);
 
-export { infixOperator }
+export { infixOperator };
 
 

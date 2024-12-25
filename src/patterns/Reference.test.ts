@@ -40,7 +40,7 @@ describe("Reference", () => {
                 new Node("regex", "number", 4, 4, [], "2")
             ]),
             new Node("literal", "close-bracket", 5, 5, [], "]"),
-        ])
+        ]);
 
         expect(result).toEqual(expected);
     });
@@ -49,8 +49,8 @@ describe("Reference", () => {
         const ref = new Reference("bad-reference");
 
         expect(() => {
-            ref.parse(new Cursor("text"))
-        }).toThrowError()
+            ref.parse(new Cursor("text"));
+        }).toThrowError();
     });
 
     test("Get Tokens", () => {
@@ -76,7 +76,7 @@ describe("Reference", () => {
 
     test("Get Tokens After With No Parent", () => {
         const ref = new Reference("bad-reference");
-        const tokens = ref.getTokensAfter(new Literal("bogus", "bogus"))
+        const tokens = ref.getTokensAfter(new Literal("bogus", "bogus"));
 
         expect(tokens).toEqual([]);
     });
@@ -86,30 +86,29 @@ describe("Reference", () => {
 
         expect(ref.type).toBe("reference");
         expect(ref.name).toBe("ref");
-        expect(ref.isOptional).toBeFalsy();
-        expect(ref.parent).toBe(null)
-        expect(ref.children).toEqual([])
+        expect(ref.parent).toBe(null);
+        expect(ref.children).toEqual([]);
     });
 
     test("Exec", () => {
         const value = createValuePattern();
-        const reference = findPattern(value, p => p.type === "reference") as Reference
+        const reference = findPattern(value, p => p.type === "reference") as Reference;
         const { ast: result } = reference.exec("B");
-        expect(result).toBeNull()
+        expect(result).toBeNull();
     });
 
     test("Test With Match", () => {
         const value = createValuePattern();
-        const reference = findPattern(value, p => p.type === "reference") as Reference
+        const reference = findPattern(value, p => p.type === "reference") as Reference;
         const result = reference.test("[1]");
-        expect(result).toBeTruthy()
+        expect(result).toBeTruthy();
     });
 
     test("Test No Match", () => {
         const value = createValuePattern();
-        const reference = findPattern(value, p => p.type === "reference") as Reference
+        const reference = findPattern(value, p => p.type === "reference") as Reference;
         const result = reference.test("B");
-        expect(result).toBeFalsy()
+        expect(result).toBeFalsy();
     });
 
     test("Find Pattern", () => {
@@ -134,7 +133,7 @@ describe("Reference", () => {
         const reference = new Reference("ref-name");
         const tokens = reference.getNextTokens();
 
-        expect(tokens).toEqual([])
+        expect(tokens).toEqual([]);
     });
 
     test("Get Tokens After", () => {
@@ -149,7 +148,7 @@ describe("Reference", () => {
         const reference = new Reference("ref-name");
         const tokens = reference.getTokensAfter(new Literal("bogus", "Bogus"));
 
-        expect(tokens).toEqual([])
+        expect(tokens).toEqual([]);
     });
 
     test("Get Patterns", () => {
@@ -178,7 +177,7 @@ describe("Reference", () => {
         const reference = new Reference("ref-name");
         const patterns = reference.getPatternsAfter(new Literal("bogus", "Bogus"));
 
-        expect(patterns).toEqual([])
+        expect(patterns).toEqual([]);
     });
 
     test("Get Next Patterns", () => {
@@ -197,7 +196,7 @@ describe("Reference", () => {
         const reference = new Reference("ref-name");
         const patterns = reference.getNextPatterns();
 
-        expect(patterns).toEqual([])
+        expect(patterns).toEqual([]);
     });
 
 });

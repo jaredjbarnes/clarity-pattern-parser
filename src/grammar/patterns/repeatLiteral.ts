@@ -5,8 +5,9 @@ import { Regex } from "../../patterns/Regex";
 import { anonymousPattern } from "./anonymousPattern";
 import { name } from "./name";
 import { lineSpaces, spaces } from "./spaces";
+import { Optional } from "../../patterns/Optional";
 
-const optionalSpaces = spaces.clone("optional-spaces", true);
+const optionalSpaces = new Optional("optional-spaces", spaces);
 const openBracket = new Literal("open-bracket", "{");
 const closeBracket = new Literal("close-bracket", "}");
 const comma = new Literal("comma", ",");
@@ -14,18 +15,19 @@ const comma = new Literal("comma", ",");
 const integer = new Regex("integer", "([1-9][0-9]*)|0");
 integer.setTokens(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]);
 
-const optionalInteger = integer.clone("integer", true);
-const trimKeyword = new Literal("trim-keyword", "trim", true);
-const trimFlag = new Sequence("trim-flag", [lineSpaces, trimKeyword], true);
+const min = new Optional("optional-min", integer.clone("min"));
+const max = new Optional("optional-max", integer.clone("max"));
+const trimKeyword = new Literal("trim-keyword", "trim");
+const trimFlag = new Optional("optional-trim-flag", new Sequence("trim-flag", [lineSpaces, trimKeyword]));
 
 const bounds = new Sequence("bounds", [
     openBracket,
     optionalSpaces,
-    optionalInteger.clone("min"),
+    min,
     optionalSpaces,
     comma,
     optionalSpaces,
-    optionalInteger.clone("max"),
+    max,
     closeBracket
 ]);
 
@@ -55,12 +57,14 @@ dividerComma.setTokens([", "]);
 const patternName = name.clone("pattern-name");
 const patterns = new Options("or-patterns", [patternName, anonymousPattern]);
 const dividerPattern = patterns.clone("divider-pattern");
+const dividerSection = new Sequence("divider-section", [dividerComma, dividerPattern, trimFlag]);
+const optionalDividerSection = new Optional("optional-divider-section", dividerSection);
 
 export const repeatLiteral = new Sequence("repeat-literal", [
     openParen,
     optionalSpaces,
     patterns,
-    new Sequence("optional-divider-section", [dividerComma, dividerPattern, trimFlag], true),
+    optionalDividerSection,
     optionalSpaces,
     closeParen,
     new Sequence("quantifier-section", [quantifier]),

@@ -122,11 +122,12 @@ export class Options implements Pattern {
     for (const pattern of this._children) {
       cursor.moveTo(this._firstIndex);
       const result = pattern.parse(cursor);
+      
       if (this._isGreedy) {
         results.push(result);
       }
 
-      if (!cursor.hasError && !this._isGreedy) {
+      if (result != null && !this._isGreedy) {
         return result;
       }
 

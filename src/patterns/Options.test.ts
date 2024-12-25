@@ -4,6 +4,7 @@ import { Literal } from "./Literal";
 import { Options } from "./Options";
 import { Sequence } from "./Sequence";
 import { Pattern } from "./Pattern";
+import { Optional } from "./Optional";
 
 describe("Options", () => {
     test("Empty Options", () => {
@@ -268,5 +269,16 @@ describe("Options", () => {
 
         const result = names.exec("John Johnson");
         expect(result.ast?.value).toBe("John Johnson");
+    });
+
+    // This doesn't make sense, but every pattern needs to handle a null result with no error.
+    test("Optional option", () => {
+        const john = new Optional("optional-john", new Literal("john", "John"));
+        const jane = new Literal("jane", "Jane");
+        
+        const firstName = new Options("first-name", [john, jane], false, true);
+
+        const result = firstName.exec("Jane");
+        expect(result.ast?.value).toBe("Jane");
     });
 });

@@ -48,8 +48,8 @@ export class Options implements Pattern {
     const children = clonePatterns(options);
     this._assignChildrenToParent(children);
 
-    this._id = `or-${idIndex++}`;
-    this._type = "or";
+    this._id = `options-${idIndex++}`;
+    this._type = "options";
     this._name = name;
     this._parent = null;
     this._children = children;

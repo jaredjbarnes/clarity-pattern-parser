@@ -47,7 +47,7 @@ const withParamsStatement = new Optional("optional-with-params-statement", new S
     optionalLineSpaces,
     openBracket,
     optionalSpaces,
-    body.clone("with-params-body"),
+    body,
     optionalSpaces,
     closeBracket
 ]));

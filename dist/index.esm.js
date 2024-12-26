@@ -909,8 +909,8 @@ class Options {
         }
         const children = clonePatterns(options);
         this._assignChildrenToParent(children);
-        this._id = `or-${idIndex$6++}`;
-        this._type = "or";
+        this._id = `options-${idIndex$6++}`;
+        this._type = "options";
         this._name = name;
         this._parent = null;
         this._children = children;
@@ -2095,7 +2095,7 @@ const withParamsStatement = new Optional("optional-with-params-statement", new S
     optionalLineSpaces$1,
     openBracket,
     optionalSpaces$1,
-    body.clone("with-params-body"),
+    body,
     optionalSpaces$1,
     closeBracket
 ]));
@@ -2548,11 +2548,12 @@ class Grammar {
         return importBlock && importBlock.children.length > 0;
     }
     _buildPatterns(ast) {
-        const body = ast.find(n => n.name === "body");
+        const body = ast.find(n => n.name === "body" && n.findAncester(n => n.name === "head") == null);
         if (body == null) {
             return;
         }
-        body.findAll(n => n.name === "assign-statement").forEach((n) => {
+        const statements = body.findAll(n => n.name === "assign-statement");
+        statements.forEach((n) => {
             const patternNode = n.children.find(n => patternNodes[n.name] != null);
             if (patternNode == null) {
                 return;
@@ -2814,7 +2815,7 @@ class Grammar {
         let params = [];
         const paramsStatement = importStatement.find(n => n.name === "with-params-statement");
         if (paramsStatement != null) {
-            const statements = paramsStatement.find(n => n.name === "with-params-body");
+            const statements = paramsStatement.find(n => n.name === "body");
             if (statements != null) {
                 const expression = statements.toString();
                 const importedValues = Array.from(this

@@ -43,7 +43,7 @@ describe("Options", () => {
         cursor.next();
 
         result = a.parse(cursor);
-        expected = new Node("or", "a-b", 0, 0, [
+        expected = new Node("options", "a-b", 0, 0, [
             new Node("literal", "b", 0, 0, [], "B")
         ], "B");
     });
@@ -76,7 +76,7 @@ describe("Options", () => {
     test("Properties", () => {
         const a = new Options("a", [new Literal("a", "A")]);
 
-        expect(a.type).toBe("or");
+        expect(a.type).toBe("options");
         expect(a.name).toBe("a");
         expect(a.parent).toBeNull();
         expect(a.children[0].name).toBe("a");

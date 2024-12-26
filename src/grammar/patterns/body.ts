@@ -19,4 +19,4 @@ const bodyLine = new Sequence("body-line", [
     optionalLineSpaces,
 ]);
 
-export const body = new Repeat("body", bodyLine, {divider: newLine, min: 0});
+export const body = new Optional("optional-body", new Repeat("body", bodyLine, {divider: newLine}));

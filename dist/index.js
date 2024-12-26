@@ -2064,7 +2064,7 @@ const bodyLine = new Sequence("body-line", [
     bodyLineContent,
     optionalLineSpaces$2,
 ]);
-const body = new Repeat("body", bodyLine, { divider: newLine$1, min: 0 });
+const body = new Optional("optional-body", new Repeat("body", bodyLine, { divider: newLine$1 }));
 
 const optionalSpaces$1 = new Optional("optional-spaces", allSpaces);
 const optionalLineSpaces$1 = new Optional("options-line-spaces", lineSpaces$1);

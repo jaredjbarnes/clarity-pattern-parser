@@ -1,2 +1,2 @@
-import { Repeat } from "../../patterns/Repeat";
-export declare const body: Repeat;
+import { Optional } from "../../patterns/Optional";
+export declare const body: Optional;

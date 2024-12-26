@@ -9,6 +9,7 @@ import { Sequence } from "./patterns/Sequence";
 import { Literal } from "./patterns/Literal";
 import { Not } from "./patterns/Not";
 import { Options } from "./patterns/Options";
+import { Optional } from "./patterns/Optional";
 import { Repeat } from "./patterns/Repeat";
 import { ParseError } from "./patterns/ParseError";
 import { Pattern } from "./patterns/Pattern";
@@ -26,13 +27,14 @@ export {
   AutoCompleteOptions,
   Suggestion,
   SuggestionOption,
-  Sequence as And,
+  Sequence,
   Cursor,
   CursorHistory,
   Match,
   Literal,
   Not,
-  Options as Or,
+  Options,
+  Optional,
   ParseError,
   ParseResult,
   Pattern,
@@ -41,5 +43,5 @@ export {
   Repeat,
   grammar,
   arePatternsEqual,
-  patterns
+  patterns,
 };

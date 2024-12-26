@@ -444,12 +444,12 @@ describe("AutoComplete", () => {
         const smith = new Literal("smith", "Smith");
         const space = new Literal("space", " ");
 
-        const firstName = new Options("first-name", [john, jane], false, true);
-        const lastName = new Options("last-name", [doe, smith], false, true);
+        const firstName = new Options("first-name", [john, jane], true);
+        const lastName = new Options("last-name", [doe, smith], true);
         const johnJohnson = new Literal("john-johnson", "John Johnson");
         const johnStockton = new Literal("john-stockton", "John Stockton");
         const fullName = new Sequence("full-name", [firstName, space, lastName]);
-        const names = new Options("names", [johnStockton, johnJohnson, fullName], false, true);
+        const names = new Options("names", [johnStockton, johnJohnson, fullName], true);
 
         const autoComplete = new AutoComplete(names);
         const results = autoComplete.suggestFor("John ");

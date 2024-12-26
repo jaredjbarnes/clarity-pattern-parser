@@ -1,3 +1,3 @@
-import { Or } from "../../patterns/Or";
-export declare const anonymousLiterals: Or;
-export declare const anonymousWrappedLiterals: Or;
+import { Options } from "../../patterns/Options";
+export declare const anonymousLiterals: Options;
+export declare const anonymousWrappedLiterals: Options;

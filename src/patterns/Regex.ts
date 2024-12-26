@@ -30,6 +30,10 @@ export class Regex implements Pattern {
     return this._name;
   }
 
+  get value(): string{
+    return this._originalRegexString;
+  }
+
   get parent(): Pattern | null {
     return this._parent;
   }

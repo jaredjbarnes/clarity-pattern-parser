@@ -1,2 +1,2 @@
-import { Or } from "../../patterns/Or";
-export declare const pattern: Or;
+import { Options } from "../../patterns/Options";
+export declare const pattern: Options;

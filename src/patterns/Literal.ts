@@ -28,6 +28,10 @@ export class Literal implements Pattern {
     return this._name;
   }
 
+  get value(): string {
+    return this._text;
+  }
+
   get parent(): Pattern | null {
     return this._parent;
   }

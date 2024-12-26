@@ -7,7 +7,6 @@ export declare class Literal implements Pattern {
     private _type;
     private _name;
     private _parent;
-    private _isOptional;
     private _text;
     private _runes;
     private _firstIndex;
@@ -16,17 +15,17 @@ export declare class Literal implements Pattern {
     get id(): string;
     get type(): string;
     get name(): string;
+    get value(): string;
     get parent(): Pattern | null;
     set parent(pattern: Pattern | null);
     get children(): Pattern[];
-    get isOptional(): boolean;
-    constructor(name: string, value: string, isOptional?: boolean);
+    constructor(name: string, value: string);
     test(text: string): boolean;
     exec(text: string, record?: boolean): ParseResult;
     parse(cursor: Cursor): Node | null;
     private _tryToParse;
     private _createNode;
-    clone(name?: string, isOptional?: boolean): Pattern;
+    clone(name?: string): Pattern;
     getTokens(): string[];
     getTokensAfter(_lastMatched: Pattern): string[];
     getNextTokens(): string[];

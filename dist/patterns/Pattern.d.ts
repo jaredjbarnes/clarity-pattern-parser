@@ -7,11 +7,10 @@ export interface Pattern {
     name: string;
     parent: Pattern | null;
     children: Pattern[];
-    isOptional: boolean;
     parse(cursor: Cursor): Node | null;
     exec(text: string, record?: boolean): ParseResult;
     test(text: string, record?: boolean): boolean;
-    clone(name?: string, isOptional?: boolean): Pattern;
+    clone(name?: string): Pattern;
     getTokens(): string[];
     getTokensAfter(childReference: Pattern): string[];
     getNextTokens(): string[];

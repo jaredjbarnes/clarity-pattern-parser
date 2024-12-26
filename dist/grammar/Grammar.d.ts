@@ -26,11 +26,11 @@ export declare class Grammar {
     private _resolveStringValue;
     private _saveRegex;
     private _buildRegex;
-    private _saveOr;
-    private _buildOr;
+    private _saveOptions;
+    private _buildOptions;
     private _buildPattern;
-    private _saveAnd;
-    private _buildAnd;
+    private _saveSequence;
+    private _buildSequence;
     private _saveRepeat;
     private _buildRepeat;
     private _saveConfigurableAnonymous;

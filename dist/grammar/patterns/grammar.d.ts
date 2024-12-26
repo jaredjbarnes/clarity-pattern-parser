@@ -1,2 +1,2 @@
-import { And } from "../../patterns/And";
-export declare const grammar: And;
+import { Sequence } from "../../patterns/Sequence";
+export declare const grammar: Sequence;

@@ -6,7 +6,6 @@ export declare class Regex implements Pattern {
     private _id;
     private _type;
     private _name;
-    private _isOptional;
     private _parent;
     private _originalRegexString;
     private _regex;
@@ -18,11 +17,11 @@ export declare class Regex implements Pattern {
     get id(): string;
     get type(): string;
     get name(): string;
+    get value(): string;
     get parent(): Pattern | null;
     set parent(pattern: Pattern | null);
     get children(): Pattern[];
-    get isOptional(): boolean;
-    constructor(name: string, regex: string, isOptional?: boolean);
+    constructor(name: string, regex: string);
     private assertArguments;
     test(text: string): boolean;
     exec(text: string, record?: boolean): ParseResult;
@@ -31,7 +30,7 @@ export declare class Regex implements Pattern {
     private tryToParse;
     private processResult;
     private processError;
-    clone(name?: string, isOptional?: boolean): Regex;
+    clone(name?: string): Regex;
     getTokens(): string[];
     getTokensAfter(_childReference: Pattern): string[];
     getNextTokens(): string[];

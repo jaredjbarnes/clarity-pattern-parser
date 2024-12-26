@@ -1,31 +1,27 @@
 import { Node } from "../ast/Node";
 import { Cursor } from "./Cursor";
-import { ParseResult } from "./ParseResult";
 import { Pattern } from "./Pattern";
-export interface RepeatOptions {
-    min?: number;
-    max?: number;
-    divider?: Pattern;
-    trimDivider?: boolean;
-}
-export declare class Repeat implements Pattern {
+import { ParseResult } from "./ParseResult";
+export declare class Options implements Pattern {
     private _id;
-    private _repeatPattern;
+    private _type;
+    private _name;
     private _parent;
-    private _pattern;
-    private _options;
     private _children;
+    private _isGreedy;
+    private _firstIndex;
     get id(): string;
     get type(): string;
     get name(): string;
     get parent(): Pattern | null;
-    set parent(value: Pattern | null);
+    set parent(pattern: Pattern | null);
     get children(): Pattern[];
-    constructor(name: string, pattern: Pattern, options?: RepeatOptions);
-    parse(cursor: Cursor): Node | null;
-    exec(text: string): ParseResult;
+    constructor(name: string, options: Pattern[], isGreedy?: boolean);
+    private _assignChildrenToParent;
     test(text: string): boolean;
-    clone(name?: string): Repeat;
+    exec(text: string, record?: boolean): ParseResult;
+    parse(cursor: Cursor): Node | null;
+    private _tryToParse;
     getTokens(): string[];
     getTokensAfter(_childReference: Pattern): string[];
     getNextTokens(): string[];
@@ -33,5 +29,6 @@ export declare class Repeat implements Pattern {
     getPatternsAfter(_childReference: Pattern): Pattern[];
     getNextPatterns(): Pattern[];
     find(predicate: (p: Pattern) => boolean): Pattern | null;
-    isEqual(pattern: Repeat): boolean;
+    clone(name?: string): Pattern;
+    isEqual(pattern: Options): boolean;
 }

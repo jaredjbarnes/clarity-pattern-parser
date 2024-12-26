@@ -1,2 +1,2 @@
-import { And } from "../../patterns/And";
-export declare const repeatLiteral: And;
+import { Sequence } from "../../patterns/Sequence";
+export declare const repeatLiteral: Sequence;

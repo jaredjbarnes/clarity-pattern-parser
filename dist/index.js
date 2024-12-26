@@ -475,7 +475,7 @@ class Cursor {
     }
 }
 
-let idIndex$8 = 0;
+let idIndex$9 = 0;
 class Literal {
     get id() {
         return this._id;
@@ -486,6 +486,9 @@ class Literal {
     get name() {
         return this._name;
     }
+    get value() {
+        return this._text;
+    }
     get parent() {
         return this._parent;
     }
@@ -495,19 +498,15 @@ class Literal {
     get children() {
         return [];
     }
-    get isOptional() {
-        return this._isOptional;
-    }
-    constructor(name, value, isOptional = false) {
+    constructor(name, value) {
         if (value.length === 0) {
             throw new Error("Value Cannot be empty.");
         }
-        this._id = `literal-${idIndex$8++}`;
+        this._id = `literal-${idIndex$9++}`;
         this._type = "literal";
         this._name = name;
         this._text = value;
         this._runes = Array.from(value);
-        this._isOptional = isOptional;
         this._parent = null;
         this._firstIndex = 0;
         this._lastIndex = 0;
@@ -538,13 +537,7 @@ class Literal {
             cursor.endParse();
             return node;
         }
-        if (!this._isOptional) {
-            cursor.recordErrorAt(this._firstIndex, this._endIndex, this);
-            cursor.endParse();
-            return null;
-        }
-        cursor.resolveError();
-        cursor.moveTo(this._firstIndex);
+        cursor.recordErrorAt(this._firstIndex, this._endIndex, this);
         cursor.endParse();
         return null;
     }
@@ -574,8 +567,8 @@ class Literal {
     _createNode() {
         return new Node("literal", this._name, this._firstIndex, this._lastIndex, undefined, this._text);
     }
-    clone(name = this._name, isOptional = this._isOptional) {
-        const clone = new Literal(name, this._text, isOptional);
+    clone(name = this._name) {
+        const clone = new Literal(name, this._text);
         clone._id = this._id;
         return clone;
     }
@@ -611,7 +604,7 @@ class Literal {
     }
 }
 
-let idIndex$7 = 0;
+let idIndex$8 = 0;
 class Regex {
     get id() {
         return this._id;
@@ -622,6 +615,9 @@ class Regex {
     get name() {
         return this._name;
     }
+    get value() {
+        return this._originalRegexString;
+    }
     get parent() {
         return this._parent;
     }
@@ -631,19 +627,15 @@ class Regex {
     get children() {
         return [];
     }
-    get isOptional() {
-        return this._isOptional;
-    }
-    constructor(name, regex, isOptional = false) {
+    constructor(name, regex) {
         this._node = null;
         this._cursor = null;
         this._firstIndex = -1;
         this._substring = "";
         this._tokens = [];
-        this._id = `regex-${idIndex$7++}`;
+        this._id = `regex-${idIndex$8++}`;
         this._type = "regex";
         this._name = name;
-        this._isOptional = isOptional;
         this._parent = null;
         this._originalRegexString = regex;
         this._regex = new RegExp(`^${regex}`, "g");
@@ -705,13 +697,11 @@ class Regex {
         cursor.recordMatch(this, this._node);
     }
     processError(cursor) {
-        if (!this._isOptional) {
-            cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
-        }
+        cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
         this._node = null;
     }
-    clone(name = this._name, isOptional = this._isOptional) {
-        const clone = new Regex(name, this._originalRegexString, isOptional);
+    clone(name = this._name) {
+        const clone = new Regex(name, this._originalRegexString);
         clone._tokens = this._tokens.slice();
         clone._id = this._id;
         return clone;
@@ -773,7 +763,7 @@ function findPattern(pattern, predicate) {
     }
 }
 
-let idIndex$6 = 0;
+let idIndex$7 = 0;
 class Reference {
     get id() {
         return this._id;
@@ -793,15 +783,11 @@ class Reference {
     get children() {
         return this._children;
     }
-    get isOptional() {
-        return this._isOptional;
-    }
-    constructor(name, isOptional = false) {
-        this._id = `reference-${idIndex$6++}`;
+    constructor(name) {
+        this._id = `reference-${idIndex$7++}`;
         this._type = "reference";
         this._name = name;
         this._parent = null;
-        this._isOptional = isOptional;
         this._pattern = null;
         this._children = [];
     }
@@ -828,7 +814,7 @@ class Reference {
             if (pattern === null) {
                 throw new Error(`Couldn't find '${this._name}' pattern within tree.`);
             }
-            const clonedPattern = pattern.clone(this._name, this._isOptional);
+            const clonedPattern = pattern.clone();
             clonedPattern.parent = this;
             this._pattern = clonedPattern;
             this._children = [this._pattern];
@@ -887,8 +873,8 @@ class Reference {
     find(_predicate) {
         return null;
     }
-    clone(name = this._name, isOptional = this._isOptional) {
-        const clone = new Reference(name, isOptional);
+    clone(name = this._name) {
+        const clone = new Reference(name);
         clone._id = this._id;
         return clone;
     }
@@ -897,12 +883,12 @@ class Reference {
     }
 }
 
-function clonePatterns(patterns, isOptional) {
-    return patterns.map(p => p.clone(p.name, isOptional));
+function clonePatterns(patterns) {
+    return patterns.map(p => p.clone());
 }
 
-let idIndex$5 = 0;
-class Or {
+let idIndex$6 = 0;
+class Options {
     get id() {
         return this._id;
     }
@@ -921,21 +907,17 @@ class Or {
     get children() {
         return this._children;
     }
-    get isOptional() {
-        return this._isOptional;
-    }
-    constructor(name, options, isOptional = false, isGreedy = false) {
+    constructor(name, options, isGreedy = false) {
         if (options.length === 0) {
             throw new Error("Need at least one pattern with an 'or' pattern.");
         }
-        const children = clonePatterns(options, false);
+        const children = clonePatterns(options);
         this._assignChildrenToParent(children);
-        this._id = `or-${idIndex$5++}`;
+        this._id = `or-${idIndex$6++}`;
         this._type = "or";
         this._name = name;
         this._parent = null;
         this._children = children;
-        this._isOptional = isOptional;
         this._firstIndex = 0;
         this._isGreedy = isGreedy;
     }
@@ -968,13 +950,7 @@ class Or {
             cursor.endParse();
             return node;
         }
-        if (!this._isOptional) {
-            cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
-            cursor.endParse();
-            return null;
-        }
-        cursor.resolveError();
-        cursor.moveTo(this._firstIndex);
+        cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
         cursor.endParse();
         return null;
     }
@@ -986,7 +962,7 @@ class Or {
             if (this._isGreedy) {
                 results.push(result);
             }
-            if (!cursor.hasError && !this._isGreedy) {
+            if (result != null && !this._isGreedy) {
                 return result;
             }
             cursor.resolveError();
@@ -1036,8 +1012,8 @@ class Or {
     find(predicate) {
         return findPattern(this, predicate);
     }
-    clone(name = this._name, isOptional = this._isOptional) {
-        const or = new Or(name, this._children, isOptional, this._isGreedy);
+    clone(name = this._name) {
+        const or = new Options(name, this._children, this._isGreedy);
         or._id = this._id;
         return or;
     }
@@ -1046,7 +1022,7 @@ class Or {
     }
 }
 
-let idIndex$4 = 0;
+let idIndex$5 = 0;
 class FiniteRepeat {
     get id() {
         return this._id;
@@ -1066,29 +1042,30 @@ class FiniteRepeat {
     get children() {
         return this._children;
     }
-    get isOptional() {
-        return this._min === 0;
-    }
     get min() {
         return this._min;
     }
     get max() {
         return this._max;
     }
-    constructor(name, pattern, repeatAmount, options = {}) {
-        this._id = `finite-repeat-${idIndex$4++}`;
+    constructor(name, pattern, options = {}) {
+        this._id = `finite-repeat-${idIndex$5++}`;
         this._type = "finite-repeat";
         this._name = name;
         this._parent = null;
         this._children = [];
         this._hasDivider = options.divider != null;
-        this._min = options.min != null ? options.min : 1;
-        this._max = repeatAmount;
+        this._min = options.min != null ? Math.max(options.min, 1) : 1;
+        this._max = Math.max(this.min, options.max || this.min);
         this._trimDivider = options.trimDivider == null ? false : options.trimDivider;
-        for (let i = 0; i < repeatAmount; i++) {
-            this._children.push(pattern.clone(pattern.name));
-            if (options.divider != null && (i < repeatAmount - 1 || !this._trimDivider)) {
-                this._children.push(options.divider.clone(options.divider.name, false));
+        for (let i = 0; i < this._max; i++) {
+            const child = pattern.clone();
+            child.parent = this;
+            this._children.push(child);
+            if (options.divider != null && (i < this._max - 1 || !this._trimDivider)) {
+                const divider = options.divider.clone();
+                divider.parent = this;
+                this._children.push(divider);
             }
         }
     }
@@ -1100,15 +1077,18 @@ class FiniteRepeat {
         let matchCount = 0;
         for (let i = 0; i < this._children.length; i++) {
             const childPattern = this._children[i];
+            const runningIndex = cursor.index;
             const node = childPattern.parse(cursor);
+            if (cursor.hasError) {
+                break;
+            }
             if (i % modulo === 0 && !cursor.hasError) {
                 matchCount++;
             }
-            if (cursor.hasError) {
-                cursor.resolveError();
-                break;
+            if (node == null) {
+                cursor.moveTo(runningIndex);
             }
-            if (node != null) {
+            else {
                 nodes.push(node);
                 if (cursor.hasNext()) {
                     cursor.next();
@@ -1119,7 +1099,8 @@ class FiniteRepeat {
             }
         }
         if (this._trimDivider && this._hasDivider) {
-            if (cursor.leafMatch.pattern === this.children[1]) {
+            const isDividerLastMatch = cursor.leafMatch.pattern === this.children[1];
+            if (isDividerLastMatch) {
                 const node = nodes.pop();
                 cursor.moveTo(node.firstIndex);
             }
@@ -1131,14 +1112,14 @@ class FiniteRepeat {
             cursor.endParse();
             return null;
         }
-        else if (nodes.length === 0) {
-            cursor.resolveError();
+        if (nodes.length === 0 && !cursor.hasError) {
             cursor.moveTo(startIndex);
             cursor.endParse();
             return null;
         }
         const firstIndex = nodes[0].firstIndex;
         const lastIndex = nodes[nodes.length - 1].lastIndex;
+        cursor.resolveError();
         cursor.moveTo(lastIndex);
         cursor.endParse();
         return new Node(this._type, this.name, firstIndex, lastIndex, nodes);
@@ -1157,19 +1138,13 @@ class FiniteRepeat {
             cursor
         };
     }
-    clone(name = this._name, isOptional) {
+    clone(name = this._name) {
         let min = this._min;
-        if (isOptional != null) {
-            if (isOptional) {
-                min = 0;
-            }
-            else {
-                min = Math.max(this._min, 1);
-            }
-        }
-        const clone = new FiniteRepeat(name, this._children[0], this._max, {
+        let max = this._max;
+        const clone = new FiniteRepeat(name, this._children[0], {
             divider: this._hasDivider ? this._children[1] : undefined,
             min,
+            max,
             trimDivider: this._trimDivider
         });
         clone._id = this._id;
@@ -1226,7 +1201,7 @@ class FiniteRepeat {
     }
 }
 
-let idIndex$3 = 0;
+let idIndex$4 = 0;
 class InfiniteRepeat {
     get id() {
         return this._id;
@@ -1246,24 +1221,21 @@ class InfiniteRepeat {
     get children() {
         return this._children;
     }
-    get isOptional() {
-        return this._min === 0;
-    }
     get min() {
         return this._min;
     }
     constructor(name, pattern, options = {}) {
-        const min = options.min != null ? options.min : 1;
+        const min = options.min != null ? Math.max(options.min, 1) : 1;
         const divider = options.divider;
         let children;
         if (divider != null) {
-            children = [pattern.clone(pattern.name, false), divider.clone(divider.name, false)];
+            children = [pattern.clone(), divider.clone()];
         }
         else {
-            children = [pattern.clone(pattern.name, false)];
+            children = [pattern.clone()];
         }
         this._assignChildrenToParent(children);
-        this._id = `infinite-repeat-${idIndex$3++}`;
+        this._id = `infinite-repeat-${idIndex$4++}`;
         this._type = "infinite-repeat";
         this._name = name;
         this._min = min;
@@ -1328,8 +1300,12 @@ class InfiniteRepeat {
         let passed = false;
         while (true) {
             const runningCursorIndex = cursor.index;
-            const repeatedNode = this._pattern.parse(cursor);
-            if (cursor.hasError) {
+            const repeatNode = this._pattern.parse(cursor);
+            const hasError = cursor.hasError;
+            const hasNoErrorAndNoResult = !cursor.hasError && repeatNode == null;
+            const hasDivider = this._divider != null;
+            const hasNoDivider = !hasDivider;
+            if (hasError) {
                 const lastValidNode = this._getLastValidNode();
                 if (lastValidNode != null) {
                     passed = true;
@@ -1342,8 +1318,12 @@ class InfiniteRepeat {
                 break;
             }
             else {
-                if (repeatedNode != null) {
-                    this._nodes.push(repeatedNode);
+                if (hasNoErrorAndNoResult && hasNoDivider) {
+                    // If we didn't match and didn't error we need to get out. Nothing different will happen.
+                    break;
+                }
+                if (repeatNode != null) {
+                    this._nodes.push(repeatNode);
                     if (!cursor.hasNext()) {
                         passed = true;
                         break;
@@ -1351,18 +1331,29 @@ class InfiniteRepeat {
                     cursor.next();
                 }
                 if (this._divider != null) {
+                    const dividerStartIndex = cursor.index;
                     const dividerNode = this._divider.parse(cursor);
                     if (cursor.hasError) {
                         passed = true;
                         break;
                     }
-                    else if (dividerNode != null) {
-                        this._nodes.push(dividerNode);
-                        if (!cursor.hasNext()) {
-                            passed = true;
-                            break;
+                    else {
+                        if (dividerNode == null) {
+                            cursor.moveTo(dividerStartIndex);
+                            if (dividerNode == null && repeatNode == null) {
+                                // If neither the repeat pattern or divider pattern matched get out. 
+                                passed = true;
+                                break;
+                            }
                         }
-                        cursor.next();
+                        else {
+                            this._nodes.push(dividerNode);
+                            if (!cursor.hasNext()) {
+                                passed = true;
+                                break;
+                            }
+                            cursor.next();
+                        }
                     }
                 }
             }
@@ -1386,10 +1377,10 @@ class InfiniteRepeat {
             const dividerNode = this._nodes.pop();
             cursor.moveTo(dividerNode.firstIndex);
         }
-        // if (this._nodes.length === 0) {
-        //   cursor.moveTo(this._firstIndex);
-        //   return null;
-        // }
+        if (this._nodes.length === 0) {
+            cursor.moveTo(this._firstIndex);
+            return null;
+        }
         const lastIndex = this._nodes[this._nodes.length - 1].lastIndex;
         cursor.moveTo(lastIndex);
         return new Node(this._type, this._name, this._firstIndex, lastIndex, this._nodes);
@@ -1458,16 +1449,8 @@ class InfiniteRepeat {
     find(predicate) {
         return findPattern(this, predicate);
     }
-    clone(name = this._name, isOptional) {
+    clone(name = this._name) {
         let min = this._min;
-        if (isOptional != null) {
-            if (isOptional) {
-                min = 0;
-            }
-            else {
-                min = Math.max(this._min, 1);
-            }
-        }
         const clone = new InfiniteRepeat(name, this._pattern, {
             divider: this._divider == null ? undefined : this._divider,
             min: min,
@@ -1481,7 +1464,7 @@ class InfiniteRepeat {
     }
 }
 
-let idIndex$2 = 0;
+let idIndex$3 = 0;
 class Repeat {
     get id() {
         return this._id;
@@ -1501,16 +1484,13 @@ class Repeat {
     get children() {
         return this._children;
     }
-    get isOptional() {
-        return this._repeatPattern.isOptional;
-    }
     constructor(name, pattern, options = {}) {
-        this._id = `repeat-${idIndex$2++}`;
+        this._id = `repeat-${idIndex$3++}`;
         this._pattern = pattern;
         this._parent = null;
         this._options = Object.assign(Object.assign({}, options), { min: options.min == null ? 1 : options.min, max: options.max == null ? Infinity : options.max });
         if (this._options.max !== Infinity) {
-            this._repeatPattern = new FiniteRepeat(name, pattern, this._options.max, this._options);
+            this._repeatPattern = new FiniteRepeat(name, pattern, this._options);
         }
         else {
             this._repeatPattern = new InfiniteRepeat(name, pattern, this._options);
@@ -1527,16 +1507,8 @@ class Repeat {
     test(text) {
         return this._repeatPattern.test(text);
     }
-    clone(name = this.name, isOptional) {
+    clone(name = this.name) {
         let min = this._options.min;
-        if (isOptional != null) {
-            if (isOptional) {
-                min = 0;
-            }
-            else {
-                min = Math.max(this._options.min, 1);
-            }
-        }
         const clone = new Repeat(name, this._pattern, Object.assign(Object.assign({}, this._options), { min }));
         clone._id = this._id;
         return clone;
@@ -1580,6 +1552,7 @@ class Repeat {
 }
 
 const comment = new Regex("comment", "#[^\r\n]+");
+comment.setTokens(["# "]);
 
 function filterOutNull(nodes) {
     const filteredNodes = [];
@@ -1591,8 +1564,8 @@ function filterOutNull(nodes) {
     return filteredNodes;
 }
 
-let idIndex$1 = 0;
-class And {
+let idIndex$2 = 0;
+class Sequence {
     get id() {
         return this._id;
     }
@@ -1611,19 +1584,15 @@ class And {
     get children() {
         return this._children;
     }
-    get isOptional() {
-        return this._isOptional;
-    }
-    constructor(name, sequence, isOptional = false) {
+    constructor(name, sequence) {
         if (sequence.length === 0) {
-            throw new Error("Need at least one pattern with an 'and' pattern.");
+            throw new Error("Need at least one pattern with a 'sequence' pattern.");
         }
         const children = clonePatterns(sequence);
         this._assignChildrenToParent(children);
-        this._id = `and-${idIndex$1++}`;
-        this._type = "and";
+        this._id = `sequence-${idIndex$2++}`;
+        this._type = "sequence";
         this._name = name;
-        this._isOptional = isOptional;
         this._parent = null;
         this._children = children;
         this._firstIndex = -1;
@@ -1660,9 +1629,6 @@ class And {
             }
             cursor.endParse();
             return node;
-        }
-        if (this._isOptional) {
-            cursor.resolveError();
         }
         cursor.endParse();
         return null;
@@ -1736,7 +1702,7 @@ class And {
         const length = this._children.length;
         for (let i = startOnIndex; i < length; i++) {
             const pattern = this._children[i];
-            if (!pattern.isOptional) {
+            if (pattern.type !== "optional") {
                 return false;
             }
         }
@@ -1746,13 +1712,13 @@ class And {
         const children = filterOutNull(this._nodes);
         const lastIndex = children[children.length - 1].lastIndex;
         cursor.moveTo(lastIndex);
-        return new Node("and", this._name, this._firstIndex, lastIndex, children);
+        return new Node("sequence", this._name, this._firstIndex, lastIndex, children);
     }
     getTokens() {
         const tokens = [];
         for (const child of this._children) {
             tokens.push(...child.getTokens());
-            if (!child.isOptional) {
+            if (child.type !== "optional") {
                 break;
             }
         }
@@ -1772,9 +1738,9 @@ class And {
     }
     getPatterns() {
         const patterns = [];
-        for (const pattern of this._children) {
-            patterns.push(...pattern.getPatterns());
-            if (!pattern.isOptional) {
+        for (const child of this._children) {
+            patterns.push(...child.getPatterns());
+            if (child.type !== "optional") {
                 break;
             }
         }
@@ -1803,7 +1769,7 @@ class And {
         for (let i = nextSiblingIndex; i < this._children.length; i++) {
             const child = this._children[i];
             patterns.push(child);
-            if (!child.isOptional) {
+            if (child.type !== "optional") {
                 break;
             }
             // If we are on the last child and its options then ask for the next pattern from the parent.
@@ -1822,8 +1788,8 @@ class And {
     find(predicate) {
         return findPattern(this, predicate);
     }
-    clone(name = this._name, isOptional = this._isOptional) {
-        const clone = new And(name, this._children, isOptional);
+    clone(name = this._name) {
+        const clone = new Sequence(name, this._children);
         clone._id = this._id;
         return clone;
     }
@@ -1833,77 +1799,183 @@ class And {
 }
 
 const literal = new Regex("literal", '"(?:\\\\.|[^"\\\\])*"');
+literal.setTokens(["[LITERAL]"]);
 
 const tabs$1 = new Regex("tabs", "\\t+");
-const spaces$1 = new Regex("spaces", "[ ]+");
-const newLine$1 = new Regex("new-line", "(\\r?\\n)+");
-spaces$1.setTokens([" "]);
 tabs$1.setTokens(["\t"]);
+const spaces$1 = new Regex("spaces", "[ ]+");
+spaces$1.setTokens([" "]);
+const newLine$1 = new Regex("new-line", "(\\r?\\n)+");
 newLine$1.setTokens(["\n"]);
-const lineSpaces$1 = new Repeat("line-spaces", new Or("line-space", [tabs$1, spaces$1]));
-const allSpaces = new Regex("all-spaces", "\\s+", true);
+const lineSpaces$1 = new Repeat("line-spaces", new Options("line-space", [tabs$1, spaces$1]));
+const allSpaces = new Regex("all-spaces", "\\s+");
+allSpaces.setTokens([" "]);
 
 const name$1 = new Regex("name", "[a-zA-Z_-]+[a-zA-Z0-9_-]*");
 
 const regexLiteral = new Regex("regex-literal", "/(\\\\/|[^/\\n\\r])*/");
+regexLiteral.setTokens(["[REGEX_EXPRESSION]"]);
 
 const patternName$3 = name$1.clone("pattern-name");
-const anonymousLiterals = new Or("anonymous-literals", [
+const anonymousLiterals = new Options("anonymous-literals", [
     literal,
     regexLiteral,
     patternName$3,
     new Reference("repeat-literal"),
 ]);
-const anonymousWrappedLiterals = new Or("anonymous-wrapped-literals", [
-    new Reference("or-literal"),
-    new Reference("and-literal"),
+const anonymousWrappedLiterals = new Options("anonymous-wrapped-literals", [
+    new Reference("options-literal"),
+    new Reference("sequence-literal"),
     new Reference("complex-anonymous-pattern")
 ]);
 
+let idIndex$1 = 0;
+class Optional {
+    get id() {
+        return this._id;
+    }
+    get type() {
+        return this._type;
+    }
+    get name() {
+        return this._name;
+    }
+    get parent() {
+        return this._parent;
+    }
+    set parent(pattern) {
+        this._parent = pattern;
+    }
+    get children() {
+        return this._children;
+    }
+    constructor(name, pattern) {
+        this._id = `optional-${idIndex$1++}`;
+        this._type = "optional";
+        this._name = name;
+        this._parent = null;
+        this._children = [pattern.clone()];
+        this._children[0].parent = this;
+    }
+    test(text) {
+        const cursor = new Cursor(text);
+        this.parse(cursor);
+        return !cursor.hasError;
+    }
+    exec(text, record = false) {
+        const cursor = new Cursor(text);
+        record && cursor.startRecording();
+        const ast = this.parse(cursor);
+        return {
+            ast: (ast === null || ast === void 0 ? void 0 : ast.value) === text ? ast : null,
+            cursor
+        };
+    }
+    parse(cursor) {
+        cursor.startParseWith(this);
+        const firstIndex = cursor.index;
+        const node = this._children[0].parse(cursor);
+        if (cursor.hasError) {
+            cursor.resolveError();
+            cursor.moveTo(firstIndex);
+            cursor.endParse();
+            return null;
+        }
+        else {
+            cursor.endParse();
+            return node;
+        }
+    }
+    clone(name = this._name) {
+        const optional = new Optional(name, this._children[0]);
+        optional._id = this._id;
+        return optional;
+    }
+    getTokens() {
+        return this._children[0].getTokens();
+    }
+    getTokensAfter(_childReference) {
+        const parent = this._parent;
+        if (parent != null) {
+            return parent.getTokensAfter(this);
+        }
+        return [];
+    }
+    getNextTokens() {
+        if (this.parent == null) {
+            return [];
+        }
+        return this.parent.getTokensAfter(this);
+    }
+    getPatterns() {
+        return this._children[0].getPatterns();
+    }
+    getPatternsAfter(_childReference) {
+        const parent = this._parent;
+        if (parent != null) {
+            return parent.getPatternsAfter(this);
+        }
+        return [];
+    }
+    getNextPatterns() {
+        if (this.parent == null) {
+            return [];
+        }
+        return this.parent.getPatternsAfter(this);
+    }
+    find(predicate) {
+        return predicate(this._children[0]) ? this._children[0] : null;
+    }
+    isEqual(pattern) {
+        return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
+    }
+}
+
 const inlinePatternOpenParen = new Literal("anonymous-pattern-open-paren", "(");
 const inlinePatternCloseParen = new Literal("anonymous-pattern-close-paren", ")");
-const optionalLineSpaces$1 = lineSpaces$1.clone(undefined, true);
-const complexAnonymousPattern = new And("complex-anonymous-pattern", [
+const optionalLineSpaces$3 = new Optional("optional-line-spaces", lineSpaces$1);
+const complexAnonymousPattern = new Sequence("complex-anonymous-pattern", [
     inlinePatternOpenParen,
-    optionalLineSpaces$1,
+    optionalLineSpaces$3,
     anonymousWrappedLiterals,
-    optionalLineSpaces$1,
+    optionalLineSpaces$3,
     inlinePatternCloseParen,
 ]);
-const anonymousPattern = new Or("anonymous-pattern", [
+const anonymousPattern = new Options("anonymous-pattern", [
     anonymousLiterals,
     complexAnonymousPattern
 ]);
 
-const optionalSpaces$2 = spaces$1.clone("optional-spaces", true);
+const optionalSpaces$3 = new Optional("optional-spaces", spaces$1);
 const openBracket$1 = new Literal("open-bracket", "{");
 const closeBracket$1 = new Literal("close-bracket", "}");
 const comma = new Literal("comma", ",");
 const integer = new Regex("integer", "([1-9][0-9]*)|0");
 integer.setTokens(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]);
-const optionalInteger = integer.clone("integer", true);
-const trimKeyword = new Literal("trim-keyword", "trim", true);
-const trimFlag = new And("trim-flag", [lineSpaces$1, trimKeyword], true);
-const bounds = new And("bounds", [
+const min = new Optional("optional-min", integer.clone("min"));
+const max = new Optional("optional-max", integer.clone("max"));
+const trimKeyword = new Literal("trim-keyword", "trim");
+const trimFlag = new Optional("optional-trim-flag", new Sequence("trim-flag", [lineSpaces$1, trimKeyword]));
+const bounds = new Sequence("bounds", [
     openBracket$1,
-    optionalSpaces$2,
-    optionalInteger.clone("min"),
-    optionalSpaces$2,
+    optionalSpaces$3,
+    min,
+    optionalSpaces$3,
     comma,
-    optionalSpaces$2,
-    optionalInteger.clone("max"),
+    optionalSpaces$3,
+    max,
     closeBracket$1
 ]);
-const exactCount = new And("exact-count", [
+const exactCount = new Sequence("exact-count", [
     openBracket$1,
-    optionalSpaces$2,
+    optionalSpaces$3,
     integer,
-    optionalSpaces$2,
+    optionalSpaces$3,
     closeBracket$1,
 ]);
 const quantifierShorthand = new Regex("quantifier-shorthand", "\\*|\\+");
 quantifierShorthand.setTokens(["*", "+"]);
-const quantifier = new Or("quantifier", [
+const quantifier = new Options("quantifier", [
     quantifierShorthand,
     exactCount,
     bounds
@@ -1913,127 +1985,134 @@ const closeParen = new Literal("repeat-close-paren", ")");
 const dividerComma = new Regex("divider-comma", "\\s*,\\s*");
 dividerComma.setTokens([", "]);
 const patternName$2 = name$1.clone("pattern-name");
-const patterns$3 = new Or("or-patterns", [patternName$2, anonymousPattern]);
+const patterns$3 = new Options("or-patterns", [patternName$2, anonymousPattern]);
 const dividerPattern = patterns$3.clone("divider-pattern");
-const repeatLiteral = new And("repeat-literal", [
+const dividerSection = new Sequence("divider-section", [dividerComma, dividerPattern, trimFlag]);
+const optionalDividerSection = new Optional("optional-divider-section", dividerSection);
+const repeatLiteral = new Sequence("repeat-literal", [
     openParen,
-    optionalSpaces$2,
+    optionalSpaces$3,
     patterns$3,
-    new And("optional-divider-section", [dividerComma, dividerPattern, trimFlag], true),
-    optionalSpaces$2,
+    optionalDividerSection,
+    optionalSpaces$3,
     closeParen,
-    new And("quantifier-section", [quantifier]),
+    new Sequence("quantifier-section", [quantifier]),
 ]);
 
-const optionalNot = new Literal("not", "!", true);
-const optionalIsOptional$1 = new Literal("is-optional", "?", true);
+const optionalNot = new Optional("optional-not", new Literal("not", "!"));
+const optionalIsOptional$1 = new Optional("optional-is-optional", new Literal("is-optional", "?"));
 const patternName$1 = name$1.clone("pattern-name");
-const patterns$2 = new Or("and-patterns", [patternName$1, anonymousPattern]);
-const pattern$1 = new And("and-child-pattern", [
+const patterns$2 = new Options("and-patterns", [patternName$1, anonymousPattern]);
+const pattern$1 = new Sequence("and-child-pattern", [
     optionalNot,
     patterns$2,
     optionalIsOptional$1,
 ]);
 const divider$1 = new Regex("and-divider", "\\s*[+]\\s*");
 divider$1.setTokens([" + "]);
-const andLiteral = new Repeat("and-literal", pattern$1, { divider: divider$1, min: 2, trimDivider: true });
+const sequenceLiteral = new Repeat("sequence-literal", pattern$1, { divider: divider$1, min: 2, trimDivider: true });
 
 const patternName = name$1.clone("pattern-name");
-const patterns$1 = new Or("or-patterns", [patternName, anonymousPattern]);
+patternName.setTokens(["[PATTERN_NAME]"]);
+const patterns$1 = new Options("or-patterns", [patternName, anonymousPattern]);
 const defaultDivider = new Regex("default-divider", "\\s*[|]\\s*");
+defaultDivider.setTokens(["|"]);
 const greedyDivider = new Regex("greedy-divider", "\\s*[<][|][>]\\s*");
-const divider = new Or("or-divider", [defaultDivider, greedyDivider]);
-defaultDivider.setTokens([" | "]);
-greedyDivider.setTokens([" <|> "]);
-const orLiteral = new Repeat("or-literal", patterns$1, { divider, min: 2, trimDivider: true });
+greedyDivider.setTokens(["<|>"]);
+const divider = new Options("options-divider", [defaultDivider, greedyDivider]);
+const optionsLiteral = new Repeat("options-literal", patterns$1, { divider, min: 2, trimDivider: true });
 
 const aliasLiteral = name$1.clone("alias-literal");
-const optionalIsOptional = new Literal("is-optional", "?", true);
-const configurableAnonymousPattern = new And("configurable-anonymous-pattern", [anonymousPattern, optionalIsOptional]);
-const pattern = new Or("pattern", [
+aliasLiteral.setTokens(["[ALIAS_LITERAL]"]);
+const optionalIsOptional = new Optional("optional-flag", new Literal("is-optional", "?"));
+const configurableAnonymousPattern = new Sequence("configurable-anonymous-pattern", [anonymousPattern, optionalIsOptional]);
+const pattern = new Options("pattern", [
     literal,
     regexLiteral,
     repeatLiteral,
     aliasLiteral,
-    orLiteral,
-    andLiteral,
+    optionsLiteral,
+    sequenceLiteral,
     configurableAnonymousPattern,
-], false, true);
+], true);
 
-const optionalSpaces$1 = spaces$1.clone("optional-spaces", true);
+const optionalSpaces$2 = new Optional("optional-spaces", spaces$1);
 const assignOperator = new Literal("assign-operator", "=");
-const assignStatement = new And("assign-statement", [
-    optionalSpaces$1,
+const assignStatement = new Sequence("assign-statement", [
+    optionalSpaces$2,
     name$1,
-    optionalSpaces$1,
+    optionalSpaces$2,
     assignOperator,
-    optionalSpaces$1,
+    optionalSpaces$2,
     pattern
 ]);
-const statement = new Or("statement", [assignStatement, name$1.clone("export-name")]);
+const statement = new Options("statement", [assignStatement, name$1.clone("export-name")]);
 
-const bodyLineContent = new Or("body-line-content", [
+const bodyLineContent = new Options("body-line-content", [
     comment,
     statement
 ]);
-const bodyLine = new And("body-line", [
-    lineSpaces$1.clone("line-spaces", true),
+const optionalLineSpaces$2 = new Optional("optional-line-spaces", lineSpaces$1);
+const bodyLine = new Sequence("body-line", [
+    optionalLineSpaces$2,
     bodyLineContent,
-    lineSpaces$1.clone("line-spaces", true),
+    optionalLineSpaces$2,
 ]);
 const body = new Repeat("body", bodyLine, { divider: newLine$1, min: 0 });
 
-const optionalSpaces = allSpaces.clone("optional-spaces", true);
-const optionalLineSpaces = lineSpaces$1.clone("options-line-spaces", true);
+const optionalSpaces$1 = new Optional("optional-spaces", allSpaces);
+const optionalLineSpaces$1 = new Optional("options-line-spaces", lineSpaces$1);
 const importNameDivider = new Regex("import-name-divider", "(\\s+)?,(\\s+)?");
+importNameDivider.setTokens([", "]);
+const name = new Regex("import-name", "[^}\\s,]+");
+name.setTokens(["[IMPORT_NAME]"]);
 const importKeyword = new Literal("import", "import");
 const useParamsKeyword = new Literal("use-params", "use params");
 const asKeyword = new Literal("as", "as");
 const fromKeyword = new Literal("from", "from");
 const openBracket = new Literal("open-bracket", "{");
 const closeBracket = new Literal("close-bracket", "}");
-const name = new Regex("import-name", "[^}\\s,]+");
 const importNameAlias = name.clone("import-name-alias");
-const importAlias = new And("import-alias", [name, lineSpaces$1, asKeyword, lineSpaces$1, importNameAlias]);
-const importedNames = new Repeat("imported-names", new Or("import-names", [importAlias, name]), { divider: importNameDivider });
+const importAlias = new Sequence("import-alias", [name, lineSpaces$1, asKeyword, lineSpaces$1, importNameAlias]);
+const importedNames = new Repeat("imported-names", new Options("import-names", [importAlias, name]), { divider: importNameDivider });
 const paramName = name.clone("param-name");
 const paramNames = new Repeat("param-names", paramName, { divider: importNameDivider });
 const resource = literal.clone("resource");
-const useParams = new And("import-params", [
+const useParams = new Sequence("import-params", [
     useParamsKeyword,
-    optionalLineSpaces,
+    optionalLineSpaces$1,
     openBracket,
-    optionalSpaces,
+    optionalSpaces$1,
     paramNames,
-    optionalSpaces,
+    optionalSpaces$1,
     closeBracket
 ]);
 const withParamsKeyword = new Literal("with-params", "with params");
-const withParamsStatement = new And("with-params-statement", [
+const withParamsStatement = new Optional("optional-with-params-statement", new Sequence("with-params-statement", [
     withParamsKeyword,
-    optionalLineSpaces,
+    optionalLineSpaces$1,
     openBracket,
-    optionalSpaces,
+    optionalSpaces$1,
     body.clone("with-params-body"),
-    optionalSpaces,
+    optionalSpaces$1,
     closeBracket
-], true);
-const importFromStatement = new And("import-from", [
+]));
+const importFromStatement = new Sequence("import-from", [
     importKeyword,
-    optionalLineSpaces,
+    optionalLineSpaces$1,
     openBracket,
-    optionalSpaces,
+    optionalSpaces$1,
     importedNames,
-    optionalSpaces,
+    optionalSpaces$1,
     closeBracket,
-    optionalLineSpaces,
+    optionalLineSpaces$1,
     fromKeyword,
-    optionalLineSpaces,
+    optionalLineSpaces$1,
     resource,
-    optionalLineSpaces,
+    optionalLineSpaces$1,
     withParamsStatement
 ]);
-const importStatement = new Or("import-statement", [
+const importStatement = new Options("import-statement", [
     useParams,
     importFromStatement
 ]);
@@ -2044,23 +2123,25 @@ const newLine = new Regex("new-line", "(\\r?\\n)+");
 spaces.setTokens([" "]);
 tabs.setTokens(["\t"]);
 newLine.setTokens(["\n"]);
-const lineSpaces = new Repeat("line-spaces", new Or("line-space", [tabs, spaces]));
-const headLineContent = new Or("head-line-content", [
+const lineSpaces = new Repeat("line-spaces", new Options("line-space", [tabs, spaces]));
+const optionalLineSpaces = new Optional("optional-line-spaces", lineSpaces);
+const headLineContent = new Options("head-line-content", [
     comment,
     importStatement
 ]);
-const headLine = new And("head-line-content", [
-    lineSpaces.clone("line-spaces", true),
+const headLine = new Sequence("head-line-content", [
+    optionalLineSpaces,
     headLineContent,
-    lineSpaces.clone("line-spaces", true),
+    optionalLineSpaces,
 ]);
-const head = new Repeat("head", headLine, { divider: newLine, min: 0 });
-const grammar = new And("grammar", [
-    allSpaces,
+const head = new Optional("optional-head", new Repeat("head", headLine, { divider: newLine }));
+const optionalSpaces = new Optional("optional-spaces", allSpaces);
+const grammar = new Sequence("grammar", [
+    optionalSpaces,
     head,
-    allSpaces,
+    optionalSpaces,
     body,
-    allSpaces
+    optionalSpaces
 ]);
 
 let idIndex = 0;
@@ -2091,7 +2172,7 @@ class Not {
         this._type = "not";
         this._name = name;
         this._parent = null;
-        this._children = [pattern.clone(pattern.name, false)];
+        this._children = [pattern.clone()];
         this._children[0].parent = this;
     }
     test(text) {
@@ -2379,8 +2460,8 @@ let anonymousIndexId = 0;
 const patternNodes = {
     "literal": true,
     "regex-literal": true,
-    "or-literal": true,
-    "and-literal": true,
+    "options-literal": true,
+    "sequence-literal": true,
     "repeat-literal": true,
     "alias-literal": true,
     "configurable-anonymous-pattern": true
@@ -2483,12 +2564,12 @@ class Grammar {
                     this._saveRegex(n);
                     break;
                 }
-                case "or-literal": {
-                    this._saveOr(n);
+                case "options-literal": {
+                    this._saveOptions(n);
                     break;
                 }
-                case "and-literal": {
-                    this._saveAnd(n);
+                case "sequence-literal": {
+                    this._saveSequence(n);
                     break;
                 }
                 case "repeat-literal": {
@@ -2543,18 +2624,18 @@ class Grammar {
         const value = node.value.slice(1, node.value.length - 1);
         return new Regex(name, value);
     }
-    _saveOr(statementNode) {
+    _saveOptions(statementNode) {
         const nameNode = statementNode.find(n => n.name === "name");
         const name = nameNode.value;
-        const orNode = statementNode.find(n => n.name === "or-literal");
-        const or = this._buildOr(name, orNode);
-        this._parseContext.patternsByName.set(name, or);
+        const optionsNode = statementNode.find(n => n.name === "options-literal");
+        const options = this._buildOptions(name, optionsNode);
+        this._parseContext.patternsByName.set(name, options);
     }
-    _buildOr(name, node) {
+    _buildOptions(name, node) {
         const patternNodes = node.children.filter(n => n.name !== "default-divider" && n.name !== "greedy-divider");
         const isGreedy = node.find(n => n.name === "greedy-divider") != null;
         const patterns = patternNodes.map(n => this._buildPattern(n));
-        const or = new Or(name, patterns, false, isGreedy);
+        const or = new Options(name, patterns, isGreedy);
         return or;
     }
     _buildPattern(node) {
@@ -2573,11 +2654,11 @@ class Grammar {
             case "repeat-literal": {
                 return this._buildRepeat(name, node);
             }
-            case "or-literal": {
-                return this._buildOr(name, node);
+            case "options-literal": {
+                return this._buildOptions(name, node);
             }
-            case "and-literal": {
-                return this._buildAnd(name, node);
+            case "sequence-literal": {
+                return this._buildSequence(name, node);
             }
             case "complex-anonymous-pattern": {
                 return this._buildComplexAnonymousPattern(node);
@@ -2585,26 +2666,27 @@ class Grammar {
         }
         throw new Error(`Couldn't build node: ${node.name}.`);
     }
-    _saveAnd(statementNode) {
+    _saveSequence(statementNode) {
         const nameNode = statementNode.find(n => n.name === "name");
         const name = nameNode.value;
-        const andNode = statementNode.find(n => n.name === "and-literal");
-        const and = this._buildAnd(name, andNode);
-        this._parseContext.patternsByName.set(name, and);
+        const sequenceNode = statementNode.find(n => n.name === "sequence-literal");
+        const sequence = this._buildSequence(name, sequenceNode);
+        this._parseContext.patternsByName.set(name, sequence);
     }
-    _buildAnd(name, node) {
+    _buildSequence(name, node) {
         const patternNodes = node.children.filter(n => n.name !== "and-divider");
         const patterns = patternNodes.map(n => {
             const patternNode = n.children[0].name === "not" ? n.children[1] : n.children[0];
             const isNot = n.find(n => n.name === "not") != null;
             const isOptional = n.find(n => n.name === "is-optional");
-            const pattern = this._buildPattern(patternNode).clone(undefined, isOptional == null ? undefined : true);
+            const pattern = this._buildPattern(patternNode);
+            const finalPattern = isOptional ? new Optional(pattern.name, pattern) : pattern;
             if (isNot) {
-                return new Not(`not-${pattern.name}`, pattern);
+                return new Not(`not-${finalPattern.name}`, finalPattern);
             }
-            return pattern;
+            return finalPattern;
         });
-        return new And(name, patterns);
+        return new Sequence(name, patterns);
     }
     _saveRepeat(statementNode) {
         const nameNode = statementNode.find(n => n.name === "name");
@@ -2614,13 +2696,14 @@ class Grammar {
         this._parseContext.patternsByName.set(name, repeat);
     }
     _buildRepeat(name, repeatNode) {
+        let isOptional = false;
         const bounds = repeatNode.find(n => n.name === "bounds");
         const exactCount = repeatNode.find(n => n.name === "exact-count");
         const quantifier = repeatNode.find(n => n.name === "quantifier-shorthand");
         const trimDivider = repeatNode.find(n => n.name === "trim-flag") != null;
-        const patterNode = repeatNode.children[1].type === "optional-spaces" ? repeatNode.children[2] : repeatNode.children[1];
+        const patterNode = repeatNode.children[1].type === "spaces" ? repeatNode.children[2] : repeatNode.children[1];
         const pattern = this._buildPattern(patterNode);
-        const dividerSectionNode = repeatNode.find(n => n.name === "optional-divider-section");
+        const dividerSectionNode = repeatNode.find(n => n.name === "divider-section");
         const options = {
             min: 1,
             max: Infinity
@@ -2653,18 +2736,17 @@ class Grammar {
                 options.max = Infinity;
             }
             else {
-                options.min = 0;
-                options.max = Infinity;
+                isOptional = true;
             }
         }
-        return new Repeat(name, pattern.clone(pattern.name), options);
+        return isOptional ? new Optional(name, new Repeat(name, pattern, options)) : new Repeat(name, pattern, options);
     }
     _saveConfigurableAnonymous(node) {
         const nameNode = node.find(n => n.name === "name");
         const name = nameNode.value;
         const anonymousNode = node.find(n => n.name === "complex-anonymous-pattern");
         const isOptional = node.children[1] != null;
-        const anonymous = this._buildPattern(anonymousNode).clone(name, isOptional);
+        const anonymous = isOptional ? new Optional(name, this._buildPattern(anonymousNode)) : this._buildPattern(anonymousNode);
         this._parseContext.patternsByName.set(name, anonymous);
     }
     _buildComplexAnonymousPattern(node) {
@@ -2807,7 +2889,6 @@ function patterns(strings, ...values) {
     return result;
 }
 
-exports.And = And;
 exports.AutoComplete = AutoComplete;
 exports.Cursor = Cursor;
 exports.CursorHistory = CursorHistory;
@@ -2815,11 +2896,13 @@ exports.Grammar = Grammar;
 exports.Literal = Literal;
 exports.Node = Node;
 exports.Not = Not;
-exports.Or = Or;
+exports.Optional = Optional;
+exports.Options = Options;
 exports.ParseError = ParseError;
 exports.Reference = Reference;
 exports.Regex = Regex;
 exports.Repeat = Repeat;
+exports.Sequence = Sequence;
 exports.arePatternsEqual = arePatternsEqual;
 exports.grammar = grammar;
 exports.patterns = patterns;

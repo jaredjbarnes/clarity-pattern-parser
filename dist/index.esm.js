@@ -1480,6 +1480,12 @@ class Repeat {
     get children() {
         return this._children;
     }
+    get min() {
+        return this.children[0].min;
+    }
+    get max() {
+        return this.children[0].max || Infinity;
+    }
     constructor(name, pattern, options = {}) {
         this._id = `repeat-${idIndex$3++}`;
         this._pattern = pattern;

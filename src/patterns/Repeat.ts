@@ -52,6 +52,14 @@ export class Repeat implements Pattern {
         return this._children;
     }
 
+    get min() {
+        return (this.children[0] as any).min;
+    }
+
+    get max() {
+        return (this.children[0] as any).max || Infinity;
+    }
+
     constructor(name: string, pattern: Pattern, options: RepeatOptions = {}) {
         this._id = `repeat-${idIndex++}`;
         this._pattern = pattern;

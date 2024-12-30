@@ -2058,7 +2058,8 @@
 
     const bodyLineContent = new Options("body-line-content", [
         comment,
-        statement
+        statement,
+        lineSpaces$1
     ]);
     const optionalLineSpaces$2 = new Optional("optional-line-spaces", lineSpaces$1);
     const bodyLine = new Sequence("body-line", [

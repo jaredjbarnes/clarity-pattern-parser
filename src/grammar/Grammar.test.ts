@@ -380,7 +380,9 @@ describe("Grammar", () => {
         `;
         const expression = `
         import { first-name } from "first-name.cpat"
-        import { space } from "space.cpat" with params { custom-space = "  " }
+        import { space } from "space.cpat" with params {
+          custom-space = "  "
+        }
         last-name = "Doe"
         full-name = first-name + space + last-name
         `;

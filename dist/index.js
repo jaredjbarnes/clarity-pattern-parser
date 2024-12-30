@@ -2056,13 +2056,12 @@ const statement = new Options("statement", [assignStatement, name$1.clone("expor
 
 const bodyLineContent = new Options("body-line-content", [
     comment,
-    statement,
-    lineSpaces$1
+    statement
 ]);
 const optionalLineSpaces$2 = new Optional("optional-line-spaces", lineSpaces$1);
 const bodyLine = new Sequence("body-line", [
     optionalLineSpaces$2,
-    bodyLineContent,
+    new Optional("optional-body-line-content", bodyLineContent),
     optionalLineSpaces$2,
 ]);
 const body = new Optional("optional-body", new Repeat("body", bodyLine, { divider: newLine$1 }));

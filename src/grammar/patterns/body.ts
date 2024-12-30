@@ -8,15 +8,14 @@ import { Optional } from "../../patterns/Optional";
 
 const bodyLineContent = new Options("body-line-content", [
     comment,
-    statement,
-    lineSpaces
+    statement
 ]);
 
 const optionalLineSpaces = new Optional("optional-line-spaces", lineSpaces);
 
 const bodyLine = new Sequence("body-line", [
     optionalLineSpaces,
-    bodyLineContent,
+    new Optional("optional-body-line-content", bodyLineContent),
     optionalLineSpaces,
 ]);
 

@@ -499,4 +499,15 @@ describe("Grammar", () => {
 
         expect(arePatternsEqual(patterns["complex-expression"], expected)).toBeTruthy();
     });
+
+    test("Grammar With Spaces", ()=>{
+        const expression = `
+        john = "John"
+            
+        jane = "Jane"
+        `;
+        const patterns = Grammar.parseString(expression);
+        expect(patterns.john).not.toBeNull(); 
+        expect(patterns.jane).not.toBeNull(); 
+    });
 });

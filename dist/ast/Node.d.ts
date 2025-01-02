@@ -1,8 +1,6 @@
 export interface CycleFreeNode {
     type: string;
     name: string;
-    firstIndex: number;
-    lastIndex: number;
     startIndex: number;
     endIndex: number;
     value: string;

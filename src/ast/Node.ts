@@ -1,8 +1,6 @@
 export interface CycleFreeNode {
   type: string;
   name: string;
-  firstIndex: number;
-  lastIndex: number;
   startIndex: number;
   endIndex: number;
   value: string;
@@ -269,12 +267,10 @@ export class Node {
       type: this._type,
       name: this._name,
       value: this.toString(),
-      firstIndex: this._firstIndex,
-      lastIndex: this._lastIndex,
       startIndex: this.startIndex,
       endIndex: this.endIndex,
       children: this._children.map(c => c.toCycleFreeObject()),
-    }
+    };
   }
 
   toJson(space?: number): string {

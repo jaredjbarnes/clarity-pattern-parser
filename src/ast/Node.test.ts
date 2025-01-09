@@ -16,7 +16,7 @@ describe("Node", () => {
     });
 
     test("Properties", () => {
-        const child = new Node("child", "child", 0, 0, undefined, "Content")
+        const child = new Node("child", "child", 0, 0, undefined, "Content");
         const parent = new Node("parent", "parent", 0, 0, [
             child,
         ]);
@@ -99,7 +99,7 @@ describe("Node", () => {
         parent.insertBefore(b, a);
 
         expect(parent.children.length).toBe(2);
-        expect(parent.value).toBe("BA")
+        expect(parent.value).toBe("BA");
         expect(parent.children[0]).toBe(b);
         expect(parent.children[1]).toBe(a);
         expect(a.parent).toBe(parent);
@@ -118,7 +118,7 @@ describe("Node", () => {
         parent.insertBefore(b, null);
 
         expect(parent.children.length).toBe(2);
-        expect(parent.value).toBe("AB")
+        expect(parent.value).toBe("AB");
         expect(parent.children[0]).toBe(a);
         expect(parent.children[1]).toBe(b);
         expect(a.parent).toBe(parent);
@@ -137,7 +137,7 @@ describe("Node", () => {
         parent.appendChild(b);
 
         expect(parent.children.length).toBe(2);
-        expect(parent.value).toBe("AB")
+        expect(parent.value).toBe("AB");
         expect(parent.children[0]).toBe(a);
         expect(parent.children[1]).toBe(b);
         expect(a.parent).toBe(parent);
@@ -156,7 +156,7 @@ describe("Node", () => {
         parent.spliceChildren(0, 0, b);
 
         expect(parent.children.length).toBe(2);
-        expect(parent.value).toBe("BA")
+        expect(parent.value).toBe("BA");
         expect(parent.children[0]).toBe(b);
         expect(parent.children[1]).toBe(a);
         expect(a.parent).toBe(parent);
@@ -175,7 +175,7 @@ describe("Node", () => {
         parent.spliceChildren(0, 1, b);
 
         expect(parent.children.length).toBe(1);
-        expect(parent.value).toBe("B")
+        expect(parent.value).toBe("B");
         expect(parent.children[0]).toBe(b);
         expect(a.parent).toBeNull();
         expect(b.parent).toBe(parent);
@@ -191,7 +191,7 @@ describe("Node", () => {
         parent.find(p => p.name === "b")?.remove();
 
         expect(parent.children.length).toBe(1);
-        expect(parent.value).toBe("A")
+        expect(parent.value).toBe("A");
         expect(parent.children[0]).toBe(a);
         expect(a.parent).toBe(parent);
         expect(b.parent).toBeNull();
@@ -203,7 +203,7 @@ describe("Node", () => {
         const b = new Node("b", "b", 0, 0, [], "B");
         new Node("parent", "parent", 0, 0, [a, b]);
 
-        const nextSibling = a.nextSibling()
+        const nextSibling = a.nextSibling();
 
         expect(nextSibling).toBe(b);
     });
@@ -211,7 +211,7 @@ describe("Node", () => {
     test("Next Sibling (No Parent)", () => {
         const a = new Node("a", "a", 0, 0, [], "A");
 
-        const nextSibling = a.nextSibling()
+        const nextSibling = a.nextSibling();
         expect(nextSibling).toBeNull;
     });
 
@@ -220,7 +220,7 @@ describe("Node", () => {
         const b = new Node("b", "b", 0, 0, [], "B");
         new Node("parent", "parent", 0, 0, [a, b]);
 
-        const nextSibling = b.nextSibling()
+        const nextSibling = b.nextSibling();
         expect(nextSibling).toBeNull;
     });
 
@@ -229,14 +229,14 @@ describe("Node", () => {
         const b = new Node("b", "b", 0, 0, [], "B");
         new Node("parent", "parent", 0, 0, [a, b]);
 
-        const previousSibling = b.previousSibling()
+        const previousSibling = b.previousSibling();
 
         expect(previousSibling).toBe(a);
     });
 
     test("Previous Sibling (No Parent)", () => {
         const a = new Node("a", "a", 0, 0, [], "A");
-        const previousSibling = a.previousSibling()
+        const previousSibling = a.previousSibling();
         expect(previousSibling).toBeNull();
     });
 
@@ -245,7 +245,7 @@ describe("Node", () => {
         const b = new Node("b", "b", 0, 0, [], "B");
         new Node("parent", "parent", 0, 0, [a, b]);
 
-        const previousSibling = a.previousSibling()
+        const previousSibling = a.previousSibling();
         expect(previousSibling).toBeNull;
     });
 
@@ -256,7 +256,7 @@ describe("Node", () => {
 
         const result = parent.find(n => n.name === "a");
 
-        expect(result).toBe(a)
+        expect(result).toBe(a);
     });
 
     test("Walk Down", () => {
@@ -266,7 +266,7 @@ describe("Node", () => {
         const parent = new Node("parent", "parent", 0, 0, [a, b]);
 
         parent.walkDown((n) => {
-            result.push(n)
+            result.push(n);
         });
 
         const expected = [parent, a, b];
@@ -281,7 +281,7 @@ describe("Node", () => {
         const parent = new Node("parent", "parent", 0, 0, [a, b]);
 
         parent.walkUp((n) => {
-            result.push(n)
+            result.push(n);
         });
 
         const expected = [a, b, parent];
@@ -295,7 +295,7 @@ describe("Node", () => {
         const parent = new Node("parent", "parent", 0, 0, [a, b]);
         const clone = parent.clone();
 
-        expect(clone).toEqual(parent)
+        expect(clone).toEqual(parent);
     });
 
     test("Turn Into JSON", () => {
@@ -326,7 +326,7 @@ describe("Node", () => {
             }],
         });
 
-        expect(result).toEqual(expected)
+        expect(result).toEqual(expected);
     });
 
     test("Reduce", () => {
@@ -337,7 +337,7 @@ describe("Node", () => {
         parent.reduce();
 
         expect(parent.hasChildren).toBeFalsy();
-        expect(parent.value).toBe("Content")
+        expect(parent.value).toBe("Content");
     });
 
     test("Flatten", () => {
@@ -358,22 +358,22 @@ describe("Node", () => {
         const nodes = grandParent.flatten();
         const expected = [a, b, c];
 
-        expect(nodes).toEqual(expected)
+        expect(nodes).toEqual(expected);
     });
 
     test("Find Ancester", () => {
         const child = new Node("child", "child", 0, 0, []);
         const parent = new Node("parent", "parent", 0, 0, [child]);
         const grandParent = new Node("grand-parent", "grand-parent", 0, 0, [parent]);
-        const result = child.findAncester(p => p.name === "grand-parent")
+        const result = child.findAncestor(p => p.name === "grand-parent");
 
-        expect(result).toBe(grandParent)
+        expect(result).toBe(grandParent);
     });
 
     test("Find Ancester Without Parent", () => {
         const child = new Node("child", "child", 0, 0, []);
-        const result = child.findAncester(p => p.name === "parent")
-        expect(result).toBeNull()
+        const result = child.findAncestor(p => p.name === "parent");
+        expect(result).toBeNull();
     });
 
     test("Normalize values and index", () => {
@@ -418,6 +418,42 @@ describe("Node", () => {
         expect(first.parent).toBeNull();
         expect(result.parent).toBe(parent);
 
+    });
+
+    test("Transform", () => {
+        const node = Node.createNode("grandparent", [
+            Node.createNode("parent", [
+                Node.createValueNode("child", "John"),
+                Node.createValueNode("child", "Jane"),
+                Node.createValueNode("child", "Jack")
+            ]),
+            Node.createValueNode("aunt", "aunt")
+        ]);
+
+        const result = node.transform({
+            "child": (node: Node) => {
+                return Node.createValueNode("adopted-child", node.value);
+            },
+            "parent": (node)=>{
+                return Node.createNode("adopted-parent", node.children.slice());
+            },
+            "grandparent": (node)=>{
+                return Node.createNode("adopted-grandparent", node.children.slice());
+            }
+        });
+
+        const expected = Node.createNode("adopted-grandparent", [
+            Node.createNode("adopted-parent", [
+                Node.createValueNode("adopted-child", "John"),
+                Node.createValueNode("adopted-child", "Jane"),
+                Node.createValueNode("adopted-child", "Jack")
+            ]),
+            Node.createValueNode("aunt", "aunt")
+        ]);
+
+        
+
+        expect(result.toJson()).toBe(expected.toJson());
     });
 
 });

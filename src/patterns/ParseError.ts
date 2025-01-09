@@ -1,7 +1,7 @@
 import { Pattern } from "./Pattern";
 
 export class ParseError {
-  public startIndex: number
+  public startIndex: number;
   public endIndex: number;
   public pattern: Pattern;
 

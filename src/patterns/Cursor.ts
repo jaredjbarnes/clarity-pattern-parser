@@ -77,7 +77,7 @@ export class Cursor {
   constructor(text: string) {
     this._text = text;
     this._index = 0;
-    this._length = text.length;
+    this._length = [...text].length;
     this._history = new CursorHistory();
     this._stackTrace = [];
   }
@@ -128,8 +128,8 @@ export class Cursor {
     this._history.recordMatch(pattern, node);
   }
 
-  recordErrorAt(firstIndex: number, lastIndex: number, onPattern: Pattern): void {
-    this._history.recordErrorAt(firstIndex, lastIndex, onPattern);
+  recordErrorAt(startIndex: number, endIndex: number, onPattern: Pattern): void {
+    this._history.recordErrorAt(startIndex, endIndex, onPattern);
   }
 
   resolveError(): void {
@@ -152,7 +152,8 @@ export class Cursor {
       cursorIndex: this.index
     };
 
-    if (this._stackTrace.find(t => t.pattern.id === pattern.id && this.index === t.cursorIndex)) {
+    const hasCycle = this._stackTrace.find(t => t.pattern.id === pattern.id && this.index === t.cursorIndex);
+    if (hasCycle) {
       throw new Error(`Cyclical Pattern: ${this._stackTrace.map(t => `${t.pattern.name}#${t.pattern.id}{${t.cursorIndex}}`).join(" -> ")} -> ${patternName}#${pattern.id}{${this.index}}.`);
     }
 

@@ -17,7 +17,6 @@ import { Reference } from "./patterns/Reference";
 import { CursorHistory, Match } from "./patterns/CursorHistory";
 import { ParseResult } from "./patterns/ParseResult";
 import { grammar } from "./grammar/patterns/grammar";
-import { arePatternsEqual } from "./patterns/arePatternsEqual";
 import { patterns } from "./grammar/patterns";
 
 export {
@@ -42,6 +41,5 @@ export {
   Regex,
   Repeat,
   grammar,
-  arePatternsEqual,
   patterns,
 };

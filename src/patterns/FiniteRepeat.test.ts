@@ -4,7 +4,6 @@ import { Regex } from "./Regex";
 import { Node } from "../ast/Node";
 import { Literal } from "./Literal";
 import { Sequence } from "./Sequence";
-import { arePatternsEqual } from "./arePatternsEqual";
 import { Optional } from "./Optional";
 
 describe("BoundedRepeat", () => {
@@ -287,22 +286,22 @@ describe("BoundedRepeat", () => {
         let clone = numbers.clone();
         let expected = new FiniteRepeat("numbers", new Regex("number", "\\d"), { min: 0, max: 3 });
 
-        expect(arePatternsEqual(clone, expected)).toBeTruthy();
+        expect(clone.isEqual(expected)).toBeTruthy();
 
         clone = numbers.clone("cloned-numbers");
         expected = new FiniteRepeat("cloned-numbers", new Regex("number", "\\d"), { min: 0, max: 3 });
 
-        expect(arePatternsEqual(clone, expected)).toBeTruthy();
+        expect(clone.isEqual(expected)).toBeTruthy();
 
         clone = numbers.clone("cloned-numbers");
         expected = new FiniteRepeat("cloned-numbers", new Regex("number", "\\d"), { min: 0, max: 3 });
 
-        expect(arePatternsEqual(clone, expected)).toBeTruthy();
+        expect(clone.isEqual(expected)).toBeTruthy();
 
         clone = numbers.clone("cloned-numbers");
         expected = new FiniteRepeat("cloned-numbers", new Regex("number", "\\d"), { min: 0, max: 3 });
 
-        expect(arePatternsEqual(clone, expected)).toBeTruthy();
+        expect(clone.isEqual(expected)).toBeTruthy();
     });
 
     test("Get Tokens", () => {

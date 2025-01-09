@@ -131,7 +131,7 @@ export class Grammar {
     }
 
     private _buildPatterns(ast: Node) {
-        const body = ast.find(n => n.name === "body" && n.findAncester(n => n.name === "head") == null);
+        const body = ast.find(n => n.name === "body" && n.findAncestor(n => n.name === "head") == null);
 
         if (body == null) {
             return;

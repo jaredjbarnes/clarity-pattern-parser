@@ -30,7 +30,7 @@ export declare class CursorHistory {
     get patterns(): Pattern[];
     get trace(): Trace[];
     recordMatch(pattern: Pattern, node: Node): void;
-    recordErrorAt(firstIndex: number, lastIndex: number, pattern: Pattern): void;
+    recordErrorAt(startIndex: number, endIndex: number, pattern: Pattern): void;
     startRecording(): void;
     stopRecording(): void;
     resolveError(): void;

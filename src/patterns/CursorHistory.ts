@@ -106,11 +106,11 @@ export class CursorHistory {
     }
   }
 
-  recordErrorAt(firstIndex: number, lastIndex: number, pattern: Pattern): void {
-    const error = new ParseError(firstIndex, lastIndex, pattern);
+  recordErrorAt(startIndex: number, endIndex: number, pattern: Pattern): void {
+    const error = new ParseError(startIndex, endIndex, pattern);
     this._currentError = error;
 
-    if (this._furthestError === null || lastIndex > this._furthestError.endIndex) {
+    if (this._furthestError === null || endIndex > this._furthestError.endIndex) {
       this._furthestError = error;
     }
 

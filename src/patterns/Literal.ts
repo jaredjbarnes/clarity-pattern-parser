@@ -10,7 +10,7 @@ export class Literal implements Pattern {
   private _type: string;
   private _name: string;
   private _parent: Pattern | null;
-  private _text: string;
+  private _token: string;
   private _runes: string[];
   private _firstIndex: number;
   private _lastIndex: number;
@@ -28,8 +28,8 @@ export class Literal implements Pattern {
     return this._name;
   }
 
-  get value(): string {
-    return this._text;
+  get token(): string {
+    return this._token;
   }
 
   get parent(): Pattern | null {
@@ -52,7 +52,7 @@ export class Literal implements Pattern {
     this._id = `literal-${idIndex++}`;
     this._type = "literal";
     this._name = name;
-    this._text = value;
+    this._token = value;
     this._runes = Array.from(value);
     this._parent = null;
     this._firstIndex = 0;
@@ -60,8 +60,10 @@ export class Literal implements Pattern {
     this._endIndex = 0;
   }
 
-  test(text: string) {
+  test(text: string, record = false) {
     const cursor = new Cursor(text);
+    record && cursor.startRecording();
+
     const ast = this.parse(cursor);
 
     return ast?.value === text;
@@ -83,7 +85,6 @@ export class Literal implements Pattern {
     cursor.startParseWith(this);
 
     this._firstIndex = cursor.index;
-
     const passed = this._tryToParse(cursor);
 
     if (passed) {
@@ -114,7 +115,7 @@ export class Literal implements Pattern {
       }
 
       if (i + 1 === literalRuneLength) {
-        this._lastIndex = this._firstIndex + this._text.length - 1;
+        this._lastIndex = this._firstIndex + this._token.length - 1;
         passed = true;
         break;
       }
@@ -137,18 +138,18 @@ export class Literal implements Pattern {
       this._firstIndex,
       this._lastIndex,
       undefined,
-      this._text
+      this._token
     );
   }
 
   clone(name = this._name): Pattern {
-    const clone = new Literal(name, this._text);
+    const clone = new Literal(name, this._token);
     clone._id = this._id;
     return clone;
   }
 
   getTokens(): string[] {
-    return [this._text];
+    return [this._token];
   }
 
   getTokensAfter(_lastMatched: Pattern): string[] {
@@ -184,6 +185,6 @@ export class Literal implements Pattern {
   }
 
   isEqual(pattern: Literal) {
-    return pattern.type === this.type && pattern._text === this._text;
+    return pattern.type === this.type && pattern._token === this._token;
   }
 }

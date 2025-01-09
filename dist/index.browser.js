@@ -4,6 +4,9 @@
     (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.clarityPatternParser = {}));
 })(this, (function (exports) { 'use strict';
 
+    function defaultVisitor(node) {
+        return node;
+    }
     class Node {
         get type() {
             return this._type;
@@ -32,6 +35,9 @@
         get hasChildren() {
             return this._children.length > 0;
         }
+        get isLeaf() {
+            return !this.hasChildren;
+        }
         get value() {
             return this.toString();
         }
@@ -52,16 +58,22 @@
                 node._parent = null;
             }
         }
+        findChildIndex(node) {
+            return this._children.indexOf(node);
+        }
+        spliceChildren(index, deleteCount, ...items) {
+            const removedItems = this._children.splice(index, deleteCount, ...items);
+            removedItems.forEach(i => i._parent = null);
+            items.forEach(i => i._parent = this);
+            return removedItems;
+        }
         removeAllChildren() {
-            this._children.forEach(c => c._parent = null);
-            this._children.length = 0;
+            this.spliceChildren(0, this._children.length);
         }
         replaceChild(newNode, referenceNode) {
-            const index = this._children.indexOf(referenceNode);
+            const index = this.findChildIndex(referenceNode);
             if (index > -1) {
-                this._children.splice(index, 1, newNode);
-                newNode._parent = this;
-                referenceNode._parent = null;
+                this.spliceChildren(index, 1, newNode);
             }
         }
         replaceWith(newNode) {
@@ -75,20 +87,19 @@
                 this._children.push(newNode);
                 return;
             }
-            const index = this._children.indexOf(referenceNode);
+            const index = this.findChildIndex(referenceNode);
             if (index > -1) {
                 this._children.splice(index, 0, newNode);
             }
         }
         appendChild(newNode) {
-            newNode._parent = this;
-            this._children.push(newNode);
+            this.append(newNode);
         }
-        spliceChildren(index, deleteCount, ...items) {
-            const removedItems = this._children.splice(index, deleteCount, ...items);
-            removedItems.forEach(i => i._parent = null);
-            items.forEach(i => i._parent = this);
-            return removedItems;
+        append(...nodes) {
+            nodes.forEach((newNode) => {
+                newNode._parent = this;
+                this._children.push(newNode);
+            });
         }
         nextSibling() {
             if (this._parent == null) {
@@ -124,7 +135,7 @@
             });
             return matches;
         }
-        findAncester(predicate) {
+        findAncestor(predicate) {
             let parent = this._parent;
             while (parent != null) {
                 if (predicate(parent)) {
@@ -143,6 +154,23 @@
             const childrenCopy = this._children.slice();
             callback(this);
             childrenCopy.forEach(c => c.walkDown(callback));
+        }
+        walkBreadthFirst(callback) {
+            const queue = [this];
+            while (queue.length > 0) {
+                // biome-ignore lint/style/noNonNullAssertion: This will never be undefined.
+                const current = queue.shift();
+                callback(current);
+                queue.push(...current.children);
+            }
+        }
+        transform(visitors) {
+            const childrenCopy = this._children.slice();
+            const visitor = visitors[this.name] == null ? defaultVisitor : visitors[this.name];
+            const children = childrenCopy.map(c => c.transform(visitors));
+            this.removeAllChildren();
+            this.append(...children);
+            return visitor(this);
         }
         flatten() {
             const nodes = [];
@@ -196,6 +224,13 @@
         }
         toJson(space) {
             return JSON.stringify(this.toCycleFreeObject(), null, space);
+        }
+        static createValueNode(name, value) {
+            return new Node("custom-value-node", name, 0, 0, [], value);
+        }
+        static createNode(name, children) {
+            const value = children.map(c => c.toString()).join("");
+            return new Node("custom-node", name, 0, 0, children, value);
         }
     }
 
@@ -314,10 +349,10 @@
                 }
             }
         }
-        recordErrorAt(firstIndex, lastIndex, pattern) {
-            const error = new ParseError(firstIndex, lastIndex, pattern);
+        recordErrorAt(startIndex, endIndex, pattern) {
+            const error = new ParseError(startIndex, endIndex, pattern);
             this._currentError = error;
-            if (this._furthestError === null || lastIndex > this._furthestError.endIndex) {
+            if (this._furthestError === null || endIndex > this._furthestError.endIndex) {
                 this._furthestError = error;
             }
             if (this._isRecording) {
@@ -392,7 +427,7 @@
         constructor(text) {
             this._text = text;
             this._index = 0;
-            this._length = text.length;
+            this._length = [...text].length;
             this._history = new CursorHistory();
             this._stackTrace = [];
         }
@@ -432,8 +467,8 @@
         recordMatch(pattern, node) {
             this._history.recordMatch(pattern, node);
         }
-        recordErrorAt(firstIndex, lastIndex, onPattern) {
-            this._history.recordErrorAt(firstIndex, lastIndex, onPattern);
+        recordErrorAt(startIndex, endIndex, onPattern) {
+            this._history.recordErrorAt(startIndex, endIndex, onPattern);
         }
         resolveError() {
             this._history.resolveError();
@@ -450,7 +485,8 @@
                 pattern,
                 cursorIndex: this.index
             };
-            if (this._stackTrace.find(t => t.pattern.id === pattern.id && this.index === t.cursorIndex)) {
+            const hasCycle = this._stackTrace.find(t => t.pattern.id === pattern.id && this.index === t.cursorIndex);
+            if (hasCycle) {
                 throw new Error(`Cyclical Pattern: ${this._stackTrace.map(t => `${t.pattern.name}#${t.pattern.id}{${t.cursorIndex}}`).join(" -> ")} -> ${patternName}#${pattern.id}{${this.index}}.`);
             }
             this._history.pushStackTrace(trace);
@@ -486,8 +522,8 @@
         get name() {
             return this._name;
         }
-        get value() {
-            return this._text;
+        get token() {
+            return this._token;
         }
         get parent() {
             return this._parent;
@@ -505,15 +541,16 @@
             this._id = `literal-${idIndex$9++}`;
             this._type = "literal";
             this._name = name;
-            this._text = value;
+            this._token = value;
             this._runes = Array.from(value);
             this._parent = null;
             this._firstIndex = 0;
             this._lastIndex = 0;
             this._endIndex = 0;
         }
-        test(text) {
+        test(text, record = false) {
             const cursor = new Cursor(text);
+            record && cursor.startRecording();
             const ast = this.parse(cursor);
             return (ast === null || ast === void 0 ? void 0 : ast.value) === text;
         }
@@ -552,7 +589,7 @@
                     break;
                 }
                 if (i + 1 === literalRuneLength) {
-                    this._lastIndex = this._firstIndex + this._text.length - 1;
+                    this._lastIndex = this._firstIndex + this._token.length - 1;
                     passed = true;
                     break;
                 }
@@ -565,15 +602,15 @@
             return passed;
         }
         _createNode() {
-            return new Node("literal", this._name, this._firstIndex, this._lastIndex, undefined, this._text);
+            return new Node("literal", this._name, this._firstIndex, this._lastIndex, undefined, this._token);
         }
         clone(name = this._name) {
-            const clone = new Literal(name, this._text);
+            const clone = new Literal(name, this._token);
             clone._id = this._id;
             return clone;
         }
         getTokens() {
-            return [this._text];
+            return [this._token];
         }
         getTokensAfter(_lastMatched) {
             return [];
@@ -600,7 +637,7 @@
             return null;
         }
         isEqual(pattern) {
-            return pattern.type === this.type && pattern._text === this._text;
+            return pattern.type === this.type && pattern._token === this._token;
         }
     }
 
@@ -2552,7 +2589,7 @@
             return importBlock && importBlock.children.length > 0;
         }
         _buildPatterns(ast) {
-            const body = ast.find(n => n.name === "body" && n.findAncester(n => n.name === "head") == null);
+            const body = ast.find(n => n.name === "body" && n.findAncestor(n => n.name === "head") == null);
             if (body == null) {
                 return;
             }
@@ -2872,16 +2909,6 @@
         }
     }
 
-    function arePatternsEqual(a, b) {
-        if (a === b) {
-            return true;
-        }
-        else if (a == null || b == null) {
-            return false;
-        }
-        return a.isEqual(b);
-    }
-
     const kebabRegex = /-([a-z])/g; // Define the regex once
     function kebabToCamelCase(str) {
         return str.replace(kebabRegex, (_, char) => char.toUpperCase());
@@ -2910,7 +2937,6 @@
     exports.Regex = Regex;
     exports.Repeat = Repeat;
     exports.Sequence = Sequence;
-    exports.arePatternsEqual = arePatternsEqual;
     exports.grammar = grammar;
     exports.patterns = patterns;
 

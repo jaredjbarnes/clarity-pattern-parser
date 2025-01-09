@@ -6,7 +6,6 @@ import { Literal } from "./Literal";
 import { Pattern } from "./Pattern";
 import { Regex } from "./Regex";
 import { InfiniteRepeat } from "./InfiniteRepeat";
-import { arePatternsEqual } from "./arePatternsEqual";
 import { Optional } from "./Optional";
 
 describe("InfiniteRepeat", () => {
@@ -254,7 +253,7 @@ describe("InfiniteRepeat", () => {
         let clone = numbers.clone();
         let expected = new InfiniteRepeat("numbers", new Regex("number", "\\d"), { min: 3, divider: new Literal("divider", "divider"), trimDivider: true });
 
-        expect(arePatternsEqual(clone, expected)).toBeTruthy();
+        expect(clone.isEqual(expected)).toBeTruthy();
     });
 
     test("No Results, min is 0", () => {

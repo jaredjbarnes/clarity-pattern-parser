@@ -35,7 +35,7 @@ export declare class Cursor {
     getLastIndex(): number;
     getChars(first: number, last: number): string;
     recordMatch(pattern: Pattern, node: Node): void;
-    recordErrorAt(firstIndex: number, lastIndex: number, onPattern: Pattern): void;
+    recordErrorAt(startIndex: number, endIndex: number, onPattern: Pattern): void;
     resolveError(): void;
     startRecording(): void;
     stopRecording(): void;

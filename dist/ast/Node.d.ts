@@ -23,22 +23,27 @@ export declare class Node {
     get parent(): Node | null;
     get children(): readonly Node[];
     get hasChildren(): boolean;
+    get isLeaf(): boolean;
     get value(): string;
     constructor(type: string, name: string, firstIndex: number, lastIndex: number, children?: Node[], value?: string);
     removeChild(node: Node): void;
+    findChildIndex(node: Node): number;
+    spliceChildren(index: number, deleteCount: number, ...items: Node[]): Node[];
     removeAllChildren(): void;
     replaceChild(newNode: Node, referenceNode: Node): void;
     replaceWith(newNode: Node): void;
     insertBefore(newNode: Node, referenceNode: Node | null): void;
     appendChild(newNode: Node): void;
-    spliceChildren(index: number, deleteCount: number, ...items: Node[]): Node[];
+    append(...nodes: Node[]): void;
     nextSibling(): Node | null;
     previousSibling(): Node | null;
     find(predicate: (node: Node) => boolean): Node | null;
     findAll(predicate: (node: Node) => boolean): Node[];
-    findAncester(predicate: (node: Node) => boolean): Node | null;
+    findAncestor(predicate: (node: Node) => boolean): Node | null;
     walkUp(callback: (node: Node) => void): void;
     walkDown(callback: (node: Node) => void): void;
+    walkBreadthFirst(callback: (node: Node) => void): void;
+    transform(visitors: Record<string, (node: Node) => Node>): Node;
     flatten(): Node[];
     reduce(): void;
     remove(): void;
@@ -47,4 +52,6 @@ export declare class Node {
     toString(): string;
     toCycleFreeObject(): CycleFreeNode;
     toJson(space?: number): string;
+    static createValueNode(name: string, value: string): Node;
+    static createNode(name: string, children: Node[]): Node;
 }

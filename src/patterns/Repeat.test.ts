@@ -1,6 +1,5 @@
 import { Node } from "../ast/Node";
 import { Sequence } from "./Sequence";
-import { arePatternsEqual } from "./arePatternsEqual";
 import { Cursor } from "./Cursor";
 import { InfiniteRepeat } from "./InfiniteRepeat";
 import { Literal } from "./Literal";
@@ -202,11 +201,11 @@ describe("Repeat", () => {
         let repeatClone = repeat.clone();
         let expected = new Repeat("numbers", number);
 
-        expect(arePatternsEqual(repeatClone, expected)).toBeTruthy();
+        expect(repeatClone.isEqual(expected)).toBeTruthy();
 
         repeatClone = repeat.clone("new-name");
         expected = new Repeat("new-name", number);
 
-        expect(arePatternsEqual(repeatClone, expected)).toBeTruthy();
+        expect(repeatClone.isEqual(expected)).toBeTruthy();
     });
 });

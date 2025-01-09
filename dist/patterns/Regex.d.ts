@@ -17,7 +17,7 @@ export declare class Regex implements Pattern {
     get id(): string;
     get type(): string;
     get name(): string;
-    get value(): string;
+    get regex(): string;
     get parent(): Pattern | null;
     set parent(pattern: Pattern | null);
     get children(): Pattern[];

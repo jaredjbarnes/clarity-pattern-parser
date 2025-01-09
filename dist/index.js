@@ -650,7 +650,7 @@ class Regex {
     get name() {
         return this._name;
     }
-    get value() {
+    get regex() {
         return this._originalRegexString;
     }
     get parent() {

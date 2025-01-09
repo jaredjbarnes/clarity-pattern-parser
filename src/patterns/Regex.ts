@@ -30,7 +30,7 @@ export class Regex implements Pattern {
     return this._name;
   }
 
-  get value(): string{
+  get regex(): string{
     return this._originalRegexString;
   }
 

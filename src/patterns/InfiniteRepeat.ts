@@ -196,7 +196,7 @@ export class InfiniteRepeat implements Pattern {
             if (dividerNode == null) {
               cursor.moveTo(dividerStartIndex);
 
-              if (dividerNode == null && repeatNode == null) {
+              if (repeatNode == null) {
                 // If neither the repeat pattern or divider pattern matched get out. 
                 passed = true;
                 break;

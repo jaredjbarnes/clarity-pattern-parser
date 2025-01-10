@@ -1105,6 +1105,7 @@ class FiniteRepeat {
         }
     }
     parse(cursor) {
+        var _a;
         cursor.startParseWith(this);
         const startIndex = cursor.index;
         const nodes = [];
@@ -1134,7 +1135,7 @@ class FiniteRepeat {
             }
         }
         if (this._trimDivider && this._hasDivider) {
-            const isDividerLastMatch = cursor.leafMatch.pattern === this.children[1];
+            const isDividerLastMatch = ((_a = cursor.leafMatch.pattern) === null || _a === void 0 ? void 0 : _a.id) === this.children[1].id;
             if (isDividerLastMatch) {
                 const node = nodes.pop();
                 cursor.moveTo(node.firstIndex);
@@ -1375,7 +1376,7 @@ class InfiniteRepeat {
                     else {
                         if (dividerNode == null) {
                             cursor.moveTo(dividerStartIndex);
-                            if (dividerNode == null && repeatNode == null) {
+                            if (repeatNode == null) {
                                 // If neither the repeat pattern or divider pattern matched get out. 
                                 passed = true;
                                 break;

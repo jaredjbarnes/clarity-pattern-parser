@@ -117,7 +117,7 @@ export class FiniteRepeat implements Pattern {
         }
 
         if (this._trimDivider && this._hasDivider) {
-            const isDividerLastMatch = cursor.leafMatch.pattern === this.children[1];
+            const isDividerLastMatch = cursor.leafMatch.pattern?.id === this.children[1].id;
             if (isDividerLastMatch) {
                 const node = nodes.pop() as Node;
                 cursor.moveTo(node.firstIndex);

@@ -52,6 +52,7 @@ export declare class Node {
     toString(): string;
     toCycleFreeObject(): CycleFreeNode;
     toJson(space?: number): string;
+    isEqual(node: Node): boolean;
     static createValueNode(name: string, value: string): Node;
     static createNode(name: string, children: Node[]): Node;
 }

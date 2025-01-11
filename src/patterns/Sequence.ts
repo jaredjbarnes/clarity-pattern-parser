@@ -212,7 +212,7 @@ export class Sequence implements Pattern {
     for (const child of this._children) {
       tokens.push(...child.getTokens());
 
-      if (child.type !== "optional") {
+      if (child.type !== "optional" && child.type !== "not") {
         break;
       }
     }
@@ -243,7 +243,7 @@ export class Sequence implements Pattern {
     for (const child of this._children) {
       patterns.push(...child.getPatterns());
 
-      if (child.type !== "optional") {
+      if (child.type !== "optional" && child.type !== "not") {
         break;
       }
     }

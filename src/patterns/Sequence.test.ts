@@ -3,6 +3,7 @@ import { Sequence } from "./Sequence";
 import { Literal } from "./Literal";
 import { Node } from "../ast/Node";
 import { Optional } from "./Optional";
+import { Pattern } from "./Pattern";
 
 describe("Sequence", () => {
     test("No Patterns", () => {
@@ -310,9 +311,9 @@ describe("Sequence", () => {
 
         const sequenceClone = parent.find(p => p.name === "sequence");
         const nextPatterns = sequenceClone?.getNextPatterns() || [];
-        const b = parent.find(p => p.name === "b")
+        const b = parent.find(p => p.name === "b") as Pattern;
 
-        expect(nextPatterns[0]).toBe(b);
+        expect(nextPatterns[0].isEqual(b)).toBeTruthy();
     });
 
     test("Get Next Patterns With Null Parent", () => {

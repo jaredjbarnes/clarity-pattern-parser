@@ -53,11 +53,11 @@ export class Repeat implements Pattern {
     }
 
     get min() {
-        return (this.children[0] as any).min;
+        return this._options.min;
     }
 
     get max() {
-        return (this.children[0] as any).max || Infinity;
+        return this._options.max;
     }
 
     constructor(name: string, pattern: Pattern, options: RepeatOptions = {}) {

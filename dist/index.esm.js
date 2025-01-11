@@ -219,6 +219,9 @@ class Node {
     toJson(space) {
         return JSON.stringify(this.toCycleFreeObject(), null, space);
     }
+    isEqual(node) {
+        return node.toJson(0) === this.toJson(0);
+    }
     static createValueNode(name, value) {
         return new Node("custom-value-node", name, 0, 0, [], value);
     }
@@ -1517,10 +1520,10 @@ class Repeat {
         return this._children;
     }
     get min() {
-        return this.children[0].min;
+        return this._options.min;
     }
     get max() {
-        return this.children[0].max || Infinity;
+        return this._options.max;
     }
     constructor(name, pattern, options = {}) {
         this._id = `repeat-${idIndex$3++}`;
@@ -1756,7 +1759,7 @@ class Sequence {
         const tokens = [];
         for (const child of this._children) {
             tokens.push(...child.getTokens());
-            if (child.type !== "optional") {
+            if (child.type !== "optional" && child.type !== "not") {
                 break;
             }
         }
@@ -1778,7 +1781,7 @@ class Sequence {
         const patterns = [];
         for (const child of this._children) {
             patterns.push(...child.getPatterns());
-            if (child.type !== "optional") {
+            if (child.type !== "optional" && child.type !== "not") {
                 break;
             }
         }
@@ -2201,9 +2204,6 @@ class Not {
     }
     get children() {
         return this._children;
-    }
-    get isOptional() {
-        return false;
     }
     constructor(name, pattern) {
         this._id = `not-${idIndex++}`;

@@ -53,7 +53,6 @@ describe("Not", () => {
         expect(notA.name).toBe("not-a");
         expect(notA.parent).toBeNull();
         expect(notA.children[0].name).toBe("a");
-        expect(notA.isOptional).toBeFalsy();
     });
 
     test("Not A Not", () => {

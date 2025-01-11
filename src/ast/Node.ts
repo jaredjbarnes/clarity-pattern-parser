@@ -315,6 +315,10 @@ export class Node {
     return JSON.stringify(this.toCycleFreeObject(), null, space);
   }
 
+  isEqual(node: Node) {
+    return node.toJson(0) === this.toJson(0);
+  }
+
   static createValueNode(name: string, value: string) {
     return new Node("custom-value-node", name, 0, 0, [], value);
   }

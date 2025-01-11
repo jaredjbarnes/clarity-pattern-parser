@@ -36,10 +36,6 @@ export class Not implements Pattern {
     return this._children;
   }
 
-  get isOptional(): boolean {
-    return false;
-  }
-
   constructor(name: string, pattern: Pattern) {
     this._id = `not-${idIndex++}`;
     this._type = "not";

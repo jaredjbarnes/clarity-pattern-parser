@@ -264,5 +264,11 @@ describe("InfiniteRepeat", () => {
         expect(result.cursor.hasError).toBeTruthy();
     });
 
+    test("Trim Trailing Complex Delimiter Pattern", () => {
+        const numbers = new InfiniteRepeat("numbers", new Regex("number", "\\d"), { divider: new Sequence("comma", [new Literal(",", ","), new Literal("space", " ")]), trimDivider: true });
+        const result = numbers.parse(new Cursor("1, 2,"));
+        expect(result?.value).toBe("1, 2");
+    });
+
 
 });

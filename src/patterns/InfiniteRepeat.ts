@@ -235,7 +235,7 @@ export class InfiniteRepeat implements Pattern {
     if (
       hasDivider &&
       this._trimDivider &&
-      cursor.leafMatch.pattern === this._divider
+      this._nodes[this._nodes.length - 1].name === this._divider?.name
     ) {
       const dividerNode = this._nodes.pop() as Node;
       cursor.moveTo(dividerNode.firstIndex);

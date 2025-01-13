@@ -118,7 +118,7 @@ describe("AutoComplete", () => {
 
         expect(result.ast).toBeNull();
         expect(result.options).toEqual(expectedOptions);
-        expect(result.errorAtIndex).toBe(text.length)
+        expect(result.errorAtIndex).toBe(text.length);
         expect(result.isComplete).toBeFalsy();
         expect(result.cursor).not.toBeNull();
     });

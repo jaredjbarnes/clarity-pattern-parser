@@ -478,4 +478,10 @@ describe("BoundedRepeat", () => {
         expect(comma).toBe(numbers.children[1]);
     });
 
+    test("Trim Trailing Complex Delimiter Pattern", () => {
+        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), { divider: new Sequence("comma", [new Literal(",", ","), new Literal("space", " ")]), trimDivider: true, max: 3 });
+        const result = numbers.parse(new Cursor("1, 2,"));
+        expect(result?.value).toBe("1, 2");
+    });
+
 });

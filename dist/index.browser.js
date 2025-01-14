@@ -1110,7 +1110,6 @@
             }
         }
         parse(cursor) {
-            var _a;
             cursor.startParseWith(this);
             const startIndex = cursor.index;
             const nodes = [];
@@ -1140,7 +1139,7 @@
                 }
             }
             if (this._trimDivider && this._hasDivider) {
-                const isDividerLastMatch = ((_a = cursor.leafMatch.pattern) === null || _a === void 0 ? void 0 : _a.id) === this.children[1].id;
+                const isDividerLastMatch = this.children.length > 1 && nodes[nodes.length - 1].name === this.children[1].name;
                 if (isDividerLastMatch) {
                     const node = nodes.pop();
                     cursor.moveTo(node.firstIndex);
@@ -1411,10 +1410,11 @@
             return passed;
         }
         _createNode(cursor) {
+            var _a;
             const hasDivider = this._divider != null;
             if (hasDivider &&
                 this._trimDivider &&
-                cursor.leafMatch.pattern === this._divider) {
+                this._nodes[this._nodes.length - 1].name === ((_a = this._divider) === null || _a === void 0 ? void 0 : _a.name)) {
                 const dividerNode = this._nodes.pop();
                 cursor.moveTo(dividerNode.firstIndex);
             }
@@ -2865,7 +2865,7 @@
                         .importedPatternsByName
                         .values());
                     const grammar = new Grammar({
-                        params: importedValues,
+                        params: [...importedValues, ...this._parseContext.paramsByName.values()],
                         originResource: this._originResource,
                         resolveImport: this._resolveImport
                     });

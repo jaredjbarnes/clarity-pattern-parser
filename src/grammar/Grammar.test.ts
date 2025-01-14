@@ -511,4 +511,38 @@ describe("Grammar", () => {
         expect(patterns.john).not.toBeNull();
         expect(patterns.jane).not.toBeNull();
     });
+
+    test("Grammar Import", async () => {
+        const importExpression = `first-name = "John"`;
+        const spaceExpression = `
+        use params { custom-space }
+        space = custom-space
+        `;
+        const expression = `
+        use params {
+          custom-space
+        }
+        import { first-name } from "first-name.cpat"
+        import { space } from "space.cpat" with params {
+          custom-space = custom-space
+        }
+        last-name = "Doe"
+        full-name = first-name + space + last-name
+        `;
+
+        const pathMap: Record<string, string> = {
+            "space.cpat": spaceExpression,
+            "first-name.cpat": importExpression,
+            "root.cpat": expression
+        };
+
+        function resolveImport(resource: string) {
+            return Promise.resolve({ expression: pathMap[resource], resource });
+        }
+
+        const patterns = await Grammar.import("root.cpat", { resolveImport, params: [new Literal("custom-space", "  ")] });
+        const fullname = patterns["full-name"] as Pattern;
+        const result = fullname.exec("John  Doe");
+        expect(result?.ast?.value).toBe("John  Doe");
+    });
 });

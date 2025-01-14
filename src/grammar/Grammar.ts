@@ -462,7 +462,7 @@ export class Grammar {
                 );
 
                 const grammar = new Grammar({
-                    params: importedValues,
+                    params: [...importedValues, ...this._parseContext.paramsByName.values()],
                     originResource: this._originResource,
                     resolveImport: this._resolveImport
                 });

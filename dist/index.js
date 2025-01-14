@@ -2030,7 +2030,7 @@ const closeParen = new Literal("repeat-close-paren", ")");
 const dividerComma = new Regex("divider-comma", "\\s*,\\s*");
 dividerComma.setTokens([", "]);
 const patternName$2 = name$1.clone("pattern-name");
-const patterns$3 = new Options("options-patterns", [patternName$2, anonymousPattern]);
+const patterns$3 = new Options("pattern-options", [patternName$2, anonymousPattern]);
 const dividerPattern = patterns$3.clone("divider-pattern");
 const dividerSection = new Sequence("divider-section", [dividerComma, dividerPattern, trimFlag]);
 const optionalDividerSection = new Optional("optional-divider-section", dividerSection);

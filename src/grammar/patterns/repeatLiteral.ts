@@ -55,7 +55,7 @@ dividerComma.setTokens([", "]);
 
 
 const patternName = name.clone("pattern-name");
-const patterns = new Options("or-patterns", [patternName, anonymousPattern]);
+const patterns = new Options("options-patterns", [patternName, anonymousPattern]);
 const dividerPattern = patterns.clone("divider-pattern");
 const dividerSection = new Sequence("divider-section", [dividerComma, dividerPattern, trimFlag]);
 const optionalDividerSection = new Optional("optional-divider-section", dividerSection);

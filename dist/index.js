@@ -2030,7 +2030,7 @@ const closeParen = new Literal("repeat-close-paren", ")");
 const dividerComma = new Regex("divider-comma", "\\s*,\\s*");
 dividerComma.setTokens([", "]);
 const patternName$2 = name$1.clone("pattern-name");
-const patterns$3 = new Options("or-patterns", [patternName$2, anonymousPattern]);
+const patterns$3 = new Options("options-patterns", [patternName$2, anonymousPattern]);
 const dividerPattern = patterns$3.clone("divider-pattern");
 const dividerSection = new Sequence("divider-section", [dividerComma, dividerPattern, trimFlag]);
 const optionalDividerSection = new Optional("optional-divider-section", dividerSection);
@@ -2106,7 +2106,7 @@ const bodyLine = new Sequence("body-line", [
 const body = new Optional("optional-body", new Repeat("body", bodyLine, { divider: newLine$1 }));
 
 const optionalSpaces$1 = new Optional("optional-spaces", allSpaces);
-const optionalLineSpaces$1 = new Optional("options-line-spaces", lineSpaces$1);
+const optionalLineSpaces$1 = new Optional("optional-line-spaces", lineSpaces$1);
 const importNameDivider = new Regex("import-name-divider", "(\\s+)?,(\\s+)?");
 importNameDivider.setTokens([", "]);
 const name = new Regex("import-name", "[^}\\s,]+");

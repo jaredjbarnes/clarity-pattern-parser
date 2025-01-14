@@ -48,11 +48,11 @@ export class AutoComplete {
         errorAtIndex: 0,
         cursor,
         ast: null
-      }
+      };
     }
 
     let errorAtIndex = null;
-    let error = null
+    let error = null;
 
     const ast = this._pattern.parse(this._cursor);
     const isComplete = ast?.value === this._text;
@@ -74,7 +74,7 @@ export class AutoComplete {
       errorAtIndex = startIndex;
     } else if (!isComplete && this._cursor.hasError && this._cursor.furthestError != null) {
       errorAtIndex = this._cursor.furthestError.endIndex;
-      error = this._cursor.furthestError
+      error = this._cursor.furthestError;
 
       errorAtIndex = options.reduce((errorAtIndex, option) =>
         Math.max(errorAtIndex, option.startIndex),
@@ -88,7 +88,7 @@ export class AutoComplete {
       errorAtIndex,
       cursor: cursor,
       ast,
-    }
+    };
 
   }
 
@@ -108,7 +108,7 @@ export class AutoComplete {
       }
     });
 
-    return finalResults
+    return finalResults;
   }
 
   private _getOptionsFromErrors() {
@@ -159,7 +159,7 @@ export class AutoComplete {
   }
 
   private _getTokensForPattern(pattern: Pattern) {
-    const augmentedTokens = this._getAugmentedTokens(pattern)
+    const augmentedTokens = this._getAugmentedTokens(pattern);
 
     if (this._options.greedyPatternNames != null && this._options.greedyPatternNames.includes(pattern.name)) {
       const nextPatterns = pattern.getNextPatterns();
@@ -225,7 +225,7 @@ export class AutoComplete {
     return {
       text: text,
       startIndex: furthestMatch,
-    }
+    };
   }
 
   static suggestFor(text: string, pattern: Pattern, options?: AutoCompleteOptions) {

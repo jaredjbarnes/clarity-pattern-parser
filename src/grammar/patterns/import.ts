@@ -9,7 +9,7 @@ import { allSpaces, lineSpaces } from "./spaces";
 import { Optional } from "../../patterns/Optional";
 
 const optionalSpaces = new Optional("optional-spaces", allSpaces);
-const optionalLineSpaces = new Optional("options-line-spaces", lineSpaces);
+const optionalLineSpaces = new Optional("optional-line-spaces", lineSpaces);
 
 const importNameDivider = new Regex("import-name-divider", "(\\s+)?,(\\s+)?");
 importNameDivider.setTokens([", "]);

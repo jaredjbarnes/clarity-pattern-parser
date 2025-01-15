@@ -322,7 +322,7 @@ export class Grammar {
         const trimDivider = repeatNode.find(n => n.name === "trim-flag") != null;
         const patterNode = repeatNode.children[1].type === "spaces" ? repeatNode.children[2] : repeatNode.children[1];
         const pattern = this._buildPattern(patterNode);
-        const dividerSectionNode = repeatNode.find(n => n.name === "divider-section");
+        const dividerSectionNode = repeatNode.find(n => n.name === "repeat-divider-section");
 
         const options: RepeatOptions = {
             min: 1,

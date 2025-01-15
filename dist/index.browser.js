@@ -2032,14 +2032,14 @@
     const dividerComma = new Regex("divider-comma", "\\s*,\\s*");
     dividerComma.setTokens([", "]);
     const patternName$2 = name$1.clone("pattern-name");
-    const patterns$3 = new Options("pattern-options", [patternName$2, anonymousPattern]);
-    const dividerPattern = patterns$3.clone("divider-pattern");
-    const dividerSection = new Sequence("divider-section", [dividerComma, dividerPattern, trimFlag]);
-    const optionalDividerSection = new Optional("optional-divider-section", dividerSection);
+    const repeatPattern = new Options("repeat-pattern", [patternName$2, anonymousPattern]);
+    const dividerPattern = repeatPattern.clone("repeat-divider-pattern");
+    const dividerSection = new Sequence("repeat-divider-section", [dividerComma, dividerPattern, trimFlag]);
+    const optionalDividerSection = new Optional("repeat-optional-divider-section", dividerSection);
     const repeatLiteral = new Sequence("repeat-literal", [
         openParen,
         optionalSpaces$3,
-        patterns$3,
+        repeatPattern,
         optionalDividerSection,
         optionalSpaces$3,
         closeParen,
@@ -2061,7 +2061,7 @@
 
     const patternName = name$1.clone("pattern-name");
     patternName.setTokens(["[PATTERN_NAME]"]);
-    const patterns$1 = new Options("or-patterns", [patternName, anonymousPattern]);
+    const patterns$1 = new Options("options-patterns", [patternName, anonymousPattern]);
     const defaultDivider = new Regex("default-divider", "\\s*[|]\\s*");
     defaultDivider.setTokens(["|"]);
     const greedyDivider = new Regex("greedy-divider", "\\s*[<][|][>]\\s*");
@@ -2748,7 +2748,7 @@
             const trimDivider = repeatNode.find(n => n.name === "trim-flag") != null;
             const patterNode = repeatNode.children[1].type === "spaces" ? repeatNode.children[2] : repeatNode.children[1];
             const pattern = this._buildPattern(patterNode);
-            const dividerSectionNode = repeatNode.find(n => n.name === "divider-section");
+            const dividerSectionNode = repeatNode.find(n => n.name === "repeat-divider-section");
             const options = {
                 min: 1,
                 max: Infinity

@@ -7,7 +7,7 @@ import { Options } from "../../patterns/Options";
 const patternName = name.clone("pattern-name");
 patternName.setTokens(["[PATTERN_NAME]"]);
 
-const patterns = new Options("or-patterns", [patternName, anonymousPattern]);
+const patterns = new Options("options-patterns", [patternName, anonymousPattern]);
 const defaultDivider = new Regex("default-divider", "\\s*[|]\\s*");
 defaultDivider.setTokens(["|"]);
 

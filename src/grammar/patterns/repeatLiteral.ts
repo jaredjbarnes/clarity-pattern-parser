@@ -55,15 +55,15 @@ dividerComma.setTokens([", "]);
 
 
 const patternName = name.clone("pattern-name");
-const patterns = new Options("pattern-options", [patternName, anonymousPattern]);
-const dividerPattern = patterns.clone("divider-pattern");
-const dividerSection = new Sequence("divider-section", [dividerComma, dividerPattern, trimFlag]);
-const optionalDividerSection = new Optional("optional-divider-section", dividerSection);
+const repeatPattern = new Options("repeat-pattern", [patternName, anonymousPattern]);
+const dividerPattern = repeatPattern.clone("repeat-divider-pattern");
+const dividerSection = new Sequence("repeat-divider-section", [dividerComma, dividerPattern, trimFlag]);
+const optionalDividerSection = new Optional("repeat-optional-divider-section", dividerSection);
 
 export const repeatLiteral = new Sequence("repeat-literal", [
     openParen,
     optionalSpaces,
-    patterns,
+    repeatPattern,
     optionalDividerSection,
     optionalSpaces,
     closeParen,

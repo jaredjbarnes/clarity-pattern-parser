@@ -1013,6 +1013,7 @@
                         continue;
                     }
                     else {
+                        cursor.endParse();
                         throw error;
                     }
                 }

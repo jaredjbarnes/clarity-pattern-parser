@@ -115,6 +115,7 @@ export class Options implements Pattern {
         if (error.patternId === this._id) {
           continue;
         } else {
+          cursor.endParse();
           throw error;
         }
       }

@@ -1011,6 +1011,7 @@ class Options {
                     continue;
                 }
                 else {
+                    cursor.endParse();
                     throw error;
                 }
             }

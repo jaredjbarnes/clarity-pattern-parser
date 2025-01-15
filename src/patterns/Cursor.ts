@@ -3,6 +3,17 @@ import { CursorHistory, Match, Trace } from "./CursorHistory";
 import { ParseError } from "./ParseError";
 import { Pattern } from "./Pattern";
 
+export class CyclicalParseError extends Error {
+  readonly patternId: string;
+  readonly patternName: string;
+
+  constructor(patternId: string, patternName: string) {
+    super("Cyclical Parse Error");
+    this.patternId = patternId;
+    this.patternName = patternName;
+  }
+}
+
 export class Cursor {
   private _text: string;
   private _index: number;
@@ -145,16 +156,14 @@ export class Cursor {
   }
 
   startParseWith(pattern: Pattern) {
-    const patternName = pattern.name;
-
     const trace = {
       pattern,
       cursorIndex: this.index
     };
 
-    const hasCycle = this._stackTrace.find(t => t.pattern.id === pattern.id && this.index === t.cursorIndex);
+    const hasCycle = this._stackTrace.filter(t => t.pattern.id === pattern.id && this.index === t.cursorIndex).length > 1;
     if (hasCycle) {
-      throw new Error(`Cyclical Pattern: ${this._stackTrace.map(t => `${t.pattern.name}#${t.pattern.id}{${t.cursorIndex}}`).join(" -> ")} -> ${patternName}#${pattern.id}{${this.index}}.`);
+      throw new CyclicalParseError(pattern.id, pattern.name);
     }
 
     this._history.pushStackTrace(trace);

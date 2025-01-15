@@ -5,6 +5,8 @@ import { Options } from "./Options";
 import { Sequence } from "./Sequence";
 import { Pattern } from "./Pattern";
 import { Optional } from "./Optional";
+import { Regex } from "./Regex";
+import { Reference } from "./Reference";
 
 describe("Options", () => {
     test("Empty Options", () => {
@@ -270,5 +272,27 @@ describe("Options", () => {
 
         const result = firstName.exec("Jane");
         expect(result.ast?.value).toBe("Jane");
+    });
+
+    test("Cyclical Error Recorvery", () => {
+        const john = new Literal("john", "John");
+        const jane = new Literal("jane", "Jane");
+        const names = new Options("names", [john, jane]);
+        const questionMark = new Literal("?", "?");
+        const colon = new Literal(":", ":");
+        const space = new Regex("space", "\\s+");
+        const expressionReference = new Reference("expression");
+        const ternary = new Sequence("ternary", [expressionReference, space, questionMark, space, expressionReference, space, colon, space, expressionReference]);
+        const expression = new Options("expression", [names, ternary], true);
+
+        let result = expression.exec("John");
+        expect(result.ast?.toString()).toBe("John");
+
+        result = expression.exec("John ? Jane : John");
+        expect(result.ast?.toString()).toBe("John ? Jane : John");
+
+
+        result = expression.exec("John ? Jane : John ? Jane : John");
+        expect(result.ast?.toString()).toBe("John ? Jane : John ? Jane : John");
     });
 });

@@ -2,6 +2,11 @@ import { Node } from "../ast/Node";
 import { Match } from "./CursorHistory";
 import { ParseError } from "./ParseError";
 import { Pattern } from "./Pattern";
+export declare class CyclicalParseError extends Error {
+    readonly patternId: string;
+    readonly patternName: string;
+    constructor(patternId: string, patternName: string);
+}
 export declare class Cursor {
     private _text;
     private _index;

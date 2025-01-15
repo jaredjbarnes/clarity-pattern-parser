@@ -376,6 +376,13 @@ class CursorHistory {
     }
 }
 
+class CyclicalParseError extends Error {
+    constructor(patternId, patternName) {
+        super("Cyclical Parse Error");
+        this.patternId = patternId;
+        this.patternName = patternName;
+    }
+}
 class Cursor {
     get text() {
         return this._text;
@@ -481,14 +488,13 @@ class Cursor {
         this._history.stopRecording();
     }
     startParseWith(pattern) {
-        const patternName = pattern.name;
         const trace = {
             pattern,
             cursorIndex: this.index
         };
-        const hasCycle = this._stackTrace.find(t => t.pattern.id === pattern.id && this.index === t.cursorIndex);
+        const hasCycle = this._stackTrace.filter(t => t.pattern.id === pattern.id && this.index === t.cursorIndex).length > 1;
         if (hasCycle) {
-            throw new Error(`Cyclical Pattern: ${this._stackTrace.map(t => `${t.pattern.name}#${t.pattern.id}{${t.cursorIndex}}`).join(" -> ")} -> ${patternName}#${pattern.id}{${this.index}}.`);
+            throw new CyclicalParseError(pattern.id, pattern.name);
         }
         this._history.pushStackTrace(trace);
         this._stackTrace.push(trace);
@@ -996,7 +1002,18 @@ class Options {
         const results = [];
         for (const pattern of this._children) {
             cursor.moveTo(this._firstIndex);
-            const result = pattern.parse(cursor);
+            let result = null;
+            try {
+                result = pattern.parse(cursor);
+            }
+            catch (error) {
+                if (error.patternId === this._id) {
+                    continue;
+                }
+                else {
+                    throw error;
+                }
+            }
             if (this._isGreedy) {
                 results.push(result);
             }
@@ -1992,8 +2009,8 @@ const anonymousPattern = new Options("anonymous-pattern", [
 ]);
 
 const optionalSpaces$3 = new Optional("optional-spaces", spaces$1);
-const openBracket$1 = new Literal("open-bracket", "{");
-const closeBracket$1 = new Literal("close-bracket", "}");
+const openBracket$1 = new Literal("repeat-open-bracket", "{");
+const closeBracket$1 = new Literal("repeat-close-bracket", "}");
 const comma = new Literal("comma", ",");
 const integer = new Regex("integer", "([1-9][0-9]*)|0");
 integer.setTokens(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]);
@@ -2031,14 +2048,14 @@ const dividerComma = new Regex("divider-comma", "\\s*,\\s*");
 dividerComma.setTokens([", "]);
 const patternName$2 = name$1.clone("pattern-name");
 const repeatPattern = new Options("repeat-pattern", [patternName$2, anonymousPattern]);
-const dividerPattern = repeatPattern.clone("repeat-divider-pattern");
-const dividerSection = new Sequence("repeat-divider-section", [dividerComma, dividerPattern, trimFlag]);
-const optionalDividerSection = new Optional("repeat-optional-divider-section", dividerSection);
+const repeatDividerPattern = repeatPattern.clone("repeat-divider-pattern");
+const repeatDividerSection = new Sequence("repeat-divider-section", [dividerComma, repeatDividerPattern, trimFlag]);
+const repeatOptionalDividerSection = new Optional("repeat-optional-divider-section", repeatDividerSection);
 const repeatLiteral = new Sequence("repeat-literal", [
     openParen,
     optionalSpaces$3,
     repeatPattern,
-    optionalDividerSection,
+    repeatOptionalDividerSection,
     optionalSpaces$3,
     closeParen,
     new Sequence("quantifier-section", [quantifier]),

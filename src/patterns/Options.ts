@@ -84,6 +84,7 @@ export class Options implements Pattern {
 
   parse(cursor: Cursor): Node | null {
     cursor.startParseWith(this);
+
     this._firstIndex = cursor.index;
 
     const node = this._tryToParse(cursor);
@@ -106,7 +107,17 @@ export class Options implements Pattern {
 
     for (const pattern of this._children) {
       cursor.moveTo(this._firstIndex);
-      const result = pattern.parse(cursor);
+      let result = null;
+
+      try {
+        result = pattern.parse(cursor);
+      } catch (error: any) {
+        if (error.patternId === this._id) {
+          continue;
+        } else {
+          throw error;
+        }
+      }
 
       if (this._isGreedy) {
         results.push(result);

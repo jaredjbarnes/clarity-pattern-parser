@@ -8,8 +8,8 @@ import { lineSpaces, spaces } from "./spaces";
 import { Optional } from "../../patterns/Optional";
 
 const optionalSpaces = new Optional("optional-spaces", spaces);
-const openBracket = new Literal("open-bracket", "{");
-const closeBracket = new Literal("close-bracket", "}");
+const openBracket = new Literal("repeat-open-bracket", "{");
+const closeBracket = new Literal("repeat-close-bracket", "}");
 const comma = new Literal("comma", ",");
 
 const integer = new Regex("integer", "([1-9][0-9]*)|0");
@@ -56,15 +56,15 @@ dividerComma.setTokens([", "]);
 
 const patternName = name.clone("pattern-name");
 const repeatPattern = new Options("repeat-pattern", [patternName, anonymousPattern]);
-const dividerPattern = repeatPattern.clone("repeat-divider-pattern");
-const dividerSection = new Sequence("repeat-divider-section", [dividerComma, dividerPattern, trimFlag]);
-const optionalDividerSection = new Optional("repeat-optional-divider-section", dividerSection);
+const repeatDividerPattern = repeatPattern.clone("repeat-divider-pattern");
+const repeatDividerSection = new Sequence("repeat-divider-section", [dividerComma, repeatDividerPattern, trimFlag]);
+const repeatOptionalDividerSection = new Optional("repeat-optional-divider-section", repeatDividerSection);
 
 export const repeatLiteral = new Sequence("repeat-literal", [
     openParen,
     optionalSpaces,
     repeatPattern,
-    optionalDividerSection,
+    repeatOptionalDividerSection,
     optionalSpaces,
     closeParen,
     new Sequence("quantifier-section", [quantifier]),

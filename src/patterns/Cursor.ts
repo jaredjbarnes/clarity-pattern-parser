@@ -6,11 +6,13 @@ import { Pattern } from "./Pattern";
 export class CyclicalParseError extends Error {
   readonly patternId: string;
   readonly patternName: string;
+  readonly cursorIndex: number;
 
-  constructor(patternId: string, patternName: string) {
+  constructor(patternId: string, patternName: string, cursorIndex: number) {
     super("Cyclical Parse Error");
     this.patternId = patternId;
     this.patternName = patternName;
+    this.cursorIndex = cursorIndex;
   }
 }
 
@@ -163,7 +165,7 @@ export class Cursor {
 
     const hasCycle = this._stackTrace.filter(t => t.pattern.id === pattern.id && this.index === t.cursorIndex).length > 1;
     if (hasCycle) {
-      throw new CyclicalParseError(pattern.id, pattern.name);
+      throw new CyclicalParseError(pattern.id, pattern.name, this.index);
     }
 
     this._history.pushStackTrace(trace);

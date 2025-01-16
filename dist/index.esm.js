@@ -373,10 +373,11 @@ class CursorHistory {
 }
 
 class CyclicalParseError extends Error {
-    constructor(patternId, patternName) {
+    constructor(patternId, patternName, cursorIndex) {
         super("Cyclical Parse Error");
         this.patternId = patternId;
         this.patternName = patternName;
+        this.cursorIndex = cursorIndex;
     }
 }
 class Cursor {
@@ -490,7 +491,7 @@ class Cursor {
         };
         const hasCycle = this._stackTrace.filter(t => t.pattern.id === pattern.id && this.index === t.cursorIndex).length > 1;
         if (hasCycle) {
-            throw new CyclicalParseError(pattern.id, pattern.name);
+            throw new CyclicalParseError(pattern.id, pattern.name, this.index);
         }
         this._history.pushStackTrace(trace);
         this._stackTrace.push(trace);
@@ -1002,14 +1003,8 @@ class Options {
             try {
                 result = pattern.parse(cursor);
             }
-            catch (error) {
-                if (error.patternId === this._id) {
-                    continue;
-                }
-                else {
-                    cursor.endParse();
-                    throw error;
-                }
+            catch (_a) {
+                continue;
             }
             if (this._isGreedy) {
                 results.push(result);

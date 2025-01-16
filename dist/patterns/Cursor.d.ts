@@ -5,7 +5,8 @@ import { Pattern } from "./Pattern";
 export declare class CyclicalParseError extends Error {
     readonly patternId: string;
     readonly patternName: string;
-    constructor(patternId: string, patternName: string);
+    readonly cursorIndex: number;
+    constructor(patternId: string, patternName: string, cursorIndex: number);
 }
 export declare class Cursor {
     private _text;

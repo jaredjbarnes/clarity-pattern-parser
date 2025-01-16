@@ -111,13 +111,8 @@ export class Options implements Pattern {
 
       try {
         result = pattern.parse(cursor);
-      } catch (error: any) {
-        if (error.patternId === this._id) {
-          continue;
-        } else {
-          cursor.endParse();
-          throw error;
-        }
+      } catch {
+        continue;
       }
 
       if (this._isGreedy) {

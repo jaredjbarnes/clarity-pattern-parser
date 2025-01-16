@@ -295,4 +295,21 @@ describe("Options", () => {
         result = expression.exec("John ? Jane : John ? Jane : John");
         expect(result.ast?.toString()).toBe("John ? Jane : John ? Jane : John");
     });
+
+    test("Deeper Cyclical Error Recorvery", () => {
+        const john = new Literal("john", "John");
+        const expressionReference = new Reference("expression");
+
+        const johns = new Sequence("johns", [john, expressionReference]);
+        const expression = new Options("expression", [
+            john,
+            johns,
+        ], true);
+
+        let result = expression.exec("John");
+        expect(result.ast?.toString()).toBe("John");
+
+        result = expression.exec("JohnJohnJohnJohnJohn");
+        expect(result.ast?.toString()).toBe("JohnJohnJohnJohnJohn");
+    });
 });

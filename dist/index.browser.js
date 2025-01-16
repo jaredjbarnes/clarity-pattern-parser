@@ -882,6 +882,33 @@
         return patterns.map(p => p.clone());
     }
 
+    class DepthCache {
+        constructor() {
+            this._depthMap = {};
+        }
+        getDepth(name, cursorIndex) {
+            if (this._depthMap[name] == null) {
+                this._depthMap[name] = {};
+            }
+            if (this._depthMap[name][cursorIndex] == null) {
+                this._depthMap[name][cursorIndex] = 0;
+            }
+            return this._depthMap[name][cursorIndex];
+        }
+        incrementDepth(name, cursorIndex) {
+            const depth = this.getDepth(name, cursorIndex);
+            this._depthMap[name][cursorIndex] = depth + 1;
+        }
+        decrementDepth(name, cursorIndex) {
+            const depth = this.getDepth(name, cursorIndex);
+            this._depthMap[name][cursorIndex] = depth - 1;
+        }
+    }
+
+    /*
+      The following is created to reduce the overhead of recursion check.
+    */
+    const depthCache$1 = new DepthCache();
     let idIndex$6 = 0;
     class Options {
         get id() {
@@ -936,8 +963,12 @@
             };
         }
         parse(cursor) {
+            // This is a cache to help with speed
+            this._firstIndex = cursor.index;
+            depthCache$1.incrementDepth(this._id, this._firstIndex);
             this._firstIndex = cursor.index;
             const node = this._tryToParse(cursor);
+            depthCache$1.decrementDepth(this._id, this._firstIndex);
             if (node != null) {
                 cursor.moveTo(node.lastIndex);
                 cursor.resolveError();
@@ -947,8 +978,8 @@
             return null;
         }
         _tryToParse(cursor) {
-            if (this._isBeyondRecursiveLimit()) {
-                cursor.recordErrorAt(cursor.index, cursor.index, this);
+            if (depthCache$1.getDepth(this._id, this._firstIndex) > 2) {
+                cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
                 return null;
             }
             const results = [];
@@ -967,25 +998,6 @@
             const nonNullResults = results.filter(r => r != null);
             nonNullResults.sort((a, b) => b.endIndex - a.endIndex);
             return nonNullResults[0] || null;
-        }
-        _isBeyondRecursiveLimit() {
-            let pattern = this;
-            const matches = [];
-            while (pattern.parent != null) {
-                if (pattern.type !== "options") {
-                    pattern = pattern.parent;
-                    continue;
-                }
-                const optionsPattern = pattern;
-                if (pattern.id === this.id && optionsPattern._firstIndex === this._firstIndex) {
-                    matches.push(pattern);
-                    if (matches.length > 2) {
-                        return true;
-                    }
-                }
-                pattern = pattern.parent;
-            }
-            return false;
         }
         getTokens() {
             const tokens = [];
@@ -1579,6 +1591,7 @@
         return filteredNodes;
     }
 
+    const depthCache = new DepthCache();
     let idIndex$2 = 0;
     class Sequence {
         get id() {
@@ -1633,13 +1646,12 @@
             };
         }
         parse(cursor) {
+            // This is a cache to help with speed
             this._firstIndex = cursor.index;
+            depthCache.incrementDepth(this._id, this._firstIndex);
             this._nodes = [];
-            if (this._isBeyondRecursiveLimit()) {
-                cursor.recordErrorAt(cursor.index, cursor.index, this);
-                return null;
-            }
             const passed = this.tryToParse(cursor);
+            depthCache.decrementDepth(this._id, this._firstIndex);
             if (passed) {
                 const node = this.createNode(cursor);
                 if (node !== null) {
@@ -1650,6 +1662,10 @@
             return null;
         }
         tryToParse(cursor) {
+            if (depthCache.getDepth(this._id, this._firstIndex) > 1) {
+                cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
+                return false;
+            }
             let passed = false;
             for (let i = 0; i < this._children.length; i++) {
                 const runningCursorIndex = cursor.index;
@@ -1705,25 +1721,6 @@
                 }
             }
             return passed;
-        }
-        _isBeyondRecursiveLimit() {
-            let pattern = this;
-            const matches = [];
-            while (pattern.parent != null) {
-                if (pattern.type !== "sequence") {
-                    pattern = pattern.parent;
-                    continue;
-                }
-                const sequencePattern = pattern;
-                if (pattern.id === this.id && sequencePattern._firstIndex === this._firstIndex) {
-                    matches.push(pattern);
-                    if (matches.length > 1) {
-                        return true;
-                    }
-                }
-                pattern = pattern.parent;
-            }
-            return false;
         }
         getLastValidNode() {
             const nodes = filterOutNull(this._nodes);

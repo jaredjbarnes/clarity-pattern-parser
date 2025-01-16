@@ -4,7 +4,13 @@ import { Pattern } from "./Pattern";
 import { clonePatterns } from "./clonePatterns";
 import { findPattern } from "./findPattern";
 import { ParseResult } from "./ParseResult";
+import { DepthCache } from './DepthCache';
 
+/*
+  The following is created to reduce the overhead of recursion check. 
+*/
+
+const depthCache = new DepthCache();
 let idIndex = 0;
 
 export class Options implements Pattern {
@@ -83,13 +89,18 @@ export class Options implements Pattern {
   }
 
   parse(cursor: Cursor): Node | null {
+    // This is a cache to help with speed
+    this._firstIndex = cursor.index;
+    depthCache.incrementDepth(this._id, this._firstIndex);
+
     this._firstIndex = cursor.index;
     const node = this._tryToParse(cursor);
+
+    depthCache.decrementDepth(this._id, this._firstIndex);
 
     if (node != null) {
       cursor.moveTo(node.lastIndex);
       cursor.resolveError();
-
       return node;
     }
 
@@ -100,8 +111,8 @@ export class Options implements Pattern {
 
 
   private _tryToParse(cursor: Cursor): Node | null {
-    if (this._isBeyondRecursiveLimit()){
-      cursor.recordErrorAt(cursor.index, cursor.index, this);
+    if (depthCache.getDepth(this._id, this._firstIndex) > 2) {
+      cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
       return null;
     }
 
@@ -128,32 +139,6 @@ export class Options implements Pattern {
     nonNullResults.sort((a, b) => b.endIndex - a.endIndex);
 
     return nonNullResults[0] || null;
-  }
-
-  private _isBeyondRecursiveLimit(){
-    let pattern: Pattern = this;
-    const matches: Pattern[] = [];
-
-    while(pattern.parent != null){
-      if (pattern.type !== "options"){
-        pattern = pattern.parent;
-        continue;
-      }
-
-      const optionsPattern = pattern as Options;
-
-      if (pattern.id === this.id && optionsPattern._firstIndex === this._firstIndex){
-         matches.push(pattern);
-         
-         if (matches.length > 2){
-            return true;
-         }
-      }
-
-      pattern = pattern.parent;
-    }
-
-    return false;
   }
 
   getTokens(): string[] {

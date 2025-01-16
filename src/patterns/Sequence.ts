@@ -4,7 +4,9 @@ import { Node } from "../ast/Node";
 import { clonePatterns } from "./clonePatterns";
 import { filterOutNull } from "./filterOutNull";
 import { findPattern } from "./findPattern";
+import { DepthCache } from "./DepthCache";
 
+const depthCache = new DepthCache();
 let idIndex = 0;
 
 export class Sequence implements Pattern {
@@ -83,15 +85,14 @@ export class Sequence implements Pattern {
   }
 
   parse(cursor: Cursor): Node | null {
+    // This is a cache to help with speed
     this._firstIndex = cursor.index;
+    depthCache.incrementDepth(this._id, this._firstIndex);
+
     this._nodes = [];
 
-    if (this._isBeyondRecursiveLimit()) {
-      cursor.recordErrorAt(cursor.index, cursor.index, this);
-      return null;
-    }
-
     const passed = this.tryToParse(cursor);
+    depthCache.decrementDepth(this._id, this._firstIndex);
 
     if (passed) {
       const node = this.createNode(cursor);
@@ -107,7 +108,10 @@ export class Sequence implements Pattern {
   }
 
   private tryToParse(cursor: Cursor): boolean {
-
+    if (depthCache.getDepth(this._id, this._firstIndex) > 1) {
+      cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
+      return false;
+    }
 
     let passed = false;
 
@@ -167,32 +171,6 @@ export class Sequence implements Pattern {
     }
 
     return passed;
-  }
-
-  private _isBeyondRecursiveLimit() {
-    let pattern: Pattern = this;
-    const matches: Pattern[] = [];
-
-    while (pattern.parent != null) {
-      if (pattern.type !== "sequence") {
-        pattern = pattern.parent;
-        continue;
-      }
-
-      const sequencePattern = pattern as Sequence;
-
-      if (pattern.id === this.id && sequencePattern._firstIndex === this._firstIndex) {
-        matches.push(pattern);
-
-        if (matches.length > 1) {
-          return true;
-        }
-      }
-
-      pattern = pattern.parent;
-    }
-
-    return false;
   }
 
   private getLastValidNode(): Node | null {

@@ -83,8 +83,6 @@ export class FiniteRepeat implements Pattern {
     }
 
     parse(cursor: Cursor): Node | null {
-        cursor.startParseWith(this);
-
         const startIndex = cursor.index;
         const nodes: Node[] = [];
         const modulo = this._hasDivider ? 2 : 1;
@@ -128,13 +126,11 @@ export class FiniteRepeat implements Pattern {
             const lastIndex = cursor.index;
             cursor.moveTo(startIndex);
             cursor.recordErrorAt(startIndex, lastIndex, this);
-            cursor.endParse();
             return null;
         }
 
         if (nodes.length === 0 && !cursor.hasError) {
             cursor.moveTo(startIndex);
-            cursor.endParse();
             return null;
         }
 
@@ -143,7 +139,6 @@ export class FiniteRepeat implements Pattern {
 
         cursor.resolveError();
         cursor.moveTo(lastIndex);
-        cursor.endParse();
 
         return new Node(this._type, this.name, firstIndex, lastIndex, nodes);
     }

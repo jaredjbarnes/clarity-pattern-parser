@@ -82,8 +82,6 @@ export class Literal implements Pattern {
   }
 
   parse(cursor: Cursor): Node | null {
-    cursor.startParseWith(this);
-
     this._firstIndex = cursor.index;
     const passed = this._tryToParse(cursor);
 
@@ -92,12 +90,10 @@ export class Literal implements Pattern {
       const node = this._createNode();
       cursor.recordMatch(this, node);
 
-      cursor.endParse();
       return node;
     }
 
     cursor.recordErrorAt(this._firstIndex, this._endIndex, this);
-    cursor.endParse();
     return null;
   }
 

@@ -83,37 +83,35 @@ export class Options implements Pattern {
   }
 
   parse(cursor: Cursor): Node | null {
-    cursor.startParseWith(this);
-
     this._firstIndex = cursor.index;
-
     const node = this._tryToParse(cursor);
 
     if (node != null) {
       cursor.moveTo(node.lastIndex);
       cursor.resolveError();
 
-      cursor.endParse();
       return node;
     }
 
     cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
-    cursor.endParse();
     return null;
   }
 
+
+
   private _tryToParse(cursor: Cursor): Node | null {
+    if (this._isBeyondRecursiveLimit()){
+      cursor.recordErrorAt(cursor.index, cursor.index, this);
+      return null;
+    }
+
     const results: (Node | null)[] = [];
 
     for (const pattern of this._children) {
       cursor.moveTo(this._firstIndex);
       let result = null;
 
-      try {
-        result = pattern.parse(cursor);
-      } catch {
-        continue;
-      }
+      result = pattern.parse(cursor);
 
       if (this._isGreedy) {
         results.push(result);
@@ -130,6 +128,32 @@ export class Options implements Pattern {
     nonNullResults.sort((a, b) => b.endIndex - a.endIndex);
 
     return nonNullResults[0] || null;
+  }
+
+  private _isBeyondRecursiveLimit(){
+    let pattern: Pattern = this;
+    const matches: Pattern[] = [];
+
+    while(pattern.parent != null){
+      if (pattern.type !== "options"){
+        pattern = pattern.parent;
+        continue;
+      }
+
+      const optionsPattern = pattern as Options;
+
+      if (pattern.id === this.id && optionsPattern._firstIndex === this._firstIndex){
+         matches.push(pattern);
+         
+         if (matches.length > 2){
+            return true;
+         }
+      }
+
+      pattern = pattern.parent;
+    }
+
+    return false;
   }
 
   getTokens(): string[] {

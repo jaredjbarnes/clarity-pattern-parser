@@ -65,8 +65,6 @@ export class Optional implements Pattern {
   }
 
   parse(cursor: Cursor): Node | null {
-    cursor.startParseWith(this);
-
     const firstIndex = cursor.index;
     const node = this._children[0].parse(cursor);
 
@@ -74,10 +72,8 @@ export class Optional implements Pattern {
       cursor.resolveError();
       cursor.moveTo(firstIndex);
 
-      cursor.endParse();
       return null;
     } else {
-      cursor.endParse();
       return node;
     }
 

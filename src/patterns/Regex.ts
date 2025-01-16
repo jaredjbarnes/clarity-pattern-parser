@@ -96,13 +96,10 @@ export class Regex implements Pattern {
   }
 
   parse(cursor: Cursor) {
-    cursor.startParseWith(this);
-
     this._firstIndex = cursor.index;
     this.resetState(cursor);
     this.tryToParse(cursor);
 
-    cursor.endParse();
     return this._node;
   }
 

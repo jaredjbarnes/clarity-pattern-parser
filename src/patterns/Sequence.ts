@@ -83,10 +83,13 @@ export class Sequence implements Pattern {
   }
 
   parse(cursor: Cursor): Node | null {
-    cursor.startParseWith(this);
-
     this._firstIndex = cursor.index;
     this._nodes = [];
+
+    if (this._isBeyondRecursiveLimit()) {
+      cursor.recordErrorAt(cursor.index, cursor.index, this);
+      return null;
+    }
 
     const passed = this.tryToParse(cursor);
 
@@ -97,15 +100,15 @@ export class Sequence implements Pattern {
         cursor.recordMatch(this, node);
       }
 
-      cursor.endParse();
       return node;
     }
 
-    cursor.endParse();
     return null;
   }
 
   private tryToParse(cursor: Cursor): boolean {
+
+
     let passed = false;
 
     for (let i = 0; i < this._children.length; i++) {
@@ -164,6 +167,32 @@ export class Sequence implements Pattern {
     }
 
     return passed;
+  }
+
+  private _isBeyondRecursiveLimit() {
+    let pattern: Pattern = this;
+    const matches: Pattern[] = [];
+
+    while (pattern.parent != null) {
+      if (pattern.type !== "sequence") {
+        pattern = pattern.parent;
+        continue;
+      }
+
+      const sequencePattern = pattern as Sequence;
+
+      if (pattern.id === this.id && sequencePattern._firstIndex === this._firstIndex) {
+        matches.push(pattern);
+
+        if (matches.length > 1) {
+          return true;
+        }
+      }
+
+      pattern = pattern.parent;
+    }
+
+    return false;
   }
 
   private getLastValidNode(): Node | null {

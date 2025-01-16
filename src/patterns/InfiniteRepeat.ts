@@ -106,8 +106,6 @@ export class InfiniteRepeat implements Pattern {
   }
 
   parse(cursor: Cursor): Node | null {
-    cursor.startParseWith(this);
-
     this._firstIndex = cursor.index;
     this._nodes = [];
 
@@ -122,17 +120,14 @@ export class InfiniteRepeat implements Pattern {
         cursor.recordMatch(this, node);
       }
 
-      cursor.endParse();
       return node;
     }
 
     if (this._min > 0) {
-      cursor.endParse();
       return null;
     }
 
     cursor.resolveError();
-    cursor.endParse();
     return null;
   }
 

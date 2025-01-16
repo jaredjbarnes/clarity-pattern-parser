@@ -1,27 +1,13 @@
 import { Node } from "../ast/Node";
-import { CursorHistory, Match, Trace } from "./CursorHistory";
+import { CursorHistory, Match } from "./CursorHistory";
 import { ParseError } from "./ParseError";
 import { Pattern } from "./Pattern";
-
-export class CyclicalParseError extends Error {
-  readonly patternId: string;
-  readonly patternName: string;
-  readonly cursorIndex: number;
-
-  constructor(patternId: string, patternName: string, cursorIndex: number) {
-    super("Cyclical Parse Error");
-    this.patternId = patternId;
-    this.patternName = patternName;
-    this.cursorIndex = cursorIndex;
-  }
-}
 
 export class Cursor {
   private _text: string;
   private _index: number;
   private _length: number;
   private _history: CursorHistory;
-  private _stackTrace: Trace[];
 
   get text(): string {
     return this._text;
@@ -92,7 +78,6 @@ export class Cursor {
     this._index = 0;
     this._length = [...text].length;
     this._history = new CursorHistory();
-    this._stackTrace = [];
   }
 
   hasNext(): boolean {
@@ -155,41 +140,6 @@ export class Cursor {
 
   stopRecording(): void {
     this._history.stopRecording();
-  }
-
-  startParseWith(pattern: Pattern) {
-    const trace = {
-      pattern,
-      cursorIndex: this.index
-    };
-
-    const hasCycle = this._stackTrace.filter(t => t.pattern.id === pattern.id && this.index === t.cursorIndex).length > 1;
-    if (hasCycle) {
-      throw new CyclicalParseError(pattern.id, pattern.name, this.index);
-    }
-
-    this._history.pushStackTrace(trace);
-    this._stackTrace.push(trace);
-  }
-
-  endParse() {
-    this._stackTrace.pop();
-  }
-
-  audit() {
-    return this._history.trace.map(t => {
-      const onChar = this.getChars(t.cursorIndex, t.cursorIndex);
-      const restChars = this.getChars(t.cursorIndex + 1, t.cursorIndex + 5);
-      const context = `{${t.cursorIndex}}[${onChar}]${restChars}`;
-      return `${this._buildPatternContext(t.pattern)}-->${context}`;
-    });
-  }
-
-  private _buildPatternContext(pattern: Pattern) {
-    if (pattern.parent != null) {
-      return `${pattern.parent.name}.${pattern.name}`;
-    }
-    return pattern.name;
   }
 
 }

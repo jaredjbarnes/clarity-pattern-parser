@@ -283,7 +283,6 @@ class CursorHistory {
         this._patterns = [];
         this._nodes = [];
         this._errors = [];
-        this._trace = [];
     }
     get isRecording() {
         return this._isRecording;
@@ -311,9 +310,6 @@ class CursorHistory {
     }
     get patterns() {
         return this._patterns;
-    }
-    get trace() {
-        return this._trace;
     }
     recordMatch(pattern, node) {
         if (this._isRecording) {
@@ -369,21 +365,8 @@ class CursorHistory {
     resolveError() {
         this._currentError = null;
     }
-    pushStackTrace(trace) {
-        if (this._isRecording) {
-            this._trace.push(trace);
-        }
-    }
 }
 
-class CyclicalParseError extends Error {
-    constructor(patternId, patternName, cursorIndex) {
-        super("Cyclical Parse Error");
-        this.patternId = patternId;
-        this.patternName = patternName;
-        this.cursorIndex = cursorIndex;
-    }
-}
 class Cursor {
     get text() {
         return this._text;
@@ -438,7 +421,6 @@ class Cursor {
         this._index = 0;
         this._length = [...text].length;
         this._history = new CursorHistory();
-        this._stackTrace = [];
     }
     hasNext() {
         return this._index + 1 < this._length;
@@ -487,35 +469,6 @@ class Cursor {
     }
     stopRecording() {
         this._history.stopRecording();
-    }
-    startParseWith(pattern) {
-        const trace = {
-            pattern,
-            cursorIndex: this.index
-        };
-        const hasCycle = this._stackTrace.filter(t => t.pattern.id === pattern.id && this.index === t.cursorIndex).length > 1;
-        if (hasCycle) {
-            throw new CyclicalParseError(pattern.id, pattern.name, this.index);
-        }
-        this._history.pushStackTrace(trace);
-        this._stackTrace.push(trace);
-    }
-    endParse() {
-        this._stackTrace.pop();
-    }
-    audit() {
-        return this._history.trace.map(t => {
-            const onChar = this.getChars(t.cursorIndex, t.cursorIndex);
-            const restChars = this.getChars(t.cursorIndex + 1, t.cursorIndex + 5);
-            const context = `{${t.cursorIndex}}[${onChar}]${restChars}`;
-            return `${this._buildPatternContext(t.pattern)}-->${context}`;
-        });
-    }
-    _buildPatternContext(pattern) {
-        if (pattern.parent != null) {
-            return `${pattern.parent.name}.${pattern.name}`;
-        }
-        return pattern.name;
     }
 }
 
@@ -572,18 +525,15 @@ class Literal {
         };
     }
     parse(cursor) {
-        cursor.startParseWith(this);
         this._firstIndex = cursor.index;
         const passed = this._tryToParse(cursor);
         if (passed) {
             cursor.resolveError();
             const node = this._createNode();
             cursor.recordMatch(this, node);
-            cursor.endParse();
             return node;
         }
         cursor.recordErrorAt(this._firstIndex, this._endIndex, this);
-        cursor.endParse();
         return null;
     }
     _tryToParse(cursor) {
@@ -712,11 +662,9 @@ class Regex {
         };
     }
     parse(cursor) {
-        cursor.startParseWith(this);
         this._firstIndex = cursor.index;
         this.resetState(cursor);
         this.tryToParse(cursor);
-        cursor.endParse();
         return this._node;
     }
     resetState(cursor) {
@@ -986,30 +934,26 @@ class Options {
         };
     }
     parse(cursor) {
-        cursor.startParseWith(this);
         this._firstIndex = cursor.index;
         const node = this._tryToParse(cursor);
         if (node != null) {
             cursor.moveTo(node.lastIndex);
             cursor.resolveError();
-            cursor.endParse();
             return node;
         }
         cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
-        cursor.endParse();
         return null;
     }
     _tryToParse(cursor) {
+        if (this._isBeyondRecursiveLimit()) {
+            cursor.recordErrorAt(cursor.index, cursor.index, this);
+            return null;
+        }
         const results = [];
         for (const pattern of this._children) {
             cursor.moveTo(this._firstIndex);
             let result = null;
-            try {
-                result = pattern.parse(cursor);
-            }
-            catch (_a) {
-                continue;
-            }
+            result = pattern.parse(cursor);
             if (this._isGreedy) {
                 results.push(result);
             }
@@ -1021,6 +965,25 @@ class Options {
         const nonNullResults = results.filter(r => r != null);
         nonNullResults.sort((a, b) => b.endIndex - a.endIndex);
         return nonNullResults[0] || null;
+    }
+    _isBeyondRecursiveLimit() {
+        let pattern = this;
+        const matches = [];
+        while (pattern.parent != null) {
+            if (pattern.type !== "options") {
+                pattern = pattern.parent;
+                continue;
+            }
+            const optionsPattern = pattern;
+            if (pattern.id === this.id && optionsPattern._firstIndex === this._firstIndex) {
+                matches.push(pattern);
+                if (matches.length > 2) {
+                    return true;
+                }
+            }
+            pattern = pattern.parent;
+        }
+        return false;
     }
     getTokens() {
         const tokens = [];
@@ -1121,7 +1084,6 @@ class FiniteRepeat {
         }
     }
     parse(cursor) {
-        cursor.startParseWith(this);
         const startIndex = cursor.index;
         const nodes = [];
         const modulo = this._hasDivider ? 2 : 1;
@@ -1160,19 +1122,16 @@ class FiniteRepeat {
             const lastIndex = cursor.index;
             cursor.moveTo(startIndex);
             cursor.recordErrorAt(startIndex, lastIndex, this);
-            cursor.endParse();
             return null;
         }
         if (nodes.length === 0 && !cursor.hasError) {
             cursor.moveTo(startIndex);
-            cursor.endParse();
             return null;
         }
         const firstIndex = nodes[0].firstIndex;
         const lastIndex = nodes[nodes.length - 1].lastIndex;
         cursor.resolveError();
         cursor.moveTo(lastIndex);
-        cursor.endParse();
         return new Node(this._type, this.name, firstIndex, lastIndex, nodes);
     }
     test(text) {
@@ -1318,7 +1277,6 @@ class InfiniteRepeat {
         };
     }
     parse(cursor) {
-        cursor.startParseWith(this);
         this._firstIndex = cursor.index;
         this._nodes = [];
         const passed = this._tryToParse(cursor);
@@ -1329,15 +1287,12 @@ class InfiniteRepeat {
                 cursor.moveTo(node.lastIndex);
                 cursor.recordMatch(this, node);
             }
-            cursor.endParse();
             return node;
         }
         if (this._min > 0) {
-            cursor.endParse();
             return null;
         }
         cursor.resolveError();
-        cursor.endParse();
         return null;
     }
     _meetsMin() {
@@ -1676,19 +1631,20 @@ class Sequence {
         };
     }
     parse(cursor) {
-        cursor.startParseWith(this);
         this._firstIndex = cursor.index;
         this._nodes = [];
+        if (this._isBeyondRecursiveLimit()) {
+            cursor.recordErrorAt(cursor.index, cursor.index, this);
+            return null;
+        }
         const passed = this.tryToParse(cursor);
         if (passed) {
             const node = this.createNode(cursor);
             if (node !== null) {
                 cursor.recordMatch(this, node);
             }
-            cursor.endParse();
             return node;
         }
-        cursor.endParse();
         return null;
     }
     tryToParse(cursor) {
@@ -1747,6 +1703,25 @@ class Sequence {
             }
         }
         return passed;
+    }
+    _isBeyondRecursiveLimit() {
+        let pattern = this;
+        const matches = [];
+        while (pattern.parent != null) {
+            if (pattern.type !== "sequence") {
+                pattern = pattern.parent;
+                continue;
+            }
+            const sequencePattern = pattern;
+            if (pattern.id === this.id && sequencePattern._firstIndex === this._firstIndex) {
+                matches.push(pattern);
+                if (matches.length > 1) {
+                    return true;
+                }
+            }
+            pattern = pattern.parent;
+        }
+        return false;
     }
     getLastValidNode() {
         const nodes = filterOutNull(this._nodes);
@@ -1930,17 +1905,14 @@ class Optional {
         };
     }
     parse(cursor) {
-        cursor.startParseWith(this);
         const firstIndex = cursor.index;
         const node = this._children[0].parse(cursor);
         if (cursor.hasError) {
             cursor.resolveError();
             cursor.moveTo(firstIndex);
-            cursor.endParse();
             return null;
         }
         else {
-            cursor.endParse();
             return node;
         }
     }
@@ -2245,7 +2217,6 @@ class Not {
         };
     }
     parse(cursor) {
-        cursor.startParseWith(this);
         const firstIndex = cursor.index;
         this._children[0].parse(cursor);
         if (cursor.hasError) {
@@ -2257,7 +2228,6 @@ class Not {
             cursor.resolveError();
             cursor.recordErrorAt(firstIndex, firstIndex, this);
         }
-        cursor.endParse();
         return null;
     }
     clone(name = this._name) {

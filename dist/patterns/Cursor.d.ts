@@ -2,18 +2,11 @@ import { Node } from "../ast/Node";
 import { Match } from "./CursorHistory";
 import { ParseError } from "./ParseError";
 import { Pattern } from "./Pattern";
-export declare class CyclicalParseError extends Error {
-    readonly patternId: string;
-    readonly patternName: string;
-    readonly cursorIndex: number;
-    constructor(patternId: string, patternName: string, cursorIndex: number);
-}
 export declare class Cursor {
     private _text;
     private _index;
     private _length;
     private _history;
-    private _stackTrace;
     get text(): string;
     get isOnFirst(): boolean;
     get isOnLast(): boolean;
@@ -45,8 +38,4 @@ export declare class Cursor {
     resolveError(): void;
     startRecording(): void;
     stopRecording(): void;
-    startParseWith(pattern: Pattern): void;
-    endParse(): void;
-    audit(): string[];
-    private _buildPatternContext;
 }

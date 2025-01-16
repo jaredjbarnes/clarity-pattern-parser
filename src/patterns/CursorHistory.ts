@@ -2,11 +2,6 @@ import { Node } from "../ast/Node";
 import { ParseError } from "./ParseError";
 import { Pattern } from "./Pattern";
 
-export interface Trace {
-  pattern: Pattern;
-  cursorIndex: number;
-}
-
 export interface Match {
   pattern: Pattern | null;
   node: Node | null;
@@ -21,7 +16,6 @@ export class CursorHistory {
   private _patterns: Pattern[] = [];
   private _nodes: Node[] = [];
   private _errors: ParseError[] = [];
-  private _trace: Trace[] = [];
 
   get isRecording(): boolean {
     return this._isRecording;
@@ -57,10 +51,6 @@ export class CursorHistory {
 
   get patterns(): Pattern[] {
     return this._patterns;
-  }
-
-  get trace(): Trace[] {
-    return this._trace;
   }
 
   recordMatch(pattern: Pattern, node: Node): void {
@@ -129,12 +119,6 @@ export class CursorHistory {
 
   resolveError() {
     this._currentError = null;
-  }
-
-  pushStackTrace(trace: Trace) {
-    if (this._isRecording) {
-      this._trace.push(trace);
-    }
   }
 
 }

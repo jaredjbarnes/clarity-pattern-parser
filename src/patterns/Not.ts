@@ -65,8 +65,6 @@ export class Not implements Pattern {
   }
 
   parse(cursor: Cursor): Node | null {
-    cursor.startParseWith(this);
-
     const firstIndex = cursor.index;
     this._children[0].parse(cursor);
 
@@ -79,7 +77,6 @@ export class Not implements Pattern {
       cursor.recordErrorAt(firstIndex, firstIndex, this);
     }
 
-    cursor.endParse();
     return null;
   }
 

@@ -291,9 +291,8 @@ describe("Options", () => {
         result = expression.exec("John ? Jane : John");
         expect(result.ast?.toString()).toBe("John ? Jane : John");
 
-
-        result = expression.exec("John ? Jane : John ? Jane : John");
-        expect(result.ast?.toString()).toBe("John ? Jane : John ? Jane : John");
+        result = expression.exec("John ? John ? Jane : John ? Jane : John : John");
+        expect(result.ast?.toString()).toBe("John ? John ? Jane : John ? Jane : John : John");
     });
 
     test("Deeper Cyclical Error Recorvery", () => {

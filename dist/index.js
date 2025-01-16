@@ -782,6 +782,7 @@ class Reference {
         this._name = name;
         this._parent = null;
         this._pattern = null;
+        this._cachedPattern = null;
         this._children = [];
     }
     test(text) {
@@ -803,7 +804,13 @@ class Reference {
     }
     _getPatternSafely() {
         if (this._pattern === null) {
-            const pattern = this._findPattern();
+            let pattern = null;
+            if (this._cachedPattern == null) {
+                pattern = this._findPattern();
+            }
+            else {
+                pattern = this._cachedPattern;
+            }
             if (pattern === null) {
                 throw new Error(`Couldn't find '${this._name}' pattern within tree.`);
             }
@@ -869,6 +876,10 @@ class Reference {
     clone(name = this._name) {
         const clone = new Reference(name);
         clone._id = this._id;
+        // Optimize future clones, by caching the pattern we already found.
+        if (this._pattern != null) {
+            clone._cachedPattern = this._pattern;
+        }
         return clone;
     }
     isEqual(pattern) {

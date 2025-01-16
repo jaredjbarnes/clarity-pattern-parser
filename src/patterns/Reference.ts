@@ -11,6 +11,7 @@ export class Reference implements Pattern {
   private _type: string;
   private _name: string;
   private _parent: Pattern | null;
+  private _cachedPattern: Pattern | null;
   private _pattern: Pattern | null;
   private _children: Pattern[];
 
@@ -44,6 +45,7 @@ export class Reference implements Pattern {
     this._name = name;
     this._parent = null;
     this._pattern = null;
+    this._cachedPattern = null;
     this._children = [];
   }
 
@@ -72,7 +74,13 @@ export class Reference implements Pattern {
 
   private _getPatternSafely(): Pattern {
     if (this._pattern === null) {
-      const pattern = this._findPattern();
+      let pattern: Pattern | null = null;
+
+      if (this._cachedPattern == null) {
+        pattern = this._findPattern();
+      } else {
+        pattern = this._cachedPattern;
+      }
 
       if (pattern === null) {
         throw new Error(`Couldn't find '${this._name}' pattern within tree.`);
@@ -159,6 +167,12 @@ export class Reference implements Pattern {
   clone(name = this._name): Pattern {
     const clone = new Reference(name);
     clone._id = this._id;
+
+    // Optimize future clones, by caching the pattern we already found.
+    if (this._pattern != null) {
+      clone._cachedPattern = this._pattern;
+    }
+
     return clone;
   }
 

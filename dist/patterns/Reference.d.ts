@@ -7,6 +7,7 @@ export declare class Reference implements Pattern {
     private _type;
     private _name;
     private _parent;
+    private _cachedPattern;
     private _pattern;
     private _children;
     get id(): string;

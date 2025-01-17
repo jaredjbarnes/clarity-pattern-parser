@@ -57,6 +57,10 @@ export class Cursor {
     return this._history.errors;
   }
 
+  get records() {
+    return this._history.records;
+  }
+
   get index(): number {
     return this._index;
   }

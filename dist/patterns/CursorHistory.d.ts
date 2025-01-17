@@ -5,6 +5,11 @@ export interface Match {
     pattern: Pattern | null;
     node: Node | null;
 }
+export interface HistoryRecord {
+    pattern: Pattern;
+    error: ParseError | null;
+    ast: Node | null;
+}
 export declare class CursorHistory {
     private _isRecording;
     private _leafMatches;
@@ -14,6 +19,7 @@ export declare class CursorHistory {
     private _patterns;
     private _nodes;
     private _errors;
+    private _records;
     get isRecording(): boolean;
     get rootMatch(): Match;
     get leafMatch(): Match;
@@ -21,6 +27,7 @@ export declare class CursorHistory {
     get furthestError(): ParseError | null;
     get errors(): ParseError[];
     get error(): ParseError | null;
+    get records(): HistoryRecord[];
     get nodes(): Node[];
     get patterns(): Pattern[];
     recordMatch(pattern: Pattern, node: Node): void;

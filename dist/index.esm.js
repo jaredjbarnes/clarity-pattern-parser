@@ -279,6 +279,7 @@ class CursorHistory {
         this._patterns = [];
         this._nodes = [];
         this._errors = [];
+        this._records = [];
     }
     get isRecording() {
         return this._isRecording;
@@ -301,6 +302,9 @@ class CursorHistory {
     get error() {
         return this._currentError;
     }
+    get records() {
+        return this._records;
+    }
     get nodes() {
         return this._nodes;
     }
@@ -311,6 +315,11 @@ class CursorHistory {
         if (this._isRecording) {
             this._patterns.push(pattern);
             this._nodes.push(node);
+            this._records.push({
+                pattern,
+                ast: node,
+                error: null
+            });
         }
         this._rootMatch.pattern = pattern;
         this._rootMatch.node = node;
@@ -350,6 +359,11 @@ class CursorHistory {
         }
         if (this._isRecording) {
             this._errors.push(error);
+            this.records.push({
+                pattern,
+                ast: null,
+                error
+            });
         }
     }
     startRecording() {
@@ -399,6 +413,9 @@ class Cursor {
     }
     get errors() {
         return this._history.errors;
+    }
+    get records() {
+        return this._history.records;
     }
     get index() {
         return this._index;

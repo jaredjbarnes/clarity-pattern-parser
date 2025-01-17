@@ -19,6 +19,7 @@ export declare class Cursor {
     get furthestError(): ParseError | null;
     get error(): ParseError | null;
     get errors(): ParseError[];
+    get records(): import("./CursorHistory").HistoryRecord[];
     get index(): number;
     get length(): number;
     get hasError(): boolean;

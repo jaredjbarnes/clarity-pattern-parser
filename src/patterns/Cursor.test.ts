@@ -1,6 +1,21 @@
 import { Cursor } from "./Cursor";
 import { Literal } from "./Literal";
-import { Node } from "../ast/Node"
+import { Node } from "../ast/Node";
+import { patterns } from "../grammar/patterns";
+
+const { name } = patterns`
+    john = "John"
+    jane = "Jane"
+    first-names = john | jane
+
+    doe = "Doe"
+    smith = "Smith"
+    last-names = doe | smith
+
+    space = " " 
+
+    name = first-names + space + last-names
+`;
 
 describe("Cursor", () => {
     test("Empty Text", () => {
@@ -20,7 +35,7 @@ describe("Cursor", () => {
         const cursor = new Cursor("Hello World!");
         cursor.moveTo(6);
 
-        expect(cursor.currentChar).toBe("W")
+        expect(cursor.currentChar).toBe("W");
 
         cursor.moveToFirstChar();
         cursor.previous();
@@ -35,7 +50,7 @@ describe("Cursor", () => {
         cursor.moveToLastChar();
         cursor.next();
 
-        expect(cursor.isOnLast).toBeTruthy()
+        expect(cursor.isOnLast).toBeTruthy();
         expect(cursor.currentChar).toBe("!");
 
         cursor.previous();
@@ -69,7 +84,7 @@ describe("Cursor", () => {
 
         const cursor = new Cursor("Hello World!");
 
-        cursor.recordMatch(pattern, node)
+        cursor.recordMatch(pattern, node);
 
         expect(cursor.leafMatch.node).toBe(node);
         expect(cursor.leafMatch.pattern).toBe(pattern);
@@ -96,7 +111,46 @@ describe("Cursor", () => {
 
         expect(hello).toBe("Hello");
         expect(cursor.length).toBe(12);
-        expect(cursor.text).toBe("Hello World!")
+        expect(cursor.text).toBe("Hello World!");
         expect(cursor.index).toBe(0);
     });
+
+    test("Records All matches", () => {
+        const { ast, cursor } = name.exec("John Doe", true);
+        const records = cursor.records;
+
+        expect(ast?.toString()).toBe("John Doe");
+        expect(records[0].ast?.toString()).toBe("John");
+        expect(records[1].ast?.toString()).toBe(" ");
+        expect(records[2].ast?.toString()).toBe("Doe");
+        expect(records[3].ast?.toString()).toBe("John Doe");
+    });
+
+    test("Records Some Error Some Matches", () => {
+        const { ast, cursor } = name.exec("John Smith", true);
+        const records = cursor.records;
+
+        expect(ast?.toString()).toBe("John Smith");
+        expect(records[0].ast?.toString()).toBe("John");
+        expect(records[1].ast?.toString()).toBe(" ");
+        expect(records[2].error?.pattern.name).toBe("doe");
+        expect(records[2].error?.startIndex).toBe(5);
+        expect(records[2].error?.endIndex).toBe(5);
+        expect(records[3].ast?.toString()).toBe("Smith");
+        expect(records[4].ast?.toString()).toBe("John Smith");
+    });
+
+    test("Records All Errors", () => {
+        const { ast, cursor } = name.exec("Jack Smith", true);
+        const records = cursor.records;
+
+        expect(ast).toBeNull();
+        expect(records[0].error).not.toBeNull();
+        expect(records[0].pattern.name).toBe("john");
+        expect(records[1].error).not.toBeNull();
+        expect(records[1].pattern.name).toBe("jane");
+        expect(records[2].error).not.toBeNull();
+        expect(records[2].pattern.name).toBe("first-names");
+    });
+
 });

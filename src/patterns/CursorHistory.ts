@@ -7,6 +7,12 @@ export interface Match {
   node: Node | null;
 }
 
+export interface HistoryRecord {
+  pattern: Pattern;
+  error: ParseError | null;
+  ast: Node | null;
+}
+
 export class CursorHistory {
   private _isRecording = false;
   private _leafMatches: Match[] = [{ pattern: null, node: null }];
@@ -16,6 +22,7 @@ export class CursorHistory {
   private _patterns: Pattern[] = [];
   private _nodes: Node[] = [];
   private _errors: ParseError[] = [];
+  private _records: HistoryRecord[] = [];
 
   get isRecording(): boolean {
     return this._isRecording;
@@ -45,6 +52,10 @@ export class CursorHistory {
     return this._currentError;
   }
 
+  get records(): HistoryRecord[] {
+    return this._records;
+  }
+
   get nodes(): Node[] {
     return this._nodes;
   }
@@ -57,6 +68,11 @@ export class CursorHistory {
     if (this._isRecording) {
       this._patterns.push(pattern);
       this._nodes.push(node);
+      this._records.push({
+        pattern,
+        ast: node,
+        error: null
+      });
     }
 
     this._rootMatch.pattern = pattern;
@@ -106,6 +122,11 @@ export class CursorHistory {
 
     if (this._isRecording) {
       this._errors.push(error);
+      this.records.push({
+        pattern,
+        ast: null,
+        error
+      });
     }
   }
 

@@ -1,9 +1,9 @@
-* Anonymous patterns within cpat files.
-```
-pattern = ("Name" | "Name") & "Blah" & /foo/
-```
-* Aliasing imports.
-* Send through params 
+* Add a Context Pattern
+This will allow you to store a list of patterns and the pattern you want to start a parse from. This will hold the context of many patterns
+that perhaps are references but are by way of the context. This will be helpful with cpat files.
+
+* Optimizations We can add a map to the cursor where we can search through previous matches and if the match for this pattern with this id has already matched in other bracnhes of the parse it can just use the node and clone it and skip the full parse and speed up things tremendously
+
 
 * Generate typescript files from cpat
 

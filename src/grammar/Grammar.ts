@@ -10,6 +10,7 @@ import { Sequence } from "../patterns/Sequence";
 import { Repeat, RepeatOptions } from "../patterns/Repeat";
 import { AutoComplete } from "../intellisense/AutoComplete";
 import { Optional } from "../patterns/Optional";
+import { ContextPattern } from "../patterns/ContextPattern";
 
 let anonymousIndexId = 0;
 
@@ -88,7 +89,18 @@ export class Grammar {
         await this._resolveImports(ast);
         this._buildPatterns(ast);
 
-        return Object.fromEntries(this._parseContext.patternsByName) as Record<string, Pattern>;
+        return this._buildPatternRecord();
+    }
+
+    private _buildPatternRecord() {
+        const patterns: Record<string, Pattern> = {};
+        const allPatterns = Array.from(this._parseContext.patternsByName.values());
+
+        allPatterns.forEach(p => {
+            patterns[p.name] = new ContextPattern(p.name, p, allPatterns.filter(o => o !== p));
+        });
+
+        return patterns;
     }
 
     parseString(expression: string) {
@@ -98,8 +110,10 @@ export class Grammar {
         if (this._hasImports(ast)) {
             throw new Error("Cannot use imports on parseString, use parse instead.");
         }
+
         this._buildPatterns(ast);
-        return Object.fromEntries(this._parseContext.patternsByName) as Record<string, Pattern>;
+
+        return this._buildPatternRecord();
     }
 
     private _tryToParse(expression: string): Node {

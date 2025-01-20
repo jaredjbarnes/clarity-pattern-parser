@@ -97,10 +97,28 @@ export class Reference implements Pattern {
   }
 
   private _findPattern(): Pattern | null {
-    const root = this._getRoot();
+    let pattern = this._parent;
 
+    while (pattern != null) {
+      if (pattern.type !== "context") {
+        pattern = pattern.parent;
+        continue;
+      }
+
+      const foundPattern = findPattern(pattern, (pattern: Pattern) => {
+        return pattern.name === this._name && pattern.type !== "reference" && pattern.type !== "context";
+      });
+
+      if (foundPattern != null) {
+        return foundPattern;
+      }
+
+      pattern = pattern.parent;
+    }
+
+    const root = this._getRoot();
     return findPattern(root, (pattern: Pattern) => {
-      return pattern.name === this._name && pattern.type !== "reference";
+      return pattern.name === this._name && pattern.type !== "reference" && pattern.type !== "context";
     });
   }
 

@@ -9,12 +9,17 @@ export declare class Context implements Pattern {
     private _parent;
     private _children;
     private _pattern;
+    private _patterns;
     get id(): string;
     get type(): string;
     get name(): string;
     get parent(): Pattern | null;
     set parent(pattern: Pattern | null);
     get children(): Pattern[];
+    getPatternWithinContext(name: string): Pattern | null;
+    getPatternsWithinContext(): {
+        [x: string]: Pattern;
+    };
     constructor(name: string, pattern: Pattern, context?: Pattern[]);
     parse(cursor: Cursor): Node | null;
     exec(text: string, record?: boolean | undefined): ParseResult;

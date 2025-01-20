@@ -12,6 +12,7 @@ export class Context implements Pattern {
     private _parent: Pattern | null;
     private _children: Pattern[];
     private _pattern: Pattern;
+    private _patterns: Record<string, Pattern>;
 
     get id(): string {
         return this._id;
@@ -37,20 +38,28 @@ export class Context implements Pattern {
         return this._children;
     }
 
+    getPatternWithinContext(name: string): Pattern | null {
+        return this._patterns[name] || null;
+    }
+
+    getPatternsWithinContext() {
+        return { ...this._patterns };
+    }
+
     constructor(name: string, pattern: Pattern, context: Pattern[] = []) {
         this._id = `context-${contextId++}`;
         this._type = "context";
         this._name = name;
         this._parent = null;
+        this._patterns = {};
 
-        const clonedContext = context.map(p => p.clone());
+
         const clonedPattern = pattern.clone();
-
-        clonedContext.forEach(p => p.parent = this);
+        context.forEach(p => this._patterns[p.name] = p);
         clonedPattern.parent = this;
 
         this._pattern = clonedPattern;
-        this._children = [...clonedContext, clonedPattern];
+        this._children = [clonedPattern];
     }
 
     parse(cursor: Cursor): Node | null {

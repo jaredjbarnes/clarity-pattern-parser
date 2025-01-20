@@ -841,9 +841,7 @@ class Reference {
                 pattern = pattern.parent;
                 continue;
             }
-            const foundPattern = findPattern(pattern, (pattern) => {
-                return pattern.name === this._name && pattern.type !== "reference" && pattern.type !== "context";
-            });
+            const foundPattern = pattern.getPatternWithinContext(this.name);
             if (foundPattern != null) {
                 return foundPattern;
             }
@@ -2536,17 +2534,23 @@ class Context {
     get children() {
         return this._children;
     }
+    getPatternWithinContext(name) {
+        return this._patterns[name] || null;
+    }
+    getPatternsWithinContext() {
+        return Object.assign({}, this._patterns);
+    }
     constructor(name, pattern, context = []) {
         this._id = `context-${contextId++}`;
         this._type = "context";
         this._name = name;
         this._parent = null;
-        const clonedContext = context.map(p => p.clone());
+        this._patterns = {};
         const clonedPattern = pattern.clone();
-        clonedContext.forEach(p => p.parent = this);
+        context.forEach(p => this._patterns[p.name] = p);
         clonedPattern.parent = this;
         this._pattern = clonedPattern;
-        this._children = [...clonedContext, clonedPattern];
+        this._children = [clonedPattern];
     }
     parse(cursor) {
         return this._pattern.parse(cursor);

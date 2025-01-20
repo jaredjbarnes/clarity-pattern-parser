@@ -3,6 +3,7 @@ import { Cursor } from "./Cursor";
 import { Pattern } from "./Pattern";
 import { findPattern } from "./findPattern";
 import { ParseResult } from "./ParseResult";
+import { Context } from "./Context";
 
 let idIndex = 0;
 
@@ -105,9 +106,7 @@ export class Reference implements Pattern {
         continue;
       }
 
-      const foundPattern = findPattern(pattern, (pattern: Pattern) => {
-        return pattern.name === this._name && pattern.type !== "reference" && pattern.type !== "context";
-      });
+      const foundPattern = (pattern as Context).getPatternWithinContext(this.name);
 
       if (foundPattern != null) {
         return foundPattern;

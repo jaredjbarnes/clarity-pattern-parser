@@ -18,6 +18,7 @@ import { CursorHistory, Match } from "./patterns/CursorHistory";
 import { ParseResult } from "./patterns/ParseResult";
 import { grammar } from "./grammar/patterns/grammar";
 import { patterns } from "./grammar/patterns";
+import { Context } from "./patterns/Context";
 
 export {
   Node,
@@ -30,6 +31,7 @@ export {
   Cursor,
   CursorHistory,
   Match,
+  Context,
   Literal,
   Not,
   Options,

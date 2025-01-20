@@ -841,9 +841,23 @@
             return this._pattern;
         }
         _findPattern() {
+            let pattern = this._parent;
+            while (pattern != null) {
+                if (pattern.type !== "context") {
+                    pattern = pattern.parent;
+                    continue;
+                }
+                const foundPattern = findPattern(pattern, (pattern) => {
+                    return pattern.name === this._name && pattern.type !== "reference" && pattern.type !== "context";
+                });
+                if (foundPattern != null) {
+                    return foundPattern;
+                }
+                pattern = pattern.parent;
+            }
             const root = this._getRoot();
             return findPattern(root, (pattern) => {
-                return pattern.name === this._name && pattern.type !== "reference";
+                return pattern.name === this._name && pattern.type !== "reference" && pattern.type !== "context";
             });
         }
         _getRoot() {
@@ -2508,6 +2522,77 @@
         return furthestOptions;
     }
 
+    let contextId = 0;
+    class Context {
+        get id() {
+            return this._id;
+        }
+        get type() {
+            return this._type;
+        }
+        get name() {
+            return this._name;
+        }
+        get parent() {
+            return this._parent;
+        }
+        set parent(pattern) {
+            this._parent = pattern;
+        }
+        get children() {
+            return this._children;
+        }
+        constructor(name, pattern, context = []) {
+            this._id = `context-${contextId++}`;
+            this._type = "context";
+            this._name = name;
+            this._parent = null;
+            const clonedContext = context.map(p => p.clone());
+            const clonedPattern = pattern.clone();
+            clonedContext.forEach(p => p.parent = this);
+            clonedPattern.parent = this;
+            this._pattern = clonedPattern;
+            this._children = [...clonedContext, clonedPattern];
+        }
+        parse(cursor) {
+            return this._pattern.parse(cursor);
+        }
+        exec(text, record) {
+            return this._pattern.exec(text, record);
+        }
+        test(text, record) {
+            return this._pattern.test(text, record);
+        }
+        clone(name = this._name) {
+            const clone = new Context(name, this._pattern, this._children.slice(-1));
+            return clone;
+        }
+        getTokens() {
+            return this._pattern.getTokens();
+        }
+        getTokensAfter(childReference) {
+            return this._pattern.getTokensAfter(childReference);
+        }
+        getNextTokens() {
+            return this._pattern.getNextTokens();
+        }
+        getPatterns() {
+            return this._pattern.getPatterns();
+        }
+        getPatternsAfter(childReference) {
+            return this._pattern.getPatternsAfter(childReference);
+        }
+        getNextPatterns() {
+            return this._pattern.getNextPatterns();
+        }
+        find(predicate) {
+            return this._pattern.find(predicate);
+        }
+        isEqual(pattern) {
+            return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
+        }
+    }
+
     let anonymousIndexId = 0;
     const patternNodes = {
         "literal": true,
@@ -2562,8 +2647,16 @@
                 const ast = this._tryToParse(expression);
                 yield this._resolveImports(ast);
                 this._buildPatterns(ast);
-                return Object.fromEntries(this._parseContext.patternsByName);
+                return this._buildPatternRecord();
             });
+        }
+        _buildPatternRecord() {
+            const patterns = {};
+            const allPatterns = Array.from(this._parseContext.patternsByName.values());
+            allPatterns.forEach(p => {
+                patterns[p.name] = new Context(p.name, p, allPatterns.filter(o => o !== p));
+            });
+            return patterns;
         }
         parseString(expression) {
             this._parseContext = new ParseContext(this._params);
@@ -2572,7 +2665,7 @@
                 throw new Error("Cannot use imports on parseString, use parse instead.");
             }
             this._buildPatterns(ast);
-            return Object.fromEntries(this._parseContext.patternsByName);
+            return this._buildPatternRecord();
         }
         _tryToParse(expression) {
             const { ast, cursor, options, isComplete } = this._autoComplete.suggestFor(expression);
@@ -2933,6 +3026,7 @@
     }
 
     exports.AutoComplete = AutoComplete;
+    exports.Context = Context;
     exports.Cursor = Cursor;
     exports.CursorHistory = CursorHistory;
     exports.Grammar = Grammar;

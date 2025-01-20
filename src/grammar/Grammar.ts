@@ -10,7 +10,7 @@ import { Sequence } from "../patterns/Sequence";
 import { Repeat, RepeatOptions } from "../patterns/Repeat";
 import { AutoComplete } from "../intellisense/AutoComplete";
 import { Optional } from "../patterns/Optional";
-import { ContextPattern } from "../patterns/ContextPattern";
+import { Context } from "../patterns/Context";
 
 let anonymousIndexId = 0;
 
@@ -97,7 +97,7 @@ export class Grammar {
         const allPatterns = Array.from(this._parseContext.patternsByName.values());
 
         allPatterns.forEach(p => {
-            patterns[p.name] = new ContextPattern(p.name, p, allPatterns.filter(o => o !== p));
+            patterns[p.name] = new Context(p.name, p, allPatterns.filter(o => o !== p));
         });
 
         return patterns;

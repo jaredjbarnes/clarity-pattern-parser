@@ -5,7 +5,7 @@ import { Pattern } from "./Pattern";
 
 let contextId = 0;
 
-export class ContextPattern implements Pattern {
+export class Context implements Pattern {
     private _id: string;
     private _type: string;
     private _name: string;
@@ -66,7 +66,7 @@ export class ContextPattern implements Pattern {
     }
 
     clone(name = this._name): Pattern {
-        const clone = new ContextPattern(name, this._pattern, this._children.slice(-1));
+        const clone = new Context(name, this._pattern, this._children.slice(-1));
         return clone;
     }
 

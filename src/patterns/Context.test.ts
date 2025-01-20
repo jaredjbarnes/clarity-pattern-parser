@@ -1,10 +1,10 @@
 import { patterns } from "../grammar/patterns";
-import { ContextPattern } from "./ContextPattern";
+import { Context } from "./Context";
 import { Literal } from "./Literal";
 import { Reference } from "./Reference";
 import { Sequence } from "./Sequence";
 
-describe("ContextPattern", () => {
+describe("Context", () => {
     test("Basic", () => {
         const john = new Literal("john", "John");
         const space = new Literal("space", " ");
@@ -12,7 +12,7 @@ describe("ContextPattern", () => {
         const spaceReference = new Reference("space");
 
         const names = new Sequence("names", [john, spaceReference, jane]);
-        const context = new ContextPattern("context", names, [space, names]);
+        const context = new Context("context", names, [space, names]);
 
         const { ast } = context.exec("John Jane");
 
@@ -21,9 +21,9 @@ describe("ContextPattern", () => {
 
     test("With Grammar", ()=>{
         const {names} = patterns`
+            names = john + space + jane
             john = "John"
             jane = "Jane"
-            names = john + space + jane
             space = " "
         `;
 
@@ -31,5 +31,5 @@ describe("ContextPattern", () => {
 
         expect(ast?.toString()).toBe("John Jane");
     });
-    
+
 });

@@ -2566,7 +2566,7 @@ class Context {
         return this._pattern.test(text, record);
     }
     clone(name = this._name) {
-        const clone = new Context(name, this._pattern, this._children.slice(0, -1));
+        const clone = new Context(name, this._pattern, Object.values(this._patterns));
         return clone;
     }
     getTokens() {

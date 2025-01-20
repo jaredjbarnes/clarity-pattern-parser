@@ -42,13 +42,13 @@ export class Context implements Pattern {
         this._type = "context";
         this._name = name;
         this._parent = null;
-        
+
         const clonedContext = context.map(p => p.clone());
         const clonedPattern = pattern.clone();
-        
+
         clonedContext.forEach(p => p.parent = this);
         clonedPattern.parent = this;
-        
+
         this._pattern = clonedPattern;
         this._children = [...clonedContext, clonedPattern];
     }
@@ -66,7 +66,7 @@ export class Context implements Pattern {
     }
 
     clone(name = this._name): Pattern {
-        const clone = new Context(name, this._pattern, this._children.slice(-1));
+        const clone = new Context(name, this._pattern, this._children.slice(0, -1));
         return clone;
     }
 

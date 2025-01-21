@@ -1022,8 +1022,8 @@ class Options {
     }
     _tryToParse(cursor) {
         let children = this._children;
-        if (depthCache$1.getDepth(this._id, this._firstIndex) > 1) {
-            children = this._children.reverse();
+        if (depthCache$1.getDepth(this._id, this._firstIndex) > 2) {
+            children = this._children.filter(c => c.type === "regex" || c.type === "literal");
         }
         else if (depthCache$1.getDepth(this._id, this._firstIndex) > 2) {
             cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);

@@ -113,8 +113,8 @@ export class Options implements Pattern {
   private _tryToParse(cursor: Cursor): Node | null {
     let children = this._children;
 
-    if (depthCache.getDepth(this._id, this._firstIndex) > 1) {
-      children = this._children.reverse();
+    if (depthCache.getDepth(this._id, this._firstIndex) > 2) {
+      children = this._children.filter(c=>c.type === "regex" || c.type === "literal");
     } else if (depthCache.getDepth(this._id, this._firstIndex) > 2) {
       cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
       return null;

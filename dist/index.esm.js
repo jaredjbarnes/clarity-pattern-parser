@@ -849,7 +849,7 @@ class Reference {
         }
         const root = this._getRoot();
         return findPattern(root, (pattern) => {
-            return pattern.name === this._name && pattern.type !== "reference" && pattern.type !== "context";
+            return pattern.name === this._name && pattern.type !== "reference";
         });
     }
     _getRoot() {

@@ -846,7 +846,7 @@ class Reference {
                 continue;
             }
             const foundPattern = pattern.getPatternWithinContext(this.name);
-            if (foundPattern != null) {
+            if (foundPattern != null && foundPattern.type !== "reference") {
                 return foundPattern;
             }
             pattern = pattern.parent;

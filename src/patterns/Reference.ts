@@ -108,7 +108,7 @@ export class Reference implements Pattern {
 
       const foundPattern = (pattern as Context).getPatternWithinContext(this.name);
 
-      if (foundPattern != null) {
+      if (foundPattern != null && foundPattern.type !== "reference") {
         return foundPattern;
       }
 

@@ -2626,12 +2626,6 @@
             this._parseContext = new ParseContext(this._params);
             this._autoComplete = new AutoComplete(grammar, {
                 greedyPatternNames: ["spaces", "optional-spaces", "whitespace", "new-line"],
-                customTokens: {
-                    "regex-literal": ["[Regular Expression]"],
-                    "literal": ["[String]"],
-                    "name": ["[Pattern Name]"],
-                    "pattern-name": ["[Pattern Name]"]
-                }
             });
         }
         import(path) {

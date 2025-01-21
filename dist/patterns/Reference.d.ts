@@ -22,6 +22,7 @@ export declare class Reference implements Pattern {
     parse(cursor: Cursor): Node | null;
     private _getPatternSafely;
     private _findPattern;
+    private _isValidPattern;
     private _getRoot;
     getTokens(): string[];
     getTokensAfter(_lastMatched: Pattern): string[];

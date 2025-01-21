@@ -842,15 +842,24 @@ class Reference {
                 continue;
             }
             const foundPattern = pattern.getPatternWithinContext(this.name);
-            if (foundPattern != null && foundPattern.type !== "reference") {
+            if (foundPattern != null && this._isValidPattern(foundPattern)) {
                 return foundPattern;
             }
             pattern = pattern.parent;
         }
         const root = this._getRoot();
         return findPattern(root, (pattern) => {
-            return pattern.name === this._name && pattern.type !== "reference";
+            return pattern.name === this._name && this._isValidPattern(pattern);
         });
+    }
+    _isValidPattern(pattern) {
+        if (pattern.type === "reference") {
+            return false;
+        }
+        if (pattern.type === "context" && pattern.children[0].type === "reference") {
+            return false;
+        }
+        return true;
     }
     _getRoot() {
         let node = this;

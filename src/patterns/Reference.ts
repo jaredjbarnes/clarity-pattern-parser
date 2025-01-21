@@ -108,7 +108,7 @@ export class Reference implements Pattern {
 
       const foundPattern = (pattern as Context).getPatternWithinContext(this.name);
 
-      if (foundPattern != null && foundPattern.type !== "reference") {
+      if (foundPattern != null && this._isValidPattern(foundPattern)) {
         return foundPattern;
       }
 
@@ -117,8 +117,20 @@ export class Reference implements Pattern {
 
     const root = this._getRoot();
     return findPattern(root, (pattern: Pattern) => {
-      return pattern.name === this._name && pattern.type !== "reference";
+      return pattern.name === this._name && this._isValidPattern(pattern);
     });
+  }
+
+  private _isValidPattern(pattern: Pattern) {
+    if (pattern.type === "reference") {
+      return false;
+    }
+
+    if (pattern.type === "context" && pattern.children[0].type === "reference") {
+      return false;
+    }
+
+    return true;
   }
 
   private _getRoot(): Pattern {

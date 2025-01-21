@@ -1021,11 +1021,12 @@ class Options {
         return null;
     }
     _tryToParse(cursor) {
+        const shouldReverseOrder = this._shouldReverseOrder();
         let children = this._children;
-        if (depthCache$1.getDepth(this._id, this._firstIndex) > 1) {
+        if (shouldReverseOrder) {
             children = this._children.slice().reverse();
         }
-        else if (depthCache$1.getDepth(this._id, this._firstIndex) > 2) {
+        if (depthCache$1.getDepth(this._id, this._firstIndex) > 2) {
             cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
             return null;
         }
@@ -1045,6 +1046,17 @@ class Options {
         const nonNullResults = results.filter(r => r != null);
         nonNullResults.sort((a, b) => b.endIndex - a.endIndex);
         return nonNullResults[0] || null;
+    }
+    _shouldReverseOrder() {
+        let count = 0;
+        let pattern = this._parent;
+        while (pattern != null) {
+            if (pattern.id === this.id) {
+                count++;
+            }
+            pattern = pattern.parent;
+        }
+        return count % 2 === 0;
     }
     getTokens() {
         const tokens = [];

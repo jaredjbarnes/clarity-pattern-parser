@@ -111,11 +111,14 @@ export class Options implements Pattern {
 
 
   private _tryToParse(cursor: Cursor): Node | null {
+    const shouldReverseOrder = this._shouldReverseOrder();
     let children = this._children;
 
-    if (depthCache.getDepth(this._id, this._firstIndex) > 1) {
+    if (shouldReverseOrder) {
       children = this._children.slice().reverse();
-    } else if (depthCache.getDepth(this._id, this._firstIndex) > 2) {
+    }
+
+    if (depthCache.getDepth(this._id, this._firstIndex) > 2) {
       cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
       return null;
     }
@@ -143,6 +146,20 @@ export class Options implements Pattern {
     nonNullResults.sort((a, b) => b.endIndex - a.endIndex);
 
     return nonNullResults[0] || null;
+  }
+
+  private _shouldReverseOrder() {
+    let count = 0;
+    let pattern = this._parent;
+
+    while (pattern != null) {
+      if (pattern.id === this.id) {
+        count++;
+      }
+      pattern = pattern.parent;
+    }
+
+    return count % 2 === 1;
   }
 
   getTokens(): string[] {

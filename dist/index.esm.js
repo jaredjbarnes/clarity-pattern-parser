@@ -1021,12 +1021,16 @@ class Options {
         return null;
     }
     _tryToParse(cursor) {
-        if (depthCache$1.getDepth(this._id, this._firstIndex) > 2) {
+        let children = this._children;
+        if (depthCache$1.getDepth(this._id, this._firstIndex) > 1) {
+            children = this._children.reverse();
+        }
+        else if (depthCache$1.getDepth(this._id, this._firstIndex) > 2) {
             cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
             return null;
         }
         const results = [];
-        for (const pattern of this._children) {
+        for (const pattern of children) {
             cursor.moveTo(this._firstIndex);
             let result = null;
             result = pattern.parse(cursor);

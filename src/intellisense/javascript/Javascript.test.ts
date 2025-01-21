@@ -220,6 +220,4 @@ describe("Ecmascript 3", () => {
         result = expression.exec(`name.prop.anotherProp["Ha"][coolYo] === 1`);
         expect(result.ast?.value).toBe(`name.prop.anotherProp["Ha"][coolYo] === 1`);
     });
-
-
 });

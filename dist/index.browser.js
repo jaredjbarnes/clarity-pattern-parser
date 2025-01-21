@@ -1062,7 +1062,7 @@
                 }
                 pattern = pattern.parent;
             }
-            return count % 2 === 0;
+            return count % 2 === 1;
         }
         getTokens() {
             const tokens = [];

@@ -9,6 +9,7 @@ import { Repeat } from "../patterns/Repeat";
 import { Grammar } from "./Grammar";
 import { Optional } from "../patterns/Optional";
 import { Context } from "../patterns/Context";
+import { patterns } from "..";
 
 describe("Grammar", () => {
     test("Literal", () => {
@@ -569,4 +570,6 @@ describe("Grammar", () => {
         const result = fullname.exec("John  Doe");
         expect(result?.ast?.value).toBe("John  Doe");
     });
+
+
 });

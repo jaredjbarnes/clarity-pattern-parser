@@ -4,13 +4,10 @@ import { Pattern } from "./Pattern";
 import { clonePatterns } from "./clonePatterns";
 import { findPattern } from "./findPattern";
 import { ParseResult } from "./ParseResult";
-import { DepthCache } from './DepthCache';
 
 /*
   The following is created to reduce the overhead of recursion check. 
 */
-
-const depthCache = new DepthCache();
 let idIndex = 0;
 
 export class Options implements Pattern {
@@ -91,12 +88,8 @@ export class Options implements Pattern {
   parse(cursor: Cursor): Node | null {
     // This is a cache to help with speed
     this._firstIndex = cursor.index;
-    depthCache.incrementDepth(this._id, this._firstIndex);
-
-    this._firstIndex = cursor.index;
     const node = this._tryToParse(cursor);
 
-    depthCache.decrementDepth(this._id, this._firstIndex);
 
     if (node != null) {
       cursor.moveTo(node.lastIndex);
@@ -109,14 +102,15 @@ export class Options implements Pattern {
   }
 
   private _tryToParse(cursor: Cursor): Node | null {
-    if (depthCache.getDepth(this._id, this._firstIndex) > 2) {
-      cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
-      return null;
+    let children = this.children;
+
+    if (this._isBeyondRecursiveDepth()) {
+      children = children.slice().reverse();
     }
 
     const results: (Node | null)[] = [];
 
-    for (const pattern of this._children) {
+    for (const pattern of children) {
       cursor.moveTo(this._firstIndex);
       let result = null;
 
@@ -137,6 +131,25 @@ export class Options implements Pattern {
     nonNullResults.sort((a, b) => b.endIndex - a.endIndex);
 
     return nonNullResults[0] || null;
+  }
+
+  private _isBeyondRecursiveDepth() {
+    let depth = 0;
+    let pattern: Pattern | null = this;
+
+    while (pattern != null) {
+      if (pattern.id === this.id) {
+        depth++;
+      }
+
+      if (depth >= this.children.length) {
+        return true;
+      }
+
+      pattern = pattern.parent;
+    }
+
+    return false;
   }
 
   getTokens(): string[] {

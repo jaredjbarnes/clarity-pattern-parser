@@ -925,33 +925,9 @@ function clonePatterns(patterns) {
     return patterns.map(p => p.clone());
 }
 
-class DepthCache {
-    constructor() {
-        this._depthMap = {};
-    }
-    getDepth(name, cursorIndex) {
-        if (this._depthMap[name] == null) {
-            this._depthMap[name] = {};
-        }
-        if (this._depthMap[name][cursorIndex] == null) {
-            this._depthMap[name][cursorIndex] = 0;
-        }
-        return this._depthMap[name][cursorIndex];
-    }
-    incrementDepth(name, cursorIndex) {
-        const depth = this.getDepth(name, cursorIndex);
-        this._depthMap[name][cursorIndex] = depth + 1;
-    }
-    decrementDepth(name, cursorIndex) {
-        const depth = this.getDepth(name, cursorIndex);
-        this._depthMap[name][cursorIndex] = depth - 1;
-    }
-}
-
 /*
   The following is created to reduce the overhead of recursion check.
 */
-const depthCache$1 = new DepthCache();
 let idIndex$6 = 0;
 class Options {
     get id() {
@@ -1008,10 +984,7 @@ class Options {
     parse(cursor) {
         // This is a cache to help with speed
         this._firstIndex = cursor.index;
-        depthCache$1.incrementDepth(this._id, this._firstIndex);
-        this._firstIndex = cursor.index;
         const node = this._tryToParse(cursor);
-        depthCache$1.decrementDepth(this._id, this._firstIndex);
         if (node != null) {
             cursor.moveTo(node.lastIndex);
             cursor.resolveError();
@@ -1021,12 +994,12 @@ class Options {
         return null;
     }
     _tryToParse(cursor) {
-        if (depthCache$1.getDepth(this._id, this._firstIndex) > 2) {
-            cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
-            return null;
+        let children = this.children;
+        if (this._isBeyondRecursiveDepth()) {
+            children = children.slice().reverse();
         }
         const results = [];
-        for (const pattern of this._children) {
+        for (const pattern of children) {
             cursor.moveTo(this._firstIndex);
             let result = null;
             result = pattern.parse(cursor);
@@ -1041,6 +1014,20 @@ class Options {
         const nonNullResults = results.filter(r => r != null);
         nonNullResults.sort((a, b) => b.endIndex - a.endIndex);
         return nonNullResults[0] || null;
+    }
+    _isBeyondRecursiveDepth() {
+        let depth = 0;
+        let pattern = this;
+        while (pattern != null) {
+            if (pattern.id === this.id) {
+                depth++;
+            }
+            if (depth >= this.children.length) {
+                return true;
+            }
+            pattern = pattern.parent;
+        }
+        return false;
     }
     getTokens() {
         const tokens = [];
@@ -1634,7 +1621,6 @@ function filterOutNull(nodes) {
     return filteredNodes;
 }
 
-const depthCache = new DepthCache();
 let idIndex$2 = 0;
 class Sequence {
     get id() {
@@ -1691,10 +1677,8 @@ class Sequence {
     parse(cursor) {
         // This is a cache to help with speed
         this._firstIndex = cursor.index;
-        depthCache.incrementDepth(this._id, this._firstIndex);
         this._nodes = [];
         const passed = this.tryToParse(cursor);
-        depthCache.decrementDepth(this._id, this._firstIndex);
         if (passed) {
             const node = this.createNode(cursor);
             if (node !== null) {
@@ -1705,7 +1689,7 @@ class Sequence {
         return null;
     }
     tryToParse(cursor) {
-        if (depthCache.getDepth(this._id, this._firstIndex) > 1) {
+        if (this._isBeyondRecursiveDepth()) {
             cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
             return false;
         }
@@ -1764,6 +1748,20 @@ class Sequence {
             }
         }
         return passed;
+    }
+    _isBeyondRecursiveDepth() {
+        let depth = 0;
+        let pattern = this;
+        while (pattern != null) {
+            if (pattern.id === this.id && this._firstIndex === pattern._firstIndex) {
+                depth++;
+            }
+            if (depth > 1) {
+                return true;
+            }
+            pattern = pattern.parent;
+        }
+        return false;
     }
     getLastValidNode() {
         const nodes = filterOutNull(this._nodes);

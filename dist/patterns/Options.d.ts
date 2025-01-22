@@ -10,6 +10,7 @@ export declare class Options implements Pattern {
     private _children;
     private _isGreedy;
     private _firstIndex;
+    private _recursiveDepth;
     get id(): string;
     get type(): string;
     get name(): string;
@@ -17,11 +18,13 @@ export declare class Options implements Pattern {
     set parent(pattern: Pattern | null);
     get children(): Pattern[];
     constructor(name: string, options: Pattern[], isGreedy?: boolean);
+    private _calculateRecursiveDepth;
     private _assignChildrenToParent;
     test(text: string): boolean;
     exec(text: string, record?: boolean): ParseResult;
     parse(cursor: Cursor): Node | null;
     private _tryToParse;
+    private _isBeyondRecursiveDepth;
     getTokens(): string[];
     getTokensAfter(_childReference: Pattern): string[];
     getNextTokens(): string[];

@@ -929,33 +929,9 @@ function clonePatterns(patterns) {
     return patterns.map(p => p.clone());
 }
 
-class DepthCache {
-    constructor() {
-        this._depthMap = {};
-    }
-    getDepth(name, cursorIndex) {
-        if (this._depthMap[name] == null) {
-            this._depthMap[name] = {};
-        }
-        if (this._depthMap[name][cursorIndex] == null) {
-            this._depthMap[name][cursorIndex] = 0;
-        }
-        return this._depthMap[name][cursorIndex];
-    }
-    incrementDepth(name, cursorIndex) {
-        const depth = this.getDepth(name, cursorIndex);
-        this._depthMap[name][cursorIndex] = depth + 1;
-    }
-    decrementDepth(name, cursorIndex) {
-        const depth = this.getDepth(name, cursorIndex);
-        this._depthMap[name][cursorIndex] = depth - 1;
-    }
-}
-
 /*
   The following is created to reduce the overhead of recursion check.
 */
-const depthCache$1 = new DepthCache();
 let idIndex$6 = 0;
 class Options {
     get id() {
@@ -989,6 +965,34 @@ class Options {
         this._children = children;
         this._firstIndex = 0;
         this._isGreedy = isGreedy;
+        this._recursiveDepth = this._calculateRecursiveDepth();
+    }
+    _calculateRecursiveDepth() {
+        let depth = 0;
+        this._children.forEach((child) => {
+            let hasReference = false;
+            let descendant = child.children[0];
+            while (descendant != null) {
+                if (descendant.type === "reference" && descendant.name === this.name) {
+                    hasReference = true;
+                    break;
+                }
+                if (descendant.type === "context") {
+                    const pattern = descendant.getPatternWithinContext(this.name);
+                    if (pattern != null) {
+                        break;
+                    }
+                }
+                descendant = descendant.children[0];
+            }
+            if (hasReference) {
+                depth++;
+            }
+        });
+        if (depth === 0) {
+            depth = this.children.length;
+        }
+        return depth;
     }
     _assignChildrenToParent(children) {
         for (const child of children) {
@@ -1012,10 +1016,7 @@ class Options {
     parse(cursor) {
         // This is a cache to help with speed
         this._firstIndex = cursor.index;
-        depthCache$1.incrementDepth(this._id, this._firstIndex);
-        this._firstIndex = cursor.index;
         const node = this._tryToParse(cursor);
-        depthCache$1.decrementDepth(this._id, this._firstIndex);
         if (node != null) {
             cursor.moveTo(node.lastIndex);
             cursor.resolveError();
@@ -1025,12 +1026,12 @@ class Options {
         return null;
     }
     _tryToParse(cursor) {
-        if (depthCache$1.getDepth(this._id, this._firstIndex) > 2) {
-            cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
-            return null;
+        let children = this.children;
+        if (this._isBeyondRecursiveDepth()) {
+            children = children.slice().reverse();
         }
         const results = [];
-        for (const pattern of this._children) {
+        for (const pattern of children) {
             cursor.moveTo(this._firstIndex);
             let result = null;
             result = pattern.parse(cursor);
@@ -1045,6 +1046,20 @@ class Options {
         const nonNullResults = results.filter(r => r != null);
         nonNullResults.sort((a, b) => b.endIndex - a.endIndex);
         return nonNullResults[0] || null;
+    }
+    _isBeyondRecursiveDepth() {
+        let depth = 0;
+        let pattern = this;
+        while (pattern != null) {
+            if (pattern.id === this.id) {
+                depth++;
+            }
+            if (depth > this._recursiveDepth) {
+                return true;
+            }
+            pattern = pattern.parent;
+        }
+        return false;
     }
     getTokens() {
         const tokens = [];
@@ -1638,7 +1653,6 @@ function filterOutNull(nodes) {
     return filteredNodes;
 }
 
-const depthCache = new DepthCache();
 let idIndex$2 = 0;
 class Sequence {
     get id() {
@@ -1695,10 +1709,8 @@ class Sequence {
     parse(cursor) {
         // This is a cache to help with speed
         this._firstIndex = cursor.index;
-        depthCache.incrementDepth(this._id, this._firstIndex);
         this._nodes = [];
         const passed = this.tryToParse(cursor);
-        depthCache.decrementDepth(this._id, this._firstIndex);
         if (passed) {
             const node = this.createNode(cursor);
             if (node !== null) {
@@ -1709,7 +1721,7 @@ class Sequence {
         return null;
     }
     tryToParse(cursor) {
-        if (depthCache.getDepth(this._id, this._firstIndex) > 1) {
+        if (this._isBeyondRecursiveDepth()) {
             cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
             return false;
         }
@@ -1768,6 +1780,20 @@ class Sequence {
             }
         }
         return passed;
+    }
+    _isBeyondRecursiveDepth() {
+        let depth = 0;
+        let pattern = this;
+        while (pattern != null) {
+            if (pattern.id === this.id && this._firstIndex === pattern._firstIndex) {
+                depth++;
+            }
+            if (depth > 1) {
+                return true;
+            }
+            pattern = pattern.parent;
+        }
+        return false;
     }
     getLastValidNode() {
         const nodes = filterOutNull(this._nodes);
@@ -2385,15 +2411,16 @@ class AutoComplete {
     }
     _getAllOptions() {
         const errorMatches = this._getOptionsFromErrors();
-        const leafMatches = this._cursor.leafMatches.map((m) => this._createSuggestionsFromMatch(m)).flat();
-        const finalResults = [];
-        [...leafMatches, ...errorMatches].forEach(m => {
-            const index = finalResults.findIndex(f => m.text === f.text);
+        const validLeafMatches = this._cursor.leafMatches.filter(v => { var _a; return ((_a = v.node) === null || _a === void 0 ? void 0 : _a.lastIndex) === this._cursor.getLastIndex(); });
+        const leafMatchSuggestions = validLeafMatches.map((m) => this._createSuggestionsFromMatch(m)).flat();
+        const uniqueResults = [];
+        [...leafMatchSuggestions, ...errorMatches].forEach(m => {
+            const index = uniqueResults.findIndex(f => m.text === f.text);
             if (index === -1) {
-                finalResults.push(m);
+                uniqueResults.push(m);
             }
         });
-        return finalResults;
+        return uniqueResults;
     }
     _getOptionsFromErrors() {
         // These errored because the length of the string.
@@ -2402,8 +2429,8 @@ class AutoComplete {
             const tokens = this._getTokensForPattern(e.pattern);
             const adjustedTokens = tokens.map(t => t.slice(e.endIndex - e.startIndex));
             return this._createSuggestions(e.endIndex, adjustedTokens);
-        });
-        return suggestions.flat();
+        }).flat();
+        return suggestions;
     }
     _createSuggestionsFromRoot() {
         const suggestions = [];

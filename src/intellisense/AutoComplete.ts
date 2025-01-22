@@ -58,6 +58,9 @@ export class AutoComplete {
     const isComplete = ast?.value === this._text;
     const options = this._getAllOptions();
 
+    const sortedErrors = [...this._cursor.errors].sort((a, b) => a.endIndex - b.endIndex);
+    const furthestError = sortedErrors.length > 0 ? sortedErrors[sortedErrors.length - 1] : null;
+
     if (!isComplete && options.length > 0 && !this._cursor.hasError) {
       const startIndex = options.reduce((lowestIndex, o) => {
         return Math.min(lowestIndex, o.startIndex);
@@ -72,9 +75,9 @@ export class AutoComplete {
 
       error = new ParseError(startIndex, endIndex, this._pattern);
       errorAtIndex = startIndex;
-    } else if (!isComplete && this._cursor.hasError && this._cursor.furthestError != null) {
-      errorAtIndex = this._cursor.furthestError.endIndex;
-      error = this._cursor.furthestError;
+    } else if (!isComplete && this._cursor.hasError && furthestError != null) {
+      errorAtIndex = furthestError.endIndex;
+      error = furthestError;
 
       errorAtIndex = options.reduce(
         (errorAtIndex, option) => Math.max(errorAtIndex, option.startIndex),

@@ -967,6 +967,34 @@
             this._children = children;
             this._firstIndex = 0;
             this._isGreedy = isGreedy;
+            this._recursiveDepth = this._calculateRecursiveDepth();
+        }
+        _calculateRecursiveDepth() {
+            let depth = 0;
+            this._children.forEach((child) => {
+                let hasReference = false;
+                let descendant = child.children[0];
+                while (descendant != null) {
+                    if (descendant.type === "reference" && descendant.name === this.name) {
+                        hasReference = true;
+                        break;
+                    }
+                    if (descendant.type === "context") {
+                        const pattern = descendant.getPatternWithinContext(this.name);
+                        if (pattern != null) {
+                            break;
+                        }
+                    }
+                    descendant = descendant.children[0];
+                }
+                if (hasReference) {
+                    depth++;
+                }
+            });
+            if (depth === 0) {
+                depth = this.children.length;
+            }
+            return depth;
         }
         _assignChildrenToParent(children) {
             for (const child of children) {
@@ -1028,7 +1056,7 @@
                 if (pattern.id === this.id) {
                     depth++;
                 }
-                if (depth >= this.children.length) {
+                if (depth > this._recursiveDepth) {
                     return true;
                 }
                 pattern = pattern.parent;
@@ -2385,15 +2413,16 @@
         }
         _getAllOptions() {
             const errorMatches = this._getOptionsFromErrors();
-            const leafMatches = this._cursor.leafMatches.map((m) => this._createSuggestionsFromMatch(m)).flat();
-            const finalResults = [];
-            [...leafMatches, ...errorMatches].forEach(m => {
-                const index = finalResults.findIndex(f => m.text === f.text);
+            const validLeafMatches = this._cursor.leafMatches.filter(v => { var _a; return ((_a = v.node) === null || _a === void 0 ? void 0 : _a.lastIndex) === this._cursor.getLastIndex(); });
+            const leafMatchSuggestions = validLeafMatches.map((m) => this._createSuggestionsFromMatch(m)).flat();
+            const uniqueResults = [];
+            [...leafMatchSuggestions, ...errorMatches].forEach(m => {
+                const index = uniqueResults.findIndex(f => m.text === f.text);
                 if (index === -1) {
-                    finalResults.push(m);
+                    uniqueResults.push(m);
                 }
             });
-            return finalResults;
+            return uniqueResults;
         }
         _getOptionsFromErrors() {
             // These errored because the length of the string.
@@ -2402,8 +2431,8 @@
                 const tokens = this._getTokensForPattern(e.pattern);
                 const adjustedTokens = tokens.map(t => t.slice(e.endIndex - e.startIndex));
                 return this._createSuggestions(e.endIndex, adjustedTokens);
-            });
-            return suggestions.flat();
+            }).flat();
+            return suggestions;
         }
         _createSuggestionsFromRoot() {
             const suggestions = [];

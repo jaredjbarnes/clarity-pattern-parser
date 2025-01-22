@@ -4,6 +4,7 @@ import { Pattern } from "./Pattern";
 import { clonePatterns } from "./clonePatterns";
 import { findPattern } from "./findPattern";
 import { ParseResult } from "./ParseResult";
+import { Context } from "./Context";
 
 /*
   The following is created to reduce the overhead of recursion check. 
@@ -18,6 +19,7 @@ export class Options implements Pattern {
   private _children: Pattern[];
   private _isGreedy: boolean;
   private _firstIndex: number;
+  private _recursiveDepth: number;
 
   get id(): string {
     return this._id;
@@ -58,6 +60,42 @@ export class Options implements Pattern {
     this._children = children;
     this._firstIndex = 0;
     this._isGreedy = isGreedy;
+    this._recursiveDepth = this._calculateRecursiveDepth();
+  }
+
+  private _calculateRecursiveDepth() {
+    let depth = 0;
+
+    this._children.forEach((child) => {
+      let hasReference = false;
+      let descendant = child.children[0];
+
+      while (descendant != null) {
+        if (descendant.type === "reference" && descendant.name === this.name) {
+          hasReference = true;
+          break;
+        }
+
+        if (descendant.type === "context") {
+          const pattern = (descendant as Context).getPatternWithinContext(this.name);
+          if (pattern != null) {
+            break;
+          }
+        }
+
+        descendant = descendant.children[0];
+      }
+
+      if (hasReference) {
+        depth++;
+      }
+    });
+
+    if (depth === 0) {
+      depth = this.children.length;
+    }
+
+    return depth;
   }
 
   private _assignChildrenToParent(children: Pattern[]): void {
@@ -142,7 +180,7 @@ export class Options implements Pattern {
         depth++;
       }
 
-      if (depth >= this.children.length) {
+      if (depth > this._recursiveDepth) {
         return true;
       }
 

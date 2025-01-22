@@ -10,7 +10,7 @@ describe("Complex Grammar Tests", () => {
                 mult-expression = expression + space? + "*" + space? + expression 
                 expression = or-expression | mult-expression | integer | variable
             `;
-        const result = expression.exec("a * b || c");
-        expect(result.ast?.toString()).toBe("a * b || c");
+        const result = expression.exec("a * b || d * e");
+        expect(result.ast?.toString()).toBe("a * b || d * e");
     });
 });

@@ -76,9 +76,10 @@ export class AutoComplete {
       errorAtIndex = this._cursor.furthestError.endIndex;
       error = this._cursor.furthestError;
 
-      errorAtIndex = options.reduce((errorAtIndex, option) =>
-        Math.max(errorAtIndex, option.startIndex),
-        errorAtIndex);
+      errorAtIndex = options.reduce(
+        (errorAtIndex, option) => Math.max(errorAtIndex, option.startIndex),
+        errorAtIndex
+      );
     }
 
     return {
@@ -98,17 +99,19 @@ export class AutoComplete {
 
   private _getAllOptions() {
     const errorMatches = this._getOptionsFromErrors();
-    const leafMatches = this._cursor.leafMatches.map((m) => this._createSuggestionsFromMatch(m)).flat();
-    const finalResults: SuggestionOption[] = [];
+    const validLeafMatches = this._cursor.leafMatches.filter(v => v.node?.lastIndex === this._cursor.getLastIndex())
 
-    [...leafMatches, ...errorMatches].forEach(m=>{
-      const index = finalResults.findIndex(f=> m.text === f.text);
+    const leafMatchSuggestions = validLeafMatches.map((m) => this._createSuggestionsFromMatch(m)).flat();
+    const uniqueResults: SuggestionOption[] = [];
+
+    [...leafMatchSuggestions, ...errorMatches].forEach(m=>{
+      const index = uniqueResults.findIndex(f => m.text === f.text);
       if (index === -1){
-        finalResults.push(m);
+        uniqueResults.push(m);
       }
     });
 
-    return finalResults;
+    return uniqueResults;
   }
 
   private _getOptionsFromErrors() {
@@ -118,9 +121,9 @@ export class AutoComplete {
       const tokens = this._getTokensForPattern(e.pattern);
       const adjustedTokens = tokens.map(t => t.slice(e.endIndex - e.startIndex));
       return this._createSuggestions(e.endIndex, adjustedTokens);
-    });
+    }).flat();
 
-    return suggestions.flat();
+    return suggestions;
   }
 
   private _createSuggestionsFromRoot(): SuggestionOption[] {

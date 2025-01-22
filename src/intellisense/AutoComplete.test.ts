@@ -490,4 +490,31 @@ describe("AutoComplete", () => {
         expect(results.options).toEqual(expected);
     });
 
+    test("Furthest Error", () => {
+        const branchOne = new Sequence("branch-1", [
+          new Literal("space-1-1", " "),
+          new Literal("space-1-2", " "),
+          new Options('branch-1-options', [
+            new Literal("AA", "AA"),
+            new Literal("AB", "AB"),
+          ])
+        ]);
+        const branchTwo = new Sequence("branch-2", [
+          new Literal("space-2-1", " "),
+          new Literal("space-2-2", " "),
+          new Options('branch-2-options', [
+            new Literal("BA", "BA"),
+            new Literal("BB", "BB")
+          ])
+        ]);
+        const eitherBranch = new Options("either-branch", [branchOne, branchTwo]);
+
+        const autoComplete = new AutoComplete(eitherBranch);
+        const results = autoComplete.suggestFor("  B");
+        const expected = [
+          { startIndex: 3, text: "A" },
+          { startIndex: 3, text: "B" },
+        ];
+        expect(results.options).toEqual(expected);
+    })
 });

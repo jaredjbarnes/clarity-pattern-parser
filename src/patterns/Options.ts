@@ -108,8 +108,6 @@ export class Options implements Pattern {
     return null;
   }
 
-
-
   private _tryToParse(cursor: Cursor): Node | null {
     if (depthCache.getDepth(this._id, this._firstIndex) > 2) {
       cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);

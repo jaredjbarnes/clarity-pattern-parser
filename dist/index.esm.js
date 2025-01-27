@@ -2363,9 +2363,8 @@ class AutoComplete {
             errorAtIndex = startIndex;
         }
         else if (!isComplete && this._cursor.hasError && this._cursor.furthestError != null) {
-            errorAtIndex = this._cursor.furthestError.endIndex;
-            error = this._cursor.furthestError;
-            errorAtIndex = options.reduce((errorAtIndex, option) => Math.max(errorAtIndex, option.startIndex), errorAtIndex);
+            errorAtIndex = this.getFurthestPosition(cursor);
+            error = new ParseError(errorAtIndex, errorAtIndex, this._pattern);
         }
         return {
             isComplete: isComplete,
@@ -2375,6 +2374,25 @@ class AutoComplete {
             cursor: cursor,
             ast,
         };
+    }
+    getFurthestPosition(cursor) {
+        const furthestError = cursor.furthestError;
+        const furthestMatch = cursor.allMatchedNodes[cursor.allMatchedNodes.length - 1];
+        if (furthestError && furthestMatch) {
+            if (furthestError.endIndex > furthestMatch.endIndex) {
+                return furthestMatch.endIndex;
+            }
+            else {
+                return furthestError.endIndex;
+            }
+        }
+        if (furthestError == null && furthestMatch != null) {
+            return furthestMatch.endIndex;
+        }
+        if (furthestMatch == null && furthestError != null) {
+            return furthestError.endIndex;
+        }
+        return 0;
     }
     suggestFor(text) {
         return this.suggestForWithCursor(new Cursor(text));

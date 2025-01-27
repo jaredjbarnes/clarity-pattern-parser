@@ -73,12 +73,8 @@ export class AutoComplete {
       error = new ParseError(startIndex, endIndex, this._pattern);
       errorAtIndex = startIndex;
     } else if (!isComplete && this._cursor.hasError && this._cursor.furthestError != null) {
-      errorAtIndex = this._cursor.furthestError.endIndex;
-      error = this._cursor.furthestError;
-
-      errorAtIndex = options.reduce((errorAtIndex, option) =>
-        Math.max(errorAtIndex, option.startIndex),
-        errorAtIndex);
+      errorAtIndex = this.getFurthestPosition(cursor);
+      error = new ParseError(errorAtIndex, errorAtIndex, this._pattern);
     }
 
     return {
@@ -92,6 +88,29 @@ export class AutoComplete {
 
   }
 
+  private getFurthestPosition(cursor: Cursor): number {
+    const furthestError = cursor.furthestError;
+    const furthestMatch = cursor.allMatchedNodes[cursor.allMatchedNodes.length - 1];
+
+    if (furthestError && furthestMatch) {
+      if (furthestError.endIndex > furthestMatch.endIndex) {
+        return furthestMatch.endIndex;
+      } else {
+        return furthestError.endIndex;
+      }
+    }
+
+    if (furthestError == null && furthestMatch != null) {
+      return furthestMatch.endIndex;
+    }
+
+    if (furthestMatch == null && furthestError != null) {
+      return furthestError.endIndex;
+    }
+
+    return 0;
+  }
+
   suggestFor(text: string): Suggestion {
     return this.suggestForWithCursor(new Cursor(text));
   }
@@ -101,9 +120,9 @@ export class AutoComplete {
     const leafMatches = this._cursor.leafMatches.map((m) => this._createSuggestionsFromMatch(m)).flat();
     const finalResults: SuggestionOption[] = [];
 
-    [...leafMatches, ...errorMatches].forEach(m=>{
-      const index = finalResults.findIndex(f=> m.text === f.text);
-      if (index === -1){
+    [...leafMatches, ...errorMatches].forEach(m => {
+      const index = finalResults.findIndex(f => m.text === f.text);
+      if (index === -1) {
         finalResults.push(m);
       }
     });

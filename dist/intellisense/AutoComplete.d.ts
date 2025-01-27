@@ -21,6 +21,7 @@ export declare class AutoComplete {
     private _text;
     constructor(pattern: Pattern, options?: AutoCompleteOptions);
     suggestForWithCursor(cursor: Cursor): Suggestion;
+    private getFurthestPosition;
     suggestFor(text: string): Suggestion;
     private _getAllOptions;
     private _getOptionsFromErrors;

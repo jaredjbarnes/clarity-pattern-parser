@@ -5,6 +5,7 @@ import { clonePatterns } from "./clonePatterns";
 import { findPattern } from "./findPattern";
 import { ParseResult } from "./ParseResult";
 import { DepthCache } from './DepthCache';
+import { isRecursivePattern } from "./isRecursivePattern";
 
 /*
   The following is created to reduce the overhead of recursion check. 
@@ -143,7 +144,7 @@ export class Options implements Pattern {
     const tokens: string[] = [];
 
     for (const pattern of this._children) {
-      if (pattern.type === "reference" && pattern.name === this.name) {
+      if (isRecursivePattern(pattern)) {
         continue;
       }
       tokens.push(...pattern.getTokens());
@@ -172,7 +173,7 @@ export class Options implements Pattern {
     const patterns: Pattern[] = [];
 
     for (const pattern of this._children) {
-      if (pattern.type === "reference" && pattern.name === this.name) {
+      if (isRecursivePattern(pattern)) {
         continue;
       }
       patterns.push(...pattern.getPatterns());

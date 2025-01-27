@@ -819,9 +819,9 @@
             };
         }
         parse(cursor) {
-            return this._getPatternSafely().parse(cursor);
+            return this.getReferencePatternSafely().parse(cursor);
         }
-        _getPatternSafely() {
+        getReferencePatternSafely() {
             if (this._pattern === null) {
                 let pattern = null;
                 if (this._cachedPattern == null) {
@@ -881,7 +881,7 @@
             return node;
         }
         getTokens() {
-            return this._getPatternSafely().getTokens();
+            return this.getReferencePatternSafely().getTokens();
         }
         getTokensAfter(_lastMatched) {
             if (this._parent == null) {
@@ -896,7 +896,7 @@
             return this.parent.getTokensAfter(this);
         }
         getPatterns() {
-            return this._getPatternSafely().getPatterns();
+            return this.getReferencePatternSafely().getPatterns();
         }
         getPatternsAfter(_childReference) {
             if (this._parent == null) {
@@ -952,6 +952,21 @@
             const depth = this.getDepth(name, cursorIndex);
             this._depthMap[name][cursorIndex] = depth - 1;
         }
+    }
+
+    function isRecursivePattern(pattern) {
+        let onPattern = pattern.parent;
+        let depth = 0;
+        while (onPattern != null) {
+            if (onPattern.id === pattern.id) {
+                depth++;
+            }
+            onPattern = onPattern.parent;
+            if (depth > 1) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /*
@@ -1051,7 +1066,7 @@
         getTokens() {
             const tokens = [];
             for (const pattern of this._children) {
-                if (pattern.type === "reference" && pattern.name === this.name) {
+                if (isRecursivePattern(pattern)) {
                     continue;
                 }
                 tokens.push(...pattern.getTokens());
@@ -1073,7 +1088,7 @@
         getPatterns() {
             const patterns = [];
             for (const pattern of this._children) {
-                if (pattern.type === "reference" && pattern.name === this.name) {
+                if (isRecursivePattern(pattern)) {
                     continue;
                 }
                 patterns.push(...pattern.getPatterns());
@@ -1804,7 +1819,7 @@
         getTokens() {
             const tokens = [];
             for (const pattern of this._children) {
-                if (pattern.type === "reference" && pattern.name === this.name && pattern === this.children[0]) {
+                if (isRecursivePattern(pattern) && pattern === this._children[0]) {
                     return tokens;
                 }
                 tokens.push(...pattern.getTokens());
@@ -1829,7 +1844,7 @@
         getPatterns() {
             const patterns = [];
             for (const pattern of this._children) {
-                if (pattern.type === "reference" && pattern.name === this.name && pattern === this.children[0]) {
+                if (isRecursivePattern(pattern) && pattern === this._children[0]) {
                     return patterns;
                 }
                 patterns.push(...pattern.getPatterns());

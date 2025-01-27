@@ -70,10 +70,10 @@ export class Reference implements Pattern {
   }
 
   parse(cursor: Cursor): Node | null {
-    return this._getPatternSafely().parse(cursor);
+    return this.getReferencePatternSafely().parse(cursor);
   }
 
-  private _getPatternSafely(): Pattern {
+  getReferencePatternSafely(): Pattern {
     if (this._pattern === null) {
       let pattern: Pattern | null = null;
 
@@ -150,7 +150,7 @@ export class Reference implements Pattern {
   }
 
   getTokens(): string[] {
-    return this._getPatternSafely().getTokens();
+    return this.getReferencePatternSafely().getTokens();
   }
 
   getTokensAfter(_lastMatched: Pattern): string[] {
@@ -170,7 +170,7 @@ export class Reference implements Pattern {
   }
 
   getPatterns(): Pattern[] {
-    return this._getPatternSafely().getPatterns();
+    return this.getReferencePatternSafely().getPatterns();
   }
 
   getPatternsAfter(_childReference: Pattern): Pattern[] {

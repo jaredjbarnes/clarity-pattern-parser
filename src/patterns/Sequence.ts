@@ -5,6 +5,7 @@ import { clonePatterns } from "./clonePatterns";
 import { filterOutNull } from "./filterOutNull";
 import { findPattern } from "./findPattern";
 import { DepthCache } from "./DepthCache";
+import { isRecursivePattern } from "./isRecursivePattern";
 
 const depthCache = new DepthCache();
 let idIndex = 0;
@@ -217,7 +218,7 @@ export class Sequence implements Pattern {
     const tokens: string[] = [];
 
     for (const pattern of this._children) {
-      if (pattern.type === "reference" && pattern.name === this.name && pattern === this.children[0]) {
+      if (isRecursivePattern(pattern) && pattern === this._children[0]) {
         return tokens;
       }
 
@@ -251,8 +252,7 @@ export class Sequence implements Pattern {
     const patterns: Pattern[] = [];
 
     for (const pattern of this._children) {
-
-      if (pattern.type === "reference" && pattern.name === this.name && pattern === this.children[0]) {
+      if (isRecursivePattern(pattern) && pattern === this._children[0]) {
         return patterns;
       }
 

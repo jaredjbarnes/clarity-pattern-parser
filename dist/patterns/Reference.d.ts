@@ -20,7 +20,7 @@ export declare class Reference implements Pattern {
     test(text: string): boolean;
     exec(text: string, record?: boolean): ParseResult;
     parse(cursor: Cursor): Node | null;
-    private _getPatternSafely;
+    getReferencePatternSafely(): Pattern;
     private _findPattern;
     private _isValidPattern;
     private _getRoot;

@@ -12,6 +12,9 @@ export class ExpressionPattern implements Pattern {
     private _parent: Pattern | null;
     private _token: string;
     private _firstIndex: number;
+    private _patterns: Pattern[];
+    private _unaryPatterns: Pattern[];
+    private _binaryPatterns: Pattern[];
 
     get id(): string {
         return this._id;
@@ -41,10 +44,42 @@ export class ExpressionPattern implements Pattern {
         return [];
     }
 
-    constructor(){
+    constructor(name: string, patterns: []) {
         this._id = `expression-${indexId++}`;
         this._type = "expression";
+        this._unaryPatterns = [];
+        this._binaryPatterns = [];
+    }
 
+    private _organizePatterns() {
+        this._patterns.forEach((pattern) => {
+            if (this._isBinary(pattern)) {
+                this._binaryPatterns.push(pattern);
+            } else {
+                this._unaryPatterns.push();
+            }
+        });
+    }
+
+    private _isBinary(pattern: Pattern) {
+        if (pattern.type === "right-associated" && this._isBinaryPattern(pattern.children[0])) {
+            return true;
+        }
+
+        return this._isBinaryPattern(pattern);
+    }
+
+    private _isBinaryPattern(pattern: Pattern) {
+        return pattern.type === "sequence" &&
+            pattern.children[0].type === "reference" &&
+            pattern.children[0].name === this.name &&
+            pattern.children[2].type === "reference" &&
+            pattern.children[2].name === this.name &&
+            pattern.children.length === 3;
+    }
+
+    private extractDelimiter(pattern) {
+        return pattern.children[1];
     }
 
     parse(cursor: Cursor): Node | null {

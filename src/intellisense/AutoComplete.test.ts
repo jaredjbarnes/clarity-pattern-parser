@@ -490,4 +490,89 @@ describe("AutoComplete", () => {
         expect(results.options).toEqual(expected);
     });
 
+    test("Multiple Complex Branches", () => {
+        const branchOne = new Sequence("branch-1", [
+            new Literal("space-1-1", " "),
+            new Literal("space-1-2", " "),
+            new Options('branch-1-options', [
+                new Literal("AA", "AA"),
+                new Literal("AB", "AB"),
+                new Literal("BC", "BC"),
+            ])
+        ]);
+        const branchTwo = new Sequence("branch-2", [
+            new Literal("space-2-1", " "),
+            new Literal("space-2-2", " "),
+            new Options('branch-2-options', [
+                new Literal("BA", "BA"),
+                new Literal("BB", "BB")
+            ])
+        ]);
+        const eitherBranch = new Options("either-branch", [branchOne, branchTwo]);
+
+        const autoComplete = new AutoComplete(eitherBranch);
+        const results = autoComplete.suggestFor("  B");
+        const expected = [
+            { startIndex: 3, text: "A" },
+            { startIndex: 3, text: "B" },
+            { startIndex: 3, text: "C" },
+        ];
+        expect(results.options).toEqual(expected);
+    });
+
+
+    test("Recursion With Or", () => {
+        const ref = new Reference("names");
+        const names = new Options("names", [
+            ref,
+            new Literal("john", "John"),
+            new Literal("jane", "Jane")
+        ]);
+
+        const autoComplete = new AutoComplete(names);
+        const suggestion = autoComplete.suggestFor("Jo");
+
+        expect(suggestion.options).toEqual([
+            { text: 'hn', startIndex: 2 }
+        ]);
+        expect(suggestion.error?.endIndex).toBe(2);
+    });
+
+    test("Recursion With And", () => {
+        const firstNames = new Options("first-names", [
+            new Literal("john", "John"),
+            new Literal("jane", "Jane"),
+        ]);
+
+        const lastNames = new Options("last-names", [
+            new Literal("doe", "Doe"),
+            new Literal("smith", "Smith"),
+        ]);
+
+        const fullName = new Sequence("full-name", [
+            firstNames,
+            new Literal("space", " "),
+            lastNames
+        ]);
+
+        const ref = new Reference("names");
+        const names = new Sequence("names", [
+            fullName,
+            ref,
+            lastNames,
+        ]);
+
+        const autoComplete = new AutoComplete(names, {
+            greedyPatternNames: ["space"]
+        });
+        const suggestion = autoComplete.suggestFor("John");
+
+        expect(suggestion.options).toEqual([{
+            "text": " Doe",
+            "startIndex": 4
+        }, {
+            "text": " Smith",
+            "startIndex": 4
+        }]);
+    });
 });

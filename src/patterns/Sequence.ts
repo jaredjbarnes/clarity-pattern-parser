@@ -216,10 +216,13 @@ export class Sequence implements Pattern {
   getTokens(): string[] {
     const tokens: string[] = [];
 
-    for (const child of this._children) {
-      tokens.push(...child.getTokens());
+    for (const pattern of this._children) {
+      if (pattern.type === "reference" && pattern.name === this.name && pattern === this.children[0]) {
+        return tokens;
+      }
 
-      if (child.type !== "optional" && child.type !== "not") {
+      tokens.push(...pattern.getTokens());
+      if (pattern.type !== "optional" && pattern.type !== "not") {
         break;
       }
     }
@@ -247,10 +250,15 @@ export class Sequence implements Pattern {
   getPatterns(): Pattern[] {
     const patterns: Pattern[] = [];
 
-    for (const child of this._children) {
-      patterns.push(...child.getPatterns());
+    for (const pattern of this._children) {
 
-      if (child.type !== "optional" && child.type !== "not") {
+      if (pattern.type === "reference" && pattern.name === this.name && pattern === this.children[0]) {
+        return patterns;
+      }
+
+      patterns.push(...pattern.getPatterns());
+
+      if (pattern.type !== "optional" && pattern.type !== "not") {
         break;
       }
     }

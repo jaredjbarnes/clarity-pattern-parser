@@ -142,8 +142,11 @@ export class Options implements Pattern {
   getTokens(): string[] {
     const tokens: string[] = [];
 
-    for (const child of this._children) {
-      tokens.push(...child.getTokens());
+    for (const pattern of this._children) {
+      if (pattern.type === "reference" && pattern.name === this.name) {
+        continue;
+      }
+      tokens.push(...pattern.getTokens());
     }
 
     return tokens;
@@ -169,6 +172,9 @@ export class Options implements Pattern {
     const patterns: Pattern[] = [];
 
     for (const pattern of this._children) {
+      if (pattern.type === "reference" && pattern.name === this.name) {
+        continue;
+      }
       patterns.push(...pattern.getPatterns());
     }
 

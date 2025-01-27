@@ -1050,8 +1050,11 @@
         }
         getTokens() {
             const tokens = [];
-            for (const child of this._children) {
-                tokens.push(...child.getTokens());
+            for (const pattern of this._children) {
+                if (pattern.type === "reference" && pattern.name === this.name) {
+                    continue;
+                }
+                tokens.push(...pattern.getTokens());
             }
             return tokens;
         }
@@ -1070,6 +1073,9 @@
         getPatterns() {
             const patterns = [];
             for (const pattern of this._children) {
+                if (pattern.type === "reference" && pattern.name === this.name) {
+                    continue;
+                }
                 patterns.push(...pattern.getPatterns());
             }
             return patterns;
@@ -1797,9 +1803,12 @@
         }
         getTokens() {
             const tokens = [];
-            for (const child of this._children) {
-                tokens.push(...child.getTokens());
-                if (child.type !== "optional" && child.type !== "not") {
+            for (const pattern of this._children) {
+                if (pattern.type === "reference" && pattern.name === this.name && pattern === this.children[0]) {
+                    return tokens;
+                }
+                tokens.push(...pattern.getTokens());
+                if (pattern.type !== "optional" && pattern.type !== "not") {
                     break;
                 }
             }
@@ -1819,9 +1828,12 @@
         }
         getPatterns() {
             const patterns = [];
-            for (const child of this._children) {
-                patterns.push(...child.getPatterns());
-                if (child.type !== "optional" && child.type !== "not") {
+            for (const pattern of this._children) {
+                if (pattern.type === "reference" && pattern.name === this.name && pattern === this.children[0]) {
+                    return patterns;
+                }
+                patterns.push(...pattern.getPatterns());
+                if (pattern.type !== "optional" && pattern.type !== "not") {
                     break;
                 }
             }

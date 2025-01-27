@@ -66,7 +66,7 @@ describe("Cursor", () => {
 
         expect(cursor.hasError).toBeTruthy();
         expect(cursor.error?.startIndex).toBe(0);
-        expect(cursor.error?.endIndex).toBe(0);
+        expect(cursor.error?.lastIndex).toBe(0);
         expect(cursor.error?.pattern).toBe(pattern);
 
         cursor.resolveError();
@@ -74,7 +74,7 @@ describe("Cursor", () => {
         expect(cursor.hasError).toBeFalsy();
         expect(cursor.error).toBe(null);
         expect(cursor.furthestError?.startIndex).toBe(0);
-        expect(cursor.furthestError?.endIndex).toBe(0);
+        expect(cursor.furthestError?.lastIndex).toBe(0);
         expect(cursor.furthestError?.pattern).toBe(pattern);
     });
 
@@ -135,7 +135,7 @@ describe("Cursor", () => {
         expect(records[1].ast?.toString()).toBe(" ");
         expect(records[2].error?.pattern.name).toBe("doe");
         expect(records[2].error?.startIndex).toBe(5);
-        expect(records[2].error?.endIndex).toBe(5);
+        expect(records[2].error?.lastIndex).toBe(5);
         expect(records[3].ast?.toString()).toBe("Smith");
         expect(records[4].ast?.toString()).toBe("John Smith");
     });

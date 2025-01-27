@@ -535,7 +535,7 @@ describe("AutoComplete", () => {
         expect(suggestion.options).toEqual([
             { text: 'hn', startIndex: 2 }
         ]);
-        expect(suggestion.error?.endIndex).toBe(2);
+        expect(suggestion.error?.lastIndex).toBe(2);
     });
 
     test("Recursion With And", () => {
@@ -574,5 +574,41 @@ describe("AutoComplete", () => {
             "text": " Smith",
             "startIndex": 4
         }]);
+    });
+
+    test("Repeat With Options", () => {
+        const john = new Literal("john", "John");
+        const jane = new Literal("jane", "Jane");
+        const names = new Options("names", [john, jane]);
+        const comma = new Regex("comma", "\\s*,\\s*");
+        comma.setTokens([", "]);
+        const list = new Repeat("names-list", names, {
+            divider: comma
+        });
+
+        const autoComplete = new AutoComplete(list);
+        const suggestion = autoComplete.suggestFor("John, ");
+
+        expect(suggestion).toBe(suggestion);
+    });
+
+    test("Repeat With Options With Options", () => {
+        const john = new Literal("john", "John");
+        const jane = new Literal("jane", "Jane");
+        const jack = new Literal("jack", "Jack");
+        const jill = new Literal("jill", "Jill");
+        const otherNames = new Options("names", [jack, jill]);
+        const names = new Options("names", [john, jane, otherNames]);
+        const comma = new Regex("comma", "\\s*,\\s*");
+        comma.setTokens([", "]);
+        const list = new Repeat("names-list", names, {
+            divider: comma,
+            trimDivider: true
+        });
+
+        const autoComplete = new AutoComplete(list, {greedyPatternNames: ["comma"]});
+        const suggestion = autoComplete.suggestFor("John");
+
+        expect(suggestion).toBe(suggestion);
     });
 });

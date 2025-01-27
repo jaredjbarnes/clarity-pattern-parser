@@ -1,5 +1,5 @@
 import { Node } from "../ast/Node";
-import { CursorHistory } from "./CursorHistory"
+import { CursorHistory } from "./CursorHistory";
 import { Literal } from "./Literal";
 
 describe("CursorHistory", () => {
@@ -35,24 +35,24 @@ describe("CursorHistory", () => {
         history.recordErrorAt(0, 0, pattern);
 
         expect(history.error?.startIndex).toBe(0);
-        expect(history.error?.endIndex).toBe(0);
+        expect(history.error?.lastIndex).toBe(0);
         expect(history.error?.pattern).toBe(pattern);
         expect(history.errors[0]?.startIndex).toBe(0);
-        expect(history.errors[0]?.endIndex).toBe(0);
+        expect(history.errors[0]?.lastIndex).toBe(0);
         expect(history.errors[0]?.pattern).toBe(pattern);
 
-        history.stopRecording()
+        history.stopRecording();
         history.resolveError();
 
         expect(history.isRecording).toBeFalsy();
         expect(history.error).toBeNull();
 
         expect(history.errors[0]?.startIndex).toBe(0);
-        expect(history.errors[0]?.endIndex).toBe(0);
+        expect(history.errors[0]?.lastIndex).toBe(0);
         expect(history.errors[0]?.pattern).toBe(pattern);
 
         expect(history.furthestError?.startIndex).toBe(0);
-        expect(history.furthestError?.endIndex).toBe(0);
+        expect(history.furthestError?.lastIndex).toBe(0);
         expect(history.furthestError?.pattern).toBe(pattern);
     });
 });

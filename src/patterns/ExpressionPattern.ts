@@ -53,16 +53,25 @@ export class ExpressionPattern implements Pattern {
 
         this._patterns.forEach(p => p.parent = this);
         this._patterns = this._organizePatterns(patterns);
-
     }
 
     private _organizePatterns(patterns: Pattern[]) {
-        const finalPatterns = [];
+        const finalPatterns: Pattern[] = [];
         this._patterns.forEach((pattern) => {
+
+
             if (this._isBinary(pattern)) {
-                this._binaryPatterns.push(pattern);
+                const clone = this._extractDelimiter(pattern).clone();
+                clone.parent = this;
+
+                this._binaryPatterns.push(clone);
+                finalPatterns.push(clone);
             } else {
-                this._unaryPatterns.push();
+                const clone = pattern.clone();
+                clone.parent = this;
+
+                this._unaryPatterns.push(clone);
+                finalPatterns.push(clone);
             }
         });
 
@@ -86,12 +95,13 @@ export class ExpressionPattern implements Pattern {
             pattern.children.length === 3;
     }
 
-    private extractDelimiter(pattern) {
+    private _extractDelimiter(pattern) {
         return pattern.children[1];
     }
 
     parse(cursor: Cursor): Node | null {
         this._firstIndex = cursor.index;
+        
         return null;
     }
 

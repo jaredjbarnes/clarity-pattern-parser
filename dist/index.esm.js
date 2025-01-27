@@ -262,9 +262,11 @@ typeof SuppressedError === "function" ? SuppressedError : function (error, suppr
 };
 
 class ParseError {
-    constructor(startIndex, endIndex, pattern) {
+    constructor(startIndex, lastIndex, pattern) {
+        this.firstIndex = startIndex;
         this.startIndex = startIndex;
-        this.endIndex = endIndex;
+        this.lastIndex = lastIndex;
+        this.endIndex = lastIndex + 1;
         this.pattern = pattern;
     }
 }
@@ -354,7 +356,7 @@ class CursorHistory {
     recordErrorAt(startIndex, endIndex, pattern) {
         const error = new ParseError(startIndex, endIndex, pattern);
         this._currentError = error;
-        if (this._furthestError === null || endIndex > this._furthestError.endIndex) {
+        if (this._furthestError === null || endIndex > this._furthestError.lastIndex) {
             this._furthestError = error;
         }
         if (this._isRecording) {
@@ -2406,18 +2408,18 @@ class AutoComplete {
         const furthestError = cursor.furthestError;
         const furthestMatch = cursor.allMatchedNodes[cursor.allMatchedNodes.length - 1];
         if (furthestError && furthestMatch) {
-            if (furthestError.endIndex > furthestMatch.endIndex) {
+            if (furthestError.lastIndex > furthestMatch.endIndex) {
                 return furthestMatch.endIndex;
             }
             else {
-                return furthestError.endIndex;
+                return furthestError.lastIndex;
             }
         }
         if (furthestError == null && furthestMatch != null) {
             return furthestMatch.endIndex;
         }
         if (furthestMatch == null && furthestError != null) {
-            return furthestError.endIndex;
+            return furthestError.lastIndex;
         }
         return 0;
     }
@@ -2438,11 +2440,11 @@ class AutoComplete {
     }
     _getOptionsFromErrors() {
         // These errored because the length of the string.
-        const errors = this._cursor.errors.filter(e => e.endIndex === this._cursor.length);
+        const errors = this._cursor.errors.filter(e => e.lastIndex === this._cursor.length);
         const suggestions = errors.map(e => {
             const tokens = this._getTokensForPattern(e.pattern);
-            const adjustedTokens = tokens.map(t => t.slice(e.endIndex - e.startIndex));
-            return this._createSuggestions(e.endIndex, adjustedTokens);
+            const adjustedTokens = tokens.map(t => t.slice(e.lastIndex - e.startIndex));
+            return this._createSuggestions(e.lastIndex, adjustedTokens);
         });
         return suggestions.flat();
     }
@@ -2622,26 +2624,32 @@ class Context {
     getTokens() {
         return this._pattern.getTokens();
     }
-    getTokensAfter(childReference) {
-        if (this.parent == null) {
+    getTokensAfter(_childReference) {
+        if (this._parent == null) {
             return [];
         }
-        return this._pattern.getTokensAfter(childReference);
+        return this._parent.getTokensAfter(this);
     }
     getNextTokens() {
-        return this._pattern.getNextTokens();
+        if (this._parent == null) {
+            return [];
+        }
+        return this._parent.getTokensAfter(this);
     }
     getPatterns() {
         return this._pattern.getPatterns();
     }
-    getPatternsAfter(childReference) {
-        if (this.parent == null) {
+    getPatternsAfter(_childReference) {
+        if (this._parent == null) {
             return [];
         }
-        return this.parent.getPatternsAfter(childReference);
+        return this._parent.getPatternsAfter(this);
     }
     getNextPatterns() {
-        return this._pattern.getNextPatterns();
+        if (this._parent == null) {
+            return [];
+        }
+        return this._parent.getPatternsAfter(this);
     }
     find(predicate) {
         return this._pattern.find(predicate);

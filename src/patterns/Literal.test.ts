@@ -35,7 +35,7 @@ describe("Literal", () => {
         expect(result).toEqual(null);
         expect(cursor.index).toBe(6);
         expect(cursor.error?.startIndex).toBe(0);
-        expect(cursor.error?.endIndex).toBe(6);
+        expect(cursor.error?.lastIndex).toBe(6);
         expect(cursor.error?.pattern).toBe(literal);
     });
 
@@ -48,7 +48,7 @@ describe("Literal", () => {
         expect(result).toEqual(null);
         expect(cursor.index).toBe(10);
         expect(cursor.error?.startIndex).toBe(0);
-        expect(cursor.error?.endIndex).toBe(11);
+        expect(cursor.error?.lastIndex).toBe(11);
         expect(cursor.error?.pattern).toBe(literal);
     });
 

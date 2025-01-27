@@ -53,7 +53,6 @@ export class Context implements Pattern {
         this._parent = null;
         this._patterns = {};
 
-
         const clonedPattern = pattern.clone();
         context.forEach(p => this._patterns[p.name] = p);
         clonedPattern.parent = this;
@@ -83,31 +82,39 @@ export class Context implements Pattern {
         return this._pattern.getTokens();
     }
 
-    getTokensAfter(childReference: Pattern): string[] {
-        if (this.parent == null) {
+    getTokensAfter(_childReference: Pattern): string[] {
+        if (this._parent == null) {
             return [];
         }
-        return this._pattern.getTokensAfter(childReference);
+        return this._parent.getTokensAfter(this);
     }
 
     getNextTokens(): string[] {
-        return this._pattern.getNextTokens();
+        if (this._parent == null) {
+            return [];
+        }
+
+        return this._parent.getTokensAfter(this);
     }
 
     getPatterns(): Pattern[] {
         return this._pattern.getPatterns();
     }
 
-    getPatternsAfter(childReference: Pattern): Pattern[] {
-        if (this.parent == null) {
+    getPatternsAfter(_childReference: Pattern): Pattern[] {
+        if (this._parent == null) {
             return [];
         }
 
-        return this.parent.getPatternsAfter(childReference);
+        return this._parent.getPatternsAfter(this);
     }
 
     getNextPatterns(): Pattern[] {
-        return this._pattern.getNextPatterns();
+        if (this._parent == null) {
+            return [];
+        }
+
+        return this._parent.getPatternsAfter(this);
     }
 
     find(predicate: (pattern: Pattern) => boolean): Pattern | null {

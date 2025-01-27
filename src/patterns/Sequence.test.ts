@@ -32,7 +32,7 @@ describe("Sequence", () => {
 
         expect(result).toEqual(null);
         expect(cursor.error?.startIndex).toBe(0);
-        expect(cursor.error?.endIndex).toBe(0);
+        expect(cursor.error?.lastIndex).toBe(0);
         expect(cursor.index).toBe(0);
     });
 
@@ -63,7 +63,7 @@ describe("Sequence", () => {
 
         expect(result).toEqual(null);
         expect(cursor.error?.startIndex).toBe(1);
-        expect(cursor.error?.endIndex).toBe(1);
+        expect(cursor.error?.lastIndex).toBe(1);
         expect(cursor.index).toBe(0);
     });
 

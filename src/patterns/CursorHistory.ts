@@ -116,7 +116,7 @@ export class CursorHistory {
     const error = new ParseError(startIndex, endIndex, pattern);
     this._currentError = error;
 
-    if (this._furthestError === null || endIndex > this._furthestError.endIndex) {
+    if (this._furthestError === null || endIndex > this._furthestError.lastIndex) {
       this._furthestError = error;
     }
 

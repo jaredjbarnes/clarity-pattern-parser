@@ -93,10 +93,10 @@ export class AutoComplete {
     const furthestMatch = cursor.allMatchedNodes[cursor.allMatchedNodes.length - 1];
 
     if (furthestError && furthestMatch) {
-      if (furthestError.endIndex > furthestMatch.endIndex) {
+      if (furthestError.lastIndex > furthestMatch.endIndex) {
         return furthestMatch.endIndex;
       } else {
-        return furthestError.endIndex;
+        return furthestError.lastIndex;
       }
     }
 
@@ -105,7 +105,7 @@ export class AutoComplete {
     }
 
     if (furthestMatch == null && furthestError != null) {
-      return furthestError.endIndex;
+      return furthestError.lastIndex;
     }
 
     return 0;
@@ -132,11 +132,11 @@ export class AutoComplete {
 
   private _getOptionsFromErrors() {
     // These errored because the length of the string.
-    const errors = this._cursor.errors.filter(e => e.endIndex === this._cursor.length);
+    const errors = this._cursor.errors.filter(e => e.lastIndex === this._cursor.length);
     const suggestions = errors.map(e => {
       const tokens = this._getTokensForPattern(e.pattern);
-      const adjustedTokens = tokens.map(t => t.slice(e.endIndex - e.startIndex));
-      return this._createSuggestions(e.endIndex, adjustedTokens);
+      const adjustedTokens = tokens.map(t => t.slice(e.lastIndex - e.startIndex));
+      return this._createSuggestions(e.lastIndex, adjustedTokens);
     });
 
     return suggestions.flat();

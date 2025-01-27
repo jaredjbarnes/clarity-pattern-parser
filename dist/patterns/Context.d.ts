@@ -26,10 +26,10 @@ export declare class Context implements Pattern {
     test(text: string, record?: boolean | undefined): boolean;
     clone(name?: string): Pattern;
     getTokens(): string[];
-    getTokensAfter(childReference: Pattern): string[];
+    getTokensAfter(_childReference: Pattern): string[];
     getNextTokens(): string[];
     getPatterns(): Pattern[];
-    getPatternsAfter(childReference: Pattern): Pattern[];
+    getPatternsAfter(_childReference: Pattern): Pattern[];
     getNextPatterns(): Pattern[];
     find(predicate: (pattern: Pattern) => boolean): Pattern | null;
     isEqual(pattern: Pattern): boolean;

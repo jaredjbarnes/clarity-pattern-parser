@@ -2623,6 +2623,9 @@ class Context {
         return this._pattern.getTokens();
     }
     getTokensAfter(childReference) {
+        if (this.parent == null) {
+            return [];
+        }
         return this._pattern.getTokensAfter(childReference);
     }
     getNextTokens() {
@@ -2632,7 +2635,10 @@ class Context {
         return this._pattern.getPatterns();
     }
     getPatternsAfter(childReference) {
-        return this._pattern.getPatternsAfter(childReference);
+        if (this.parent == null) {
+            return [];
+        }
+        return this.parent.getPatternsAfter(childReference);
     }
     getNextPatterns() {
         return this._pattern.getNextPatterns();

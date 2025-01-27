@@ -84,6 +84,9 @@ export class Context implements Pattern {
     }
 
     getTokensAfter(childReference: Pattern): string[] {
+        if (this.parent == null) {
+            return [];
+        }
         return this._pattern.getTokensAfter(childReference);
     }
 
@@ -96,7 +99,11 @@ export class Context implements Pattern {
     }
 
     getPatternsAfter(childReference: Pattern): Pattern[] {
-        return this._pattern.getPatternsAfter(childReference);
+        if (this.parent == null) {
+            return [];
+        }
+
+        return this.parent.getPatternsAfter(childReference);
     }
 
     getNextPatterns(): Pattern[] {

@@ -41,17 +41,23 @@ export class ExpressionPattern implements Pattern {
     }
 
     get children(): Pattern[] {
-        return [];
+        return this._patterns;
     }
 
-    constructor(name: string, patterns: []) {
+    constructor(name: string, patterns: Pattern[]) {
         this._id = `expression-${indexId++}`;
         this._type = "expression";
+        this._name = name;
         this._unaryPatterns = [];
         this._binaryPatterns = [];
+
+        this._patterns.forEach(p => p.parent = this);
+        this._patterns = this._organizePatterns(patterns);
+
     }
 
-    private _organizePatterns() {
+    private _organizePatterns(patterns: Pattern[]) {
+        const finalPatterns = [];
         this._patterns.forEach((pattern) => {
             if (this._isBinary(pattern)) {
                 this._binaryPatterns.push(pattern);
@@ -59,6 +65,8 @@ export class ExpressionPattern implements Pattern {
                 this._unaryPatterns.push();
             }
         });
+
+        return finalPatterns;
     }
 
     private _isBinary(pattern: Pattern) {

@@ -23,6 +23,7 @@ export class ExpressionPattern implements Pattern {
     private _unaryPatterns: Pattern[];
     private _binaryPatterns: Pattern[];
     private _binaryAssociation: Association[];
+    private _precedenceMap: Record<string, number>; 
     private _binaryNames: string[];
 
     get id(): string {
@@ -63,6 +64,7 @@ export class ExpressionPattern implements Pattern {
         this._name = name;
         this._unaryPatterns = [];
         this._binaryPatterns = [];
+        this._precedenceMap = {};
 
         this._patterns.forEach(p => p.parent = this);
         this._patterns = this._organizePatterns(patterns);
@@ -76,6 +78,7 @@ export class ExpressionPattern implements Pattern {
                 const clone = this._extractDelimiter(pattern).clone();
                 clone.parent = this;
 
+                this._precedenceMap[binaryName] = this._binaryPatterns.length;
                 this._binaryPatterns.push(clone);
                 this._binaryNames.push(binaryName);
 
@@ -140,11 +143,10 @@ export class ExpressionPattern implements Pattern {
     }
 
     private _tryToParse(cursor: Cursor): Node | null {
-        const astStack: Node[] = [];
-        let binaryIndex: number = -1;
-        let associationStack: Association[] = [];
+        let lastUnaryNode: Node | null = null;
+        let lastBinaryNode: Node | null = null;
         let onIndex = cursor.index;
-
+        
         while (true) {
             onIndex = cursor.index;
 
@@ -152,32 +154,18 @@ export class ExpressionPattern implements Pattern {
                 cursor.moveTo(onIndex);
 
                 const pattern = this._unaryPatterns[i];
-                const node = pattern.parse(cursor);
-                if (node != null) {
-                    astStack.push(node);
-                    break;
-                }
+                lastUnaryNode = pattern.parse(cursor);
             }
-
-            if (astStack.length === 0) {
-                return null;
-            } else if (astStack.length > 1) {
-                // if (association === Association.left){
-
-                // }
-            } else if (astStack.length === 1) {
-                return astStack[0]
-            }
-
+            
             const canContinue = cursor.hasNext();
 
-            if (canContinue) {
-                cursor.next();
-            } else if (!canContinue && astStack.length > 1) {
-
-            } else if (!canContinue && astStack.length === 1) {
-                return astStack[0];
-            }
+            // if (canContinue) {
+            //     cursor.next();
+            // } else if (!canContinue && astStack.length > 1) {
+                
+            // } else if (!canContinue && astStack.length === 1){
+            //     return astStack[0];
+            // }
 
             onIndex = cursor.index;
 
@@ -188,22 +176,22 @@ export class ExpressionPattern implements Pattern {
 
                 const node = pattern.parse(cursor);
 
-                if (node != null) {
-                    binaryIndex = i;
+                // if (node != null) {
+                //     binaryIndex = i;
 
-                    // const binaryNode = Node.createNode(name, []);
-                    // association = this._binaryAssociation[i];
+                //     const binaryNode = Node.createNode(name, []);
+                //     association = this._binaryAssociation[i];
 
-                    // if (association === Association.left) {
-                    //     if (nodeToAppendTo != null){
-                    //         nodeToAppendTo = binaryNode;
-                    //     } else {
-                    //         nodeToAppendTo.
-                    //     }
-                    //  } else {
+                //     if (association === Association.left) {
+                //         if (nodeToAppendTo != null){
+                //             nodeToAppendTo = binaryNode;
+                //         } else {
+                //             nodeToAppendTo.
+                //         }
+                //      } else {
 
-                    // }
-                }
+                //     }
+                // }
 
             }
         }

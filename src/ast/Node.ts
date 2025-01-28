@@ -183,6 +183,17 @@ export class Node {
     return this.findAll(predicate)[0] || null;
   }
 
+  findRoot() {
+    let pattern: Node | null = this;
+
+    while (true) {
+      if (pattern.parent == null) {
+        return pattern;
+      }
+      pattern = pattern.parent;
+    }
+  }
+
   findAll(predicate: (node: Node) => boolean): Node[] {
     const matches: Node[] = [];
 
@@ -284,7 +295,7 @@ export class Node {
     if (this.children.length === 0) {
       length = this._value.length;
     } else {
-      length = this.children.reduce((acc, c) => acc + c.normalize(acc + startIndex), startIndex);
+      length = this.children.reduce((acc, c) => acc + c.normalize(acc + startIndex), startIndex) - startIndex;
     }
 
     this._firstIndex = startIndex;

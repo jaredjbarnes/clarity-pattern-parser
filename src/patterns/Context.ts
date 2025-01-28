@@ -75,6 +75,7 @@ export class Context implements Pattern {
 
     clone(name = this._name): Pattern {
         const clone = new Context(name, this._pattern, Object.values(this._patterns));
+        clone._id = this._id;
         return clone;
     }
 

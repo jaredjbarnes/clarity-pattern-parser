@@ -1,9 +1,16 @@
 import { Node } from "../ast/Node";
 import { Cursor } from "./Cursor";
+import { DepthCache } from "./DepthCache";
 import { ParseResult } from "./ParseResult";
 import { Pattern } from "./Pattern";
 
 let indexId = 0;
+const depthCache = new DepthCache();
+
+enum Association {
+    left = 0,
+    right = 1,
+}
 
 export class ExpressionPattern implements Pattern {
     private _id: string;
@@ -15,6 +22,8 @@ export class ExpressionPattern implements Pattern {
     private _patterns: Pattern[];
     private _unaryPatterns: Pattern[];
     private _binaryPatterns: Pattern[];
+    private _binaryAssociation: Association[];
+    private _binaryNames: string[];
 
     get id(): string {
         return this._id;
@@ -45,6 +54,10 @@ export class ExpressionPattern implements Pattern {
     }
 
     constructor(name: string, patterns: Pattern[]) {
+        if (patterns.length === 0) {
+            throw new Error("Need at least one pattern with an 'expression' pattern.");
+        }
+
         this._id = `expression-${indexId++}`;
         this._type = "expression";
         this._name = name;
@@ -57,14 +70,21 @@ export class ExpressionPattern implements Pattern {
 
     private _organizePatterns(patterns: Pattern[]) {
         const finalPatterns: Pattern[] = [];
-        this._patterns.forEach((pattern) => {
-
-
+        patterns.forEach((pattern) => {
             if (this._isBinary(pattern)) {
+                const binaryName = pattern.name;
                 const clone = this._extractDelimiter(pattern).clone();
                 clone.parent = this;
 
                 this._binaryPatterns.push(clone);
+                this._binaryNames.push(binaryName);
+
+                if (pattern.type === "right-associated") {
+                    this._binaryAssociation.push(Association.right);
+                } else {
+                    this._binaryAssociation.push(Association.left);
+                }
+
                 finalPatterns.push(clone);
             } else {
                 const clone = pattern.clone();
@@ -100,8 +120,94 @@ export class ExpressionPattern implements Pattern {
     }
 
     parse(cursor: Cursor): Node | null {
+        // This is a cache to help with speed
         this._firstIndex = cursor.index;
-        
+        depthCache.incrementDepth(this._id, this._firstIndex);
+
+        this._firstIndex = cursor.index;
+        const node = this._tryToParse(cursor);
+
+        depthCache.decrementDepth(this._id, this._firstIndex);
+
+        if (node != null) {
+            cursor.moveTo(node.lastIndex);
+            cursor.resolveError();
+            return node;
+        }
+
+        cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
+        return null;
+    }
+
+    private _tryToParse(cursor: Cursor): Node | null {
+        const astStack: Node[] = [];
+        let binaryIndex: number = -1;
+        let associationStack: Association[] = [];
+        let onIndex = cursor.index;
+
+        while (true) {
+            onIndex = cursor.index;
+
+            for (let i = 0; i < this._unaryPatterns.length; i++) {
+                cursor.moveTo(onIndex);
+
+                const pattern = this._unaryPatterns[i];
+                const node = pattern.parse(cursor);
+                if (node != null) {
+                    astStack.push(node);
+                    break;
+                }
+            }
+
+            if (astStack.length === 0) {
+                return null;
+            } else if (astStack.length > 1) {
+                // if (association === Association.left){
+
+                // }
+            } else if (astStack.length === 1) {
+                return astStack[0]
+            }
+
+            const canContinue = cursor.hasNext();
+
+            if (canContinue) {
+                cursor.next();
+            } else if (!canContinue && astStack.length > 1) {
+
+            } else if (!canContinue && astStack.length === 1) {
+                return astStack[0];
+            }
+
+            onIndex = cursor.index;
+
+            for (let i = 0; i < this._binaryPatterns.length; i++) {
+                cursor.moveTo(onIndex);
+                const name = this._binaryNames[i];
+                const pattern = this._binaryPatterns[i];
+
+                const node = pattern.parse(cursor);
+
+                if (node != null) {
+                    binaryIndex = i;
+
+                    // const binaryNode = Node.createNode(name, []);
+                    // association = this._binaryAssociation[i];
+
+                    // if (association === Association.left) {
+                    //     if (nodeToAppendTo != null){
+                    //         nodeToAppendTo = binaryNode;
+                    //     } else {
+                    //         nodeToAppendTo.
+                    //     }
+                    //  } else {
+
+                    // }
+                }
+
+            }
+        }
+
         return null;
     }
 

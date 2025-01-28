@@ -995,7 +995,7 @@ class Options {
     }
     constructor(name, options, isGreedy = false) {
         if (options.length === 0) {
-            throw new Error("Need at least one pattern with an 'or' pattern.");
+            throw new Error("Need at least one pattern with an 'options' pattern.");
         }
         const children = clonePatterns(options);
         this._assignChildrenToParent(children);
@@ -2385,14 +2385,14 @@ class AutoComplete {
             const startIndex = options.reduce((lowestIndex, o) => {
                 return Math.min(lowestIndex, o.startIndex);
             }, Infinity);
-            const endIndex = cursor.getLastIndex() + 1;
-            error = new ParseError(startIndex, endIndex, this._pattern);
+            const lastIndex = cursor.getLastIndex() + 1;
+            error = new ParseError(startIndex, lastIndex, this._pattern);
             errorAtIndex = startIndex;
         }
         else if (!isComplete && options.length === 0 && ast != null) {
             const startIndex = ast.endIndex;
-            const endIndex = cursor.getLastIndex() + 1;
-            error = new ParseError(startIndex, endIndex, this._pattern);
+            const lastIndex = cursor.getLastIndex() + 1;
+            error = new ParseError(startIndex, lastIndex, this._pattern);
             errorAtIndex = startIndex;
         }
         else if (!isComplete && this._cursor.hasError && this._cursor.furthestError != null) {
@@ -2447,8 +2447,21 @@ class AutoComplete {
         const errors = this._cursor.errors.filter(e => e.lastIndex === this._cursor.length);
         const suggestions = errors.map(e => {
             const tokens = this._getTokensForPattern(e.pattern);
-            const adjustedTokens = tokens.map(t => t.slice(e.lastIndex - e.startIndex));
-            return this._createSuggestions(e.lastIndex, adjustedTokens);
+            const adjustedTokens = new Set();
+            const currentText = this._cursor.getChars(e.startIndex, e.lastIndex);
+            tokens.forEach((token) => {
+                if (token.startsWith(currentText) && token.length > currentText.length) {
+                    const difference = token.length - currentText.length;
+                    const suggestedText = token.slice(-difference);
+                    adjustedTokens.add(suggestedText);
+                }
+            });
+            return Array.from(adjustedTokens).map(t => {
+                return {
+                    text: t,
+                    startIndex: e.lastIndex,
+                };
+            });
         });
         return suggestions.flat();
     }
@@ -2623,6 +2636,7 @@ class Context {
     }
     clone(name = this._name) {
         const clone = new Context(name, this._pattern, Object.values(this._patterns));
+        clone._id = this._id;
         return clone;
     }
     getTokens() {

@@ -606,9 +606,46 @@ describe("AutoComplete", () => {
             trimDivider: true
         });
 
-        const autoComplete = new AutoComplete(list, {greedyPatternNames: ["comma"]});
+        const autoComplete = new AutoComplete(list, { greedyPatternNames: ["comma"] });
         const suggestion = autoComplete.suggestFor("John");
 
         expect(suggestion).toBe(suggestion);
+    });
+
+    test("Mid sequence suggestion", () => {
+        const operator = new Options("operator", [
+            new Literal("==", "=="),
+            new Literal("!=", "!="),
+        ]);
+        const leftOperands = new Options("left-operands", [
+            new Literal("variable-1", "variable1"),
+            new Literal("variable-2", "variable2"),
+        ]);
+
+        const rightOperands = new Options("right-operands", [
+            new Literal("variable-3", "variable3"),
+            new Literal("variable-4", "variable4"),
+        ]);
+
+        const optionalSpace = new Optional("optional-sapce", new Regex("space", "\\s+"));
+        const statement = new Sequence("statement", [leftOperands, optionalSpace, operator, optionalSpace, rightOperands]);
+
+        const autoComplete = new AutoComplete(statement, { greedyPatternNames: ["space", "operator"], customTokens: { space: [" "] } }
+        );
+        const result = autoComplete.suggestFor("variable1 ==");
+
+        expect(result.options).toEqual([{
+            text: " ",
+            startIndex: 12,
+        },
+        {
+            text: "variable3",
+            startIndex: 12,
+        },
+        {
+            text: "variable4",
+            startIndex: 12,
+        }
+    ]);
     });
 });

@@ -40,27 +40,39 @@ export class RightAssociatedPattern implements Pattern {
         return this.children[0].test(text, record);
     }
 
-    clone(name?: string | undefined): Pattern {
+    clone(_name?: string | undefined): Pattern {
         return new RightAssociatedPattern(this.children[0]);
     }
 
     getTokens(): string[] {
         return this.children[0].getTokens();
     }
-    getTokensAfter(childReference: Pattern): string[] {
-        return this.children[0].getTokensAfter(childReference);
+    getTokensAfter(_childReference: Pattern): string[] {
+        if (this._parent == null) {
+            return [];
+        }
+        return this._parent.getTokensAfter(this);
     }
     getNextTokens(): string[] {
-        return this.children[0].getNextTokens();
+        if (this._parent == null) {
+            return [];
+        }
+        return this._parent.getTokensAfter(this);
     }
     getPatterns(): Pattern[] {
         return this.children[0].getPatterns();
     }
-    getPatternsAfter(childReference: Pattern): Pattern[] {
-        return this.children[0].getPatternsAfter(childReference);
+    getPatternsAfter(_childReference: Pattern): Pattern[] {
+        if (this._parent == null) {
+            return [];
+        }
+        return this._parent.getPatternsAfter(this);
     }
     getNextPatterns(): Pattern[] {
-        return this.children[0].getNextPatterns();
+        if (this._parent == null) {
+            return [];
+        }
+        return this._parent.getPatternsAfter(this);
     }
     find(predicate: (pattern: Pattern) => boolean): Pattern | null {
         return this.children[0].find(predicate);

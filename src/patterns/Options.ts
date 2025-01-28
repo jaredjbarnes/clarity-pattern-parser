@@ -49,7 +49,7 @@ export class Options implements Pattern {
 
   constructor(name: string, options: Pattern[], isGreedy = false) {
     if (options.length === 0) {
-      throw new Error("Need at least one pattern with an 'or' pattern.");
+      throw new Error("Need at least one pattern with an 'options' pattern.");
     }
 
     const children = clonePatterns(options);

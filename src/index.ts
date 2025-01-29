@@ -19,6 +19,7 @@ import { ParseResult } from "./patterns/ParseResult";
 import { grammar } from "./grammar/patterns/grammar";
 import { patterns } from "./grammar/patterns";
 import { Context } from "./patterns/Context";
+import { ExpressionPattern } from "./patterns/ExpressionPattern";
 
 export {
   Node,
@@ -32,6 +33,7 @@ export {
   CursorHistory,
   Match,
   Context,
+  ExpressionPattern,
   Literal,
   Not,
   Options,

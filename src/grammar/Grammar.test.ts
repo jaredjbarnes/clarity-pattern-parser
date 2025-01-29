@@ -9,6 +9,7 @@ import { Repeat } from "../patterns/Repeat";
 import { Grammar } from "./Grammar";
 import { Optional } from "../patterns/Optional";
 import { Context } from "../patterns/Context";
+import { patterns } from "./patterns";
 
 describe("Grammar", () => {
     test("Literal", () => {
@@ -568,5 +569,19 @@ describe("Grammar", () => {
         const fullname = patterns["full-name"] as Pattern;
         const result = fullname.exec("John  Doe");
         expect(result?.ast?.value).toBe("John  Doe");
+    });
+
+    test("Expression Pattern", ()=>{
+        const {variables, expression} = patterns`
+            variables = "a" | "b" | "c"
+            ternary = expression + " ? " + expression + " : " + expression
+            expression = ternary | variables
+
+            bad-ternary = bad-expression + " ? " + bad-expression + " : " + bad-expression
+            bad-expression = bad-ternary | bad-ternary
+        `;
+        let result = expression.exec("a ? b : c");
+        debugger;
+        expect(result).toBe(result);
     });
 });

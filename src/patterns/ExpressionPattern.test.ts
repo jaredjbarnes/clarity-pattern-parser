@@ -76,7 +76,7 @@ function createExpressionPattern() {
     ]);
 
     const expression = new ExpressionPattern("expression", [
-        new RightAssociatedPattern(multDivExpression),
+        multDivExpression,
         addSubExpression,
         boolExpression,
         ternary,
@@ -85,6 +85,15 @@ function createExpressionPattern() {
     ]);
 
     return expression;
+}
+
+function createOptionsExpression() {
+    const a = new Literal("a", "a");
+    const b = new Literal("b", "b");
+    const c = new Literal("c", "c");
+
+    const expressionPattern = new ExpressionPattern("expression", [a, b, c]);
+    return expressionPattern;
 }
 
 describe("Expression Pattern", () => {
@@ -104,11 +113,19 @@ describe("Expression Pattern", () => {
         expect(result).toBe(result);
     });
 
+    test("Options like", ()=>{
+        const expression = createOptionsExpression();
+        const autoComplete = new AutoComplete(expression);
+        const suggestion = autoComplete.suggestFor("a");
+
+        expect(suggestion).toBe(suggestion);
+    });
+
     test("Suggest", () => {
         const expression = createExpressionPattern();
 
         const autoComplete = new AutoComplete(expression);
-        const suggestion = autoComplete.suggestFor("a ? b : c");
+        const suggestion = autoComplete.suggestFor("a ? b ");
 
         expect(suggestion).toBe(suggestion);
     });

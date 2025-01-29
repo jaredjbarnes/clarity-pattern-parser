@@ -11,6 +11,7 @@ import { Repeat, RepeatOptions } from "../patterns/Repeat";
 import { AutoComplete } from "../intellisense/AutoComplete";
 import { Optional } from "../patterns/Optional";
 import { Context } from "../patterns/Context";
+import {ExpressionPattern} from "../patterns/ExpressionPattern";
 
 let anonymousIndexId = 0;
 
@@ -248,9 +249,32 @@ export class Grammar {
         const patternNodes = node.children.filter(n => n.name !== "default-divider" && n.name !== "greedy-divider");
         const isGreedy = node.find(n => n.name === "greedy-divider") != null;
         const patterns = patternNodes.map(n => this._buildPattern(n));
-        const or = new Options(name, patterns, isGreedy);
+        const hasRecursivePattern = patterns.some(p=>this._isRecursive(name, p));
 
+        if (hasRecursivePattern && !isGreedy){
+            try {
+                const expression = new ExpressionPattern(name, patterns);
+                return expression;
+            } catch{}
+        }
+
+        const or = new Options(name, patterns, isGreedy);
         return or;
+    }
+
+    private _isRecursive(name: string, pattern: Pattern) {
+        if (pattern.type === "right-associated" && this._isRecursivePattern(name, pattern.children[0])) {
+            return true;
+        }
+
+        return this._isRecursivePattern(name, pattern);
+    }
+
+    private _isRecursivePattern(name: string, pattern: Pattern) {
+        return pattern.type === "sequence" &&
+            pattern.children[0].type === "reference" &&
+            pattern.children[0].name === name &&
+            pattern.children.length > 2;
     }
 
     private _buildPattern(node: Node): Pattern {

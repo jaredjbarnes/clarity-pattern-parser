@@ -236,7 +236,7 @@ export class ExpressionPattern implements Pattern {
                 }
             }
 
-            if (lastUnaryNode == null && lastBinaryNode != null && lastBinaryNode.children.length > 2) {
+            if (lastUnaryNode == null) {
                 break;
             }
 
@@ -270,7 +270,6 @@ export class ExpressionPattern implements Pattern {
 
                 cursor.moveTo(onIndex);
             }
-
 
             onIndex = cursor.index;
             for (let i = 0; i < this._binaryPatterns.length; i++) {
@@ -336,6 +335,10 @@ export class ExpressionPattern implements Pattern {
                     break outer;
                 }
 
+                break;
+            }
+
+            if (lastBinaryNode == null){
                 break;
             }
         }

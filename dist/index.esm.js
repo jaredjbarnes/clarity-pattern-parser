@@ -977,7 +977,7 @@ function isRecursivePattern(pattern) {
 /*
   The following is created to reduce the overhead of recursion check.
 */
-const depthCache$1 = new DepthCache();
+const depthCache$2 = new DepthCache();
 let idIndex$6 = 0;
 class Options {
     get id() {
@@ -1034,10 +1034,10 @@ class Options {
     parse(cursor) {
         // This is a cache to help with speed
         this._firstIndex = cursor.index;
-        depthCache$1.incrementDepth(this._id, this._firstIndex);
+        depthCache$2.incrementDepth(this._id, this._firstIndex);
         this._firstIndex = cursor.index;
         const node = this._tryToParse(cursor);
-        depthCache$1.decrementDepth(this._id, this._firstIndex);
+        depthCache$2.decrementDepth(this._id, this._firstIndex);
         if (node != null) {
             cursor.moveTo(node.lastIndex);
             cursor.resolveError();
@@ -1047,7 +1047,7 @@ class Options {
         return null;
     }
     _tryToParse(cursor) {
-        if (depthCache$1.getDepth(this._id, this._firstIndex) > 2) {
+        if (depthCache$2.getDepth(this._id, this._firstIndex) > 2) {
             return null;
         }
         const results = [];
@@ -1665,7 +1665,7 @@ function filterOutNull(nodes) {
     return filteredNodes;
 }
 
-const depthCache = new DepthCache();
+const depthCache$1 = new DepthCache();
 let idIndex$2 = 0;
 class Sequence {
     get id() {
@@ -1722,10 +1722,10 @@ class Sequence {
     parse(cursor) {
         // This is a cache to help with speed
         this._firstIndex = cursor.index;
-        depthCache.incrementDepth(this._id, this._firstIndex);
+        depthCache$1.incrementDepth(this._id, this._firstIndex);
         this._nodes = [];
         const passed = this.tryToParse(cursor);
-        depthCache.decrementDepth(this._id, this._firstIndex);
+        depthCache$1.decrementDepth(this._id, this._firstIndex);
         if (passed) {
             const node = this.createNode(cursor);
             if (node !== null) {
@@ -1736,7 +1736,7 @@ class Sequence {
         return null;
     }
     tryToParse(cursor) {
-        if (depthCache.getDepth(this._id, this._firstIndex) > 1) {
+        if (depthCache$1.getDepth(this._id, this._firstIndex) > 1) {
             cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
             return false;
         }
@@ -2681,6 +2681,376 @@ class Context {
     }
 }
 
+let indexId = 0;
+const depthCache = new DepthCache();
+function createNode(name, children) {
+    return new Node("expression", name, 0, 0, children, "");
+}
+var Association;
+(function (Association) {
+    Association[Association["left"] = 0] = "left";
+    Association[Association["right"] = 1] = "right";
+})(Association || (Association = {}));
+class ExpressionPattern {
+    get id() {
+        return this._id;
+    }
+    get type() {
+        return this._type;
+    }
+    get name() {
+        return this._name;
+    }
+    get parent() {
+        return this._parent;
+    }
+    set parent(pattern) {
+        this._parent = pattern;
+    }
+    get children() {
+        return this._patterns;
+    }
+    get unaryPatterns() {
+        return this._unaryPatterns;
+    }
+    get binaryPatterns() {
+        return this._binaryPatterns;
+    }
+    get recursivePatterns() {
+        return this._recursivePatterns;
+    }
+    constructor(name, patterns) {
+        if (patterns.length === 0) {
+            throw new Error("Need at least one pattern with an 'expression' pattern.");
+        }
+        this._id = `expression-${indexId++}`;
+        this._type = "expression";
+        this._name = name;
+        this._parent = null;
+        this._firstIndex = -1;
+        this._unaryPatterns = [];
+        this._binaryPatterns = [];
+        this._recursivePatterns = [];
+        this._recursiveNames = [];
+        this._binaryNames = [];
+        this._binaryAssociation = [];
+        this._precedenceMap = {};
+        this._originalPatterns = patterns;
+        this._patterns = this._organizePatterns(patterns);
+        if (this._unaryPatterns.length === 0) {
+            throw new Error("Need at least one operand pattern with an 'expression' pattern.");
+        }
+    }
+    _organizePatterns(patterns) {
+        const finalPatterns = [];
+        patterns.forEach((pattern) => {
+            if (this._isBinary(pattern)) {
+                const binaryName = this._extractName(pattern);
+                const clone = this._extractDelimiter(pattern).clone();
+                clone.parent = this;
+                this._precedenceMap[binaryName] = this._binaryPatterns.length;
+                this._binaryPatterns.push(clone);
+                this._binaryNames.push(binaryName);
+                if (pattern.type === "right-associated") {
+                    this._binaryAssociation.push(Association.right);
+                }
+                else {
+                    this._binaryAssociation.push(Association.left);
+                }
+                finalPatterns.push(clone);
+            }
+            else if (this._isRecursive(pattern)) {
+                const name = this._extractName(pattern);
+                const tail = this._extractRecursiveTail(pattern);
+                tail.parent = this;
+                this._recursivePatterns.push(tail);
+                this._recursiveNames.push(name);
+                finalPatterns.push(tail);
+            }
+            else {
+                const clone = pattern.clone();
+                clone.parent = this;
+                this._unaryPatterns.push(clone);
+                finalPatterns.push(clone);
+            }
+        });
+        return finalPatterns;
+    }
+    _isBinary(pattern) {
+        if (pattern.type === "right-associated" && this._isBinaryPattern(pattern.children[0])) {
+            return true;
+        }
+        return this._isBinaryPattern(pattern);
+    }
+    _isBinaryPattern(pattern) {
+        return pattern.type === "sequence" &&
+            pattern.children[0].type === "reference" &&
+            pattern.children[0].name === this.name &&
+            pattern.children[2].type === "reference" &&
+            pattern.children[2].name === this.name &&
+            pattern.children.length === 3;
+    }
+    _extractDelimiter(pattern) {
+        if (pattern.type === "right-associated") {
+            return pattern.children[0].children[1];
+        }
+        return pattern.children[1];
+    }
+    _extractName(pattern) {
+        if (pattern.type === "right-associated") {
+            return pattern.children[0].name;
+        }
+        return pattern.name;
+    }
+    _isRecursive(pattern) {
+        if (pattern.type === "right-associated" && this._isRecursivePattern(pattern.children[0])) {
+            return true;
+        }
+        return this._isRecursivePattern(pattern);
+    }
+    _isRecursivePattern(pattern) {
+        return pattern.type === "sequence" &&
+            pattern.children[0].type === "reference" &&
+            pattern.children[0].name === this.name &&
+            pattern.children.length > 2;
+    }
+    _extractRecursiveTail(pattern) {
+        if (pattern.type === "right-associated") {
+            return new Sequence(`${pattern.children[0].name}-tail`, pattern.children[0].children.slice(1));
+        }
+        return new Sequence(`${pattern.name}-tail`, pattern.children.slice(1));
+    }
+    parse(cursor) {
+        // This is a cache to help with speed
+        this._firstIndex = cursor.index;
+        depthCache.incrementDepth(this._id, this._firstIndex);
+        this._firstIndex = cursor.index;
+        const node = this._tryToParse(cursor);
+        depthCache.decrementDepth(this._id, this._firstIndex);
+        if (node != null) {
+            cursor.moveTo(node.lastIndex);
+            cursor.resolveError();
+            return node;
+        }
+        cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
+        return null;
+    }
+    _tryToParse(cursor) {
+        if (depthCache.getDepth(this._id, this._firstIndex) > 2) {
+            cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
+            return null;
+        }
+        let lastUnaryNode = null;
+        let lastBinaryNode = null;
+        let onIndex = cursor.index;
+        outer: while (true) {
+            onIndex = cursor.index;
+            for (let i = 0; i < this._unaryPatterns.length; i++) {
+                cursor.moveTo(onIndex);
+                const pattern = this._unaryPatterns[i];
+                const node = pattern.parse(cursor);
+                if (node != null) {
+                    lastUnaryNode = node;
+                    break;
+                }
+                else {
+                    lastUnaryNode = null;
+                    cursor.resolveError();
+                }
+            }
+            if (lastUnaryNode == null) {
+                break;
+            }
+            if (cursor.hasNext()) {
+                cursor.next();
+            }
+            else {
+                if (lastBinaryNode != null && lastUnaryNode != null) {
+                    lastBinaryNode.appendChild(lastUnaryNode);
+                }
+                break;
+            }
+            onIndex = cursor.index;
+            for (let i = 0; i < this._recursivePatterns.length; i++) {
+                const pattern = this._recursivePatterns[i];
+                const node = pattern.parse(cursor);
+                if (node != null) {
+                    if (lastBinaryNode != null && lastUnaryNode != null) {
+                        lastBinaryNode.appendChild(lastUnaryNode);
+                    }
+                    const frontExpression = lastBinaryNode == null ? lastUnaryNode : lastBinaryNode.findRoot();
+                    const name = this._recursiveNames[i];
+                    const recursiveNode = createNode(name, [frontExpression, ...node.children]);
+                    recursiveNode.normalize(this._firstIndex);
+                    return recursiveNode;
+                }
+                cursor.moveTo(onIndex);
+            }
+            onIndex = cursor.index;
+            for (let i = 0; i < this._binaryPatterns.length; i++) {
+                cursor.moveTo(onIndex);
+                const pattern = this._binaryPatterns[i];
+                const name = this._binaryNames[i];
+                const delimiterNode = pattern.parse(cursor);
+                if (delimiterNode == null) {
+                    if (i === this._binaryPatterns.length - 1) {
+                        if (lastBinaryNode == null) {
+                            return lastUnaryNode;
+                        }
+                        else if (lastUnaryNode != null) {
+                            lastBinaryNode.appendChild(lastUnaryNode);
+                        }
+                    }
+                    continue;
+                }
+                if (lastBinaryNode == null && lastUnaryNode != null && delimiterNode != null) {
+                    const node = createNode(name, [lastUnaryNode, delimiterNode]);
+                    lastBinaryNode = node;
+                }
+                else if (lastBinaryNode != null && lastUnaryNode != null && delimiterNode != null) {
+                    const precedence = this._precedenceMap[name];
+                    const lastPrecendece = lastBinaryNode == null ? 0 : this._precedenceMap[lastBinaryNode.name];
+                    const association = this._binaryAssociation[i];
+                    if (precedence === lastPrecendece && association === Association.right) {
+                        const node = createNode(name, [lastUnaryNode, delimiterNode]);
+                        lastBinaryNode.appendChild(node);
+                        lastBinaryNode = node;
+                    }
+                    else if (precedence === lastPrecendece) {
+                        const node = createNode(name, []);
+                        lastBinaryNode.replaceWith(node);
+                        lastBinaryNode.appendChild(lastUnaryNode);
+                        node.append(lastBinaryNode, delimiterNode);
+                        lastBinaryNode = node;
+                    }
+                    else if (precedence > lastPrecendece) {
+                        const root = lastBinaryNode.findRoot();
+                        lastBinaryNode.appendChild(lastUnaryNode);
+                        if (root != null) {
+                            const node = createNode(name, [root, delimiterNode]);
+                            lastBinaryNode = node;
+                        }
+                        else {
+                            const node = createNode(name, [lastUnaryNode, delimiterNode]);
+                            lastBinaryNode = node;
+                        }
+                    }
+                    else {
+                        const node = createNode(name, [lastUnaryNode, delimiterNode]);
+                        lastBinaryNode.appendChild(node);
+                        lastBinaryNode = node;
+                    }
+                }
+                if (cursor.hasNext()) {
+                    cursor.next();
+                }
+                else {
+                    break outer;
+                }
+                break;
+            }
+            if (lastBinaryNode == null) {
+                break;
+            }
+        }
+        if (lastBinaryNode == null) {
+            return lastUnaryNode;
+        }
+        else {
+            const root = lastBinaryNode.findAncestor(n => n.parent == null) || lastBinaryNode;
+            if (lastBinaryNode.children.length < 3) {
+                lastBinaryNode.remove();
+                if (lastBinaryNode === root) {
+                    return lastUnaryNode;
+                }
+            }
+            root.normalize(this._firstIndex);
+            return root;
+        }
+    }
+    test(text) {
+        const cursor = new Cursor(text);
+        const ast = this.parse(cursor);
+        return (ast === null || ast === void 0 ? void 0 : ast.value) === text;
+    }
+    exec(text, record = false) {
+        const cursor = new Cursor(text);
+        record && cursor.startRecording();
+        const ast = this.parse(cursor);
+        return {
+            ast: (ast === null || ast === void 0 ? void 0 : ast.value) === text ? ast : null,
+            cursor
+        };
+    }
+    getTokens() {
+        return this.unaryPatterns.map(p => p.getTokens()).flat();
+    }
+    getTokensAfter(childReference) {
+        if (this.unaryPatterns.indexOf(childReference)) {
+            const recursiveTokens = this._recursivePatterns.map(p => p.getTokens()).flat();
+            const binaryTokens = this._binaryPatterns.map(p => p.getTokens()).flat();
+            return [...recursiveTokens, ...binaryTokens];
+        }
+        if (this.recursivePatterns.indexOf(childReference)) {
+            return this._binaryPatterns.map(p => p.getTokens()).flat();
+        }
+        if (this.binaryPatterns.indexOf(childReference)) {
+            const unaryTokens = this._unaryPatterns.map(p => p.getTokens()).flat();
+            if (this._parent != null) {
+                const nextTokens = this._parent.getTokensAfter(this);
+                return [...unaryTokens, ...nextTokens];
+            }
+            return unaryTokens;
+        }
+        return [];
+    }
+    getNextTokens() {
+        if (this._parent == null) {
+            return [];
+        }
+        return this._parent.getTokensAfter(this);
+    }
+    getPatterns() {
+        return this.unaryPatterns.map(p => p.getPatterns()).flat();
+    }
+    getPatternsAfter(childReference) {
+        if (this.unaryPatterns.indexOf(childReference)) {
+            const recursivePatterns = this._recursivePatterns.map(p => p.getPatterns()).flat();
+            const binaryPatterns = this._binaryPatterns.map(p => p.getPatterns()).flat();
+            return [...recursivePatterns, ...binaryPatterns];
+        }
+        if (this.recursivePatterns.indexOf(childReference)) {
+            return this._binaryPatterns.map(p => p.getPatterns()).flat();
+        }
+        if (this.binaryPatterns.indexOf(childReference)) {
+            const unaryPatterns = this._unaryPatterns.map(p => p.getPatterns()).flat();
+            if (this._parent != null) {
+                const nextPatterns = this._parent.getPatternsAfter(this);
+                return [...unaryPatterns, ...nextPatterns];
+            }
+            return unaryPatterns;
+        }
+        return [];
+    }
+    getNextPatterns() {
+        if (this._parent == null) {
+            return [];
+        }
+        return this._parent.getPatternsAfter(this);
+    }
+    find(predicate) {
+        return findPattern(this, predicate);
+    }
+    clone(name = this._name) {
+        const clone = new ExpressionPattern(name, this._originalPatterns);
+        clone._id = this._id;
+        return clone;
+    }
+    isEqual(pattern) {
+        return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
+    }
+}
+
 let anonymousIndexId = 0;
 const patternNodes = {
     "literal": true,
@@ -2863,8 +3233,28 @@ class Grammar {
         const patternNodes = node.children.filter(n => n.name !== "default-divider" && n.name !== "greedy-divider");
         const isGreedy = node.find(n => n.name === "greedy-divider") != null;
         const patterns = patternNodes.map(n => this._buildPattern(n));
+        const hasRecursivePattern = patterns.some(p => this._isRecursive(name, p));
+        if (hasRecursivePattern && !isGreedy) {
+            try {
+                const expression = new ExpressionPattern(name, patterns);
+                return expression;
+            }
+            catch (_a) { }
+        }
         const or = new Options(name, patterns, isGreedy);
         return or;
+    }
+    _isRecursive(name, pattern) {
+        if (pattern.type === "right-associated" && this._isRecursivePattern(name, pattern.children[0])) {
+            return true;
+        }
+        return this._isRecursivePattern(name, pattern);
+    }
+    _isRecursivePattern(name, pattern) {
+        return pattern.type === "sequence" &&
+            pattern.children[0].type === "reference" &&
+            pattern.children[0].name === name &&
+            pattern.children.length > 2;
     }
     _buildPattern(node) {
         const type = node.name;
@@ -3107,5 +3497,5 @@ function patterns(strings, ...values) {
     return result;
 }
 
-export { AutoComplete, Context, Cursor, CursorHistory, Grammar, Literal, Node, Not, Optional, Options, ParseError, Reference, Regex, Repeat, Sequence, grammar, patterns };
+export { AutoComplete, Context, Cursor, CursorHistory, ExpressionPattern, Grammar, Literal, Node, Not, Optional, Options, ParseError, Reference, Regex, Repeat, Sequence, grammar, patterns };
 //# sourceMappingURL=index.esm.js.map

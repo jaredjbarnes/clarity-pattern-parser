@@ -19,4 +19,5 @@ import { ParseResult } from "./patterns/ParseResult";
 import { grammar } from "./grammar/patterns/grammar";
 import { patterns } from "./grammar/patterns";
 import { Context } from "./patterns/Context";
-export { Node, Grammar, AutoComplete, AutoCompleteOptions, Suggestion, SuggestionOption, Sequence, Cursor, CursorHistory, Match, Context, Literal, Not, Options, Optional, ParseError, ParseResult, Pattern, Reference, Regex, Repeat, grammar, patterns, };
+import { ExpressionPattern } from "./patterns/ExpressionPattern";
+export { Node, Grammar, AutoComplete, AutoCompleteOptions, Suggestion, SuggestionOption, Sequence, Cursor, CursorHistory, Match, Context, ExpressionPattern, Literal, Not, Options, Optional, ParseError, ParseResult, Pattern, Reference, Regex, Repeat, grammar, patterns, };

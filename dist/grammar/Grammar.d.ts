@@ -29,6 +29,8 @@ export declare class Grammar {
     private _buildRegex;
     private _saveOptions;
     private _buildOptions;
+    private _isRecursive;
+    private _isRecursivePattern;
     private _buildPattern;
     private _saveSequence;
     private _buildSequence;

@@ -41,6 +41,18 @@ function createExpressionPattern() {
         new Literal("close-paren", ")"),
     ]);
 
+    const ternary = new Sequence("ternary", [
+        new Reference("expression"),
+        optionalSpaces,
+        new Literal("question-mark", "?"),
+        optionalSpaces,
+        new Reference("expression"),
+        optionalSpaces,
+        new Literal("colon", ":"),
+        optionalSpaces,
+        new Reference("expression"),
+    ]);
+
     const multDivExpression = new Sequence("mult-div-expression", [
         new Reference("expression"),
         mulDivOperator,
@@ -63,8 +75,9 @@ function createExpressionPattern() {
         multDivExpression,
         addSubExpression,
         boolExpression,
-        variables,
+        ternary,
         group,
+        variables,
     ]);
 
     return expression;
@@ -79,6 +92,8 @@ describe("Expression Pattern", () => {
         result = expression.exec("a + b * c || d + e");
         result = expression.exec("(a + b) * (c + d)");
         result = expression.exec("(a + b) * c + (d + e)");
+        result = expression.exec("a + b * c ? d : e");
+        result = expression.exec("a + b * (a + b * c ? d : e) ? d : e");
 
         expect(result).toBe(result);
     });

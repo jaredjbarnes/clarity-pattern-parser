@@ -4,9 +4,14 @@ import { DepthCache } from "./DepthCache";
 import { ParseResult } from "./ParseResult";
 import { Pattern } from "./Pattern";
 import { findPattern } from "./findPattern";
+import { Sequence } from "./Sequence";
 
 let indexId = 0;
 const depthCache = new DepthCache();
+
+function createNode(name: string, children: Node[]) {
+    return new Node("expression", name, 0, 0, children, "");
+}
 
 enum Association {
     left = 0,
@@ -23,6 +28,8 @@ export class ExpressionPattern implements Pattern {
     private _patterns: Pattern[];
     private _unaryPatterns: Pattern[];
     private _binaryPatterns: Pattern[];
+    private _recursivePatterns: Pattern[];
+    private _recursiveNames: string[];
     private _binaryAssociation: Association[];
     private _precedenceMap: Record<string, number>;
     private _binaryNames: string[];
@@ -63,13 +70,15 @@ export class ExpressionPattern implements Pattern {
         this._firstIndex = -1;
         this._unaryPatterns = [];
         this._binaryPatterns = [];
+        this._recursivePatterns = [];
+        this._recursiveNames = [];
         this._binaryNames = [];
         this._binaryAssociation = [];
         this._precedenceMap = {};
         this._originalPatterns = patterns;
         this._patterns = this._organizePatterns(patterns);
 
-        if (this._unaryPatterns.length === 0){
+        if (this._unaryPatterns.length === 0) {
             throw new Error("Need at least one operand pattern with an 'expression' pattern.");
         }
     }
@@ -93,6 +102,14 @@ export class ExpressionPattern implements Pattern {
                 }
 
                 finalPatterns.push(clone);
+            } else if (this._isRecursive(pattern)) {
+                const name = this._extractName(pattern);
+                const tail = this._extractRecursiveTail(pattern);
+                tail.parent = this;
+
+                this._recursivePatterns.push(tail);
+                this._recursiveNames.push(name);
+                finalPatterns.push(tail);
             } else {
                 const clone = pattern.clone();
                 clone.parent = this;
@@ -123,6 +140,9 @@ export class ExpressionPattern implements Pattern {
     }
 
     private _extractDelimiter(pattern: Pattern) {
+        if (pattern.type === "right-associated") {
+            return pattern.children[0].children[1];
+        }
         return pattern.children[1];
     }
 
@@ -132,6 +152,28 @@ export class ExpressionPattern implements Pattern {
         }
 
         return pattern.name;
+    }
+
+    private _isRecursive(pattern: Pattern) {
+        if (pattern.type === "right-associated" && this._isRecursivePattern(pattern.children[0])) {
+            return true;
+        }
+
+        return this._isRecursivePattern(pattern);
+    }
+
+    private _isRecursivePattern(pattern: Pattern) {
+        return pattern.type === "sequence" &&
+            pattern.children[0].type === "reference" &&
+            pattern.children[0].name === this.name &&
+            pattern.children.length > 2;
+    }
+
+    private _extractRecursiveTail(pattern: Pattern) {
+        if (pattern.type === "right-associated") {
+            return new Sequence(`${pattern.children[0].name}-tail`, pattern.children[0].children.slice(1));
+        }
+        return new Sequence(`${pattern.name}-tail`, pattern.children.slice(1));
     }
 
     parse(cursor: Cursor): Node | null {
@@ -155,6 +197,11 @@ export class ExpressionPattern implements Pattern {
     }
 
     private _tryToParse(cursor: Cursor): Node | null {
+        if (depthCache.getDepth(this._id, this._firstIndex) > 2) {
+            cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
+            return null;
+        }
+
         let lastUnaryNode: Node | null = null;
         let lastBinaryNode: Node | null = null;
         let onIndex = cursor.index;
@@ -185,7 +232,7 @@ export class ExpressionPattern implements Pattern {
             if (cursor.hasNext()) {
                 cursor.next();
             } else {
-                if (lastBinaryNode != null && lastUnaryNode != null){
+                if (lastBinaryNode != null && lastUnaryNode != null) {
                     lastBinaryNode.appendChild(lastUnaryNode);
                 }
                 break;
@@ -193,6 +240,28 @@ export class ExpressionPattern implements Pattern {
 
             onIndex = cursor.index;
 
+            for (let i = 0; i < this._recursivePatterns.length; i++) {
+                const pattern = this._recursivePatterns[i];
+                const node = pattern.parse(cursor);
+
+                if (node != null) {
+                    if (lastBinaryNode != null && lastUnaryNode != null) {
+                        lastBinaryNode.appendChild(lastUnaryNode);
+                    }
+
+                    const frontExpression = lastBinaryNode == null ? lastUnaryNode as Node : lastBinaryNode.findRoot();
+                    const name = this._recursiveNames[i];
+                    const recursiveNode =  createNode(name, [frontExpression, ...node.children]);
+
+                    recursiveNode.normalize(this._firstIndex);
+                    return recursiveNode;
+                }
+
+                cursor.moveTo(onIndex);
+            }
+
+
+            onIndex = cursor.index;
             for (let i = 0; i < this._binaryPatterns.length; i++) {
                 cursor.moveTo(onIndex);
 
@@ -212,7 +281,7 @@ export class ExpressionPattern implements Pattern {
                 }
 
                 if (lastBinaryNode == null && lastUnaryNode != null && delimiterNode != null) {
-                    const node = Node.createNode(name, [lastUnaryNode, delimiterNode]);
+                    const node = createNode(name, [lastUnaryNode, delimiterNode]);
                     lastBinaryNode = node;
                 } else if (lastBinaryNode != null && lastUnaryNode != null && delimiterNode != null) {
                     const precedence = this._precedenceMap[name];
@@ -223,22 +292,22 @@ export class ExpressionPattern implements Pattern {
                         lastBinaryNode.appendChild(lastUnaryNode);
 
                         if (root != null) {
-                            const node = Node.createNode(name, [root, delimiterNode]);
+                            const node = createNode(name, [root, delimiterNode]);
                             lastBinaryNode = node;
                         } else {
-                            const node = Node.createNode(name, [lastUnaryNode, delimiterNode]);
+                            const node = createNode(name, [lastUnaryNode, delimiterNode]);
                             lastBinaryNode = node;
                         }
 
                     } else {
-                        const node = Node.createNode(name, [lastUnaryNode, delimiterNode]);
+                        const node = createNode(name, [lastUnaryNode, delimiterNode]);
                         lastBinaryNode.appendChild(node);
                         lastBinaryNode = node;
                     }
 
                 }
 
-                if (cursor.hasNext()){
+                if (cursor.hasNext()) {
                     cursor.next();
                 } else {
                     break outer;
@@ -252,7 +321,7 @@ export class ExpressionPattern implements Pattern {
             return lastUnaryNode;
         } else {
             const root = lastBinaryNode.findAncestor(n => n.parent == null) as Node || lastBinaryNode;
-            if (lastBinaryNode.children.length < 3){
+            if (lastBinaryNode.children.length < 3) {
                 lastBinaryNode.remove();
             }
             root.normalize(this._firstIndex);

@@ -5,9 +5,12 @@ import { Reference } from "./Reference";
 import { Sequence } from './Sequence';
 import { Regex } from './Regex';
 import { Optional } from "./Optional";
+import {AutoComplete} from "../intellisense/AutoComplete";
 
 function createExpressionPattern() {
     const spaces = new Regex("spaces", "\\s+");
+    spaces.setTokens([" "]);
+
     const optionalSpaces = new Optional("optional-spaces", spaces);
 
     const variables = new Options("variables", [
@@ -94,7 +97,18 @@ describe("Expression Pattern", () => {
         result = expression.exec("(a + b) * c + (d + e)");
         result = expression.exec("a + b * c ? d : e");
         result = expression.exec("a + b * (a + b * c ? d : e) ? d : e");
+        result = expression.exec("a + b * a + b * c ? d : e ? d : e");
+        result = expression.exec("a + b * ?");
 
         expect(result).toBe(result);
+    });
+
+    test("Suggest", ()=>{
+        const expression = createExpressionPattern();
+
+        const autoComplete = new AutoComplete(expression);
+        const suggestion = autoComplete.suggestFor("a ? b : c");
+
+        expect(suggestion).toBe(suggestion);
     });
 });

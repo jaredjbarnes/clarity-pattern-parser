@@ -58,6 +58,18 @@ export class ExpressionPattern implements Pattern {
         return this._patterns;
     }
 
+    get unaryPatterns(): readonly Pattern[] {
+        return this._unaryPatterns;
+    }
+
+    get binaryPatterns(): readonly Pattern[] {
+        return this._binaryPatterns;
+    }
+
+    get recursivePatterns(): readonly Pattern[] {
+        return this._recursivePatterns;
+    }
+
     constructor(name: string, patterns: Pattern[]) {
         if (patterns.length === 0) {
             throw new Error("Need at least one pattern with an 'expression' pattern.");
@@ -224,7 +236,6 @@ export class ExpressionPattern implements Pattern {
                 }
             }
 
-
             if (lastUnaryNode == null && lastBinaryNode != null && lastBinaryNode.children.length > 2) {
                 break;
             }
@@ -251,7 +262,7 @@ export class ExpressionPattern implements Pattern {
 
                     const frontExpression = lastBinaryNode == null ? lastUnaryNode as Node : lastBinaryNode.findRoot();
                     const name = this._recursiveNames[i];
-                    const recursiveNode =  createNode(name, [frontExpression, ...node.children]);
+                    const recursiveNode = createNode(name, [frontExpression, ...node.children]);
 
                     recursiveNode.normalize(this._firstIndex);
                     return recursiveNode;
@@ -323,7 +334,12 @@ export class ExpressionPattern implements Pattern {
             const root = lastBinaryNode.findAncestor(n => n.parent == null) as Node || lastBinaryNode;
             if (lastBinaryNode.children.length < 3) {
                 lastBinaryNode.remove();
+
+                if (lastBinaryNode === root) {
+                    return lastUnaryNode;
+                }
             }
+
             root.normalize(this._firstIndex);
             return root;
         }
@@ -349,28 +365,80 @@ export class ExpressionPattern implements Pattern {
     }
 
     getTokens(): string[] {
-        throw new Error("Method not implemented.");
+        return this.unaryPatterns.map(p => p.getTokens()).flat();
     }
 
     getTokensAfter(childReference: Pattern): string[] {
-        throw new Error("Method not implemented.");
+        if (this.unaryPatterns.indexOf(childReference)) {
+            const recursiveTokens = this._recursivePatterns.map(p => p.getTokens()).flat();
+            const binaryTokens = this._binaryPatterns.map(p => p.getTokens()).flat();
+
+            return [...recursiveTokens, ...binaryTokens];
+        }
+
+        if (this.recursivePatterns.indexOf(childReference)) {
+            return this._binaryPatterns.map(p => p.getTokens()).flat();
+        }
+
+        if (this.binaryPatterns.indexOf(childReference)) {
+            const unaryTokens = this._unaryPatterns.map(p => p.getTokens()).flat();
+
+            if (this._parent != null) {
+                const nextTokens = this._parent.getTokensAfter(this);
+                return [...unaryTokens, ...nextTokens];
+            }
+
+            return unaryTokens;
+        }
+
+        return [];
     }
 
     getNextTokens(): string[] {
-        throw new Error("Method not implemented.");
+        if (this._parent == null) {
+            return [];
+        }
+
+        return this._parent.getTokensAfter(this);
     }
 
     getPatterns(): Pattern[] {
-        throw new Error("Method not implemented.");
+        return this.unaryPatterns.map(p => p.getPatterns()).flat();
     }
 
     getPatternsAfter(childReference: Pattern): Pattern[] {
-        throw new Error("Method not implemented.");
+        if (this.unaryPatterns.indexOf(childReference)) {
+            const recursivePatterns = this._recursivePatterns.map(p => p.getPatterns()).flat();
+            const binaryPatterns = this._binaryPatterns.map(p => p.getPatterns()).flat();
+
+            return [...recursivePatterns, ...binaryPatterns];
+        }
+
+        if (this.recursivePatterns.indexOf(childReference)) {
+            return this._binaryPatterns.map(p => p.getPatterns()).flat();
+        }
+
+        if (this.binaryPatterns.indexOf(childReference)) {
+            const unaryPatterns = this._unaryPatterns.map(p => p.getPatterns()).flat();
+
+            if (this._parent != null) {
+                const nextPatterns = this._parent.getPatternsAfter(this);
+                return [...unaryPatterns, ...nextPatterns];
+            }
+
+            return unaryPatterns;
+        }
+
+        return [];
     }
 
     getNextPatterns(): Pattern[] {
-        throw new Error("Method not implemented.");
-    }
+        if (this._parent == null){
+            return [];
+        }
+
+        return this._parent.getPatternsAfter(this);
+    }   
 
     find(predicate: (p: Pattern) => boolean): Pattern | null {
         return findPattern(this, predicate);

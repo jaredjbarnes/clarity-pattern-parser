@@ -38,6 +38,7 @@ export declare class Node {
     nextSibling(): Node | null;
     previousSibling(): Node | null;
     find(predicate: (node: Node) => boolean): Node | null;
+    findRoot(): Node;
     findAll(predicate: (node: Node) => boolean): Node[];
     findAncestor(predicate: (node: Node) => boolean): Node | null;
     walkUp(callback: (node: Node) => void): void;

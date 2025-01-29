@@ -120,6 +120,15 @@ class Node {
     find(predicate) {
         return this.findAll(predicate)[0] || null;
     }
+    findRoot() {
+        let pattern = this;
+        while (true) {
+            if (pattern.parent == null) {
+                return pattern;
+            }
+            pattern = pattern.parent;
+        }
+    }
     findAll(predicate) {
         const matches = [];
         this.walkUp(n => {
@@ -194,7 +203,7 @@ class Node {
             length = this._value.length;
         }
         else {
-            length = this.children.reduce((acc, c) => acc + c.normalize(acc + startIndex), startIndex);
+            length = this.children.reduce((acc, c) => acc + c.normalize(acc + startIndex), startIndex) - startIndex;
         }
         this._firstIndex = startIndex;
         this._lastIndex = Math.max(startIndex + length - 1, 0);
@@ -1039,7 +1048,6 @@ class Options {
     }
     _tryToParse(cursor) {
         if (depthCache$1.getDepth(this._id, this._firstIndex) > 2) {
-            cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
             return null;
         }
         const results = [];

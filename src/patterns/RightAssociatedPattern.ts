@@ -6,13 +6,25 @@ import { Pattern } from "./Pattern";
 let indexId = 0;
 
 export class RightAssociatedPattern implements Pattern {
-    readonly id: string;
-    readonly type: string;
-    readonly name: string;
+    private _id: string;
+    private _type: string;
+    private _name: string;
     private _parent: Pattern | null;
-    readonly children: Pattern[];
+    private _children: Pattern[];
 
-    get parent() {
+    get id(): string {
+        return this._id;
+    }
+
+    get type(): string {
+        return this._type;
+    }
+
+    get name(): string {
+        return this._name;
+    }
+
+    get parent(): Pattern | null {
         return this._parent;
     }
 
@@ -20,12 +32,16 @@ export class RightAssociatedPattern implements Pattern {
         this._parent = pattern;
     }
 
+    get children(): Pattern[] {
+        return this._children;
+    }
+
     constructor(pattern: Pattern) {
-        this.id = `right-associated-${indexId++}`;
-        this.type = "right-associated";
-        this.name = "";
-        this.parent = null;
-        this.children = [pattern];
+        this._id = `right-associated-${indexId++}`;
+        this._type = "right-associated";
+        this._name = "";
+        this._parent = null;
+        this._children = [pattern.clone()];
     }
 
     parse(cursor: Cursor): Node | null {
@@ -41,7 +57,9 @@ export class RightAssociatedPattern implements Pattern {
     }
 
     clone(_name?: string | undefined): Pattern {
-        return new RightAssociatedPattern(this.children[0]);
+        const clone = new RightAssociatedPattern(this.children[0]);
+        clone._id = this._id;
+        return clone;
     }
 
     getTokens(): string[] {

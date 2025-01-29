@@ -297,8 +297,20 @@ export class ExpressionPattern implements Pattern {
                 } else if (lastBinaryNode != null && lastUnaryNode != null && delimiterNode != null) {
                     const precedence = this._precedenceMap[name];
                     const lastPrecendece = lastBinaryNode == null ? 0 : this._precedenceMap[lastBinaryNode.name];
+                    const association = this._binaryAssociation[i];
 
-                    if (precedence >= lastPrecendece) {
+                    if (precedence === lastPrecendece && association === Association.right) {
+                        const node = createNode(name, [lastUnaryNode, delimiterNode]);
+                        lastBinaryNode.appendChild(node);
+                        lastBinaryNode = node;
+                    } else if (precedence === lastPrecendece) {
+                        const node = createNode(name, []);
+
+                        lastBinaryNode.replaceWith(node);
+                        lastBinaryNode.appendChild(lastUnaryNode);
+                        node.append(lastBinaryNode, delimiterNode);
+                        lastBinaryNode = node;
+                    } else if (precedence > lastPrecendece) {
                         const root = lastBinaryNode.findRoot();
                         lastBinaryNode.appendChild(lastUnaryNode);
 
@@ -433,12 +445,12 @@ export class ExpressionPattern implements Pattern {
     }
 
     getNextPatterns(): Pattern[] {
-        if (this._parent == null){
+        if (this._parent == null) {
             return [];
         }
 
         return this._parent.getPatternsAfter(this);
-    }   
+    }
 
     find(predicate: (p: Pattern) => boolean): Pattern | null {
         return findPattern(this, predicate);

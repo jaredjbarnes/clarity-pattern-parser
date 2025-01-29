@@ -5,7 +5,8 @@ import { Reference } from "./Reference";
 import { Sequence } from './Sequence';
 import { Regex } from './Regex';
 import { Optional } from "./Optional";
-import {AutoComplete} from "../intellisense/AutoComplete";
+import { AutoComplete } from "../intellisense/AutoComplete";
+import { RightAssociatedPattern } from "./RightAssociatedPattern";
 
 function createExpressionPattern() {
     const spaces = new Regex("spaces", "\\s+");
@@ -75,7 +76,7 @@ function createExpressionPattern() {
     ]);
 
     const expression = new ExpressionPattern("expression", [
-        multDivExpression,
+        new RightAssociatedPattern(multDivExpression),
         addSubExpression,
         boolExpression,
         ternary,
@@ -91,7 +92,7 @@ describe("Expression Pattern", () => {
         const expression = createExpressionPattern();
         let result = expression.exec("a");
         result = expression.exec("a + b");
-        result = expression.exec("a + b * c");
+        result = expression.exec("a + b * c * d");
         result = expression.exec("a + b * c || d + e");
         result = expression.exec("(a + b) * (c + d)");
         result = expression.exec("(a + b) * c + (d + e)");
@@ -103,7 +104,7 @@ describe("Expression Pattern", () => {
         expect(result).toBe(result);
     });
 
-    test("Suggest", ()=>{
+    test("Suggest", () => {
         const expression = createExpressionPattern();
 
         const autoComplete = new AutoComplete(expression);

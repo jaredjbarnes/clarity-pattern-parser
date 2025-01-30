@@ -2908,6 +2908,9 @@
                             const recursiveNode = createNode(name, [lastUnaryNode, ...node.children]);
                             recursiveNode.normalize(lastUnaryNode.startIndex);
                             lastUnaryNode = recursiveNode;
+                            if (cursor.hasNext()) {
+                                cursor.next();
+                            }
                             break;
                         }
                     }

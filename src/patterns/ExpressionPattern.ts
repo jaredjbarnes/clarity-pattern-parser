@@ -276,7 +276,7 @@ export class ExpressionPattern implements Pattern {
                     if (lastBinaryNode != null && lastUnaryNode != null) {
                         lastBinaryNode.appendChild(lastUnaryNode);
                     }
-                    
+
                     const name = this._recursiveNames[i];
 
                     if (this._endsInRecursion[i]) {
@@ -290,6 +290,10 @@ export class ExpressionPattern implements Pattern {
                         const recursiveNode = createNode(name, [lastUnaryNode, ...node.children]);
                         recursiveNode.normalize(lastUnaryNode.startIndex);
                         lastUnaryNode = recursiveNode;
+
+                        if (cursor.hasNext()) {
+                            cursor.next();
+                        }
                         break;
                     }
                 }

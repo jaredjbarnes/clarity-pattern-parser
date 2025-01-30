@@ -203,11 +203,17 @@ class Node {
     }
     normalize(startIndex = this._firstIndex) {
         let length = 0;
+        let runningOffset = startIndex;
         if (this.children.length === 0) {
             length = this._value.length;
         }
         else {
-            length = this.children.reduce((acc, c) => acc + c.normalize(acc + startIndex), startIndex) - startIndex;
+            for (let x = 0; x < this.children.length; x++) {
+                const child = this.children[x];
+                const childLength = child.normalize(runningOffset);
+                runningOffset += childLength;
+                length += childLength;
+            }
         }
         this._firstIndex = startIndex;
         this._lastIndex = Math.max(startIndex + length - 1, 0);

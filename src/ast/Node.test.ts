@@ -392,6 +392,26 @@ describe("Node", () => {
         expect(parent.endIndex).toBe(11);
     });
 
+    test("Normalize values and index deep", () => {
+        const firstChild = new Node("literal", "first", 0, 0, [], "first");
+        const secondChild = new Node("literal", "second", 0, 0, [], "second");
+        const grandChild = new Node("literal", "three", 0, 0, [], "three");
+        const parent = new Node("literal", "parent", 0, 0);
+
+        parent.appendChild(firstChild);
+        parent.appendChild(secondChild);
+
+        parent.normalize();
+
+        secondChild.appendChild(grandChild);
+        parent.normalize();
+
+        expect(parent.startIndex).toBe(0);
+        expect(parent.firstIndex).toBe(0);
+        expect(parent.lastIndex).toBe(9);
+        expect(parent.endIndex).toBe(10);
+    });
+
     test("Normalize values with no values", () => {
         const node = new Node("literal", "node", 0, 0, [], "");
         node.normalize();
@@ -450,8 +470,6 @@ describe("Node", () => {
             ]),
             Node.createValueNode("aunt", "aunt")
         ]);
-
-        
 
         expect(result.toJson()).toBe(expected.toJson());
     });

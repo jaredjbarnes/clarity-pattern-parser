@@ -2816,7 +2816,7 @@ class ExpressionPattern {
         return pattern.type === "sequence" &&
             pattern.children[0].type === "reference" &&
             pattern.children[0].name === this.name &&
-            pattern.children.length > 2;
+            pattern.children.length > 1;
     }
     _extractRecursiveTail(pattern) {
         if (pattern.type === "right-associated") {

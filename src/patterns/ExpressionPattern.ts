@@ -178,7 +178,7 @@ export class ExpressionPattern implements Pattern {
         return pattern.type === "sequence" &&
             pattern.children[0].type === "reference" &&
             pattern.children[0].name === this.name &&
-            pattern.children.length > 2;
+            pattern.children.length > 1;
     }
 
     private _extractRecursiveTail(pattern: Pattern) {

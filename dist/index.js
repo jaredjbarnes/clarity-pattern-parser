@@ -2909,6 +2909,12 @@ class ExpressionPattern {
                         if (cursor.hasNext()) {
                             cursor.next();
                         }
+                        else {
+                            if (lastBinaryNode != null) {
+                                lastBinaryNode.appendChild(lastUnaryNode);
+                            }
+                            break outer;
+                        }
                         break;
                     }
                 }

@@ -14,6 +14,7 @@ export declare class Regex implements Pattern {
     private _firstIndex;
     private _substring;
     private _tokens;
+    shouldCompactAst: boolean;
     get id(): string;
     get type(): string;
     get name(): string;

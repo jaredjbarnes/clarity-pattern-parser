@@ -9,6 +9,7 @@ export declare class Sequence implements Pattern {
     private _children;
     private _nodes;
     private _firstIndex;
+    shouldCompactAst: boolean;
     get id(): string;
     get type(): string;
     get name(): string;

@@ -19,6 +19,8 @@ export class Sequence implements Pattern {
   private _nodes: (Node | null)[];
   private _firstIndex: number;
 
+  shouldCompactAst = false;
+
   get id(): string {
     return this._id;
   }
@@ -100,6 +102,10 @@ export class Sequence implements Pattern {
 
       if (node !== null) {
         cursor.recordMatch(this, node);
+
+        if (this.shouldCompactAst) {
+          node.compact();
+        }
       }
 
       return node;
@@ -323,6 +329,7 @@ export class Sequence implements Pattern {
   clone(name = this._name): Pattern {
     const clone = new Sequence(name, this._children);
     clone._id = this._id;
+    clone.shouldCompactAst = this.shouldCompactAst;
 
     return clone;
   }

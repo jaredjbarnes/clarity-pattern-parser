@@ -16,6 +16,8 @@ export class Reference implements Pattern {
   private _pattern: Pattern | null;
   private _children: Pattern[];
 
+  shouldCompactAst = false;
+
   get id(): string {
     return this._id;
   }
@@ -196,6 +198,7 @@ export class Reference implements Pattern {
   clone(name = this._name): Pattern {
     const clone = new Reference(name);
     clone._id = this._id;
+    clone.shouldCompactAst = this.shouldCompactAst;
 
     // Optimize future clones, by caching the pattern we already found.
     if (this._pattern != null) {

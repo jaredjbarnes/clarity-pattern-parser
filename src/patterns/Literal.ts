@@ -16,6 +16,8 @@ export class Literal implements Pattern {
   private _lastIndex: number;
   private _endIndex: number;
 
+  shouldCompactAst = false;
+
   get id(): string {
     return this._id;
   }
@@ -141,6 +143,7 @@ export class Literal implements Pattern {
   clone(name = this._name): Pattern {
     const clone = new Literal(name, this._token);
     clone._id = this._id;
+    clone.shouldCompactAst = this.shouldCompactAst;
     return clone;
   }
 

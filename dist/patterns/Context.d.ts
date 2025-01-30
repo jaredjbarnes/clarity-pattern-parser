@@ -10,6 +10,7 @@ export declare class Context implements Pattern {
     private _children;
     private _pattern;
     private _patterns;
+    shouldCompactAst: boolean;
     get id(): string;
     get type(): string;
     get name(): string;

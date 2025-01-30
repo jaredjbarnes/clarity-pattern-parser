@@ -24,6 +24,8 @@ export class FiniteRepeat implements Pattern {
     private _max: number;
     private _trimDivider: boolean;
 
+    shouldCompactAst = false;
+
     get id() {
         return this._id;
     }
@@ -140,7 +142,13 @@ export class FiniteRepeat implements Pattern {
         cursor.resolveError();
         cursor.moveTo(lastIndex);
 
-        return new Node(this._type, this.name, firstIndex, lastIndex, nodes);
+        const node = new Node(this._type, this.name, firstIndex, lastIndex, nodes);
+
+        if (this.shouldCompactAst) {
+            node.compact();
+        }
+
+        return node;
     }
 
     test(text: string): boolean {
@@ -178,6 +186,7 @@ export class FiniteRepeat implements Pattern {
         );
 
         clone._id = this._id;
+        clone.shouldCompactAst = this.shouldCompactAst;
 
         return clone;
     }

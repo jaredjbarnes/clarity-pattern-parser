@@ -18,6 +18,8 @@ export class Regex implements Pattern {
   private _substring = "";
   private _tokens: string[] = [];
 
+  shouldCompactAst = false;
+
   get id(): string {
     return this._id;
   }
@@ -30,7 +32,7 @@ export class Regex implements Pattern {
     return this._name;
   }
 
-  get regex(): string{
+  get regex(): string {
     return this._originalRegexString;
   }
 
@@ -145,8 +147,9 @@ export class Regex implements Pattern {
   clone(name = this._name) {
     const clone = new Regex(name, this._originalRegexString);
     clone._tokens = this._tokens.slice();
-
     clone._id = this._id;
+    clone.shouldCompactAst = this.shouldCompactAst;
+    
     return clone;
   }
 

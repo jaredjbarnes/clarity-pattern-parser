@@ -50,6 +50,7 @@ export declare class Node {
     remove(): void;
     clone(): Node;
     normalize(startIndex?: number): number;
+    compact(): void;
     toString(): string;
     toCycleFreeObject(): CycleFreeNode;
     toJson(space?: number): string;

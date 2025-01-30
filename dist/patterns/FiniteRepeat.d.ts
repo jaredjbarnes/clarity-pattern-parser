@@ -18,6 +18,7 @@ export declare class FiniteRepeat implements Pattern {
     private _min;
     private _max;
     private _trimDivider;
+    shouldCompactAst: boolean;
     get id(): string;
     get type(): string;
     get name(): string;

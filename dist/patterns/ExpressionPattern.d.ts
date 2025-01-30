@@ -18,6 +18,7 @@ export declare class ExpressionPattern implements Pattern {
     private _binaryAssociation;
     private _precedenceMap;
     private _binaryNames;
+    shouldCompactAst: boolean;
     get id(): string;
     get type(): string;
     get name(): string;

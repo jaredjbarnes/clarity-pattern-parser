@@ -23,6 +23,8 @@ export class Options implements Pattern {
   private _isGreedy: boolean;
   private _firstIndex: number;
 
+  shouldCompactAst = false;
+
   get id(): string {
     return this._id;
   }
@@ -102,6 +104,11 @@ export class Options implements Pattern {
     if (node != null) {
       cursor.moveTo(node.lastIndex);
       cursor.resolveError();
+
+      if (this.shouldCompactAst) {
+        node.compact();
+      }
+
       return node;
     }
 
@@ -202,9 +209,10 @@ export class Options implements Pattern {
   }
 
   clone(name = this._name): Pattern {
-    const or = new Options(name, this._children, this._isGreedy);
-    or._id = this._id;
-    return or;
+    const clone = new Options(name, this._children, this._isGreedy);
+    clone._id = this._id;
+    clone.shouldCompactAst = this.shouldCompactAst;
+    return clone;
   }
 
   isEqual(pattern: Options): boolean {

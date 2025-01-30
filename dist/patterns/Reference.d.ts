@@ -10,6 +10,7 @@ export declare class Reference implements Pattern {
     private _cachedPattern;
     private _pattern;
     private _children;
+    shouldCompactAst: boolean;
     get id(): string;
     get type(): string;
     get name(): string;

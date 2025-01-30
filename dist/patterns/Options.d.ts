@@ -10,6 +10,7 @@ export declare class Options implements Pattern {
     private _children;
     private _isGreedy;
     private _firstIndex;
+    shouldCompactAst: boolean;
     get id(): string;
     get type(): string;
     get name(): string;

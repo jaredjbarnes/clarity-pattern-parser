@@ -28,6 +28,8 @@ export class Repeat implements Pattern {
     private _options: InternalRepeatOptions;
     private _children: Pattern[];
 
+    shouldCompactAst = false;
+
     get id() {
         return this._id;
     }
@@ -76,6 +78,7 @@ export class Repeat implements Pattern {
             this._repeatPattern = new InfiniteRepeat(name, pattern, this._options);
         }
 
+        this._repeatPattern.shouldCompactAst = this.shouldCompactAst;
         this._children = [this._repeatPattern];
         this._repeatPattern.parent = this;
     }
@@ -97,6 +100,7 @@ export class Repeat implements Pattern {
         const clone = new Repeat(name, this._pattern, { ...this._options, min });
 
         clone._id = this._id;
+        clone.shouldCompactAst = this.shouldCompactAst;
         return clone;
     }
 

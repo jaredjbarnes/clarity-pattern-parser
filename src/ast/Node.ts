@@ -309,6 +309,11 @@ export class Node {
     return length;
   }
 
+  compact(){
+    this._value = this.toString();
+    this._children.length = 0;
+  }
+
   toString(): string {
     if (this._children.length === 0) {
       return this._value;

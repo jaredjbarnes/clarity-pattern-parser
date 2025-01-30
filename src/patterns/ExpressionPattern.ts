@@ -35,6 +35,8 @@ export class ExpressionPattern implements Pattern {
     private _precedenceMap: Record<string, number>;
     private _binaryNames: string[];
 
+    shouldCompactAst = false;
+
     get id(): string {
         return this._id;
     }
@@ -514,6 +516,7 @@ export class ExpressionPattern implements Pattern {
     clone(name = this._name): Pattern {
         const clone = new ExpressionPattern(name, this._originalPatterns);
         clone._id = this._id;
+        clone.shouldCompactAst = this.shouldCompactAst;
         return clone;
     }
 

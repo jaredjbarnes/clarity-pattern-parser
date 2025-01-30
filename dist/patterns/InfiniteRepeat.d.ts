@@ -19,6 +19,7 @@ export declare class InfiniteRepeat implements Pattern {
     private _firstIndex;
     private _min;
     private _trimDivider;
+    shouldCompactAst: boolean;
     get id(): string;
     get type(): string;
     get name(): string;

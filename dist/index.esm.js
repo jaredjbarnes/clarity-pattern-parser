@@ -215,6 +215,10 @@ class Node {
         this._lastIndex = Math.max(startIndex + length - 1, 0);
         return length;
     }
+    compact() {
+        this._value = this.toString();
+        this._children.length = 0;
+    }
     toString() {
         if (this._children.length === 0) {
             return this._value;
@@ -526,6 +530,7 @@ class Literal {
         return [];
     }
     constructor(name, value) {
+        this.shouldCompactAst = false;
         if (value.length === 0) {
             throw new Error("Value Cannot be empty.");
         }
@@ -595,6 +600,7 @@ class Literal {
     clone(name = this._name) {
         const clone = new Literal(name, this._token);
         clone._id = this._id;
+        clone.shouldCompactAst = this.shouldCompactAst;
         return clone;
     }
     getTokens() {
@@ -658,6 +664,7 @@ class Regex {
         this._firstIndex = -1;
         this._substring = "";
         this._tokens = [];
+        this.shouldCompactAst = false;
         this._id = `regex-${idIndex$8++}`;
         this._type = "regex";
         this._name = name;
@@ -727,6 +734,7 @@ class Regex {
         const clone = new Regex(name, this._originalRegexString);
         clone._tokens = this._tokens.slice();
         clone._id = this._id;
+        clone.shouldCompactAst = this.shouldCompactAst;
         return clone;
     }
     getTokens() {
@@ -807,6 +815,7 @@ class Reference {
         return this._children;
     }
     constructor(name) {
+        this.shouldCompactAst = false;
         this._id = `reference-${idIndex$7++}`;
         this._type = "reference";
         this._name = name;
@@ -927,6 +936,7 @@ class Reference {
     clone(name = this._name) {
         const clone = new Reference(name);
         clone._id = this._id;
+        clone.shouldCompactAst = this.shouldCompactAst;
         // Optimize future clones, by caching the pattern we already found.
         if (this._pattern != null) {
             clone._cachedPattern = this._pattern;
@@ -1005,6 +1015,7 @@ class Options {
         return this._children;
     }
     constructor(name, options, isGreedy = false) {
+        this.shouldCompactAst = false;
         if (options.length === 0) {
             throw new Error("Need at least one pattern with an 'options' pattern.");
         }
@@ -1047,6 +1058,9 @@ class Options {
         if (node != null) {
             cursor.moveTo(node.lastIndex);
             cursor.resolveError();
+            if (this.shouldCompactAst) {
+                node.compact();
+            }
             return node;
         }
         cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
@@ -1121,9 +1135,10 @@ class Options {
         return findPattern(this, predicate);
     }
     clone(name = this._name) {
-        const or = new Options(name, this._children, this._isGreedy);
-        or._id = this._id;
-        return or;
+        const clone = new Options(name, this._children, this._isGreedy);
+        clone._id = this._id;
+        clone.shouldCompactAst = this.shouldCompactAst;
+        return clone;
     }
     isEqual(pattern) {
         return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
@@ -1157,6 +1172,7 @@ class FiniteRepeat {
         return this._max;
     }
     constructor(name, pattern, options = {}) {
+        this.shouldCompactAst = false;
         this._id = `finite-repeat-${idIndex$5++}`;
         this._type = "finite-repeat";
         this._name = name;
@@ -1226,7 +1242,11 @@ class FiniteRepeat {
         const lastIndex = nodes[nodes.length - 1].lastIndex;
         cursor.resolveError();
         cursor.moveTo(lastIndex);
-        return new Node(this._type, this.name, firstIndex, lastIndex, nodes);
+        const node = new Node(this._type, this.name, firstIndex, lastIndex, nodes);
+        if (this.shouldCompactAst) {
+            node.compact();
+        }
+        return node;
     }
     test(text) {
         const cursor = new Cursor(text);
@@ -1252,6 +1272,7 @@ class FiniteRepeat {
             trimDivider: this._trimDivider
         });
         clone._id = this._id;
+        clone.shouldCompactAst = this.shouldCompactAst;
         return clone;
     }
     getTokens() {
@@ -1329,6 +1350,7 @@ class InfiniteRepeat {
         return this._min;
     }
     constructor(name, pattern, options = {}) {
+        this.shouldCompactAst = false;
         const min = options.min != null ? Math.max(options.min, 1) : 1;
         const divider = options.divider;
         let children;
@@ -1380,6 +1402,9 @@ class InfiniteRepeat {
             if (node != null) {
                 cursor.moveTo(node.lastIndex);
                 cursor.recordMatch(this, node);
+                if (this.shouldCompactAst) {
+                    node.compact();
+                }
             }
             return node;
         }
@@ -1558,6 +1583,7 @@ class InfiniteRepeat {
             trimDivider: this._trimDivider
         });
         clone._id = this._id;
+        clone.shouldCompactAst = this.shouldCompactAst;
         return clone;
     }
     isEqual(pattern) {
@@ -1592,6 +1618,7 @@ class Repeat {
         return this._options.max;
     }
     constructor(name, pattern, options = {}) {
+        this.shouldCompactAst = false;
         this._id = `repeat-${idIndex$3++}`;
         this._pattern = pattern;
         this._parent = null;
@@ -1602,6 +1629,7 @@ class Repeat {
         else {
             this._repeatPattern = new InfiniteRepeat(name, pattern, this._options);
         }
+        this._repeatPattern.shouldCompactAst = this.shouldCompactAst;
         this._children = [this._repeatPattern];
         this._repeatPattern.parent = this;
     }
@@ -1618,6 +1646,7 @@ class Repeat {
         let min = this._options.min;
         const clone = new Repeat(name, this._pattern, Object.assign(Object.assign({}, this._options), { min }));
         clone._id = this._id;
+        clone.shouldCompactAst = this.shouldCompactAst;
         return clone;
     }
     getTokens() {
@@ -1693,6 +1722,7 @@ class Sequence {
         return this._children;
     }
     constructor(name, sequence) {
+        this.shouldCompactAst = false;
         if (sequence.length === 0) {
             throw new Error("Need at least one pattern with a 'sequence' pattern.");
         }
@@ -1736,6 +1766,9 @@ class Sequence {
             const node = this.createNode(cursor);
             if (node !== null) {
                 cursor.recordMatch(this, node);
+                if (this.shouldCompactAst) {
+                    node.compact();
+                }
             }
             return node;
         }
@@ -1909,6 +1942,7 @@ class Sequence {
     clone(name = this._name) {
         const clone = new Sequence(name, this._children);
         clone._id = this._id;
+        clone.shouldCompactAst = this.shouldCompactAst;
         return clone;
     }
     isEqual(pattern) {
@@ -1968,6 +2002,7 @@ class Optional {
         return this._children;
     }
     constructor(name, pattern) {
+        this.shouldCompactAst = false;
         this._id = `optional-${idIndex$1++}`;
         this._type = "optional";
         this._name = name;
@@ -1998,13 +2033,17 @@ class Optional {
             return null;
         }
         else {
+            if (node != null && this.shouldCompactAst) {
+                node.compact();
+            }
             return node;
         }
     }
     clone(name = this._name) {
-        const optional = new Optional(name, this._children[0]);
-        optional._id = this._id;
-        return optional;
+        const clone = new Optional(name, this._children[0]);
+        clone._id = this._id;
+        clone.shouldCompactAst = this.shouldCompactAst;
+        return clone;
     }
     getTokens() {
         return this._children[0].getTokens();
@@ -2280,6 +2319,7 @@ class Not {
         return this._children;
     }
     constructor(name, pattern) {
+        this.shouldCompactAst = false;
         this._id = `not-${idIndex++}`;
         this._type = "not";
         this._name = name;
@@ -2624,6 +2664,7 @@ class Context {
         return Object.assign({}, this._patterns);
     }
     constructor(name, pattern, context = []) {
+        this.shouldCompactAst = false;
         this._id = `context-${contextId++}`;
         this._type = "context";
         this._name = name;
@@ -2647,6 +2688,7 @@ class Context {
     clone(name = this._name) {
         const clone = new Context(name, this._pattern, Object.values(this._patterns));
         clone._id = this._id;
+        clone.shouldCompactAst = this.shouldCompactAst;
         return clone;
     }
     getTokens() {
@@ -2726,6 +2768,7 @@ class ExpressionPattern {
         return this._recursivePatterns;
     }
     constructor(name, patterns) {
+        this.shouldCompactAst = false;
         if (patterns.length === 0) {
             throw new Error("Need at least one pattern with an 'expression' pattern.");
         }
@@ -3093,6 +3136,7 @@ class ExpressionPattern {
     clone(name = this._name) {
         const clone = new ExpressionPattern(name, this._originalPatterns);
         clone._id = this._id;
+        clone.shouldCompactAst = this.shouldCompactAst;
         return clone;
     }
     isEqual(pattern) {

@@ -26,6 +26,8 @@ export class InfiniteRepeat implements Pattern {
   private _min: number;
   private _trimDivider: boolean;
 
+  shouldCompactAst = false;
+
   get id(): string {
     return this._id;
   }
@@ -118,6 +120,10 @@ export class InfiniteRepeat implements Pattern {
       if (node != null) {
         cursor.moveTo(node.lastIndex);
         cursor.recordMatch(this, node);
+
+        if (this.shouldCompactAst) {
+          node.compact();
+        }
       }
 
       return node;
@@ -352,6 +358,7 @@ export class InfiniteRepeat implements Pattern {
     );
 
     clone._id = this._id;
+    clone.shouldCompactAst = this.shouldCompactAst;
 
     return clone;
   }

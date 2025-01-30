@@ -12,6 +12,8 @@ export class RightAssociatedPattern implements Pattern {
     private _parent: Pattern | null;
     private _children: Pattern[];
 
+    shouldCompactAst = false;
+
     get id(): string {
         return this._id;
     }

@@ -301,7 +301,7 @@ export class ExpressionPattern implements Pattern {
                         }
                         break;
                     }
-                } 
+                }
 
                 cursor.resolveError();
                 cursor.moveTo(onIndex);
@@ -332,7 +332,7 @@ export class ExpressionPattern implements Pattern {
                     lastBinaryNode = node;
                 } else if (lastBinaryNode != null && lastUnaryNode != null && delimiterNode != null) {
                     const precedence = this._precedenceMap[name];
-                    const lastPrecendece = lastBinaryNode == null ? 0 : this._precedenceMap[lastBinaryNode.name] || -1;
+                    const lastPrecendece = lastBinaryNode == null ? 0 : this._precedenceMap[lastBinaryNode.name] == null ? -1 : this._precedenceMap[lastBinaryNode.name];
                     const association = this._binaryAssociation[i];
 
                     if (precedence === lastPrecendece && association === Association.right) {

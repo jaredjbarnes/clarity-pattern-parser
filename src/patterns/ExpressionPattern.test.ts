@@ -76,7 +76,7 @@ function createExpressionPattern() {
     ]);
 
     const expression = new ExpressionPattern("expression", [
-        multDivExpression,
+        new RightAssociatedPattern(multDivExpression),
         addSubExpression,
         boolExpression,
         ternary,
@@ -100,20 +100,20 @@ describe("Expression Pattern", () => {
     test("Single Expression", () => {
         const expression = createExpressionPattern();
         let result = expression.exec("a || c || b / c * a + d");
-         result = expression.exec("a + b");
-         result = expression.exec("a + b * c * d");
-         result = expression.exec("a + b * c || d + e");
-         result = expression.exec("(a + b) * (c + d)");
-         result = expression.exec("(a + b) * c + (d + e)");
-         result = expression.exec("a + b * c ? d : e");
-         result = expression.exec("a + b * (a + b * c ? d : e) ? d : e");
-         result = expression.exec("a + b * a + b * c ? d : e ? d : e");
-         result = expression.exec("a + b * ?");
+        result = expression.exec("a + b");
+        result = expression.exec("a + b * c * d");
+        result = expression.exec("a + b * c || d + e");
+        result = expression.exec("(a + b) * (c + d)");
+        result = expression.exec("(a + b) * c + (d + e)");
+        result = expression.exec("a + b * c ? d : e");
+        result = expression.exec("a + b * (a + b * c ? d : e) ? d : e");
+        result = expression.exec("a + b * a + b * c ? d : e ? d : e");
+        result = expression.exec("a + b * ?");
 
         expect(result).toBe(result);
     });
 
-    test("Options like", ()=>{
+    test("Options like", () => {
         const expression = createOptionsExpression();
         const autoComplete = new AutoComplete(expression);
         const suggestion = autoComplete.suggestFor("a");

@@ -2924,10 +2924,21 @@ class ExpressionPattern {
                         lastBinaryNode = node;
                     }
                     else if (precedence > lastPrecendece) {
-                        const root = lastBinaryNode.findRoot();
+                        let ancestor = lastBinaryNode.parent;
+                        let root = lastBinaryNode;
+                        while (ancestor != null) {
+                            const nodePrecedence = this._precedenceMap[ancestor.name];
+                            if (nodePrecedence > precedence) {
+                                break;
+                            }
+                            root = ancestor;
+                            ancestor = ancestor.parent;
+                        }
                         lastBinaryNode.appendChild(lastUnaryNode);
                         if (root != null) {
-                            const node = createNode(name, [root, delimiterNode]);
+                            const node = createNode(name, []);
+                            root.replaceWith(node);
+                            node.append(root, delimiterNode);
                             lastBinaryNode = node;
                         }
                         else {

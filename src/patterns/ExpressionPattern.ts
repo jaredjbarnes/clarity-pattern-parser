@@ -310,11 +310,26 @@ export class ExpressionPattern implements Pattern {
                         node.append(lastBinaryNode, delimiterNode);
                         lastBinaryNode = node;
                     } else if (precedence > lastPrecendece) {
-                        const root = lastBinaryNode.findRoot();
+                        let ancestor = lastBinaryNode.parent;
+                        let root: Node | null = lastBinaryNode;
+
+                        while(ancestor != null){
+                            const nodePrecedence = this._precedenceMap[ancestor.name];
+
+                            if (nodePrecedence > precedence){
+                                break;
+                            }
+                            root = ancestor;
+                            ancestor = ancestor.parent;
+                        }
+
                         lastBinaryNode.appendChild(lastUnaryNode);
 
                         if (root != null) {
-                            const node = createNode(name, [root, delimiterNode]);
+                            const node = createNode(name, []);
+                            root.replaceWith(node);
+                            node.append(root, delimiterNode);
+                            
                             lastBinaryNode = node;
                         } else {
                             const node = createNode(name, [lastUnaryNode, delimiterNode]);

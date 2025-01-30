@@ -2848,6 +2848,7 @@ class ExpressionPattern {
         let lastBinaryNode = null;
         let onIndex = cursor.index;
         outer: while (true) {
+            cursor.resolveError();
             onIndex = cursor.index;
             for (let i = 0; i < this._unaryPatterns.length; i++) {
                 cursor.moveTo(onIndex);
@@ -2890,6 +2891,7 @@ class ExpressionPattern {
                 }
                 cursor.moveTo(onIndex);
             }
+            cursor.resolveError();
             onIndex = cursor.index;
             for (let i = 0; i < this._binaryPatterns.length; i++) {
                 cursor.moveTo(onIndex);

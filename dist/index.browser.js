@@ -2906,7 +2906,7 @@
                         }
                         else {
                             const recursiveNode = createNode(name, [lastUnaryNode, ...node.children]);
-                            recursiveNode.normalize(this._firstIndex);
+                            recursiveNode.normalize(lastUnaryNode.startIndex);
                             lastUnaryNode = recursiveNode;
                             break;
                         }

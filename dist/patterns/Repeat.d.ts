@@ -15,7 +15,9 @@ export declare class Repeat implements Pattern {
     private _pattern;
     private _options;
     private _children;
-    shouldCompactAst: boolean;
+    private _shouldCompactAst;
+    get shouldCompactAst(): boolean;
+    set shouldCompactAst(value: boolean);
     get id(): string;
     get type(): string;
     get name(): string;

@@ -18,6 +18,7 @@ export declare class ExpressionPattern implements Pattern {
     private _binaryAssociation;
     private _precedenceMap;
     private _binaryNames;
+    private _shouldCompactPatternsMap;
     shouldCompactAst: boolean;
     get id(): string;
     get type(): string;
@@ -39,6 +40,7 @@ export declare class ExpressionPattern implements Pattern {
     private _extractRecursiveTail;
     private _endsWithRecursion;
     parse(cursor: Cursor): Node | null;
+    private _compactResult;
     private _tryToParse;
     test(text: string): boolean;
     exec(text: string, record?: boolean): ParseResult;

@@ -236,8 +236,7 @@ export class Node {
     const queue: Node[] = [this];
 
     while (queue.length > 0) {
-      // biome-ignore lint/style/noNonNullAssertion: This will never be undefined.
-      const current = queue.shift()!;
+      const current = queue.shift() as Node;
       callback(current);
       queue.push(...current.children);
     }

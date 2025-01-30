@@ -34,6 +34,7 @@ export class ExpressionPattern implements Pattern {
     private _binaryAssociation: Association[];
     private _precedenceMap: Record<string, number>;
     private _binaryNames: string[];
+    private _shouldCompactPatternsMap: Record<string, boolean>;
 
     shouldCompactAst = false;
 
@@ -92,6 +93,7 @@ export class ExpressionPattern implements Pattern {
         this._binaryAssociation = [];
         this._precedenceMap = {};
         this._originalPatterns = patterns;
+        this._shouldCompactPatternsMap = {};
         this._patterns = this._organizePatterns(patterns);
 
         if (this._unaryPatterns.length === 0) {
@@ -102,6 +104,8 @@ export class ExpressionPattern implements Pattern {
     private _organizePatterns(patterns: Pattern[]) {
         const finalPatterns: Pattern[] = [];
         patterns.forEach((pattern) => {
+            this._shouldCompactPatternsMap[pattern.name] = pattern.shouldCompactAst;
+
             if (this._isBinary(pattern)) {
                 const binaryName = this._extractName(pattern);
                 const clone = this._extractDelimiter(pattern).clone();
@@ -121,6 +125,7 @@ export class ExpressionPattern implements Pattern {
             } else if (this._isRecursive(pattern)) {
                 const name = this._extractName(pattern);
                 const tail = this._extractRecursiveTail(pattern);
+
                 tail.parent = this;
 
                 this._recursivePatterns.push(tail);
@@ -218,11 +223,34 @@ export class ExpressionPattern implements Pattern {
         if (node != null) {
             cursor.moveTo(node.lastIndex);
             cursor.resolveError();
+            this._compactResult(node);
             return node;
         }
 
         cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
         return null;
+    }
+
+    private _compactResult(node: Node | null) {
+        if (node == null) {
+            return;
+        }
+
+        if (this.shouldCompactAst) {
+            node.compact();
+            return;
+        }
+
+        // This could be really expensive with large trees. So we optimize with these checks,
+        // as well as use breadth first as to not recompact nodes over and over again. 
+        const isCompactingNeeded = Object.values(this._shouldCompactPatternsMap).some(p => p);
+        if (isCompactingNeeded) {
+            node.walkBreadthFirst(n => {
+                if (this._shouldCompactPatternsMap[n.name]) {
+                    n.compact();
+                }
+            });
+        }
     }
 
     private _tryToParse(cursor: Cursor): Node | null {
@@ -248,6 +276,7 @@ export class ExpressionPattern implements Pattern {
 
                 if (node != null) {
                     lastUnaryNode = node;
+
                     break;
                 } else {
                     lastUnaryNode = null;
@@ -340,12 +369,14 @@ export class ExpressionPattern implements Pattern {
                     if (precedence === lastPrecendece && association === Association.right) {
                         const node = createNode(name, [lastUnaryNode, delimiterNode]);
                         lastBinaryNode.appendChild(node);
+
                         lastBinaryNode = node;
                     } else if (precedence === lastPrecendece) {
                         const node = createNode(name, []);
 
                         lastBinaryNode.replaceWith(node);
                         lastBinaryNode.appendChild(lastUnaryNode);
+
                         node.append(lastBinaryNode, delimiterNode);
                         lastBinaryNode = node;
                     } else if (precedence > lastPrecendece) {
@@ -378,6 +409,7 @@ export class ExpressionPattern implements Pattern {
                     } else {
                         const node = createNode(name, [lastUnaryNode, delimiterNode]);
                         lastBinaryNode.appendChild(node);
+
                         lastBinaryNode = node;
                     }
 

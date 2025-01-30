@@ -167,7 +167,6 @@
         walkBreadthFirst(callback) {
             const queue = [this];
             while (queue.length > 0) {
-                // biome-ignore lint/style/noNonNullAssertion: This will never be undefined.
                 const current = queue.shift();
                 callback(current);
                 queue.push(...current.children);
@@ -1599,6 +1598,13 @@
 
     let idIndex$3 = 0;
     class Repeat {
+        get shouldCompactAst() {
+            return this._shouldCompactAst;
+        }
+        set shouldCompactAst(value) {
+            this._shouldCompactAst = value;
+            this._repeatPattern.shouldCompactAst = value;
+        }
         get id() {
             return this._id;
         }
@@ -1624,10 +1630,10 @@
             return this._options.max;
         }
         constructor(name, pattern, options = {}) {
-            this.shouldCompactAst = false;
             this._id = `repeat-${idIndex$3++}`;
             this._pattern = pattern;
             this._parent = null;
+            this._shouldCompactAst = false;
             this._options = Object.assign(Object.assign({}, options), { min: options.min == null ? 1 : options.min, max: options.max == null ? Infinity : options.max });
             if (this._options.max !== Infinity) {
                 this._repeatPattern = new FiniteRepeat(name, pattern, this._options);
@@ -1635,7 +1641,6 @@
             else {
                 this._repeatPattern = new InfiniteRepeat(name, pattern, this._options);
             }
-            this._repeatPattern.shouldCompactAst = this.shouldCompactAst;
             this._children = [this._repeatPattern];
             this._repeatPattern.parent = this;
         }
@@ -2198,13 +2203,17 @@
 
     const optionalSpaces$2 = new Optional("optional-spaces", spaces$1);
     const assignOperator = new Literal("assign-operator", "=");
+    const compact = new Literal("compact", "compact");
+    const compactModifier = new Sequence("compact-modifier", [lineSpaces$1, compact]);
+    const optionalCompactModifier = new Optional("optional-compact-modifier", compactModifier);
     const assignStatement = new Sequence("assign-statement", [
         optionalSpaces$2,
         name$1,
         optionalSpaces$2,
         assignOperator,
         optionalSpaces$2,
-        pattern
+        pattern,
+        optionalCompactModifier
     ]);
     const statement = new Options("statement", [assignStatement, name$1.clone("export-name")]);
 
@@ -2792,6 +2801,7 @@
             this._binaryAssociation = [];
             this._precedenceMap = {};
             this._originalPatterns = patterns;
+            this._shouldCompactPatternsMap = {};
             this._patterns = this._organizePatterns(patterns);
             if (this._unaryPatterns.length === 0) {
                 throw new Error("Need at least one operand pattern with an 'expression' pattern.");
@@ -2800,6 +2810,7 @@
         _organizePatterns(patterns) {
             const finalPatterns = [];
             patterns.forEach((pattern) => {
+                this._shouldCompactPatternsMap[pattern.name] = pattern.shouldCompactAst;
                 if (this._isBinary(pattern)) {
                     const binaryName = this._extractName(pattern);
                     const clone = this._extractDelimiter(pattern).clone();
@@ -2897,10 +2908,30 @@
             if (node != null) {
                 cursor.moveTo(node.lastIndex);
                 cursor.resolveError();
+                this._compactResult(node);
                 return node;
             }
             cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
             return null;
+        }
+        _compactResult(node) {
+            if (node == null) {
+                return;
+            }
+            if (this.shouldCompactAst) {
+                node.compact();
+                return;
+            }
+            // This could be really expensive with large trees. So we optimize with these checks,
+            // as well as use breadth first as to not recompact nodes over and over again. 
+            const isCompactingNeeded = Object.values(this._shouldCompactPatternsMap).some(p => p);
+            if (isCompactingNeeded) {
+                node.walkBreadthFirst(n => {
+                    if (this._shouldCompactPatternsMap[n.name]) {
+                        n.compact();
+                    }
+                });
+            }
         }
         _tryToParse(cursor) {
             if (depthCache.getDepth(this._id, this._firstIndex) > 2) {
@@ -3323,9 +3354,13 @@
         }
         _saveOptions(statementNode) {
             const nameNode = statementNode.find(n => n.name === "name");
+            const shouldCompactAst = statementNode.find(n => n.name === "compact");
             const name = nameNode.value;
             const optionsNode = statementNode.find(n => n.name === "options-literal");
             const options = this._buildOptions(name, optionsNode);
+            if (shouldCompactAst != null) {
+                options.shouldCompactAst = true;
+            }
             this._parseContext.patternsByName.set(name, options);
         }
         _buildOptions(name, node) {
@@ -3385,9 +3420,13 @@
         }
         _saveSequence(statementNode) {
             const nameNode = statementNode.find(n => n.name === "name");
+            const shouldCompactAst = statementNode.find(n => n.name === "compact");
             const name = nameNode.value;
             const sequenceNode = statementNode.find(n => n.name === "sequence-literal");
             const sequence = this._buildSequence(name, sequenceNode);
+            if (shouldCompactAst != null) {
+                sequence.shouldCompactAst = true;
+            }
             this._parseContext.patternsByName.set(name, sequence);
         }
         _buildSequence(name, node) {
@@ -3407,9 +3446,13 @@
         }
         _saveRepeat(statementNode) {
             const nameNode = statementNode.find(n => n.name === "name");
+            const shouldCompactAst = statementNode.find(n => n.name === "compact");
             const name = nameNode.value;
             const repeatNode = statementNode.find(n => n.name === "repeat-literal");
             const repeat = this._buildRepeat(name, repeatNode);
+            if (shouldCompactAst != null) {
+                repeat.shouldCompactAst = true;
+            }
             this._parseContext.patternsByName.set(name, repeat);
         }
         _buildRepeat(name, repeatNode) {
@@ -3562,10 +3605,14 @@
         }
         _saveAlias(statementNode) {
             const nameNode = statementNode.find(n => n.name === "name");
+            const shouldCompactAst = statementNode.find(n => n.name === "compact");
             const aliasNode = statementNode.find(n => n.name === "alias-literal");
             const aliasName = aliasNode.value;
             const name = nameNode.value;
             const alias = this._getPattern(aliasName).clone(name);
+            if (shouldCompactAst != null) {
+                alias.shouldCompactAst = true;
+            }
             this._parseContext.patternsByName.set(name, alias);
         }
         static parse(expression, options) {

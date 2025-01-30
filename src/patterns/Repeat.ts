@@ -27,8 +27,16 @@ export class Repeat implements Pattern {
     private _pattern: Pattern;
     private _options: InternalRepeatOptions;
     private _children: Pattern[];
+    private _shouldCompactAst: boolean;
 
-    shouldCompactAst = false;
+    get shouldCompactAst() {
+        return this._shouldCompactAst;
+    }
+
+    set shouldCompactAst(value: boolean) {
+        this._shouldCompactAst = value;
+        this._repeatPattern.shouldCompactAst = value;
+    }
 
     get id() {
         return this._id;
@@ -66,6 +74,7 @@ export class Repeat implements Pattern {
         this._id = `repeat-${idIndex++}`;
         this._pattern = pattern;
         this._parent = null;
+        this._shouldCompactAst = false;
         this._options = {
             ...options,
             min: options.min == null ? 1 : options.min,
@@ -78,7 +87,6 @@ export class Repeat implements Pattern {
             this._repeatPattern = new InfiniteRepeat(name, pattern, this._options);
         }
 
-        this._repeatPattern.shouldCompactAst = this.shouldCompactAst;
         this._children = [this._repeatPattern];
         this._repeatPattern.parent = this;
     }

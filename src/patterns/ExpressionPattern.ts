@@ -273,13 +273,13 @@ export class ExpressionPattern implements Pattern {
                 const node = pattern.parse(cursor);
 
                 if (node != null) {
-                    if (lastBinaryNode != null && lastUnaryNode != null) {
-                        lastBinaryNode.appendChild(lastUnaryNode);
-                    }
-
                     const name = this._recursiveNames[i];
 
                     if (this._endsInRecursion[i]) {
+                        if (lastBinaryNode != null && lastUnaryNode != null) {
+                            lastBinaryNode.appendChild(lastUnaryNode);
+                        }
+
                         const frontExpression = lastBinaryNode == null ? lastUnaryNode as Node : lastBinaryNode.findRoot();
                         const recursiveNode = createNode(name, [frontExpression, ...node.children]);
 

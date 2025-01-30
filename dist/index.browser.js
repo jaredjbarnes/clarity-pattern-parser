@@ -2920,6 +2920,7 @@
                             break;
                         }
                     }
+                    cursor.resolveError();
                     cursor.moveTo(onIndex);
                 }
                 cursor.resolveError();

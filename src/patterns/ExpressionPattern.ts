@@ -301,8 +301,9 @@ export class ExpressionPattern implements Pattern {
                         }
                         break;
                     }
-                }
-
+                } 
+                
+                cursor.resolveError();
                 cursor.moveTo(onIndex);
             }
 

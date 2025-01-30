@@ -14,6 +14,7 @@ export declare class ExpressionPattern implements Pattern {
     private _binaryPatterns;
     private _recursivePatterns;
     private _recursiveNames;
+    private _endsInRecursion;
     private _binaryAssociation;
     private _precedenceMap;
     private _binaryNames;
@@ -35,6 +36,7 @@ export declare class ExpressionPattern implements Pattern {
     private _isRecursive;
     private _isRecursivePattern;
     private _extractRecursiveTail;
+    private _endsWithRecursion;
     parse(cursor: Cursor): Node | null;
     private _tryToParse;
     test(text: string): boolean;

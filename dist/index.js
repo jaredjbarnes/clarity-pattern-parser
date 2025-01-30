@@ -2736,6 +2736,7 @@ class ExpressionPattern {
         this._binaryPatterns = [];
         this._recursivePatterns = [];
         this._recursiveNames = [];
+        this._endsInRecursion = [];
         this._binaryNames = [];
         this._binaryAssociation = [];
         this._precedenceMap = {};
@@ -2769,6 +2770,7 @@ class ExpressionPattern {
                 tail.parent = this;
                 this._recursivePatterns.push(tail);
                 this._recursiveNames.push(name);
+                this._endsInRecursion.push(this._endsWithRecursion(pattern));
                 finalPatterns.push(tail);
             }
             else {
@@ -2823,6 +2825,16 @@ class ExpressionPattern {
             return new Sequence(`${pattern.children[0].name}-tail`, pattern.children[0].children.slice(1));
         }
         return new Sequence(`${pattern.name}-tail`, pattern.children.slice(1));
+    }
+    _endsWithRecursion(pattern) {
+        if (pattern.type === "right-associated") {
+            pattern = pattern.children[0];
+        }
+        const lastChild = pattern.children[pattern.children.length - 1];
+        return pattern.type === "sequence" &&
+            pattern.children.length > 1 &&
+            lastChild.type === "reference" &&
+            lastChild.name === this.name;
     }
     parse(cursor) {
         // This is a cache to help with speed
@@ -2883,11 +2895,19 @@ class ExpressionPattern {
                     if (lastBinaryNode != null && lastUnaryNode != null) {
                         lastBinaryNode.appendChild(lastUnaryNode);
                     }
-                    const frontExpression = lastBinaryNode == null ? lastUnaryNode : lastBinaryNode.findRoot();
                     const name = this._recursiveNames[i];
-                    const recursiveNode = createNode(name, [frontExpression, ...node.children]);
-                    recursiveNode.normalize(this._firstIndex);
-                    return recursiveNode;
+                    if (this._endsInRecursion[i]) {
+                        const frontExpression = lastBinaryNode == null ? lastUnaryNode : lastBinaryNode.findRoot();
+                        const recursiveNode = createNode(name, [frontExpression, ...node.children]);
+                        recursiveNode.normalize(this._firstIndex);
+                        return recursiveNode;
+                    }
+                    else {
+                        const recursiveNode = createNode(name, [lastUnaryNode, ...node.children]);
+                        recursiveNode.normalize(this._firstIndex);
+                        lastUnaryNode = recursiveNode;
+                        break;
+                    }
                 }
                 cursor.moveTo(onIndex);
             }
@@ -2915,7 +2935,7 @@ class ExpressionPattern {
                 }
                 else if (lastBinaryNode != null && lastUnaryNode != null && delimiterNode != null) {
                     const precedence = this._precedenceMap[name];
-                    const lastPrecendece = lastBinaryNode == null ? 0 : this._precedenceMap[lastBinaryNode.name];
+                    const lastPrecendece = lastBinaryNode == null ? 0 : this._precedenceMap[lastBinaryNode.name] || -1;
                     const association = this._binaryAssociation[i];
                     if (precedence === lastPrecendece && association === Association.right) {
                         const node = createNode(name, [lastUnaryNode, delimiterNode]);

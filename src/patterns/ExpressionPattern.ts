@@ -30,6 +30,7 @@ export class ExpressionPattern implements Pattern {
     private _binaryPatterns: Pattern[];
     private _recursivePatterns: Pattern[];
     private _recursiveNames: string[];
+    private _endsInRecursion: boolean[];
     private _binaryAssociation: Association[];
     private _precedenceMap: Record<string, number>;
     private _binaryNames: string[];
@@ -84,6 +85,7 @@ export class ExpressionPattern implements Pattern {
         this._binaryPatterns = [];
         this._recursivePatterns = [];
         this._recursiveNames = [];
+        this._endsInRecursion = [];
         this._binaryNames = [];
         this._binaryAssociation = [];
         this._precedenceMap = {};
@@ -121,6 +123,7 @@ export class ExpressionPattern implements Pattern {
 
                 this._recursivePatterns.push(tail);
                 this._recursiveNames.push(name);
+                this._endsInRecursion.push(this._endsWithRecursion(pattern));
                 finalPatterns.push(tail);
             } else {
                 const clone = pattern.clone();
@@ -188,6 +191,18 @@ export class ExpressionPattern implements Pattern {
         return new Sequence(`${pattern.name}-tail`, pattern.children.slice(1));
     }
 
+    private _endsWithRecursion(pattern: Pattern) {
+        if (pattern.type === "right-associated") {
+            pattern = pattern.children[0];
+        }
+
+        const lastChild = pattern.children[pattern.children.length - 1];
+        return pattern.type === "sequence" &&
+            pattern.children.length > 1 &&
+            lastChild.type === "reference" &&
+            lastChild.name === this.name;
+    }
+
     parse(cursor: Cursor): Node | null {
         // This is a cache to help with speed
         this._firstIndex = cursor.index;
@@ -214,11 +229,11 @@ export class ExpressionPattern implements Pattern {
             return null;
         }
 
-        
+
         let lastUnaryNode: Node | null = null;
         let lastBinaryNode: Node | null = null;
         let onIndex = cursor.index;
-        
+
         outer: while (true) {
             cursor.resolveError();
             onIndex = cursor.index;
@@ -261,13 +276,22 @@ export class ExpressionPattern implements Pattern {
                     if (lastBinaryNode != null && lastUnaryNode != null) {
                         lastBinaryNode.appendChild(lastUnaryNode);
                     }
-
-                    const frontExpression = lastBinaryNode == null ? lastUnaryNode as Node : lastBinaryNode.findRoot();
+                    
                     const name = this._recursiveNames[i];
-                    const recursiveNode = createNode(name, [frontExpression, ...node.children]);
 
-                    recursiveNode.normalize(this._firstIndex);
-                    return recursiveNode;
+                    if (this._endsInRecursion[i]) {
+                        const frontExpression = lastBinaryNode == null ? lastUnaryNode as Node : lastBinaryNode.findRoot();
+                        const recursiveNode = createNode(name, [frontExpression, ...node.children]);
+
+                        recursiveNode.normalize(this._firstIndex);
+
+                        return recursiveNode;
+                    } else {
+                        const recursiveNode = createNode(name, [lastUnaryNode, ...node.children]);
+                        recursiveNode.normalize(this._firstIndex);
+                        lastUnaryNode = recursiveNode;
+                        break;
+                    }
                 }
 
                 cursor.moveTo(onIndex);
@@ -298,7 +322,7 @@ export class ExpressionPattern implements Pattern {
                     lastBinaryNode = node;
                 } else if (lastBinaryNode != null && lastUnaryNode != null && delimiterNode != null) {
                     const precedence = this._precedenceMap[name];
-                    const lastPrecendece = lastBinaryNode == null ? 0 : this._precedenceMap[lastBinaryNode.name];
+                    const lastPrecendece = lastBinaryNode == null ? 0 : this._precedenceMap[lastBinaryNode.name] || -1;
                     const association = this._binaryAssociation[i];
 
                     if (precedence === lastPrecendece && association === Association.right) {

@@ -144,11 +144,11 @@ export class ExpressionPattern implements Pattern {
 
     private _isBinaryPattern(pattern: Pattern) {
         return pattern.type === "sequence" &&
+            pattern.children.length === 3 &&
             pattern.children[0].type === "reference" &&
             pattern.children[0].name === this.name &&
             pattern.children[2].type === "reference" &&
-            pattern.children[2].name === this.name &&
-            pattern.children.length === 3;
+            pattern.children[2].name === this.name;
     }
 
     private _extractDelimiter(pattern: Pattern) {
@@ -313,10 +313,10 @@ export class ExpressionPattern implements Pattern {
                         let ancestor = lastBinaryNode.parent;
                         let root: Node | null = lastBinaryNode;
 
-                        while(ancestor != null){
+                        while (ancestor != null) {
                             const nodePrecedence = this._precedenceMap[ancestor.name];
 
-                            if (nodePrecedence > precedence){
+                            if (nodePrecedence > precedence) {
                                 break;
                             }
                             root = ancestor;
@@ -329,7 +329,7 @@ export class ExpressionPattern implements Pattern {
                             const node = createNode(name, []);
                             root.replaceWith(node);
                             node.append(root, delimiterNode);
-                            
+
                             lastBinaryNode = node;
                         } else {
                             const node = createNode(name, [lastUnaryNode, delimiterNode]);
@@ -353,7 +353,7 @@ export class ExpressionPattern implements Pattern {
                 break;
             }
 
-            if (lastBinaryNode == null){
+            if (lastBinaryNode == null) {
                 break;
             }
         }

@@ -2788,11 +2788,11 @@ class ExpressionPattern {
     }
     _isBinaryPattern(pattern) {
         return pattern.type === "sequence" &&
+            pattern.children.length === 3 &&
             pattern.children[0].type === "reference" &&
             pattern.children[0].name === this.name &&
             pattern.children[2].type === "reference" &&
-            pattern.children[2].name === this.name &&
-            pattern.children.length === 3;
+            pattern.children[2].name === this.name;
     }
     _extractDelimiter(pattern) {
         if (pattern.type === "right-associated") {

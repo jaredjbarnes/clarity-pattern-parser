@@ -2923,9 +2923,9 @@
                     cursor.resolveError();
                     cursor.moveTo(onIndex);
                 }
-                cursor.resolveError();
                 onIndex = cursor.index;
                 for (let i = 0; i < this._binaryPatterns.length; i++) {
+                    cursor.resolveError();
                     cursor.moveTo(onIndex);
                     const pattern = this._binaryPatterns[i];
                     const name = this._binaryNames[i];

@@ -257,6 +257,8 @@ export class ExpressionPattern implements Pattern {
         const node = this._tryToParse(cursor);
 
         if (node != null) {
+            node.normalize(this._firstIndex);
+
             cursor.moveTo(node.lastIndex);
             cursor.resolveError();
             this._compactResult(node);
@@ -382,7 +384,6 @@ export class ExpressionPattern implements Pattern {
                         const frontExpression = lastBinaryNode == null ? lastAtomNode as Node : lastBinaryNode.findRoot();
                         const recursiveNode = createNode(name, [frontExpression, ...node.children]);
 
-                        recursiveNode.normalize(this._firstIndex);
 
                         return recursiveNode;
                     } else {
@@ -391,7 +392,6 @@ export class ExpressionPattern implements Pattern {
                         }
 
                         const recursiveNode = createNode(name, [lastAtomNode, ...node.children]);
-                        recursiveNode.normalize(lastAtomNode.startIndex);
                         lastAtomNode = recursiveNode;
 
                         if (cursor.hasNext()) {
@@ -515,7 +515,6 @@ export class ExpressionPattern implements Pattern {
                 }
             }
 
-            root.normalize(this._firstIndex);
             return root;
         }
     }

@@ -96,6 +96,34 @@ function createOptionsExpression() {
     return expressionPattern;
 }
 
+function createTailExpression() {
+    const a = new Literal("a", "a");
+    const b = new Literal("b", "b");
+    const c = new Literal("c", "c");
+    const variable = new Options("variable", [a, b, c]);
+    const period = new Literal(".", ".");
+
+    const refinement = new Sequence("refinement", [period, variable]);
+    const refinementExpression = new Sequence("refinement-expression", [
+        new Reference("expression"),
+        refinement
+    ]);
+
+    const invocation = new Literal("invocation", "()");
+    const invocationExpression = new Sequence("invocation-expression", [
+        new Reference("expression"),
+        invocation
+    ]);
+
+    const expression = new ExpressionPattern("expression", [
+        refinementExpression,
+        invocationExpression,
+        variable
+    ]);
+
+    return expression;
+}
+
 describe("Expression Pattern", () => {
     test("Single Expression", () => {
         const expression = createExpressionPattern();
@@ -109,6 +137,16 @@ describe("Expression Pattern", () => {
         result = expression.exec("a + b * (a + b * c ? d : e) ? d : e");
         result = expression.exec("a + b * a + b * c ? d : e ? d : e");
         result = expression.exec("a + b * ?");
+
+        expect(result).toBe(result);
+    });
+
+    test("Tail", () => {
+        const expression = createTailExpression();
+        let result = expression.exec("a");
+        result = expression.exec("a.b");
+        result = expression.exec("a.b.c");
+        result = expression.exec("a.b.c()()()");
 
         expect(result).toBe(result);
     });

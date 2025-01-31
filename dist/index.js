@@ -2897,7 +2897,6 @@ class ExpressionPattern {
             lastChild.name === this.name;
     }
     parse(cursor) {
-        // This is a cache to help with speed
         this._firstIndex = cursor.index;
         depthCache.incrementDepth(this._id, this._firstIndex);
         this._firstIndex = cursor.index;
@@ -2995,7 +2994,9 @@ class ExpressionPattern {
                             }
                             break outer;
                         }
-                        break;
+                        onIndex = cursor.index;
+                        i = -1;
+                        continue;
                     }
                 }
                 cursor.resolveError();

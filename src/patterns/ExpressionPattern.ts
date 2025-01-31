@@ -211,7 +211,6 @@ export class ExpressionPattern implements Pattern {
     }
 
     parse(cursor: Cursor): Node | null {
-        // This is a cache to help with speed
         this._firstIndex = cursor.index;
         depthCache.incrementDepth(this._id, this._firstIndex);
 
@@ -330,7 +329,9 @@ export class ExpressionPattern implements Pattern {
                             }
                             break outer;
                         }
-                        break;
+                        onIndex = cursor.index;
+                        i = -1;
+                        continue;
                     }
                 }
 

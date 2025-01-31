@@ -3055,6 +3055,9 @@
                     break;
                 }
                 onIndex = cursor.index;
+                if (prefix != null && this._recursivePatterns.length === 0) {
+                    lastAtomNode = createNode(prefixName, [prefix, lastAtomNode]);
+                }
                 for (let i = 0; i < this._recursivePatterns.length; i++) {
                     const pattern = this._recursivePatterns[i];
                     const node = pattern.parse(cursor);

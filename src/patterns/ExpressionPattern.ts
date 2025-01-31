@@ -116,6 +116,7 @@ export class ExpressionPattern implements Pattern {
                 const unaryPrefix = this._extractUnaryPrefixPattern(pattern).clone();
                 this._unaryPrefixPatterns.push(pattern);
                 this._unaryPrefixNames.push(pattern.name);
+                unaryPrefix.parent = this;
 
                 finalPatterns.push(unaryPrefix);
             } else if (this._isBinary(pattern)) {

@@ -2800,7 +2800,10 @@ class ExpressionPattern {
     get children() {
         return this._patterns;
     }
-    get unaryPatterns() {
+    get unaryPrefixPatterns() {
+        return this._unaryPrefixPatterns;
+    }
+    get atomPatterns() {
         return this._atomPatterns;
     }
     get binaryPatterns() {
@@ -2845,7 +2848,7 @@ class ExpressionPattern {
             this._shouldCompactPatternsMap[pattern.name] = pattern.shouldCompactAst;
             if (this._isUnary(pattern)) {
                 const unaryPrefix = this._extractUnaryPrefixPattern(pattern).clone();
-                this._unaryPrefixPatterns.push(pattern);
+                this._unaryPrefixPatterns.push(unaryPrefix);
                 this._unaryPrefixNames.push(pattern.name);
                 unaryPrefix.parent = this;
                 finalPatterns.push(unaryPrefix);
@@ -3214,10 +3217,10 @@ class ExpressionPattern {
         };
     }
     getTokens() {
-        return this.unaryPatterns.map(p => p.getTokens()).flat();
+        return this.atomPatterns.map(p => p.getTokens()).flat();
     }
     getTokensAfter(childReference) {
-        if (this.unaryPatterns.indexOf(childReference)) {
+        if (this.atomPatterns.indexOf(childReference)) {
             const recursiveTokens = this._recursivePatterns.map(p => p.getTokens()).flat();
             const binaryTokens = this._binaryPatterns.map(p => p.getTokens()).flat();
             return [...recursiveTokens, ...binaryTokens];
@@ -3242,10 +3245,10 @@ class ExpressionPattern {
         return this._parent.getTokensAfter(this);
     }
     getPatterns() {
-        return this.unaryPatterns.map(p => p.getPatterns()).flat();
+        return this.atomPatterns.map(p => p.getPatterns()).flat();
     }
     getPatternsAfter(childReference) {
-        if (this.unaryPatterns.indexOf(childReference)) {
+        if (this.atomPatterns.indexOf(childReference)) {
             const recursivePatterns = this._recursivePatterns.map(p => p.getPatterns()).flat();
             const binaryPatterns = this._binaryPatterns.map(p => p.getPatterns()).flat();
             return [...recursivePatterns, ...binaryPatterns];

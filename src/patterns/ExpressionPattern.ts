@@ -62,7 +62,11 @@ export class ExpressionPattern implements Pattern {
         return this._patterns;
     }
 
-    get unaryPatterns(): readonly Pattern[] {
+    get unaryPrefixPatterns(): readonly Pattern[] {
+        return this._unaryPrefixPatterns;
+    }
+
+    get atomPatterns(): readonly Pattern[] {
         return this._atomPatterns;
     }
 
@@ -114,7 +118,7 @@ export class ExpressionPattern implements Pattern {
 
             if (this._isUnary(pattern)) {
                 const unaryPrefix = this._extractUnaryPrefixPattern(pattern).clone();
-                this._unaryPrefixPatterns.push(pattern);
+                this._unaryPrefixPatterns.push(unaryPrefix);
                 this._unaryPrefixNames.push(pattern.name);
                 unaryPrefix.parent = this;
 
@@ -550,11 +554,11 @@ export class ExpressionPattern implements Pattern {
     }
 
     getTokens(): string[] {
-        return this.unaryPatterns.map(p => p.getTokens()).flat();
+        return this.atomPatterns.map(p => p.getTokens()).flat();
     }
 
     getTokensAfter(childReference: Pattern): string[] {
-        if (this.unaryPatterns.indexOf(childReference)) {
+        if (this.atomPatterns.indexOf(childReference)) {
             const recursiveTokens = this._recursivePatterns.map(p => p.getTokens()).flat();
             const binaryTokens = this._binaryPatterns.map(p => p.getTokens()).flat();
 
@@ -588,11 +592,11 @@ export class ExpressionPattern implements Pattern {
     }
 
     getPatterns(): Pattern[] {
-        return this.unaryPatterns.map(p => p.getPatterns()).flat();
+        return this.atomPatterns.map(p => p.getPatterns()).flat();
     }
 
     getPatternsAfter(childReference: Pattern): Pattern[] {
-        if (this.unaryPatterns.indexOf(childReference)) {
+        if (this.atomPatterns.indexOf(childReference)) {
             const recursivePatterns = this._recursivePatterns.map(p => p.getPatterns()).flat();
             const binaryPatterns = this._binaryPatterns.map(p => p.getPatterns()).flat();
 

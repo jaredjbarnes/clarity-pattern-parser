@@ -28,7 +28,8 @@ export declare class ExpressionPattern implements Pattern {
     get parent(): Pattern | null;
     set parent(pattern: Pattern | null);
     get children(): Pattern[];
-    get unaryPatterns(): readonly Pattern[];
+    get unaryPrefixPatterns(): readonly Pattern[];
+    get atomPatterns(): readonly Pattern[];
     get binaryPatterns(): readonly Pattern[];
     get recursivePatterns(): readonly Pattern[];
     get startedOnIndex(): number;

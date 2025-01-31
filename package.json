@@ -1,6 +1,6 @@
 {
   "name": "clarity-pattern-parser",
-  "version": "10.3.4",
+  "version": "10.3.5",
   "description": "Parsing Library for Typescript and Javascript.",
   "main": "./dist/index.js",
   "module": "./dist/index.esm.js",

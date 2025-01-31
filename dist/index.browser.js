@@ -2803,7 +2803,7 @@
             return this._patterns;
         }
         get unaryPatterns() {
-            return this._unaryPatterns;
+            return this._atomPatterns;
         }
         get binaryPatterns() {
             return this._binaryPatterns;
@@ -2824,7 +2824,9 @@
             this._name = name;
             this._parent = null;
             this._firstIndex = -1;
-            this._unaryPatterns = [];
+            this._atomPatterns = [];
+            this._unaryPrefixPatterns = [];
+            this._unaryPrefixNames = [];
             this._binaryPatterns = [];
             this._recursivePatterns = [];
             this._recursiveNames = [];
@@ -2835,7 +2837,7 @@
             this._originalPatterns = patterns;
             this._shouldCompactPatternsMap = {};
             this._patterns = this._organizePatterns(patterns);
-            if (this._unaryPatterns.length === 0) {
+            if (this._atomPatterns.length === 0) {
                 throw new Error("Need at least one operand pattern with an 'expression' pattern.");
             }
         }
@@ -2843,7 +2845,13 @@
             const finalPatterns = [];
             patterns.forEach((pattern) => {
                 this._shouldCompactPatternsMap[pattern.name] = pattern.shouldCompactAst;
-                if (this._isBinary(pattern)) {
+                if (this._isUnary(pattern)) {
+                    const unaryPrefix = this._extractUnaryPrefixPattern(pattern).clone();
+                    this._unaryPrefixPatterns.push(pattern);
+                    this._unaryPrefixNames.push(pattern.name);
+                    finalPatterns.push(unaryPrefix);
+                }
+                else if (this._isBinary(pattern)) {
                     const binaryName = this._extractName(pattern);
                     const clone = this._extractDelimiter(pattern).clone();
                     clone.parent = this;
@@ -2870,7 +2878,7 @@
                 else {
                     const clone = pattern.clone();
                     clone.parent = this;
-                    this._unaryPatterns.push(clone);
+                    this._atomPatterns.push(clone);
                     finalPatterns.push(clone);
                 }
             });
@@ -2902,6 +2910,26 @@
             }
             return pattern.name;
         }
+        _isUnary(pattern) {
+            if (pattern.type === "right-associated" && this._isUnaryPattern(pattern.children[0])) {
+                return true;
+            }
+            return this._isUnaryPattern(pattern);
+        }
+        _isUnaryPattern(pattern) {
+            return pattern.type === "sequence" &&
+                pattern.children[0].type !== "reference" &&
+                pattern.children[0].name !== this.name &&
+                pattern.children[1].type === "reference" &&
+                pattern.children[1].name === this.name &&
+                pattern.children.length === 2;
+        }
+        _extractUnaryPrefixPattern(pattern) {
+            if (pattern.type === "right-associated") {
+                return pattern.children[0].children[0];
+            }
+            return pattern.children[0];
+        }
         _isRecursive(pattern) {
             if (pattern.type === "right-associated" && this._isRecursivePattern(pattern.children[0])) {
                 return true;
@@ -2912,7 +2940,7 @@
             return pattern.type === "sequence" &&
                 pattern.children[0].type === "reference" &&
                 pattern.children[0].name === this.name &&
-                pattern.children.length > 1;
+                pattern.children.length > 2;
         }
         _extractRecursiveTail(pattern) {
             if (pattern.type === "right-associated") {
@@ -2966,34 +2994,59 @@
                 cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
                 return null;
             }
-            let lastUnaryNode = null;
+            let lastAtomNode = null;
             let lastBinaryNode = null;
             let onIndex = cursor.index;
             outer: while (true) {
                 cursor.resolveError();
                 onIndex = cursor.index;
-                for (let i = 0; i < this._unaryPatterns.length; i++) {
+                let prefix = null;
+                let prefixName = "";
+                for (let i = 0; i < this._unaryPrefixPatterns.length; i++) {
                     cursor.moveTo(onIndex);
-                    const pattern = this._unaryPatterns[i];
+                    const pattern = this._unaryPrefixPatterns[i];
                     const node = pattern.parse(cursor);
                     if (node != null) {
-                        lastUnaryNode = node;
+                        prefix = node;
+                        prefixName = this._unaryPrefixNames[i];
+                        if (cursor.hasNext()) {
+                            cursor.next();
+                        }
+                        else {
+                            break outer;
+                        }
                         break;
                     }
                     else {
-                        lastUnaryNode = null;
                         cursor.resolveError();
                     }
                 }
-                if (lastUnaryNode == null) {
+                onIndex = cursor.index;
+                for (let i = 0; i < this._atomPatterns.length; i++) {
+                    cursor.moveTo(onIndex);
+                    const pattern = this._atomPatterns[i];
+                    const node = pattern.parse(cursor);
+                    if (node != null) {
+                        lastAtomNode = node;
+                        break;
+                    }
+                    else {
+                        lastAtomNode = null;
+                        cursor.resolveError();
+                    }
+                }
+                if (lastAtomNode == null) {
                     break;
                 }
                 if (cursor.hasNext()) {
                     cursor.next();
                 }
                 else {
-                    if (lastBinaryNode != null && lastUnaryNode != null) {
-                        lastBinaryNode.appendChild(lastUnaryNode);
+                    if (lastBinaryNode != null && lastAtomNode != null) {
+                        if (prefix != null) {
+                            lastAtomNode = createNode(prefixName, [prefix, lastAtomNode]);
+                        }
+                        lastBinaryNode.appendChild(lastAtomNode);
                     }
                     break;
                 }
@@ -3004,24 +3057,30 @@
                     if (node != null) {
                         const name = this._recursiveNames[i];
                         if (this._endsInRecursion[i]) {
-                            if (lastBinaryNode != null && lastUnaryNode != null) {
-                                lastBinaryNode.appendChild(lastUnaryNode);
+                            if (lastBinaryNode != null && lastAtomNode != null) {
+                                if (prefix != null) {
+                                    lastAtomNode = createNode(prefixName, [prefix, lastAtomNode]);
+                                }
+                                lastBinaryNode.appendChild(lastAtomNode);
                             }
-                            const frontExpression = lastBinaryNode == null ? lastUnaryNode : lastBinaryNode.findRoot();
+                            const frontExpression = lastBinaryNode == null ? lastAtomNode : lastBinaryNode.findRoot();
                             const recursiveNode = createNode(name, [frontExpression, ...node.children]);
                             recursiveNode.normalize(this._firstIndex);
                             return recursiveNode;
                         }
                         else {
-                            const recursiveNode = createNode(name, [lastUnaryNode, ...node.children]);
-                            recursiveNode.normalize(lastUnaryNode.startIndex);
-                            lastUnaryNode = recursiveNode;
+                            if (prefix != null) {
+                                lastAtomNode = createNode(prefixName, [prefix, lastAtomNode]);
+                            }
+                            const recursiveNode = createNode(name, [lastAtomNode, ...node.children]);
+                            recursiveNode.normalize(lastAtomNode.startIndex);
+                            lastAtomNode = recursiveNode;
                             if (cursor.hasNext()) {
                                 cursor.next();
                             }
                             else {
-                                if (lastBinaryNode != null) {
-                                    lastBinaryNode.appendChild(lastUnaryNode);
+                                if (lastBinaryNode != null && lastAtomNode != null) {
+                                    lastBinaryNode.appendChild(lastAtomNode);
                                 }
                                 break outer;
                             }
@@ -3043,31 +3102,31 @@
                     if (delimiterNode == null) {
                         if (i === this._binaryPatterns.length - 1) {
                             if (lastBinaryNode == null) {
-                                return lastUnaryNode;
+                                return lastAtomNode;
                             }
-                            else if (lastUnaryNode != null) {
-                                lastBinaryNode.appendChild(lastUnaryNode);
+                            else if (lastAtomNode != null) {
+                                lastBinaryNode.appendChild(lastAtomNode);
                             }
                         }
                         continue;
                     }
-                    if (lastBinaryNode == null && lastUnaryNode != null && delimiterNode != null) {
-                        const node = createNode(name, [lastUnaryNode, delimiterNode]);
+                    if (lastBinaryNode == null && lastAtomNode != null && delimiterNode != null) {
+                        const node = createNode(name, [lastAtomNode, delimiterNode]);
                         lastBinaryNode = node;
                     }
-                    else if (lastBinaryNode != null && lastUnaryNode != null && delimiterNode != null) {
+                    else if (lastBinaryNode != null && lastAtomNode != null && delimiterNode != null) {
                         const precedence = this._precedenceMap[name];
                         const lastPrecendece = lastBinaryNode == null ? 0 : this._precedenceMap[lastBinaryNode.name] == null ? -1 : this._precedenceMap[lastBinaryNode.name];
                         const association = this._binaryAssociation[i];
                         if (precedence === lastPrecendece && association === Association.right) {
-                            const node = createNode(name, [lastUnaryNode, delimiterNode]);
+                            const node = createNode(name, [lastAtomNode, delimiterNode]);
                             lastBinaryNode.appendChild(node);
                             lastBinaryNode = node;
                         }
                         else if (precedence === lastPrecendece) {
                             const node = createNode(name, []);
                             lastBinaryNode.replaceWith(node);
-                            lastBinaryNode.appendChild(lastUnaryNode);
+                            lastBinaryNode.appendChild(lastAtomNode);
                             node.append(lastBinaryNode, delimiterNode);
                             lastBinaryNode = node;
                         }
@@ -3082,7 +3141,7 @@
                                 root = ancestor;
                                 ancestor = ancestor.parent;
                             }
-                            lastBinaryNode.appendChild(lastUnaryNode);
+                            lastBinaryNode.appendChild(lastAtomNode);
                             if (root != null) {
                                 const node = createNode(name, []);
                                 root.replaceWith(node);
@@ -3090,12 +3149,12 @@
                                 lastBinaryNode = node;
                             }
                             else {
-                                const node = createNode(name, [lastUnaryNode, delimiterNode]);
+                                const node = createNode(name, [lastAtomNode, delimiterNode]);
                                 lastBinaryNode = node;
                             }
                         }
                         else {
-                            const node = createNode(name, [lastUnaryNode, delimiterNode]);
+                            const node = createNode(name, [lastAtomNode, delimiterNode]);
                             lastBinaryNode.appendChild(node);
                             lastBinaryNode = node;
                         }
@@ -3113,14 +3172,14 @@
                 }
             }
             if (lastBinaryNode == null) {
-                return lastUnaryNode;
+                return lastAtomNode;
             }
             else {
                 const root = lastBinaryNode.findAncestor(n => n.parent == null) || lastBinaryNode;
                 if (lastBinaryNode.children.length < 3) {
                     lastBinaryNode.remove();
                     if (lastBinaryNode === root) {
-                        return lastUnaryNode;
+                        return lastAtomNode;
                     }
                 }
                 root.normalize(this._firstIndex);
@@ -3168,7 +3227,7 @@
                 return this._binaryPatterns.map(p => p.getTokens()).flat();
             }
             if (this.binaryPatterns.indexOf(childReference)) {
-                const unaryTokens = this._unaryPatterns.map(p => p.getTokens()).flat();
+                const unaryTokens = this._atomPatterns.map(p => p.getTokens()).flat();
                 if (this._parent != null) {
                     const nextTokens = this._parent.getTokensAfter(this);
                     return [...unaryTokens, ...nextTokens];
@@ -3196,7 +3255,7 @@
                 return this._binaryPatterns.map(p => p.getPatterns()).flat();
             }
             if (this.binaryPatterns.indexOf(childReference)) {
-                const unaryPatterns = this._unaryPatterns.map(p => p.getPatterns()).flat();
+                const unaryPatterns = this._atomPatterns.map(p => p.getPatterns()).flat();
                 if (this._parent != null) {
                     const nextPatterns = this._parent.getPatternsAfter(this);
                     return [...unaryPatterns, ...nextPatterns];

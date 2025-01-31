@@ -10,7 +10,9 @@ export declare class ExpressionPattern implements Pattern {
     private _firstIndex;
     private _originalPatterns;
     private _patterns;
-    private _unaryPatterns;
+    private _atomPatterns;
+    private _unaryPrefixPatterns;
+    private _unaryPrefixNames;
     private _binaryPatterns;
     private _recursivePatterns;
     private _recursiveNames;
@@ -36,6 +38,9 @@ export declare class ExpressionPattern implements Pattern {
     private _isBinaryPattern;
     private _extractDelimiter;
     private _extractName;
+    private _isUnary;
+    private _isUnaryPattern;
+    private _extractUnaryPrefixPattern;
     private _isRecursive;
     private _isRecursivePattern;
     private _extractRecursiveTail;

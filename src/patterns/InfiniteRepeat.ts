@@ -56,6 +56,10 @@ export class InfiniteRepeat implements Pattern {
     return this._min;
   }
 
+  get startedOnIndex(){
+    return this._firstIndex;
+  }
+
   constructor(name: string, pattern: Pattern, options: InfiniteRepeatOptions = {}) {
     const min = options.min != null ? Math.max(options.min, 1) : 1;
     const divider = options.divider;

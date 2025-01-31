@@ -70,6 +70,10 @@ export class Repeat implements Pattern {
         return this._options.max;
     }
 
+    get startedOnIndex(){
+        return this._repeatPattern.startedOnIndex;
+    }
+
     constructor(name: string, pattern: Pattern, options: RepeatOptions = {}) {
         this._id = `repeat-${idIndex++}`;
         this._pattern = pattern;

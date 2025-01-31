@@ -17,6 +17,7 @@ export declare class Context implements Pattern {
     get parent(): Pattern | null;
     set parent(pattern: Pattern | null);
     get children(): Pattern[];
+    get startedOnIndex(): number;
     getPatternWithinContext(name: string): Pattern | null;
     getPatternsWithinContext(): {
         [x: string]: Pattern;

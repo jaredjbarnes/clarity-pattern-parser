@@ -26,6 +26,7 @@ export declare class Repeat implements Pattern {
     get children(): Pattern[];
     get min(): number;
     get max(): number;
+    get startedOnIndex(): number;
     constructor(name: string, pattern: Pattern, options?: RepeatOptions);
     parse(cursor: Cursor): Node | null;
     exec(text: string): ParseResult;

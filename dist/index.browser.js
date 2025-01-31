@@ -534,6 +534,9 @@
         get children() {
             return [];
         }
+        get startedOnIndex() {
+            return this._firstIndex;
+        }
         constructor(name, value) {
             this.shouldCompactAst = false;
             if (value.length === 0) {
@@ -663,10 +666,13 @@
         get children() {
             return [];
         }
+        get startedOnIndex() {
+            return this._firstIndex;
+        }
         constructor(name, regex) {
             this._node = null;
             this._cursor = null;
-            this._firstIndex = -1;
+            this._firstIndex = 0;
             this._substring = "";
             this._tokens = [];
             this.shouldCompactAst = false;
@@ -819,6 +825,9 @@
         get children() {
             return this._children;
         }
+        get startedOnIndex() {
+            return this._firstIndex;
+        }
         constructor(name) {
             this.shouldCompactAst = false;
             this._id = `reference-${idIndex$7++}`;
@@ -828,6 +837,7 @@
             this._pattern = null;
             this._cachedPattern = null;
             this._children = [];
+            this._firstIndex = 0;
         }
         test(text) {
             const cursor = new Cursor(text);
@@ -844,6 +854,7 @@
             };
         }
         parse(cursor) {
+            this._firstIndex = cursor.index;
             return this.getReferencePatternSafely().parse(cursor);
         }
         getReferencePatternSafely() {
@@ -957,29 +968,6 @@
         return patterns.map(p => p.clone());
     }
 
-    class DepthCache {
-        constructor() {
-            this._depthMap = {};
-        }
-        getDepth(name, cursorIndex) {
-            if (this._depthMap[name] == null) {
-                this._depthMap[name] = {};
-            }
-            if (this._depthMap[name][cursorIndex] == null) {
-                this._depthMap[name][cursorIndex] = 0;
-            }
-            return this._depthMap[name][cursorIndex];
-        }
-        incrementDepth(name, cursorIndex) {
-            const depth = this.getDepth(name, cursorIndex);
-            this._depthMap[name][cursorIndex] = depth + 1;
-        }
-        decrementDepth(name, cursorIndex) {
-            const depth = this.getDepth(name, cursorIndex);
-            this._depthMap[name][cursorIndex] = depth - 1;
-        }
-    }
-
     function isRecursivePattern(pattern) {
         let onPattern = pattern.parent;
         let depth = 0;
@@ -995,10 +983,6 @@
         return false;
     }
 
-    /*
-      The following is created to reduce the overhead of recursion check.
-    */
-    const depthCache$2 = new DepthCache();
     let idIndex$6 = 0;
     class Options {
         get id() {
@@ -1018,6 +1002,9 @@
         }
         get children() {
             return this._children;
+        }
+        get startedOnIndex() {
+            return this._firstIndex;
         }
         constructor(name, options, isGreedy = false) {
             this.shouldCompactAst = false;
@@ -1054,12 +1041,8 @@
             };
         }
         parse(cursor) {
-            // This is a cache to help with speed
-            this._firstIndex = cursor.index;
-            depthCache$2.incrementDepth(this._id, this._firstIndex);
             this._firstIndex = cursor.index;
             const node = this._tryToParse(cursor);
-            depthCache$2.decrementDepth(this._id, this._firstIndex);
             if (node != null) {
                 cursor.moveTo(node.lastIndex);
                 cursor.resolveError();
@@ -1072,7 +1055,7 @@
             return null;
         }
         _tryToParse(cursor) {
-            if (depthCache$2.getDepth(this._id, this._firstIndex) > 2) {
+            if (this._isBeyondRecursiveAllowance()) {
                 return null;
             }
             const results = [];
@@ -1091,6 +1074,20 @@
             const nonNullResults = results.filter(r => r != null);
             nonNullResults.sort((a, b) => b.endIndex - a.endIndex);
             return nonNullResults[0] || null;
+        }
+        _isBeyondRecursiveAllowance() {
+            let depth = 0;
+            let pattern = this;
+            while (pattern != null) {
+                if (pattern.id === this.id && pattern.startedOnIndex === this.startedOnIndex) {
+                    depth++;
+                }
+                if (depth > 2) {
+                    return true;
+                }
+                pattern = pattern.parent;
+            }
+            return false;
         }
         getTokens() {
             const tokens = [];
@@ -1176,6 +1173,9 @@
         get max() {
             return this._max;
         }
+        get startedOnIndex() {
+            return this._firstIndex;
+        }
         constructor(name, pattern, options = {}) {
             this.shouldCompactAst = false;
             this._id = `finite-repeat-${idIndex$5++}`;
@@ -1187,6 +1187,7 @@
             this._min = options.min != null ? Math.max(options.min, 1) : 1;
             this._max = Math.max(this.min, options.max || this.min);
             this._trimDivider = options.trimDivider == null ? false : options.trimDivider;
+            this._firstIndex = 0;
             for (let i = 0; i < this._max; i++) {
                 const child = pattern.clone();
                 child.parent = this;
@@ -1199,6 +1200,7 @@
             }
         }
         parse(cursor) {
+            this._firstIndex = cursor.index;
             const startIndex = cursor.index;
             const nodes = [];
             const modulo = this._hasDivider ? 2 : 1;
@@ -1353,6 +1355,9 @@
         }
         get min() {
             return this._min;
+        }
+        get startedOnIndex() {
+            return this._firstIndex;
         }
         constructor(name, pattern, options = {}) {
             this.shouldCompactAst = false;
@@ -1629,6 +1634,9 @@
         get max() {
             return this._options.max;
         }
+        get startedOnIndex() {
+            return this._repeatPattern.startedOnIndex;
+        }
         constructor(name, pattern, options = {}) {
             this._id = `repeat-${idIndex$3++}`;
             this._pattern = pattern;
@@ -1711,7 +1719,6 @@
         return filteredNodes;
     }
 
-    const depthCache$1 = new DepthCache();
     let idIndex$2 = 0;
     class Sequence {
         get id() {
@@ -1731,6 +1738,9 @@
         }
         get children() {
             return this._children;
+        }
+        get startedOnIndex() {
+            return this._firstIndex;
         }
         constructor(name, sequence) {
             this.shouldCompactAst = false;
@@ -1767,12 +1777,9 @@
             };
         }
         parse(cursor) {
-            // This is a cache to help with speed
             this._firstIndex = cursor.index;
-            depthCache$1.incrementDepth(this._id, this._firstIndex);
             this._nodes = [];
             const passed = this.tryToParse(cursor);
-            depthCache$1.decrementDepth(this._id, this._firstIndex);
             if (passed) {
                 const node = this.createNode(cursor);
                 if (node !== null) {
@@ -1786,7 +1793,7 @@
             return null;
         }
         tryToParse(cursor) {
-            if (depthCache$1.getDepth(this._id, this._firstIndex) > 1) {
+            if (this._isBeyondRecursiveAllowance()) {
                 cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
                 return false;
             }
@@ -1852,6 +1859,20 @@
                 return null;
             }
             return nodes[nodes.length - 1];
+        }
+        _isBeyondRecursiveAllowance() {
+            let depth = 0;
+            let pattern = this;
+            while (pattern != null) {
+                if (pattern.id === this.id && pattern.startedOnIndex === this.startedOnIndex) {
+                    depth++;
+                }
+                if (depth > 1) {
+                    return true;
+                }
+                pattern = pattern.parent;
+            }
+            return false;
         }
         areRemainingPatternsOptional(fromIndex) {
             const startOnIndex = fromIndex + 1;
@@ -2011,6 +2032,9 @@
         }
         get children() {
             return this._children;
+        }
+        get startedOnIndex() {
+            return this._children[0].startedOnIndex;
         }
         constructor(name, pattern) {
             this.shouldCompactAst = false;
@@ -2332,6 +2356,9 @@
         }
         get children() {
             return this._children;
+        }
+        get startedOnIndex() {
+            return this.children[0].startedOnIndex;
         }
         constructor(name, pattern) {
             this.shouldCompactAst = false;
@@ -2672,6 +2699,9 @@
         get children() {
             return this._children;
         }
+        get startedOnIndex() {
+            return this.children[0].startedOnIndex;
+        }
         getPatternWithinContext(name) {
             return this._patterns[name] || null;
         }
@@ -2745,7 +2775,6 @@
     }
 
     let indexId = 0;
-    const depthCache = new DepthCache();
     function createNode(name, children) {
         return new Node("expression", name, 0, 0, children, "");
     }
@@ -2781,6 +2810,9 @@
         }
         get recursivePatterns() {
             return this._recursivePatterns;
+        }
+        get startedOnIndex() {
+            return this._firstIndex;
         }
         constructor(name, patterns) {
             this.shouldCompactAst = false;
@@ -2900,10 +2932,7 @@
         }
         parse(cursor) {
             this._firstIndex = cursor.index;
-            depthCache.incrementDepth(this._id, this._firstIndex);
-            this._firstIndex = cursor.index;
             const node = this._tryToParse(cursor);
-            depthCache.decrementDepth(this._id, this._firstIndex);
             if (node != null) {
                 cursor.moveTo(node.lastIndex);
                 cursor.resolveError();
@@ -2933,7 +2962,7 @@
             }
         }
         _tryToParse(cursor) {
-            if (depthCache.getDepth(this._id, this._firstIndex) > 2) {
+            if (this._isBeyondRecursiveAllowance()) {
                 cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
                 return null;
             }
@@ -3097,6 +3126,20 @@
                 root.normalize(this._firstIndex);
                 return root;
             }
+        }
+        _isBeyondRecursiveAllowance() {
+            let depth = 0;
+            let pattern = this;
+            while (pattern != null) {
+                if (pattern.id === this.id && pattern.startedOnIndex === this.startedOnIndex) {
+                    depth++;
+                }
+                if (depth > 2) {
+                    return true;
+                }
+                pattern = pattern.parent;
+            }
+            return false;
         }
         test(text) {
             const cursor = new Cursor(text);

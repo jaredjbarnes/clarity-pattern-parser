@@ -4,14 +4,8 @@ import { Pattern } from "./Pattern";
 import { clonePatterns } from "./clonePatterns";
 import { findPattern } from "./findPattern";
 import { ParseResult } from "./ParseResult";
-import { DepthCache } from './DepthCache';
 import { isRecursivePattern } from "./isRecursivePattern";
 
-/*
-  The following is created to reduce the overhead of recursion check. 
-*/
-
-const depthCache = new DepthCache();
 let idIndex = 0;
 
 export class Options implements Pattern {
@@ -47,6 +41,10 @@ export class Options implements Pattern {
 
   get children(): Pattern[] {
     return this._children;
+  }
+
+  get startedOnIndex() {
+    return this._firstIndex;
   }
 
   constructor(name: string, options: Pattern[], isGreedy = false) {
@@ -92,14 +90,8 @@ export class Options implements Pattern {
   }
 
   parse(cursor: Cursor): Node | null {
-    // This is a cache to help with speed
-    this._firstIndex = cursor.index;
-    depthCache.incrementDepth(this._id, this._firstIndex);
-
     this._firstIndex = cursor.index;
     const node = this._tryToParse(cursor);
-
-    depthCache.decrementDepth(this._id, this._firstIndex);
 
     if (node != null) {
       cursor.moveTo(node.lastIndex);
@@ -117,7 +109,7 @@ export class Options implements Pattern {
   }
 
   private _tryToParse(cursor: Cursor): Node | null {
-    if (depthCache.getDepth(this._id, this._firstIndex) > 2) {
+    if (this._isBeyondRecursiveAllowance()) {
       return null;
     }
 
@@ -144,6 +136,24 @@ export class Options implements Pattern {
     nonNullResults.sort((a, b) => b.endIndex - a.endIndex);
 
     return nonNullResults[0] || null;
+  }
+
+  private _isBeyondRecursiveAllowance() {
+    let depth = 0;
+    let pattern: Pattern | null = this;
+
+    while (pattern != null) {
+      if (pattern.id === this.id && pattern.startedOnIndex === this.startedOnIndex) {
+        depth++;
+      }
+
+      if (depth > 2) {
+        return true;
+      }
+      pattern = pattern.parent;
+    }
+
+    return false;
   }
 
   getTokens(): string[] {

@@ -14,7 +14,7 @@ export class Regex implements Pattern {
   private _regex: RegExp;
   private _node: Node | null = null;
   private _cursor: Cursor | null = null;
-  private _firstIndex = -1;
+  private _firstIndex = 0;
   private _substring = "";
   private _tokens: string[] = [];
 
@@ -46,6 +46,10 @@ export class Regex implements Pattern {
 
   get children(): Pattern[] {
     return [];
+  }
+
+  get startedOnIndex() {
+    return this._firstIndex;
   }
 
   constructor(name: string, regex: string) {
@@ -149,7 +153,7 @@ export class Regex implements Pattern {
     clone._tokens = this._tokens.slice();
     clone._id = this._id;
     clone.shouldCompactAst = this.shouldCompactAst;
-    
+
     return clone;
   }
 

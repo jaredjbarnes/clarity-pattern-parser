@@ -10,6 +10,7 @@ export declare class Reference implements Pattern {
     private _cachedPattern;
     private _pattern;
     private _children;
+    private _firstIndex;
     shouldCompactAst: boolean;
     get id(): string;
     get type(): string;
@@ -17,6 +18,7 @@ export declare class Reference implements Pattern {
     get parent(): Pattern | null;
     set parent(pattern: Pattern | null);
     get children(): Pattern[];
+    get startedOnIndex(): number;
     constructor(name: string);
     test(text: string): boolean;
     exec(text: string, record?: boolean): ParseResult;

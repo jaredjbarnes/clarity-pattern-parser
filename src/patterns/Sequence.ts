@@ -4,10 +4,8 @@ import { Node } from "../ast/Node";
 import { clonePatterns } from "./clonePatterns";
 import { filterOutNull } from "./filterOutNull";
 import { findPattern } from "./findPattern";
-import { DepthCache } from "./DepthCache";
 import { isRecursivePattern } from "./isRecursivePattern";
 
-const depthCache = new DepthCache();
 let idIndex = 0;
 
 export class Sequence implements Pattern {
@@ -43,6 +41,10 @@ export class Sequence implements Pattern {
 
   get children(): Pattern[] {
     return this._children;
+  }
+
+  get startedOnIndex() {
+    return this._firstIndex;
   }
 
   constructor(name: string, sequence: Pattern[]) {
@@ -88,14 +90,9 @@ export class Sequence implements Pattern {
   }
 
   parse(cursor: Cursor): Node | null {
-    // This is a cache to help with speed
     this._firstIndex = cursor.index;
-    depthCache.incrementDepth(this._id, this._firstIndex);
-
     this._nodes = [];
-
     const passed = this.tryToParse(cursor);
-    depthCache.decrementDepth(this._id, this._firstIndex);
 
     if (passed) {
       const node = this.createNode(cursor);
@@ -115,7 +112,7 @@ export class Sequence implements Pattern {
   }
 
   private tryToParse(cursor: Cursor): boolean {
-    if (depthCache.getDepth(this._id, this._firstIndex) > 1) {
+    if (this._isBeyondRecursiveAllowance()) {
       cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
       return false;
     }
@@ -188,6 +185,24 @@ export class Sequence implements Pattern {
     }
 
     return nodes[nodes.length - 1];
+  }
+
+  private _isBeyondRecursiveAllowance() {
+    let depth = 0;
+    let pattern: Pattern | null = this;
+
+    while (pattern != null) {
+      if (pattern.id === this.id && pattern.startedOnIndex === this.startedOnIndex) {
+        depth++;
+      }
+
+      if (depth > 1) {
+        return true;
+      }
+      pattern = pattern.parent;
+    }
+
+    return false;
   }
 
   private areRemainingPatternsOptional(fromIndex: number): boolean {

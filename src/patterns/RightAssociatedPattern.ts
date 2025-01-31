@@ -38,6 +38,10 @@ export class RightAssociatedPattern implements Pattern {
         return this._children;
     }
 
+    get startedOnIndex() {
+        return this._children[0].startedOnIndex;
+    }
+
     constructor(pattern: Pattern) {
         this._id = `right-associated-${indexId++}`;
         this._type = "right-associated";

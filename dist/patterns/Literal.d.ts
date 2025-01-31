@@ -20,6 +20,7 @@ export declare class Literal implements Pattern {
     get parent(): Pattern | null;
     set parent(pattern: Pattern | null);
     get children(): Pattern[];
+    get startedOnIndex(): number;
     constructor(name: string, value: string);
     test(text: string, record?: boolean): boolean;
     exec(text: string, record?: boolean): ParseResult;

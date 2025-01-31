@@ -1,13 +1,11 @@
 import { Node } from "../ast/Node";
 import { Cursor } from "./Cursor";
-import { DepthCache } from "./DepthCache";
 import { ParseResult } from "./ParseResult";
 import { Pattern } from "./Pattern";
 import { findPattern } from "./findPattern";
 import { Sequence } from "./Sequence";
 
 let indexId = 0;
-const depthCache = new DepthCache();
 
 function createNode(name: string, children: Node[]) {
     return new Node("expression", name, 0, 0, children, "");
@@ -72,6 +70,10 @@ export class ExpressionPattern implements Pattern {
 
     get recursivePatterns(): readonly Pattern[] {
         return this._recursivePatterns;
+    }
+
+    get startedOnIndex() {
+        return this._firstIndex;
     }
 
     constructor(name: string, patterns: Pattern[]) {
@@ -212,12 +214,7 @@ export class ExpressionPattern implements Pattern {
 
     parse(cursor: Cursor): Node | null {
         this._firstIndex = cursor.index;
-        depthCache.incrementDepth(this._id, this._firstIndex);
-
-        this._firstIndex = cursor.index;
         const node = this._tryToParse(cursor);
-
-        depthCache.decrementDepth(this._id, this._firstIndex);
 
         if (node != null) {
             cursor.moveTo(node.lastIndex);
@@ -253,11 +250,10 @@ export class ExpressionPattern implements Pattern {
     }
 
     private _tryToParse(cursor: Cursor): Node | null {
-        if (depthCache.getDepth(this._id, this._firstIndex) > 2) {
+        if (this._isBeyondRecursiveAllowance()) {
             cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
             return null;
         }
-
 
         let lastUnaryNode: Node | null = null;
         let lastBinaryNode: Node | null = null;
@@ -445,6 +441,24 @@ export class ExpressionPattern implements Pattern {
             root.normalize(this._firstIndex);
             return root;
         }
+    }
+
+    private _isBeyondRecursiveAllowance() {
+        let depth = 0;
+        let pattern: Pattern | null = this;
+
+        while (pattern != null) {
+            if (pattern.id === this.id && pattern.startedOnIndex === this.startedOnIndex) {
+                depth++;
+            }
+
+            if (depth > 2) {
+                return true;
+            }
+            pattern = pattern.parent;
+        }
+
+        return false;
     }
 
     test(text: string) {

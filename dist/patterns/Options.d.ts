@@ -17,12 +17,14 @@ export declare class Options implements Pattern {
     get parent(): Pattern | null;
     set parent(pattern: Pattern | null);
     get children(): Pattern[];
+    get startedOnIndex(): number;
     constructor(name: string, options: Pattern[], isGreedy?: boolean);
     private _assignChildrenToParent;
     test(text: string): boolean;
     exec(text: string, record?: boolean): ParseResult;
     parse(cursor: Cursor): Node | null;
     private _tryToParse;
+    private _isBeyondRecursiveAllowance;
     getTokens(): string[];
     getTokensAfter(_childReference: Pattern): string[];
     getNextTokens(): string[];

@@ -23,6 +23,7 @@ export class FiniteRepeat implements Pattern {
     private _min: number;
     private _max: number;
     private _trimDivider: boolean;
+    private _firstIndex: number;
 
     shouldCompactAst = false;
 
@@ -58,6 +59,10 @@ export class FiniteRepeat implements Pattern {
         return this._max;
     }
 
+    get startedOnIndex() {
+        return this._firstIndex;
+    }
+
     constructor(name: string, pattern: Pattern, options: FiniteRepeatOptions = {}) {
         this._id = `finite-repeat-${idIndex++}`;
         this._type = "finite-repeat";
@@ -68,6 +73,7 @@ export class FiniteRepeat implements Pattern {
         this._min = options.min != null ? Math.max(options.min, 1) : 1;
         this._max = Math.max(this.min, options.max || this.min);
         this._trimDivider = options.trimDivider == null ? false : options.trimDivider;
+        this._firstIndex = 0;
 
         for (let i = 0; i < this._max; i++) {
             const child = pattern.clone();
@@ -85,6 +91,8 @@ export class FiniteRepeat implements Pattern {
     }
 
     parse(cursor: Cursor): Node | null {
+        this._firstIndex = cursor.index;
+
         const startIndex = cursor.index;
         const nodes: Node[] = [];
         const modulo = this._hasDivider ? 2 : 1;

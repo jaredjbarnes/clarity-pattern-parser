@@ -29,6 +29,7 @@ export declare class ExpressionPattern implements Pattern {
     get unaryPatterns(): readonly Pattern[];
     get binaryPatterns(): readonly Pattern[];
     get recursivePatterns(): readonly Pattern[];
+    get startedOnIndex(): number;
     constructor(name: string, patterns: Pattern[]);
     private _organizePatterns;
     private _isBinary;
@@ -42,6 +43,7 @@ export declare class ExpressionPattern implements Pattern {
     parse(cursor: Cursor): Node | null;
     private _compactResult;
     private _tryToParse;
+    private _isBeyondRecursiveAllowance;
     test(text: string): boolean;
     exec(text: string, record?: boolean): ParseResult;
     getTokens(): string[];

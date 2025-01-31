@@ -22,6 +22,7 @@ export declare class Regex implements Pattern {
     get parent(): Pattern | null;
     set parent(pattern: Pattern | null);
     get children(): Pattern[];
+    get startedOnIndex(): number;
     constructor(name: string, regex: string);
     private assertArguments;
     test(text: string): boolean;

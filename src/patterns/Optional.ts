@@ -38,6 +38,10 @@ export class Optional implements Pattern {
     return this._children;
   }
 
+  get startedOnIndex() {
+    return this._children[0].startedOnIndex;
+  }
+
   constructor(name: string, pattern: Pattern) {
     this._id = `optional-${idIndex++}`;
     this._type = "optional";

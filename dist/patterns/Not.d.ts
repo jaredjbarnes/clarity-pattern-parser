@@ -15,6 +15,7 @@ export declare class Not implements Pattern {
     get parent(): Pattern | null;
     set parent(pattern: Pattern | null);
     get children(): Pattern[];
+    get startedOnIndex(): number;
     constructor(name: string, pattern: Pattern);
     test(text: string): boolean;
     exec(text: string, record?: boolean): ParseResult;

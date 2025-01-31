@@ -16,6 +16,7 @@ export declare class Sequence implements Pattern {
     get parent(): Pattern | null;
     set parent(pattern: Pattern | null);
     get children(): Pattern[];
+    get startedOnIndex(): number;
     constructor(name: string, sequence: Pattern[]);
     private _assignChildrenToParent;
     test(text: string): boolean;
@@ -26,6 +27,7 @@ export declare class Sequence implements Pattern {
     parse(cursor: Cursor): Node | null;
     private tryToParse;
     private getLastValidNode;
+    private _isBeyondRecursiveAllowance;
     private areRemainingPatternsOptional;
     private createNode;
     getTokens(): string[];

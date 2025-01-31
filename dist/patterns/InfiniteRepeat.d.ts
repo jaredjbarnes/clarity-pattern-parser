@@ -27,6 +27,7 @@ export declare class InfiniteRepeat implements Pattern {
     set parent(pattern: Pattern | null);
     get children(): Pattern[];
     get min(): number;
+    get startedOnIndex(): number;
     constructor(name: string, pattern: Pattern, options?: InfiniteRepeatOptions);
     private _assignChildrenToParent;
     test(text: string): boolean;

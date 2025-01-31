@@ -46,6 +46,10 @@ export class Literal implements Pattern {
     return [];
   }
 
+  get startedOnIndex() {
+    return this._firstIndex;
+  }
+
   constructor(name: string, value: string) {
     if (value.length === 0) {
       throw new Error("Value Cannot be empty.");

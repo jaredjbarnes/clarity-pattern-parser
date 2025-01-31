@@ -6,6 +6,7 @@ export interface Pattern {
     type: string;
     name: string;
     shouldCompactAst: boolean;
+    startedOnIndex: number;
     parent: Pattern | null;
     children: Pattern[];
     parse(cursor: Cursor): Node | null;

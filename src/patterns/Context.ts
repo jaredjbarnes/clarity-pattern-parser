@@ -40,6 +40,10 @@ export class Context implements Pattern {
         return this._children;
     }
 
+    get startedOnIndex(){
+        return this.children[0].startedOnIndex;
+    }
+
     getPatternWithinContext(name: string): Pattern | null {
         return this._patterns[name] || null;
     }

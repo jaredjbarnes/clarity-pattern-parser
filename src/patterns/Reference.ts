@@ -15,6 +15,7 @@ export class Reference implements Pattern {
   private _cachedPattern: Pattern | null;
   private _pattern: Pattern | null;
   private _children: Pattern[];
+  private _firstIndex: number;
 
   shouldCompactAst = false;
 
@@ -42,6 +43,10 @@ export class Reference implements Pattern {
     return this._children;
   }
 
+  get startedOnIndex() {
+    return this._firstIndex;
+  }
+
   constructor(name: string) {
     this._id = `reference-${idIndex++}`;
     this._type = "reference";
@@ -50,6 +55,7 @@ export class Reference implements Pattern {
     this._pattern = null;
     this._cachedPattern = null;
     this._children = [];
+    this._firstIndex = 0;
   }
 
   test(text: string) {
@@ -72,6 +78,7 @@ export class Reference implements Pattern {
   }
 
   parse(cursor: Cursor): Node | null {
+    this._firstIndex = cursor.index;
     return this.getReferencePatternSafely().parse(cursor);
   }
 

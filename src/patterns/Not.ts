@@ -38,6 +38,10 @@ export class Not implements Pattern {
     return this._children;
   }
 
+  get startedOnIndex() {
+    return this.children[0].startedOnIndex;
+  }
+
   constructor(name: string, pattern: Pattern) {
     this._id = `not-${idIndex++}`;
     this._type = "not";

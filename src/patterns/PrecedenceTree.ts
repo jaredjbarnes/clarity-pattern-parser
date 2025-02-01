@@ -45,17 +45,16 @@ export class PrecedenceTree {
         this._prefixNode = node;
     }
 
-    addPostfix(node: Node) {
-        const previousPostfixNode = this._postfixNode;
-        this._postfixPlaceholder.remove();
+    addPostfix(name: string, postfix: Node) {
+        const lastPostfixNode = this._postfixNode;
 
-        if (previousPostfixNode == null) {
+        if (lastPostfixNode == null) {
+            const node = Node.createNode("expression", name, [this._postfixPlaceholder, postfix]);
             this._postfixNode = node;
-            this._postfixNode.append(this._prefixPlaceholder);
             return;
         }
 
-        previousPostfixNode.append(node);
+        const node = Node.createNode("expression", name, [lastPostfixNode, postfix]);
         this._postfixNode = node;
     }
 
@@ -149,9 +148,9 @@ export class PrecedenceTree {
             this._prefixPlaceholder.replaceWith(this._atomNode);
         }
 
-        if (this._postfixNode != null) {
-            node = this._postfixNode;
+        if (this._postfixNode != null && node != null) {
             this._postfixPlaceholder.replaceWith(node);
+            node = this._postfixNode;
         }
 
         this._prefixNode = null;
@@ -182,10 +181,6 @@ export class PrecedenceTree {
 
         this._binaryPlaceholder.replaceWith(atomNode);
         return this._binaryNode.findRoot();
-    }
-
-    private commitPrefixNode() {
-
     }
 
 }

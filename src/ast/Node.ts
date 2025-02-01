@@ -308,7 +308,7 @@ export class Node {
     return length;
   }
 
-  compact(){
+  compact() {
     this._value = this.toString();
     this._children.length = 0;
   }
@@ -340,12 +340,12 @@ export class Node {
     return node.toJson(0) === this.toJson(0);
   }
 
-  static createValueNode(name: string, value: string) {
-    return new Node("custom-value-node", name, 0, 0, [], value);
+  static createValueNode(type: string, name: string, value = "") {
+    return new Node(type, name, 0, 0, [], value);
   }
 
-  static createNode(name: string, children: Node[]) {
+  static createNode(type: string, name: string, children: Node[] = []) {
     const value = children.map(c => c.toString()).join("");
-    return new Node("custom-node", name, 0, 0, children, value);
+    return new Node(type, name, 0, 0, children, value);
   }
 }

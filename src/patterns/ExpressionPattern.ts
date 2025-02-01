@@ -16,6 +16,18 @@ enum Association {
     right = 1,
 }
 
+interface ParseContext {
+    atomPrefixNode: Node | null;
+    atomPrefixName: string;
+    atomSuffixNode: Node | null;
+    atomSuffixName: string;
+    atomNode: Node | null;
+    binaryNode: Node | null;
+    onIndex: number;
+    cursor: Cursor;
+    shouldStop: boolean;
+}
+
 export class ExpressionPattern implements Pattern {
     private _id: string;
     private _type: string;
@@ -25,12 +37,13 @@ export class ExpressionPattern implements Pattern {
     private _originalPatterns: Pattern[];
     private _patterns: Pattern[];
     private _atomPatterns: Pattern[];
-    private _unaryPrefixPatterns: Pattern[];
-    private _unaryPrefixNames: string[];
+    private _atomPrefixPatterns: Pattern[];
+    private _atomPrefixNames: string[];
+    private _atomSuffixPatterns: Pattern[];
+    private _atomSuffixNames: string[];
     private _binaryPatterns: Pattern[];
     private _recursivePatterns: Pattern[];
     private _recursiveNames: string[];
-    private _endsInRecursion: boolean[];
     private _binaryAssociation: Association[];
     private _precedenceMap: Record<string, number>;
     private _binaryNames: string[];
@@ -63,7 +76,7 @@ export class ExpressionPattern implements Pattern {
     }
 
     get unaryPrefixPatterns(): readonly Pattern[] {
-        return this._unaryPrefixPatterns;
+        return this._atomPrefixPatterns;
     }
 
     get atomPatterns(): readonly Pattern[] {
@@ -93,12 +106,13 @@ export class ExpressionPattern implements Pattern {
         this._parent = null;
         this._firstIndex = -1;
         this._atomPatterns = [];
-        this._unaryPrefixPatterns = [];
-        this._unaryPrefixNames = [];
+        this._atomPrefixPatterns = [];
+        this._atomPrefixNames = [];
+        this._atomSuffixPatterns = [];
+        this._atomSuffixNames = [];
         this._binaryPatterns = [];
         this._recursivePatterns = [];
         this._recursiveNames = [];
-        this._endsInRecursion = [];
         this._binaryNames = [];
         this._binaryAssociation = [];
         this._precedenceMap = {};
@@ -116,13 +130,38 @@ export class ExpressionPattern implements Pattern {
         patterns.forEach((pattern) => {
             this._shouldCompactPatternsMap[pattern.name] = pattern.shouldCompactAst;
 
-            if (this._isUnary(pattern)) {
-                const unaryPrefix = this._extractUnaryPrefixPattern(pattern).clone();
-                this._unaryPrefixPatterns.push(unaryPrefix);
-                this._unaryPrefixNames.push(pattern.name);
-                unaryPrefix.parent = this;
+            if (this._isAtom(pattern)) {
+                const clone = pattern.clone();
+                clone.parent = this;
 
-                finalPatterns.push(unaryPrefix);
+                this._atomPatterns.push(clone);
+                finalPatterns.push(clone);
+            } else if (this._isPrefix(pattern)) {
+                const name = this._extractName(pattern);
+                const atomPrefix = this._unwrapAssociationIfNecessary(pattern).clone();
+               
+                atomPrefix.parent = this;
+
+                this._atomPrefixPatterns.push(atomPrefix);
+                this._atomPrefixNames.push(name);
+                finalPatterns.push(atomPrefix);
+            } else if (this._isSuffix(pattern)) {
+                const name = this._extractName(pattern);
+                const suffix = this._extractSuffix(pattern);
+                suffix.parent = this;
+
+                this._atomSuffixPatterns.push(suffix);
+                this._atomSuffixNames.push(name);
+                finalPatterns.push(suffix);
+            } else if (this._isRecursive(pattern)) {
+                const name = this._extractName(pattern);
+                const recursionSuffix = this._extractRecursionSuffix(pattern);
+
+                recursionSuffix.parent = this;
+
+                this._recursivePatterns.push(recursionSuffix);
+                this._recursiveNames.push(name);
+                finalPatterns.push(recursionSuffix);
             } else if (this._isBinary(pattern)) {
                 const binaryName = this._extractName(pattern);
                 const clone = this._extractDelimiter(pattern).clone();
@@ -139,43 +178,10 @@ export class ExpressionPattern implements Pattern {
                 }
 
                 finalPatterns.push(clone);
-            } else if (this._isRecursive(pattern)) {
-                const name = this._extractName(pattern);
-                const tail = this._extractRecursiveTail(pattern);
-
-                tail.parent = this;
-
-                this._recursivePatterns.push(tail);
-                this._recursiveNames.push(name);
-                this._endsInRecursion.push(this._endsWithRecursion(pattern));
-                finalPatterns.push(tail);
-            } else {
-                const clone = pattern.clone();
-                clone.parent = this;
-
-                this._atomPatterns.push(clone);
-                finalPatterns.push(clone);
             }
         });
 
         return finalPatterns;
-    }
-
-    private _isBinary(pattern: Pattern) {
-        if (pattern.type === "right-associated" && this._isBinaryPattern(pattern.children[0])) {
-            return true;
-        }
-
-        return this._isBinaryPattern(pattern);
-    }
-
-    private _isBinaryPattern(pattern: Pattern) {
-        return pattern.type === "sequence" &&
-            pattern.children.length === 3 &&
-            pattern.children[0].type === "reference" &&
-            pattern.children[0].name === this.name &&
-            pattern.children[2].type === "reference" &&
-            pattern.children[2].name === this.name;
     }
 
     private _extractDelimiter(pattern: Pattern) {
@@ -193,63 +199,95 @@ export class ExpressionPattern implements Pattern {
         return pattern.name;
     }
 
-    private _isUnary(pattern: Pattern) {
-        if (pattern.type === "right-associated" && this._isUnaryPattern(pattern.children[0])) {
-            return true;
-        }
+    private _isPrefix(pattern: Pattern) {
+        pattern = this._unwrapAssociationIfNecessary(pattern);
 
-        return this._isUnaryPattern(pattern);
+        const lastChild = pattern.children[pattern.children.length - 1];
+        const referenceCount = this._referenceCount(pattern);
+        const lastChildIsReference = lastChild.type === "reference" &&
+            lastChild.name === this.name;
+
+        return lastChildIsReference &&
+            referenceCount === 1;
     }
 
-    private _isUnaryPattern(pattern: Pattern) {
-        return pattern.type === "sequence" &&
-            pattern.children[0].type !== "reference" &&
-            pattern.children[0].name !== this.name &&
-            pattern.children[1].type === "reference" &&
-            pattern.children[1].name === this.name &&
-            pattern.children.length === 2;
-    }
+    private _isAtom(pattern: Pattern) {
+        pattern = this._unwrapAssociationIfNecessary(pattern);
 
-    private _extractUnaryPrefixPattern(pattern: Pattern) {
-        if (pattern.type === "right-associated") {
-            return pattern.children[0].children[0];
-        }
+        const firstChild = pattern.children[0];
+        const lastChild = pattern.children[1];
+        const firstChildIsReference = firstChild.type === "reference" &&
+            firstChild.name === this.name;
+        const lastChildIsReference = lastChild.type === "reference" &&
+            lastChild.name === this.name;
 
-        return pattern.children[0];
+        return !firstChildIsReference && !lastChildIsReference;
     }
 
     private _isRecursive(pattern: Pattern) {
-        if (pattern.type === "right-associated" && this._isRecursivePattern(pattern.children[0])) {
-            return true;
-        }
+        pattern = this._unwrapAssociationIfNecessary(pattern);
 
-        return this._isRecursivePattern(pattern);
-    }
-
-    private _isRecursivePattern(pattern: Pattern) {
-        return pattern.type === "sequence" &&
-            pattern.children[0].type === "reference" &&
-            pattern.children[0].name === this.name &&
-            pattern.children.length > 2;
-    }
-
-    private _extractRecursiveTail(pattern: Pattern) {
-        if (pattern.type === "right-associated") {
-            return new Sequence(`${pattern.children[0].name}-tail`, pattern.children[0].children.slice(1));
-        }
-        return new Sequence(`${pattern.name}-tail`, pattern.children.slice(1));
-    }
-
-    private _endsWithRecursion(pattern: Pattern) {
-        if (pattern.type === "right-associated") {
-            pattern = pattern.children[0];
-        }
-
-        const lastChild = pattern.children[pattern.children.length - 1];
-        return pattern.type === "sequence" &&
-            pattern.children.length > 1 &&
-            lastChild.type === "reference" &&
+        const firstChild = pattern.children[0];
+        const lastChild = pattern.children[1];
+        const firstChildIsReference = firstChild.type === "reference" &&
+            firstChild.name === this.name;
+        const lastChildIsReference = lastChild.type === "reference" &&
             lastChild.name === this.name;
+
+
+        return firstChildIsReference &&
+            lastChildIsReference &&
+            this._referenceCount(pattern) > 2;
+    }
+
+    private _isSuffix(pattern: Pattern) {
+        pattern = this._unwrapAssociationIfNecessary(pattern);
+
+        const firstChild = pattern.children[0];
+        const referenceCount = this._referenceCount(pattern);
+        const firstChildIsReference = firstChild.type === "reference" &&
+            firstChild.name === this.name;
+
+        return firstChildIsReference &&
+            referenceCount === 1;
+    }
+
+    private _isBinary(pattern: Pattern) {
+        pattern = this._unwrapAssociationIfNecessary(pattern);
+
+        const firstChild = pattern.children[0];
+        const lastChild = pattern.children[1];
+        const firstChildIsReference = firstChild.type === "reference" &&
+            firstChild.name === this.name;
+        const lastChildIsReference = lastChild.type === "reference" &&
+            lastChild.name === this.name;
+
+
+        return firstChildIsReference &&
+            lastChildIsReference &&
+            this._referenceCount(pattern) === 2;
+    }
+
+    private _unwrapAssociationIfNecessary(pattern: Pattern) {
+        if (pattern.type === "right-associated") {
+            return pattern.children[0];
+        }
+
+        return pattern;
+    }
+
+    private _referenceCount(pattern: Pattern) {
+        return pattern.children.filter(p => p.type === "reference" && p.name === this.name).length;
+    }
+
+    private _extractRecursionSuffix(pattern: Pattern) {
+        pattern = this._unwrapAssociationIfNecessary(pattern);
+        return new Sequence(`${pattern.name}-recursion`, pattern.children.slice(1));
+    }
+
+    private _extractSuffix(pattern: Pattern) {
+        pattern = this._unwrapAssociationIfNecessary(pattern);
+        return new Sequence(`${pattern.name}-suffix`, pattern.children.slice(1));
     }
 
     parse(cursor: Cursor): Node | null {
@@ -297,55 +335,39 @@ export class ExpressionPattern implements Pattern {
             return null;
         }
 
-        let lastAtomNode: Node | null = null;
-        let lastBinaryNode: Node | null = null;
-        let onIndex = cursor.index;
+        const context: ParseContext = {
+            atomPrefixNode: null,
+            atomPrefixName: "",
+            atomSuffixNode: null,
+            atomSuffixName: "",
+            atomNode: null,
+            binaryNode: null,
+            onIndex: cursor.index,
+            cursor,
+            shouldStop: false
+        };
 
-        outer: while (true) {
+
+        while (true) {
             cursor.resolveError();
-            onIndex = cursor.index;
+            context.onIndex = cursor.index;
 
-            let prefix: Node | null = null;
-            let prefixName = "";
-            for (let i = 0; i < this._unaryPrefixPatterns.length; i++) {
-                cursor.moveTo(onIndex);
-                const pattern = this._unaryPrefixPatterns[i];
-                const node = pattern.parse(cursor);
+            this._matchAtomPrefix(context);
 
-                if (node != null) {
-                    prefix = node;
-                    prefixName = this._unaryPrefixNames[i];
+            if (context.shouldStop) {
 
-                    if (cursor.hasNext()) {
-                        cursor.next();
-                    } else {
-                        break outer;
-                    }
-
-                    break;
-                } else {
-                    cursor.resolveError();
-                }
             }
 
-            onIndex = cursor.index;
-            for (let i = 0; i < this._atomPatterns.length; i++) {
-                cursor.moveTo(onIndex);
-                const pattern = this._atomPatterns[i];
-                const node = pattern.parse(cursor);
+            this._matchAtom(context);
 
-                if (node != null) {
-                    lastAtomNode = node;
+            if (context.shouldStop) {
 
-                    break;
-                } else {
-                    lastAtomNode = null;
-                    cursor.resolveError();
-                }
             }
 
-            if (lastAtomNode == null) {
-                break;
+            this._matchAtomSuffix(context);
+
+            if (context.shouldStop) {
+
             }
 
             if (cursor.hasNext()) {
@@ -397,7 +419,7 @@ export class ExpressionPattern implements Pattern {
                         if (cursor.hasNext()) {
                             cursor.next();
                         } else {
-                            if (lastBinaryNode != null && lastAtomNode != null) {
+                            if (lastBinaryNode != null) {
                                 lastBinaryNode.appendChild(lastAtomNode);
                             }
                             break outer;
@@ -517,6 +539,120 @@ export class ExpressionPattern implements Pattern {
 
             return root;
         }
+    }
+
+    private _matchAtomPrefix(context: ParseContext) {
+        const cursor = context.cursor;
+        let onIndex = context.onIndex;
+        let atomPrefixNode: Node | null = null;
+
+        for (let i = 0; i < this._atomPrefixPatterns.length; i++) {
+            cursor.moveTo(onIndex);
+            const pattern = this._atomPrefixPatterns[i];
+            const name = this._atomPrefixNames[i];
+            const node = pattern.parse(cursor);
+
+            if (node != null) {
+                const prefixNode = createNode(name, [node]);
+
+                if (atomPrefixNode != null) {
+                    atomPrefixNode.appendChild(prefixNode);
+                }
+
+                atomPrefixNode = prefixNode;
+
+                if (cursor.hasNext()) {
+                    cursor.next();
+                    onIndex = cursor.index;
+                    i = -1;
+
+                    continue;
+                } else {
+                    context.shouldStop = true;
+                    break;
+                }
+
+            } else {
+                cursor.moveTo(onIndex);
+                cursor.resolveError();
+            }
+        }
+
+        context.onIndex = cursor.index;
+        context.atomPrefixNode = atomPrefixNode;
+    }
+
+    private _matchAtom(context: ParseContext) {
+        const { onIndex, cursor } = context;
+
+        for (let i = 0; i < this._atomPatterns.length; i++) {
+            cursor.moveTo(onIndex);
+
+            const pattern = this._atomPatterns[i];
+            const node = pattern.parse(cursor);
+
+            if (node != null) {
+                context.atomNode = node;
+                break;
+            } else {
+                context.shouldStop = true;
+                cursor.resolveError();
+                cursor.moveTo(onIndex);
+            }
+        }
+    }
+
+    private _matchAtomSuffix(context: ParseContext) {
+        const cursor = context.cursor;
+        let onIndex = context.onIndex;
+        let atomSuffixNode: Node | null = null;
+
+        for (let i = 0; i < this._recursivePatterns.length; i++) {
+            const pattern = this._recursivePatterns[i];
+            const name = this._atomSuffixNames[i];
+            const node = pattern.parse(cursor);
+
+            if (node != null) {
+
+                if (prefix != null) {
+                    lastAtomNode = createNode(prefixName, [prefix, lastAtomNode]);
+                }
+
+                const recursiveNode = createNode(name, [lastAtomNode, ...node.children]);
+                lastAtomNode = recursiveNode;
+
+                if (cursor.hasNext()) {
+                    cursor.next();
+                } else {
+                    if (lastBinaryNode != null) {
+                        lastBinaryNode.appendChild(lastAtomNode);
+                    }
+                    break outer;
+                }
+                onIndex = cursor.index;
+                i = -1;
+                continue;
+            }
+
+            cursor.resolveError();
+            cursor.moveTo(onIndex);
+        }
+    }
+
+    private _matchRecursion(context: ParseContext) {
+
+        if (lastBinaryNode != null && lastAtomNode != null) {
+            if (prefix != null) {
+                lastAtomNode = createNode(prefixName, [prefix, lastAtomNode]);
+            }
+            lastBinaryNode.appendChild(lastAtomNode);
+        }
+
+        const frontExpression = lastBinaryNode == null ? lastAtomNode as Node : lastBinaryNode.findRoot();
+        const recursiveNode = createNode(name, [frontExpression, ...node.children]);
+
+
+        return recursiveNode;
     }
 
     private _isBeyondRecursiveAllowance() {

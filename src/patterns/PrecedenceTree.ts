@@ -28,37 +28,37 @@ export class PrecedenceTree {
         this._associationMap = associationMap;
     }
 
-    addPrefix(name: string, prefix: Node) {
+    addPrefix(name: string, ...prefix: Node[]) {
         const lastPrefixNode = this._prefixNode;
 
         if (lastPrefixNode == null) {
-            const node = Node.createNode("expression", name, [prefix]);
+            const node = Node.createNode("expression", name, [...prefix]);
             this._prefixNode = node;
             this._prefixNode.append(this._prefixPlaceholder);
             return;
         }
 
-        const node = Node.createNode("expression", name, [prefix]);
+        const node = Node.createNode("expression", name, [...prefix]);
         this._prefixPlaceholder.replaceWith(node);
         node.append(this._prefixPlaceholder);
 
         this._prefixNode = node;
     }
 
-    addPostfix(name: string, postfix: Node) {
+    addPostfix(name: string, ...postfix: Node[]) {
         const lastPostfixNode = this._postfixNode;
 
         if (lastPostfixNode == null) {
-            const node = Node.createNode("expression", name, [this._postfixPlaceholder, postfix]);
+            const node = Node.createNode("expression", name, [this._postfixPlaceholder, ...postfix]);
             this._postfixNode = node;
             return;
         }
 
-        const node = Node.createNode("expression", name, [lastPostfixNode, postfix]);
+        const node = Node.createNode("expression", name, [lastPostfixNode, ...postfix]);
         this._postfixNode = node;
     }
 
-    addBinary(name: string, delimiterNode: Node) {
+    addBinary(name: string, ...delimiterNode: Node[]) {
         const lastBinaryNode = this._binaryNode;
         const lastPrecendece = this._getPrecedenceFromNode(this._binaryNode);
         const precedence = this._getPrecedence(name);
@@ -72,14 +72,14 @@ export class PrecedenceTree {
         this._binaryPlaceholder.remove();
 
         if (lastBinaryNode == null) {
-            const node = Node.createNode("expression", name, [lastAtomNode, delimiterNode]);
+            const node = Node.createNode("expression", name, [lastAtomNode, ...delimiterNode]);
             this._binaryNode = node;
             this._binaryNode.append(this._binaryPlaceholder);
             return;
         }
 
         if (precedence === lastPrecendece && association === Association.right) {
-            const node = Node.createNode("expression", name, [lastAtomNode, delimiterNode, this._binaryPlaceholder]);
+            const node = Node.createNode("expression", name, [lastAtomNode, ...delimiterNode, this._binaryPlaceholder]);
 
             lastBinaryNode.appendChild(node);
 
@@ -90,7 +90,7 @@ export class PrecedenceTree {
             lastBinaryNode.replaceWith(node);
             lastBinaryNode.appendChild(lastAtomNode);
 
-            node.append(lastBinaryNode, delimiterNode, this._binaryPlaceholder);
+            node.append(lastBinaryNode, ...delimiterNode, this._binaryPlaceholder);
             this._binaryNode = node;
         } else if (precedence > lastPrecendece) {
             let ancestor = lastBinaryNode.parent;
@@ -110,13 +110,13 @@ export class PrecedenceTree {
 
             const node = Node.createNode("expression", name, []);
             root.replaceWith(node);
-            node.append(root, delimiterNode, this._binaryPlaceholder);
+            node.append(root, ...delimiterNode, this._binaryPlaceholder);
 
             this._binaryNode = node;
 
 
         } else {
-            const node = Node.createNode("expression", name, [lastAtomNode, delimiterNode, this._binaryPlaceholder]);
+            const node = Node.createNode("expression", name, [lastAtomNode, ...delimiterNode, this._binaryPlaceholder]);
             lastBinaryNode.appendChild(node);
 
             this._binaryNode = node;

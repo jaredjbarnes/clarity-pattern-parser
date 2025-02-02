@@ -79,7 +79,7 @@ function createExpressionPattern() {
         new RightAssociatedPattern(multDivExpression),
         addSubExpression,
         boolExpression,
-        ternary,
+        new RightAssociatedPattern(ternary),
         group,
         variables,
     ]);

@@ -171,6 +171,10 @@ export class PrecedenceTree {
         this._atomNode = node;
     }
 
+    hasAtom(){
+        return this._atomNode != null;
+    }
+
     commit() {
         if (this._binaryNode == null) {
             return this._compileAtomNode();

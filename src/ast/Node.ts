@@ -114,6 +114,8 @@ export class Node {
 
     if (index > -1) {
       this.spliceChildren(index, 1, newNode);
+      newNode._parent = this;
+      referenceNode._parent = null;
     }
   }
 

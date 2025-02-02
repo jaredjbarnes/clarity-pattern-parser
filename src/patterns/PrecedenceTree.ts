@@ -13,6 +13,7 @@ export class PrecedenceTree {
     private _binaryPlaceholder: Node;
     private _binaryNode: Node | null;
     private _atomNode: Node | null;
+    private _orphanedAtom: Node | null;
     private _precedenceMap: Record<string, number>;
     private _associationMap: Record<string, Association>;
 
@@ -24,6 +25,7 @@ export class PrecedenceTree {
         this._binaryPlaceholder = Node.createNode("placeholder", "binary-placeholder");
         this._atomNode = null;
         this._binaryNode = null;
+        this._orphanedAtom = null;
         this._precedenceMap = precedenceMap;
         this._associationMap = associationMap;
     }
@@ -70,11 +72,12 @@ export class PrecedenceTree {
         }
 
         this._binaryPlaceholder.remove();
+        this._orphanedAtom = lastAtomNode;
 
         if (lastBinaryNode == null) {
-            const node = Node.createNode("expression", name, [lastAtomNode, ...delimiterNode]);
+            const node = Node.createNode("expression", name, [lastAtomNode, ...delimiterNode, this._binaryPlaceholder]);
+
             this._binaryNode = node;
-            this._binaryNode.append(this._binaryPlaceholder);
             return;
         }
 
@@ -176,11 +179,14 @@ export class PrecedenceTree {
         const atomNode = this._compileAtomNode();
 
         if (atomNode == null) {
-            return null;
+            let root = this._binaryPlaceholder.findRoot();
+            this._binaryPlaceholder.parent?.replaceWith(this._orphanedAtom as Node);
+            return root;
+        } else {
+            this._binaryPlaceholder.replaceWith(atomNode);
+            return this._binaryNode.findRoot();
         }
 
-        this._binaryPlaceholder.replaceWith(atomNode);
-        return this._binaryNode.findRoot();
     }
 
 }

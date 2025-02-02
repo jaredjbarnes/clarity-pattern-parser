@@ -65,4 +65,24 @@ describe("Precedence Tree", () => {
         let result = tree.commit();
         expect(true).toBe(true);
     });
+
+    test("Incomplete", () => {
+        const tree = new PrecedenceTree({
+            mul: 0,
+            add: 1,
+            bool: 2
+        }, {});
+
+        tree.addPrefix("negate", Node.createValueNode("literal", "!", "!"));
+        tree.addPostfix("negate", Node.createValueNode("literal", "++", "++"));
+        tree.addAtom(Node.createValueNode("literal", "a", "a"));
+        tree.addBinary("mul", Node.createValueNode("literal", "*", "*"));
+        tree.addAtom(Node.createValueNode("literal", "b", "b"));
+        tree.addBinary("add", Node.createValueNode("literal", "+", "+"));
+        tree.addAtom(Node.createValueNode("literal", "c", "c"));
+        tree.addBinary("mul", Node.createValueNode("literal", "*", "*"));
+
+        let result = tree.commit();
+        expect(true).toBe(true);
+    });
 });

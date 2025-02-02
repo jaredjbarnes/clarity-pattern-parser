@@ -19,9 +19,28 @@ describe("Precedence Tree", () => {
         tree.addBinary("add", Node.createValueNode("literal", "+", "+"));
         tree.addAtom(Node.createValueNode("literal", "e", "e"));
 
-        let result = tree.commit();
+        const result = tree.commit();
+        const expected = Node.createNode("expression", "bool", [
+            Node.createNode("expression", "add", [
+                Node.createValueNode("literal", "a", "a"),
+                Node.createValueNode("literal", "+", "+"),
+                Node.createNode("expression", "mul", [
+                    Node.createValueNode("literal", "b", "b"),
+                    Node.createValueNode("literal", "*", "*"),
+                    Node.createValueNode("literal", "c", "c"),
+                ]),
+            ]),
+            Node.createValueNode("literal", "||", "||"),
+            Node.createNode("expression", "add", [
+                Node.createValueNode("literal", "d", "d"),
+                Node.createValueNode("literal", "+", "+"),
+                Node.createValueNode("literal", "e", "e"),
+            ]),
+        ]);
 
-        expect(true).toBe(true);
+
+        expect(result?.toString()).toBe("a+b*c||d+e");
+        expect(result?.toCycleFreeObject()).toEqual(expected.toCycleFreeObject());
     });
 
     test("add Prefix", () => {
@@ -33,7 +52,19 @@ describe("Precedence Tree", () => {
         tree.addAtom(Node.createValueNode("literal", "a", "a"));
 
         let result = tree.commit();
-        expect(true).toBe(true);
+        const expected = Node.createNode("expression", "negate", [
+            Node.createValueNode("literal", "!", "!"),
+            Node.createNode("expression", "increment", [
+                Node.createValueNode("literal", "++", "++"),
+                Node.createNode("expression", "plus", [
+                    Node.createValueNode("literal", "+", "+"),
+                    Node.createValueNode("literal", "a", "a"),
+                ]),
+            ]),
+        ]);
+
+        expect(result?.toString()).toBe("!+++a");
+        expect(result?.toCycleFreeObject()).toEqual(expected.toCycleFreeObject());
     });
 
     test("add Postfix", () => {
@@ -43,8 +74,17 @@ describe("Precedence Tree", () => {
         tree.addPostfix("increment", Node.createValueNode("literal", "++", "++"));
         tree.addAtom(Node.createValueNode("literal", "a", "a"));
 
-        let result = tree.commit();
-        expect(true).toBe(true);
+        const expected = Node.createNode("expression", "increment", [
+            Node.createNode("expression", "decrement", [
+                Node.createValueNode("literal", "a", "a"),
+                Node.createValueNode("literal", "--", "--"),
+            ]),
+            Node.createValueNode("literal", "++", "++"),
+        ]);
+
+        const result = tree.commit();
+        expect(result?.toString()).toBe("a--++");
+        expect(result?.toCycleFreeObject()).toEqual(expected.toCycleFreeObject());
     });
 
     test("all", () => {
@@ -55,15 +95,32 @@ describe("Precedence Tree", () => {
         }, {});
 
         tree.addPrefix("negate", Node.createValueNode("literal", "!", "!"));
-        tree.addPostfix("negate", Node.createValueNode("literal", "++", "++"));
+        tree.addPostfix("increment", Node.createValueNode("literal", "++", "++"));
         tree.addAtom(Node.createValueNode("literal", "a", "a"));
         tree.addBinary("mul", Node.createValueNode("literal", "*", "*"));
         tree.addAtom(Node.createValueNode("literal", "b", "b"));
         tree.addBinary("add", Node.createValueNode("literal", "+", "+"));
         tree.addAtom(Node.createValueNode("literal", "c", "c"));
 
-        let result = tree.commit();
-        expect(true).toBe(true);
+        const result = tree.commit();
+        const expected = Node.createNode("expression", "add", [
+            Node.createNode("expression", "mul", [
+                Node.createNode("expression", "increment", [
+                    Node.createNode("expression", "negate", [
+                        Node.createValueNode("literal", "!", "!"),
+                        Node.createValueNode("literal", "a", "a"),
+                    ]),
+                    Node.createValueNode("literal", "++", "++"),
+                ]),
+                Node.createValueNode("literal", "*", "*"),
+                Node.createValueNode("literal", "b", "b"),
+            ]),
+            Node.createValueNode("literal", "+", "+"),
+            Node.createValueNode("literal", "c", "c"),
+        ]);
+
+        expect(result?.toString()).toBe("!a++*b+c");
+        expect(result?.toCycleFreeObject()).toEqual(expected.toCycleFreeObject());
     });
 
     test("Incomplete", () => {
@@ -74,7 +131,7 @@ describe("Precedence Tree", () => {
         }, {});
 
         tree.addPrefix("negate", Node.createValueNode("literal", "!", "!"));
-        tree.addPostfix("negate", Node.createValueNode("literal", "++", "++"));
+        tree.addPostfix("increment", Node.createValueNode("literal", "++", "++"));
         tree.addAtom(Node.createValueNode("literal", "a", "a"));
         tree.addBinary("mul", Node.createValueNode("literal", "*", "*"));
         tree.addAtom(Node.createValueNode("literal", "b", "b"));

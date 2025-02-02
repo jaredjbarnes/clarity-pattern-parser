@@ -181,12 +181,23 @@ export class PrecedenceTree {
         if (atomNode == null) {
             let root = this._binaryPlaceholder.findRoot();
             this._binaryPlaceholder.parent?.replaceWith(this._orphanedAtom as Node);
+            this.reset();
             return root;
         } else {
             this._binaryPlaceholder.replaceWith(atomNode);
-            return this._binaryNode.findRoot();
+            const root = this._binaryNode.findRoot();
+            this.reset();
+            return root;
         }
 
+    }
+
+    private reset() {
+        this._prefixNode = null;
+        this._atomNode = null;
+        this._orphanedAtom = null;
+        this._postfixNode = null;
+        this._binaryNode = null;
     }
 
 }

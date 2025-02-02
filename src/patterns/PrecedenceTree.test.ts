@@ -139,7 +139,24 @@ describe("Precedence Tree", () => {
         tree.addAtom(Node.createValueNode("literal", "c", "c"));
         tree.addBinary("mul", Node.createValueNode("literal", "*", "*"));
 
-        let result = tree.commit();
-        expect(true).toBe(true);
+        const result = tree.commit();
+        const expected = Node.createNode("expression", "add", [
+            Node.createNode("expression", "mul", [
+                Node.createNode("expression", "increment", [
+                    Node.createNode("expression", "negate", [
+                        Node.createValueNode("literal", "!", "!"),
+                        Node.createValueNode("literal", "a", "a"),
+                    ]),
+                    Node.createValueNode("literal", "++", "++"),
+                ]),
+                Node.createValueNode("literal", "*", "*"),
+                Node.createValueNode("literal", "b", "b"),
+            ]),
+            Node.createValueNode("literal", "+", "+"),
+            Node.createValueNode("literal", "c", "c"),
+        ]);
+
+        expect(result?.toString()).toBe("!a++*b+c");
+        expect(result?.toCycleFreeObject()).toEqual(expected.toCycleFreeObject());
     });
 });

@@ -2142,7 +2142,10 @@ const sequenceLiteral = new Repeat("sequence-literal", pattern$1, { divider: div
 
 const patternName = name$1.clone("pattern-name");
 patternName.setTokens(["[PATTERN_NAME]"]);
-const patterns$1 = new Options("options-patterns", [patternName, anonymousPattern]);
+const patterns$1 = new Sequence("patterns", [
+    new Options("options-patterns", [patternName, anonymousPattern]),
+    new Optional("optional-right-associated", new Literal("right-associated", " right"))
+]);
 const defaultDivider = new Regex("default-divider", "\\s*[|]\\s*");
 defaultDivider.setTokens(["|"]);
 const greedyDivider = new Regex("greedy-divider", "\\s*[<][|][>]\\s*");
@@ -2854,7 +2857,7 @@ class PrecedenceTree {
     }
 }
 
-let indexId = 0;
+let indexId$1 = 0;
 class ExpressionPattern {
     get id() {
         return this._id;
@@ -2893,7 +2896,7 @@ class ExpressionPattern {
         if (patterns.length === 0) {
             throw new Error("Need at least one pattern with an 'expression' pattern.");
         }
-        this._id = `expression-${indexId++}`;
+        this._id = `expression-${indexId$1++}`;
         this._type = "expression";
         this._name = name;
         this._parent = null;
@@ -3230,6 +3233,88 @@ class ExpressionPattern {
     }
 }
 
+let indexId = 0;
+class RightAssociatedPattern {
+    get id() {
+        return this._id;
+    }
+    get type() {
+        return this._type;
+    }
+    get name() {
+        return this._name;
+    }
+    get parent() {
+        return this._parent;
+    }
+    set parent(pattern) {
+        this._parent = pattern;
+    }
+    get children() {
+        return this._children;
+    }
+    get startedOnIndex() {
+        return this._children[0].startedOnIndex;
+    }
+    constructor(pattern) {
+        this._id = `right-associated-${indexId++}`;
+        this._type = "right-associated";
+        this._name = "";
+        this._parent = null;
+        this._children = [pattern.clone()];
+    }
+    parse(cursor) {
+        return this.children[0].parse(cursor);
+    }
+    exec(text, record) {
+        return this.children[0].exec(text, record);
+    }
+    test(text, record) {
+        return this.children[0].test(text, record);
+    }
+    clone(_name) {
+        const clone = new RightAssociatedPattern(this.children[0]);
+        clone._id = this._id;
+        return clone;
+    }
+    getTokens() {
+        return this.children[0].getTokens();
+    }
+    getTokensAfter(_childReference) {
+        if (this._parent == null) {
+            return [];
+        }
+        return this._parent.getTokensAfter(this);
+    }
+    getNextTokens() {
+        if (this._parent == null) {
+            return [];
+        }
+        return this._parent.getTokensAfter(this);
+    }
+    getPatterns() {
+        return this.children[0].getPatterns();
+    }
+    getPatternsAfter(_childReference) {
+        if (this._parent == null) {
+            return [];
+        }
+        return this._parent.getPatternsAfter(this);
+    }
+    getNextPatterns() {
+        if (this._parent == null) {
+            return [];
+        }
+        return this._parent.getPatternsAfter(this);
+    }
+    find(predicate) {
+        return this.children[0].find(predicate);
+    }
+    isEqual(pattern) {
+        return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
+    }
+}
+
 let anonymousIndexId = 0;
 const patternNodes = {
     "literal": true,
@@ -3411,7 +3496,15 @@ class Grammar {
     _buildOptions(name, node) {
         const patternNodes = node.children.filter(n => n.name !== "default-divider" && n.name !== "greedy-divider");
         const isGreedy = node.find(n => n.name === "greedy-divider") != null;
-        const patterns = patternNodes.map(n => this._buildPattern(n));
+        const patterns = patternNodes.map(n => {
+            const rightAssociated = n.find(n => n.name === "right-associated");
+            if (rightAssociated != null) {
+                return new RightAssociatedPattern(this._buildPattern(n.children[0]));
+            }
+            else {
+                return this._buildPattern(n.children[0]);
+            }
+        });
         const hasRecursivePattern = patterns.some(p => this._isRecursive(name, p));
         if (hasRecursivePattern && !isGreedy) {
             try {
@@ -3430,10 +3523,15 @@ class Grammar {
         return this._isRecursivePattern(name, pattern);
     }
     _isRecursivePattern(name, pattern) {
-        return pattern.type === "sequence" &&
-            pattern.children[0].type === "reference" &&
-            pattern.children[0].name === name &&
-            pattern.children.length > 2;
+        if (pattern.children.length === 0) {
+            return false;
+        }
+        const firstChild = pattern.children[0];
+        const lastChild = pattern.children[pattern.children.length - 1];
+        const isLongEnough = pattern.children.length >= 2;
+        return pattern.type === "sequence" && isLongEnough &&
+            (firstChild.type === "reference" && firstChild.name === name) ||
+            (lastChild.type === "reference" && lastChild.name === name);
     }
     _buildPattern(node) {
         const type = node.name;

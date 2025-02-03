@@ -584,4 +584,15 @@ describe("Grammar", () => {
         expect(result).toBe(result);
     });
 
+    test("Expression Pattern With Right Association", () => {
+        const { expression } = patterns`
+            variables = "a" | "b" | "c" | "d" | "e"
+            ternary = expression + " ? " + expression + " : " + expression
+            expression = ternary right | variables
+        `;
+        let result = expression.exec("a ? b : c ? d : e");
+        debugger;
+        expect(result).toBe(result);
+    });
+
 });

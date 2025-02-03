@@ -11,7 +11,8 @@ import { Repeat, RepeatOptions } from "../patterns/Repeat";
 import { AutoComplete } from "../intellisense/AutoComplete";
 import { Optional } from "../patterns/Optional";
 import { Context } from "../patterns/Context";
-import {ExpressionPattern} from "../patterns/ExpressionPattern";
+import { ExpressionPattern } from "../patterns/ExpressionPattern";
+import { RightAssociatedPattern } from "../patterns/RightAssociatedPattern";
 
 let anonymousIndexId = 0;
 
@@ -248,14 +249,22 @@ export class Grammar {
     private _buildOptions(name: string, node: Node) {
         const patternNodes = node.children.filter(n => n.name !== "default-divider" && n.name !== "greedy-divider");
         const isGreedy = node.find(n => n.name === "greedy-divider") != null;
-        const patterns = patternNodes.map(n => this._buildPattern(n));
-        const hasRecursivePattern = patterns.some(p=>this._isRecursive(name, p));
+        const patterns = patternNodes.map(n => {
+            const rightAssociated = n.find(n => n.name === "right-associated");
+            if (rightAssociated != null) {
+                return new RightAssociatedPattern(this._buildPattern(n.children[0]));
+            } else {
+                return this._buildPattern(n.children[0]);
+            }
 
-        if (hasRecursivePattern && !isGreedy){
+        });
+        
+        const hasRecursivePattern = patterns.some(p => this._isRecursive(name, p));
+        if (hasRecursivePattern && !isGreedy) {
             try {
                 const expression = new ExpressionPattern(name, patterns);
                 return expression;
-            } catch{}
+            } catch { }
         }
 
         const or = new Options(name, patterns, isGreedy);
@@ -271,10 +280,16 @@ export class Grammar {
     }
 
     private _isRecursivePattern(name: string, pattern: Pattern) {
-        return pattern.type === "sequence" &&
-            pattern.children[0].type === "reference" &&
-            pattern.children[0].name === name &&
-            pattern.children.length > 2;
+        if (pattern.children.length === 0){
+            return false;
+        }
+
+        const firstChild = pattern.children[0];
+        const lastChild = pattern.children[pattern.children.length - 1];
+        const isLongEnough = pattern.children.length >= 2;
+        return pattern.type === "sequence" && isLongEnough &&
+            (firstChild.type === "reference" && firstChild.name === name) ||
+            (lastChild.type === "reference" && lastChild.name === name);
     }
 
     private _buildPattern(node: Node): Pattern {

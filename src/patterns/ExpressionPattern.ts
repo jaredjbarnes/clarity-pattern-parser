@@ -416,8 +416,8 @@ export class ExpressionPattern implements Pattern {
 
                 break;
             } else {
-                cursor.resolveError();
                 cursor.moveTo(onIndex);
+                cursor.resolveError();
             }
         }
 

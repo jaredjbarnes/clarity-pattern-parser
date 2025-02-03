@@ -147,7 +147,7 @@ export class PrecedenceTree {
         let node = this._atomNode;
 
         if (this._prefixNode != null && this._atomNode != null) {
-            node = this._prefixNode;
+            node = this._prefixNode.findRoot();
             this._prefixPlaceholder.replaceWith(this._atomNode);
         }
 

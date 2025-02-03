@@ -14,8 +14,6 @@ export class Context implements Pattern {
     private _pattern: Pattern;
     private _patterns: Record<string, Pattern>;
 
-    shouldCompactAst = false;
-
     get id(): string {
         return this._id;
     }
@@ -82,7 +80,6 @@ export class Context implements Pattern {
     clone(name = this._name): Pattern {
         const clone = new Context(name, this._pattern, Object.values(this._patterns));
         clone._id = this._id;
-        clone.shouldCompactAst = this.shouldCompactAst;
         return clone;
     }
 

@@ -2635,7 +2635,6 @@ class Context {
         return Object.assign({}, this._patterns);
     }
     constructor(name, pattern, context = []) {
-        this.shouldCompactAst = false;
         this._id = `context-${contextId++}`;
         this._type = "context";
         this._name = name;
@@ -2659,7 +2658,6 @@ class Context {
     clone(name = this._name) {
         const clone = new Context(name, this._pattern, Object.values(this._patterns));
         clone._id = this._id;
-        clone.shouldCompactAst = this.shouldCompactAst;
         return clone;
     }
     getTokens() {
@@ -2807,7 +2805,7 @@ class PrecedenceTree {
     _compileAtomNode() {
         let node = this._atomNode;
         if (this._prefixNode != null && this._atomNode != null) {
-            node = this._prefixNode;
+            node = this._prefixNode.findRoot();
             this._prefixPlaceholder.replaceWith(this._atomNode);
         }
         if (this._postfixNode != null && node != null) {
@@ -3167,8 +3165,8 @@ class ExpressionPattern {
                 break;
             }
             else {
-                cursor.resolveError();
                 cursor.moveTo(onIndex);
+                cursor.resolveError();
             }
         }
         if (!foundMatch) {

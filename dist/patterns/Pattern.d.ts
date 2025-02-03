@@ -5,7 +5,6 @@ export interface Pattern {
     id: string;
     type: string;
     name: string;
-    shouldCompactAst: boolean;
     startedOnIndex: number;
     parent: Pattern | null;
     children: Pattern[];

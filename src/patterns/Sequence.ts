@@ -5,6 +5,9 @@ import { clonePatterns } from "./clonePatterns";
 import { filterOutNull } from "./filterOutNull";
 import { findPattern } from "./findPattern";
 import { isRecursivePattern } from "./isRecursivePattern";
+import { testPattern } from "./testPattern";
+import { execPattern } from "./execPattern";
+import { ParseResult } from "./ParseResult";
 
 let idIndex = 0;
 
@@ -16,8 +19,6 @@ export class Sequence implements Pattern {
   private _children: Pattern[];
   private _nodes: (Node | null)[];
   private _firstIndex: number;
-
-  shouldCompactAst = false;
 
   get id(): string {
     return this._id;
@@ -70,23 +71,12 @@ export class Sequence implements Pattern {
     }
   }
 
-  test(text: string) {
-    const cursor = new Cursor(text);
-    const ast = this.parse(cursor);
-
-    return ast?.value === text;
+  test(text: string, record = false): boolean {
+    return testPattern(this, text, record);
   }
 
-  exec(text: string, record = false) {
-    const cursor = new Cursor(text);
-    record && cursor.startRecording();
-
-    const ast = this.parse(cursor);
-
-    return {
-      ast: ast?.value === text ? ast : null,
-      cursor
-    };
+  exec(text: string, record = false): ParseResult {
+    return execPattern(this, text, record);
   }
 
   parse(cursor: Cursor): Node | null {
@@ -99,10 +89,6 @@ export class Sequence implements Pattern {
 
       if (node !== null) {
         cursor.recordMatch(this, node);
-
-        if (this.shouldCompactAst) {
-          node.compact();
-        }
       }
 
       return node;
@@ -344,7 +330,6 @@ export class Sequence implements Pattern {
   clone(name = this._name): Pattern {
     const clone = new Sequence(name, this._children);
     clone._id = this._id;
-    clone.shouldCompactAst = this.shouldCompactAst;
 
     return clone;
   }

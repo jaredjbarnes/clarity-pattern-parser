@@ -2,6 +2,8 @@ import { Node } from "../ast/Node";
 import { Cursor } from "./Cursor";
 import { ParseResult } from "./ParseResult";
 import { Pattern } from "./Pattern";
+import { execPattern } from "./execPattern";
+import { testPattern } from "./testPattern";
 
 let idIndex = 0;
 
@@ -15,8 +17,6 @@ export class Literal implements Pattern {
   private _firstIndex: number;
   private _lastIndex: number;
   private _endIndex: number;
-
-  shouldCompactAst = false;
 
   get id(): string {
     return this._id;
@@ -66,25 +66,12 @@ export class Literal implements Pattern {
     this._endIndex = 0;
   }
 
-  test(text: string, record = false) {
-    const cursor = new Cursor(text);
-    record && cursor.startRecording();
-
-    const ast = this.parse(cursor);
-
-    return ast?.value === text;
+  test(text: string, record = false): boolean {
+    return testPattern(this, text, record);
   }
 
   exec(text: string, record = false): ParseResult {
-    const cursor = new Cursor(text);
-    record && cursor.startRecording();
-
-    const ast = this.parse(cursor);
-
-    return {
-      ast: ast?.value === text ? ast : null,
-      cursor
-    };
+    return execPattern(this, text, record);
   }
 
   parse(cursor: Cursor): Node | null {
@@ -147,7 +134,6 @@ export class Literal implements Pattern {
   clone(name = this._name): Pattern {
     const clone = new Literal(name, this._token);
     clone._id = this._id;
-    clone.shouldCompactAst = this.shouldCompactAst;
     return clone;
   }
 

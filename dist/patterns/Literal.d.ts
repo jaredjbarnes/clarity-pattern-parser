@@ -12,7 +12,6 @@ export declare class Literal implements Pattern {
     private _firstIndex;
     private _lastIndex;
     private _endIndex;
-    shouldCompactAst: boolean;
     get id(): string;
     get type(): string;
     get name(): string;

@@ -1,9 +1,10 @@
 import { Node } from "../ast/Node";
 import { Cursor } from "./Cursor";
 import { Pattern } from "./Pattern";
-import { clonePatterns } from "./clonePatterns";
 import { findPattern } from "./findPattern";
 import { ParseResult } from "./ParseResult";
+import { execPattern } from "./execPattern";
+import { testPattern } from "./testPattern";
 
 let idIndex = 0;
 
@@ -25,8 +26,6 @@ export class InfiniteRepeat implements Pattern {
   private _firstIndex: number;
   private _min: number;
   private _trimDivider: boolean;
-
-  shouldCompactAst = false;
 
   get id(): string {
     return this._id;
@@ -56,7 +55,7 @@ export class InfiniteRepeat implements Pattern {
     return this._min;
   }
 
-  get startedOnIndex(){
+  get startedOnIndex() {
     return this._firstIndex;
   }
 
@@ -92,23 +91,13 @@ export class InfiniteRepeat implements Pattern {
     }
   }
 
-  test(text: string) {
-    const cursor = new Cursor(text);
-    const ast = this.parse(cursor);
 
-    return ast?.value === text;
+  test(text: string, record = false): boolean {
+    return testPattern(this, text, record);
   }
 
   exec(text: string, record = false): ParseResult {
-    const cursor = new Cursor(text);
-    record && cursor.startRecording();
-
-    const ast = this.parse(cursor);
-
-    return {
-      ast: ast?.value === text ? ast : null,
-      cursor
-    };
+    return execPattern(this, text, record);
   }
 
   parse(cursor: Cursor): Node | null {
@@ -125,9 +114,6 @@ export class InfiniteRepeat implements Pattern {
         cursor.moveTo(node.lastIndex);
         cursor.recordMatch(this, node);
 
-        if (this.shouldCompactAst) {
-          node.compact();
-        }
       }
 
       return node;
@@ -362,7 +348,6 @@ export class InfiniteRepeat implements Pattern {
     );
 
     clone._id = this._id;
-    clone.shouldCompactAst = this.shouldCompactAst;
 
     return clone;
   }

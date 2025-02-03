@@ -5,6 +5,8 @@ import { clonePatterns } from "./clonePatterns";
 import { findPattern } from "./findPattern";
 import { ParseResult } from "./ParseResult";
 import { isRecursivePattern } from "./isRecursivePattern";
+import { execPattern } from "./execPattern";
+import { testPattern } from "./testPattern";
 
 let idIndex = 0;
 
@@ -16,8 +18,6 @@ export class Options implements Pattern {
   private _children: Pattern[];
   private _isGreedy: boolean;
   private _firstIndex: number;
-
-  shouldCompactAst = false;
 
   get id(): string {
     return this._id;
@@ -70,23 +70,12 @@ export class Options implements Pattern {
     }
   }
 
-  test(text: string) {
-    const cursor = new Cursor(text);
-    const ast = this.parse(cursor);
-
-    return ast?.value === text;
+  test(text: string, record = false): boolean {
+    return testPattern(this, text, record);
   }
 
   exec(text: string, record = false): ParseResult {
-    const cursor = new Cursor(text);
-    record && cursor.startRecording();
-
-    const ast = this.parse(cursor);
-
-    return {
-      ast: ast?.value === text ? ast : null,
-      cursor
-    };
+    return execPattern(this, text, record);
   }
 
   parse(cursor: Cursor): Node | null {
@@ -96,10 +85,6 @@ export class Options implements Pattern {
     if (node != null) {
       cursor.moveTo(node.lastIndex);
       cursor.resolveError();
-
-      if (this.shouldCompactAst) {
-        node.compact();
-      }
 
       return node;
     }
@@ -221,7 +206,6 @@ export class Options implements Pattern {
   clone(name = this._name): Pattern {
     const clone = new Options(name, this._children, this._isGreedy);
     clone._id = this._id;
-    clone.shouldCompactAst = this.shouldCompactAst;
     return clone;
   }
 

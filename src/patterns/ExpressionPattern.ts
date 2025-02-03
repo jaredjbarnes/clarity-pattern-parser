@@ -5,6 +5,8 @@ import { Pattern } from "./Pattern";
 import { findPattern } from "./findPattern";
 import { Sequence } from "./Sequence";
 import { Association, PrecedenceTree } from './PrecedenceTree';
+import { testPattern } from "./testPattern";
+import { execPattern } from "./execPattern";
 
 let indexId = 0;
 
@@ -25,11 +27,8 @@ export class ExpressionPattern implements Pattern {
     private _binaryNames: string[];
     private associationMap: Record<string, Association>;
     private _precedenceMap: Record<string, number>;
-    private _shouldCompactPatternsMap: Record<string, boolean>;
     private _shouldStopParsing: boolean;
     private _precedenceTree: PrecedenceTree;
-
-    shouldCompactAst = false;
 
     get id(): string {
         return this._id;
@@ -95,7 +94,6 @@ export class ExpressionPattern implements Pattern {
         this.associationMap = {};
         this._precedenceMap = {};
         this._originalPatterns = patterns;
-        this._shouldCompactPatternsMap = {};
         this._patterns = this._organizePatterns(patterns);
         this._shouldStopParsing = false;
         this._precedenceTree = new PrecedenceTree(this._precedenceMap, this.associationMap);
@@ -108,7 +106,6 @@ export class ExpressionPattern implements Pattern {
     private _organizePatterns(patterns: Pattern[]) {
         const finalPatterns: Pattern[] = [];
         patterns.forEach((pattern) => {
-            this._shouldCompactPatternsMap[pattern.name] = pattern.shouldCompactAst;
 
             if (this._isAtom(pattern)) {
                 const atom = pattern.clone();
@@ -241,6 +238,9 @@ export class ExpressionPattern implements Pattern {
     }
 
     private _isRecursiveReference(pattern: Pattern) {
+        if (pattern == null){
+            return false;
+        }
         return pattern.type === "reference" && pattern.name === this.name;
     }
 
@@ -253,7 +253,6 @@ export class ExpressionPattern implements Pattern {
 
             cursor.moveTo(node.lastIndex);
             cursor.resolveError();
-            this._compactResult(node);
             return node;
         }
 
@@ -261,27 +260,6 @@ export class ExpressionPattern implements Pattern {
         return null;
     }
 
-    private _compactResult(node: Node | null) {
-        if (node == null) {
-            return;
-        }
-
-        if (this.shouldCompactAst) {
-            node.compact();
-            return;
-        }
-
-        // This could be really expensive with large trees. So we optimize with these checks,
-        // as well as use breadth first as to not recompact nodes over and over again. 
-        const isCompactingNeeded = Object.values(this._shouldCompactPatternsMap).some(p => p);
-        if (isCompactingNeeded) {
-            node.walkBreadthFirst(n => {
-                if (this._shouldCompactPatternsMap[n.name]) {
-                    n.compact();
-                }
-            });
-        }
-    }
 
     private _tryToParse(cursor: Cursor): Node | null {
         if (this._isBeyondRecursiveAllowance()) {
@@ -466,23 +444,12 @@ export class ExpressionPattern implements Pattern {
         return false;
     }
 
-    test(text: string) {
-        const cursor = new Cursor(text);
-        const ast = this.parse(cursor);
-
-        return ast?.value === text;
+    test(text: string, record = false): boolean {
+        return testPattern(this, text, record);
     }
 
     exec(text: string, record = false): ParseResult {
-        const cursor = new Cursor(text);
-        record && cursor.startRecording();
-
-        const ast = this.parse(cursor);
-
-        return {
-            ast: ast?.value === text ? ast : null,
-            cursor
-        };
+        return execPattern(this, text, record);
     }
 
     getTokens(): string[] {
@@ -524,7 +491,6 @@ export class ExpressionPattern implements Pattern {
     clone(name = this._name): Pattern {
         const clone = new ExpressionPattern(name, this._originalPatterns);
         clone._id = this._id;
-        clone.shouldCompactAst = this.shouldCompactAst;
         return clone;
     }
 

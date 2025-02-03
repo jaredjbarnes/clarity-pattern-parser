@@ -3,6 +3,8 @@ import { Cursor } from "./Cursor";
 import { findPattern } from "./findPattern";
 import { ParseResult } from "./ParseResult";
 import { Pattern } from "./Pattern";
+import { testPattern } from './testPattern';
+import { execPattern } from "./execPattern";
 
 let idIndex = 0;
 
@@ -24,8 +26,6 @@ export class FiniteRepeat implements Pattern {
     private _max: number;
     private _trimDivider: boolean;
     private _firstIndex: number;
-
-    shouldCompactAst = false;
 
     get id() {
         return this._id;
@@ -152,30 +152,15 @@ export class FiniteRepeat implements Pattern {
 
         const node = new Node(this._type, this.name, firstIndex, lastIndex, nodes);
 
-        if (this.shouldCompactAst) {
-            node.compact();
-        }
-
         return node;
     }
 
-    test(text: string): boolean {
-        const cursor = new Cursor(text);
-        const ast = this.parse(cursor);
-
-        return ast?.value === text;
+    test(text: string, record = false): boolean {
+        return testPattern(this, text, record);
     }
 
     exec(text: string, record = false): ParseResult {
-        const cursor = new Cursor(text);
-        record && cursor.startRecording();
-
-        const ast = this.parse(cursor);
-
-        return {
-            ast: ast?.value === text ? ast : null,
-            cursor
-        };
+        return execPattern(this, text, record);
     }
 
     clone(name = this._name): Pattern {
@@ -194,8 +179,6 @@ export class FiniteRepeat implements Pattern {
         );
 
         clone._id = this._id;
-        clone.shouldCompactAst = this.shouldCompactAst;
-
         return clone;
     }
 

@@ -4,6 +4,8 @@ import { Pattern } from "./Pattern";
 import { findPattern } from "./findPattern";
 import { ParseResult } from "./ParseResult";
 import { Context } from "./Context";
+import { testPattern } from "./testPattern";
+import { execPattern } from "./execPattern";
 
 let idIndex = 0;
 
@@ -16,8 +18,6 @@ export class Reference implements Pattern {
   private _pattern: Pattern | null;
   private _children: Pattern[];
   private _firstIndex: number;
-
-  shouldCompactAst = false;
 
   get id(): string {
     return this._id;
@@ -58,23 +58,12 @@ export class Reference implements Pattern {
     this._firstIndex = 0;
   }
 
-  test(text: string) {
-    const cursor = new Cursor(text);
-    const ast = this.parse(cursor);
-
-    return ast?.value === text;
+  test(text: string, record = false): boolean {
+    return testPattern(this, text, record);
   }
 
   exec(text: string, record = false): ParseResult {
-    const cursor = new Cursor(text);
-    record && cursor.startRecording();
-
-    const ast = this.parse(cursor);
-
-    return {
-      ast: ast?.value === text ? ast : null,
-      cursor
-    };
+    return execPattern(this, text, record);
   }
 
   parse(cursor: Cursor): Node | null {
@@ -205,7 +194,6 @@ export class Reference implements Pattern {
   clone(name = this._name): Pattern {
     const clone = new Reference(name);
     clone._id = this._id;
-    clone.shouldCompactAst = this.shouldCompactAst;
 
     // Optimize future clones, by caching the pattern we already found.
     if (this._pattern != null) {

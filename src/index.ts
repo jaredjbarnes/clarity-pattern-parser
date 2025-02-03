@@ -1,4 +1,6 @@
 import { Node } from "./ast/Node";
+import { compact } from './ast/compact';
+import { remove } from './ast/remove';
 import { Grammar } from "./grammar/Grammar";
 import { Suggestion } from "./intellisense/Suggestion";
 import { SuggestionOption } from "./intellisense/SuggestionOption";
@@ -46,4 +48,6 @@ export {
   Repeat,
   grammar,
   patterns,
+  compact,
+  remove
 };

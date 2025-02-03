@@ -19,7 +19,6 @@ export declare class FiniteRepeat implements Pattern {
     private _max;
     private _trimDivider;
     private _firstIndex;
-    shouldCompactAst: boolean;
     get id(): string;
     get type(): string;
     get name(): string;
@@ -31,7 +30,7 @@ export declare class FiniteRepeat implements Pattern {
     get startedOnIndex(): number;
     constructor(name: string, pattern: Pattern, options?: FiniteRepeatOptions);
     parse(cursor: Cursor): Node | null;
-    test(text: string): boolean;
+    test(text: string, record?: boolean): boolean;
     exec(text: string, record?: boolean): ParseResult;
     clone(name?: string): Pattern;
     getTokens(): string[];

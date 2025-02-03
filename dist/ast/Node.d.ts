@@ -55,6 +55,6 @@ export declare class Node {
     toCycleFreeObject(): CycleFreeNode;
     toJson(space?: number): string;
     isEqual(node: Node): boolean;
-    static createValueNode(name: string, value: string): Node;
-    static createNode(name: string, children: Node[]): Node;
+    static createValueNode(type: string, name: string, value?: string): Node;
+    static createNode(type: string, name: string, children?: Node[]): Node;
 }

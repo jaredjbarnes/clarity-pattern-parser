@@ -10,7 +10,6 @@ export declare class Options implements Pattern {
     private _children;
     private _isGreedy;
     private _firstIndex;
-    shouldCompactAst: boolean;
     get id(): string;
     get type(): string;
     get name(): string;
@@ -20,7 +19,7 @@ export declare class Options implements Pattern {
     get startedOnIndex(): number;
     constructor(name: string, options: Pattern[], isGreedy?: boolean);
     private _assignChildrenToParent;
-    test(text: string): boolean;
+    test(text: string, record?: boolean): boolean;
     exec(text: string, record?: boolean): ParseResult;
     parse(cursor: Cursor): Node | null;
     private _tryToParse;

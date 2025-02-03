@@ -19,7 +19,6 @@ export declare class InfiniteRepeat implements Pattern {
     private _firstIndex;
     private _min;
     private _trimDivider;
-    shouldCompactAst: boolean;
     get id(): string;
     get type(): string;
     get name(): string;
@@ -30,7 +29,7 @@ export declare class InfiniteRepeat implements Pattern {
     get startedOnIndex(): number;
     constructor(name: string, pattern: Pattern, options?: InfiniteRepeatOptions);
     private _assignChildrenToParent;
-    test(text: string): boolean;
+    test(text: string, record?: boolean): boolean;
     exec(text: string, record?: boolean): ParseResult;
     parse(cursor: Cursor): Node | null;
     private _meetsMin;

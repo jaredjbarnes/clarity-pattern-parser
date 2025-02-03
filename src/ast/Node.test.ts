@@ -441,34 +441,34 @@ describe("Node", () => {
     });
 
     test("Transform", () => {
-        const node = Node.createNode("grandparent", [
-            Node.createNode("parent", [
-                Node.createValueNode("child", "John"),
-                Node.createValueNode("child", "Jane"),
-                Node.createValueNode("child", "Jack")
+        const node = Node.createNode("family", "grandparent", [
+            Node.createNode("family", "parent", [
+                Node.createValueNode("family", "child", "John"),
+                Node.createValueNode("family", "child", "Jane"),
+                Node.createValueNode("family", "child", "Jack")
             ]),
-            Node.createValueNode("aunt", "aunt")
+            Node.createValueNode("family", "aunt", "aunt")
         ]);
 
         const result = node.transform({
             "child": (node: Node) => {
-                return Node.createValueNode("adopted-child", node.value);
+                return Node.createValueNode("family", "adopted-child", node.value);
             },
-            "parent": (node)=>{
-                return Node.createNode("adopted-parent", node.children.slice());
+            "parent": (node) => {
+                return Node.createNode("family", "adopted-parent", node.children.slice());
             },
-            "grandparent": (node)=>{
-                return Node.createNode("adopted-grandparent", node.children.slice());
+            "grandparent": (node) => {
+                return Node.createNode("family", "adopted-grandparent", node.children.slice());
             }
         });
 
-        const expected = Node.createNode("adopted-grandparent", [
-            Node.createNode("adopted-parent", [
-                Node.createValueNode("adopted-child", "John"),
-                Node.createValueNode("adopted-child", "Jane"),
-                Node.createValueNode("adopted-child", "Jack")
+        const expected = Node.createNode("family", "adopted-grandparent", [
+            Node.createNode("family", "adopted-parent", [
+                Node.createValueNode("family", "adopted-child", "John"),
+                Node.createValueNode("family", "adopted-child", "Jane"),
+                Node.createValueNode("family", "adopted-child", "Jack")
             ]),
-            Node.createValueNode("aunt", "aunt")
+            Node.createValueNode("family", "aunt", "aunt")
         ]);
 
         expect(result.toJson()).toBe(expected.toJson());

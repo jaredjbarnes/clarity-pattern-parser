@@ -1,4 +1,6 @@
 import { Node } from "./ast/Node";
+import { compact } from './ast/compact';
+import { remove } from './ast/remove';
 import { Grammar } from "./grammar/Grammar";
 import { Suggestion } from "./intellisense/Suggestion";
 import { SuggestionOption } from "./intellisense/SuggestionOption";
@@ -20,4 +22,4 @@ import { grammar } from "./grammar/patterns/grammar";
 import { patterns } from "./grammar/patterns";
 import { Context } from "./patterns/Context";
 import { ExpressionPattern } from "./patterns/ExpressionPattern";
-export { Node, Grammar, AutoComplete, AutoCompleteOptions, Suggestion, SuggestionOption, Sequence, Cursor, CursorHistory, Match, Context, ExpressionPattern, Literal, Not, Options, Optional, ParseError, ParseResult, Pattern, Reference, Regex, Repeat, grammar, patterns, };
+export { Node, Grammar, AutoComplete, AutoCompleteOptions, Suggestion, SuggestionOption, Sequence, Cursor, CursorHistory, Match, Context, ExpressionPattern, Literal, Not, Options, Optional, ParseError, ParseResult, Pattern, Reference, Regex, Repeat, grammar, patterns, compact, remove };

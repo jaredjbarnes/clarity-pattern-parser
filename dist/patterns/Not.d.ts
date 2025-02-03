@@ -8,7 +8,6 @@ export declare class Not implements Pattern {
     private _name;
     private _parent;
     private _children;
-    shouldCompactAst: boolean;
     get id(): string;
     get type(): string;
     get name(): string;
@@ -17,7 +16,7 @@ export declare class Not implements Pattern {
     get children(): Pattern[];
     get startedOnIndex(): number;
     constructor(name: string, pattern: Pattern);
-    test(text: string): boolean;
+    test(text: string, record?: boolean): boolean;
     exec(text: string, record?: boolean): ParseResult;
     parse(cursor: Cursor): Node | null;
     clone(name?: string): Pattern;

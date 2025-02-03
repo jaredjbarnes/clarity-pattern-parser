@@ -2,6 +2,8 @@ import { Node } from "../ast/Node";
 import { Pattern } from "./Pattern";
 import { Cursor } from "./Cursor";
 import { ParseResult } from "./ParseResult";
+import { testPattern } from "./testPattern";
+import { execPattern } from "./execPattern";
 
 let idIndex = 0;
 
@@ -17,8 +19,6 @@ export class Regex implements Pattern {
   private _firstIndex = 0;
   private _substring = "";
   private _tokens: string[] = [];
-
-  shouldCompactAst = false;
 
   get id(): string {
     return this._id;
@@ -82,23 +82,12 @@ export class Regex implements Pattern {
     }
   }
 
-  test(text: string) {
-    const cursor = new Cursor(text);
-    const ast = this.parse(cursor);
-
-    return ast?.value === text;
+  test(text: string, record = false): boolean {
+    return testPattern(this, text, record);
   }
 
   exec(text: string, record = false): ParseResult {
-    const cursor = new Cursor(text);
-    record && cursor.startRecording();
-
-    const ast = this.parse(cursor);
-
-    return {
-      ast: ast?.value === text ? ast : null,
-      cursor
-    };
+    return execPattern(this, text, record);
   }
 
   parse(cursor: Cursor) {
@@ -152,7 +141,6 @@ export class Regex implements Pattern {
     const clone = new Regex(name, this._originalRegexString);
     clone._tokens = this._tokens.slice();
     clone._id = this._id;
-    clone.shouldCompactAst = this.shouldCompactAst;
 
     return clone;
   }

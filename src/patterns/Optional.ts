@@ -12,8 +12,6 @@ export class Optional implements Pattern {
   private _parent: Pattern | null;
   private _children: Pattern[];
 
-  shouldCompactAst = false;
-
   get id(): string {
     return this._id;
   }
@@ -80,10 +78,6 @@ export class Optional implements Pattern {
 
       return null;
     } else {
-      if (node != null && this.shouldCompactAst) {
-        node.compact();
-      }
-
       return node;
     }
 
@@ -92,7 +86,6 @@ export class Optional implements Pattern {
   clone(name = this._name): Pattern {
     const clone = new Optional(name, this._children[0]);
     clone._id = this._id;
-    clone.shouldCompactAst = this.shouldCompactAst;
     return clone;
   }
 

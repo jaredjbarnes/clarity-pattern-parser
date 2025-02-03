@@ -238,14 +238,9 @@ export class Grammar {
 
     private _saveOptions(statementNode: Node) {
         const nameNode = statementNode.find(n => n.name === "name") as Node;
-        const shouldCompactAst = statementNode.find(n=>n.name === "compact");
         const name = nameNode.value;
         const optionsNode = statementNode.find(n => n.name === "options-literal") as Node;
         const options = this._buildOptions(name, optionsNode);
-
-        if (shouldCompactAst != null){
-            options.shouldCompactAst = true;
-        }
 
         this._parseContext.patternsByName.set(name, options);
     }
@@ -315,14 +310,9 @@ export class Grammar {
 
     private _saveSequence(statementNode: Node) {
         const nameNode = statementNode.find(n => n.name === "name") as Node;
-        const shouldCompactAst = statementNode.find(n=>n.name === "compact");
         const name = nameNode.value;
         const sequenceNode = statementNode.find(n => n.name === "sequence-literal") as Node;
         const sequence = this._buildSequence(name, sequenceNode);
-
-        if (shouldCompactAst != null){
-            sequence.shouldCompactAst = true;
-        }
 
         this._parseContext.patternsByName.set(name, sequence);
     }
@@ -349,14 +339,9 @@ export class Grammar {
 
     private _saveRepeat(statementNode: Node) {
         const nameNode = statementNode.find(n => n.name === "name") as Node;
-        const shouldCompactAst = statementNode.find(n=>n.name === "compact");
         const name = nameNode.value;
         const repeatNode = statementNode.find(n => n.name === "repeat-literal") as Node;
         const repeat = this._buildRepeat(name, repeatNode);
-
-        if (shouldCompactAst != null){
-            repeat.shouldCompactAst = true;
-        }
 
         this._parseContext.patternsByName.set(name, repeat);
     }
@@ -542,15 +527,10 @@ export class Grammar {
 
     private _saveAlias(statementNode: Node) {
         const nameNode = statementNode.find(n => n.name === "name") as Node;
-        const shouldCompactAst = statementNode.find(n=>n.name === "compact");
         const aliasNode = statementNode.find(n => n.name === "alias-literal") as Node;
         const aliasName = aliasNode.value;
         const name = nameNode.value;
         const alias = this._getPattern(aliasName).clone(name);
-
-        if (shouldCompactAst != null){
-            alias.shouldCompactAst = true;
-        }
 
         this._parseContext.patternsByName.set(name, alias);
     }

@@ -11,7 +11,6 @@ export declare class Reference implements Pattern {
     private _pattern;
     private _children;
     private _firstIndex;
-    shouldCompactAst: boolean;
     get id(): string;
     get type(): string;
     get name(): string;
@@ -20,7 +19,7 @@ export declare class Reference implements Pattern {
     get children(): Pattern[];
     get startedOnIndex(): number;
     constructor(name: string);
-    test(text: string): boolean;
+    test(text: string, record?: boolean): boolean;
     exec(text: string, record?: boolean): ParseResult;
     parse(cursor: Cursor): Node | null;
     getReferencePatternSafely(): Pattern;

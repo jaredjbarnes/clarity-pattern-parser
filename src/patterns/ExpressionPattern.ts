@@ -183,7 +183,7 @@ export class ExpressionPattern implements Pattern {
         pattern = this._unwrapAssociationIfNecessary(pattern);
 
         const firstChild = pattern.children[0];
-        const lastChild = pattern.children[1];
+        const lastChild = pattern.children[pattern.children.length -1];
         const firstChildIsReference = this._isRecursiveReference(firstChild);
         const lastChildIsReference = this._isRecursiveReference(lastChild);
 

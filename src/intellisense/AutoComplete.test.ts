@@ -430,7 +430,7 @@ describe("AutoComplete", () => {
     test("Repeat with bad trailing content", () => {
         const flags = ["FlagA", "FlagB", "FlagC"];
         const pattern = generateExpression(flags);
-        const result = new AutoComplete(pattern).suggestFor("FlagA AND FlagAlkjhgB")
+        const result = new AutoComplete(pattern).suggestFor("FlagA AND FlagAlkjhgB");
 
         expect(result.options).toEqual([]);
         expect(result.ast?.value).toBe("FlagA AND FlagA");

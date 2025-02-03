@@ -3038,6 +3038,7 @@
                 cursor.resolveError();
                 return node;
             }
+            cursor.moveTo(this._firstIndex);
             cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
             return null;
         }

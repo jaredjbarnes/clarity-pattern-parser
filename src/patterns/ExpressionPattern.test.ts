@@ -163,8 +163,7 @@ describe("Expression Pattern", () => {
         const expression = createExpressionPattern();
 
         const autoComplete = new AutoComplete(expression);
-        const suggestion = autoComplete.suggestFor("a");
-
+        const suggestion = autoComplete.suggestFor("a ? b ");
         expect(suggestion).toBe(suggestion);
     });
 });

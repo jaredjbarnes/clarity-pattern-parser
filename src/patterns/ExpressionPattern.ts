@@ -25,7 +25,7 @@ export class ExpressionPattern implements Pattern {
     private _postfixNames: string[];
     private _binaryPatterns: Pattern[];
     private _binaryNames: string[];
-    private associationMap: Record<string, Association>;
+    private _associationMap: Record<string, Association>;
     private _precedenceMap: Record<string, number>;
     private _shouldStopParsing: boolean;
     private _precedenceTree: PrecedenceTree;
@@ -91,12 +91,12 @@ export class ExpressionPattern implements Pattern {
         this._postfixNames = [];
         this._binaryPatterns = [];
         this._binaryNames = [];
-        this.associationMap = {};
+        this._associationMap = {};
         this._precedenceMap = {};
         this._originalPatterns = patterns;
         this._patterns = this._organizePatterns(patterns);
         this._shouldStopParsing = false;
-        this._precedenceTree = new PrecedenceTree(this._precedenceMap, this.associationMap);
+        this._precedenceTree = new PrecedenceTree(this._precedenceMap, this._associationMap);
 
         if (this._atomPatterns.length === 0) {
             throw new Error("Need at least one terminating pattern with an 'expression' pattern.");
@@ -143,9 +143,9 @@ export class ExpressionPattern implements Pattern {
                 this._binaryNames.push(name);
 
                 if (pattern.type === "right-associated") {
-                    this.associationMap[name] = Association.right;
+                    this._associationMap[name] = Association.right;
                 } else {
-                    this.associationMap[name] = Association.left;
+                    this._associationMap[name] = Association.left;
                 }
 
                 finalPatterns.push(clone);
@@ -238,7 +238,7 @@ export class ExpressionPattern implements Pattern {
     }
 
     private _isRecursiveReference(pattern: Pattern) {
-        if (pattern == null){
+        if (pattern == null) {
             return false;
         }
         return pattern.type === "reference" && pattern.name === this.name;
@@ -457,7 +457,31 @@ export class ExpressionPattern implements Pattern {
         return this.atomPatterns.map(p => p.getTokens()).flat();
     }
 
-    getTokensAfter(_childReference: Pattern): string[] {
+    getTokensAfter(childReference: Pattern): string[] {
+        if (this._prefixPatterns.includes(childReference) || this._binaryPatterns.includes(childReference)) {
+            const atomTokens = this._atomPatterns.map(p => p.getTokens()).flat();
+            const prefixTokens = this.prefixPatterns.map(p => p.getTokens()).flat();
+
+            return [...prefixTokens, ...atomTokens];
+        }
+
+        if (this._atomPatterns.includes(childReference)) {
+            const postfixTokens = this.prefixPatterns.map(p => p.getTokens()).flat();
+
+            if (postfixTokens.length === 0){
+                return this._binaryPatterns.map(p => p.getTokens()).flat();
+            }
+
+            return postfixTokens;
+        }
+
+        if (this._postfixPatterns.includes(childReference)) {
+            const postfixTokens = this.postfixPatterns.map(p => p.getTokens()).flat();
+            const binaryTokens = this._binaryPatterns.map(p => p.getTokens()).flat();
+
+            return [...postfixTokens, ...binaryTokens];
+        }
+
         return [];
     }
 
@@ -473,7 +497,31 @@ export class ExpressionPattern implements Pattern {
         return this.atomPatterns.map(p => p.getPatterns()).flat();
     }
 
-    getPatternsAfter(_childReference: Pattern): Pattern[] {
+    getPatternsAfter(childReference: Pattern): Pattern[] {
+        if (this._prefixPatterns.includes(childReference) || this._binaryPatterns.includes(childReference)) {
+            const atomPatterns = this._atomPatterns.map(p => p.getPatterns()).flat();
+            const prefixPatterns = this.prefixPatterns.map(p => p.getPatterns()).flat();
+
+            return [...prefixPatterns, ...atomPatterns];
+        }
+
+        if (this._atomPatterns.includes(childReference)) {
+            const postfixPatterns = this.prefixPatterns.map(p => p.getPatterns()).flat();
+
+            if (postfixPatterns.length === 0){
+                return this._binaryPatterns.map(p => p.getPatterns()).flat();
+            }
+
+            return postfixPatterns;
+        }
+
+        if (this._postfixPatterns.includes(childReference)) {
+            const postfixPaterns = this.postfixPatterns.map(p => p.getPatterns()).flat();
+            const binaryPatterns = this._binaryPatterns.map(p => p.getPatterns()).flat();
+
+            return [...postfixPaterns, ...binaryPatterns];
+        }
+
         return [];
     }
 

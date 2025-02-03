@@ -17,7 +17,7 @@ export declare class ExpressionPattern implements Pattern {
     private _postfixNames;
     private _binaryPatterns;
     private _binaryNames;
-    private associationMap;
+    private _associationMap;
     private _precedenceMap;
     private _shouldStopParsing;
     private _precedenceTree;
@@ -55,10 +55,10 @@ export declare class ExpressionPattern implements Pattern {
     test(text: string, record?: boolean): boolean;
     exec(text: string, record?: boolean): ParseResult;
     getTokens(): string[];
-    getTokensAfter(_childReference: Pattern): string[];
+    getTokensAfter(childReference: Pattern): string[];
     getNextTokens(): string[];
     getPatterns(): Pattern[];
-    getPatternsAfter(_childReference: Pattern): Pattern[];
+    getPatternsAfter(childReference: Pattern): Pattern[];
     getNextPatterns(): Pattern[];
     find(predicate: (p: Pattern) => boolean): Pattern | null;
     clone(name?: string): Pattern;

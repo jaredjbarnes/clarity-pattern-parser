@@ -248,7 +248,7 @@ describe("Precedence Tree", () => {
         expect(result?.toCycleFreeObject()).toEqual(expected.toCycleFreeObject());
     });
 
-    test("add Partial Binary With Greater Precedence", () => {
+    test("mul Partial Binary With Greater Precedence", () => {
         const tree = new PrecedenceTree({
             mul: 0,
             add: 1,

@@ -13,9 +13,9 @@ export class PrecedenceTree {
     private _binaryPlaceholder: Node;
     private _binaryNode: Node | null;
     private _atomNode: Node | null;
-    private _orphanedAtom: Node | null;
     private _precedenceMap: Record<string, number>;
     private _associationMap: Record<string, Association>;
+    private _revertBinary: () => void;
 
     constructor(precedenceMap: Record<string, number> = {}, associationMap: Record<string, Association> = {}) {
         this._prefixPlaceholder = Node.createNode("placeholder", "prefix-placeholder");
@@ -25,9 +25,9 @@ export class PrecedenceTree {
         this._binaryPlaceholder = Node.createNode("placeholder", "binary-placeholder");
         this._atomNode = null;
         this._binaryNode = null;
-        this._orphanedAtom = null;
         this._precedenceMap = precedenceMap;
         this._associationMap = associationMap;
+        this._revertBinary = () => { };
     }
 
     addPrefix(name: string, ...prefix: Node[]) {
@@ -72,12 +72,17 @@ export class PrecedenceTree {
         }
 
         this._binaryPlaceholder.remove();
-        this._orphanedAtom = lastAtomNode;
 
         if (lastBinaryNode == null) {
             const node = Node.createNode("expression", name, [lastAtomNode, ...delimiterNode, this._binaryPlaceholder]);
 
             this._binaryNode = node;
+
+            this._revertBinary = () => {
+                lastAtomNode.remove();
+                this._binaryNode = lastAtomNode;
+            };
+
             return;
         }
 
@@ -85,6 +90,11 @@ export class PrecedenceTree {
             const node = Node.createNode("expression", name, [lastAtomNode, ...delimiterNode, this._binaryPlaceholder]);
 
             lastBinaryNode.appendChild(node);
+
+            this._revertBinary = () => {
+                node.replaceWith(lastAtomNode);
+                this._binaryNode = lastBinaryNode;
+            };
 
             this._binaryNode = node;
         } else if (precedence === lastPrecendece) {
@@ -94,6 +104,13 @@ export class PrecedenceTree {
             lastBinaryNode.appendChild(lastAtomNode);
 
             node.append(lastBinaryNode, ...delimiterNode, this._binaryPlaceholder);
+
+            this._revertBinary = () => {
+                lastBinaryNode.remove();
+                node.replaceWith(lastBinaryNode);
+                this._binaryNode = lastBinaryNode;
+            };
+
             this._binaryNode = node;
         } else if (precedence > lastPrecendece) {
             let ancestor = lastBinaryNode.parent;
@@ -115,12 +132,24 @@ export class PrecedenceTree {
             root.replaceWith(node);
             node.append(root, ...delimiterNode, this._binaryPlaceholder);
 
+            this._revertBinary = () => {
+                root.remove();
+                node.replaceWith(root);
+                this._binaryNode = root;
+            };
+
             this._binaryNode = node;
 
 
         } else {
             const node = Node.createNode("expression", name, [lastAtomNode, ...delimiterNode, this._binaryPlaceholder]);
             lastBinaryNode.appendChild(node);
+
+            this._revertBinary = () => {
+                lastAtomNode.remove();
+                node.replaceWith(lastAtomNode);
+                this._binaryNode = lastBinaryNode;
+            };
 
             this._binaryNode = node;
         }
@@ -171,7 +200,7 @@ export class PrecedenceTree {
         this._atomNode = node;
     }
 
-    hasAtom(){
+    hasAtom() {
         return this._atomNode != null;
     }
 
@@ -183,8 +212,8 @@ export class PrecedenceTree {
         const atomNode = this._compileAtomNode();
 
         if (atomNode == null) {
-            let root = this._binaryPlaceholder.findRoot();
-            this._binaryPlaceholder.parent?.replaceWith(this._orphanedAtom as Node);
+            this._revertBinary();
+            let root = this._binaryNode.findRoot();
             this.reset();
             return root;
         } else {
@@ -199,7 +228,6 @@ export class PrecedenceTree {
     private reset() {
         this._prefixNode = null;
         this._atomNode = null;
-        this._orphanedAtom = null;
         this._postfixNode = null;
         this._binaryNode = null;
     }

@@ -2715,9 +2715,9 @@ class PrecedenceTree {
         this._binaryPlaceholder = Node.createNode("placeholder", "binary-placeholder");
         this._atomNode = null;
         this._binaryNode = null;
-        this._orphanedAtom = null;
         this._precedenceMap = precedenceMap;
         this._associationMap = associationMap;
+        this._revertBinary = () => { };
     }
     addPrefix(name, ...prefix) {
         const lastPrefixNode = this._prefixNode;
@@ -2752,15 +2752,22 @@ class PrecedenceTree {
             throw new Error("Cannot add a binary without an atom node.");
         }
         this._binaryPlaceholder.remove();
-        this._orphanedAtom = lastAtomNode;
         if (lastBinaryNode == null) {
             const node = Node.createNode("expression", name, [lastAtomNode, ...delimiterNode, this._binaryPlaceholder]);
             this._binaryNode = node;
+            this._revertBinary = () => {
+                lastAtomNode.remove();
+                this._binaryNode = lastAtomNode;
+            };
             return;
         }
         if (precedence === lastPrecendece && association === Association.right) {
             const node = Node.createNode("expression", name, [lastAtomNode, ...delimiterNode, this._binaryPlaceholder]);
             lastBinaryNode.appendChild(node);
+            this._revertBinary = () => {
+                node.replaceWith(lastAtomNode);
+                this._binaryNode = lastBinaryNode;
+            };
             this._binaryNode = node;
         }
         else if (precedence === lastPrecendece) {
@@ -2768,6 +2775,11 @@ class PrecedenceTree {
             lastBinaryNode.replaceWith(node);
             lastBinaryNode.appendChild(lastAtomNode);
             node.append(lastBinaryNode, ...delimiterNode, this._binaryPlaceholder);
+            this._revertBinary = () => {
+                lastBinaryNode.remove();
+                node.replaceWith(lastBinaryNode);
+                this._binaryNode = lastBinaryNode;
+            };
             this._binaryNode = node;
         }
         else if (precedence > lastPrecendece) {
@@ -2785,11 +2797,21 @@ class PrecedenceTree {
             const node = Node.createNode("expression", name, []);
             root.replaceWith(node);
             node.append(root, ...delimiterNode, this._binaryPlaceholder);
+            this._revertBinary = () => {
+                root.remove();
+                node.replaceWith(root);
+                this._binaryNode = root;
+            };
             this._binaryNode = node;
         }
         else {
             const node = Node.createNode("expression", name, [lastAtomNode, ...delimiterNode, this._binaryPlaceholder]);
             lastBinaryNode.appendChild(node);
+            this._revertBinary = () => {
+                lastAtomNode.remove();
+                node.replaceWith(lastAtomNode);
+                this._binaryNode = lastBinaryNode;
+            };
             this._binaryNode = node;
         }
     }
@@ -2830,14 +2852,13 @@ class PrecedenceTree {
         return this._atomNode != null;
     }
     commit() {
-        var _a;
         if (this._binaryNode == null) {
             return this._compileAtomNode();
         }
         const atomNode = this._compileAtomNode();
         if (atomNode == null) {
-            let root = this._binaryPlaceholder.findRoot();
-            (_a = this._binaryPlaceholder.parent) === null || _a === void 0 ? void 0 : _a.replaceWith(this._orphanedAtom);
+            this._revertBinary();
+            let root = this._binaryNode.findRoot();
             this.reset();
             return root;
         }
@@ -2851,7 +2872,6 @@ class PrecedenceTree {
     reset() {
         this._prefixNode = null;
         this._atomNode = null;
-        this._orphanedAtom = null;
         this._postfixNode = null;
         this._binaryNode = null;
     }

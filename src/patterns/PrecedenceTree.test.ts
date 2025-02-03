@@ -1,4 +1,4 @@
-import { PrecedenceTree } from "./PrecedenceTree";
+import { Association, PrecedenceTree } from "./PrecedenceTree";
 import { Node } from "../ast/Node";
 
 describe("Precedence Tree", () => {
@@ -157,6 +157,118 @@ describe("Precedence Tree", () => {
         ]);
 
         expect(result?.toString()).toBe("!a++*b+c");
+        expect(result?.toCycleFreeObject()).toEqual(expected.toCycleFreeObject());
+    });
+
+    test("add Partial Binary With Lower Precedence", () => {
+        const tree = new PrecedenceTree({
+            mul: 0,
+            add: 1,
+            bool: 2
+        }, {});
+
+        tree.addAtom(Node.createValueNode("literal", "a", "a"));
+        tree.addBinary("add", Node.createValueNode("literal", "+", "+"));
+        tree.addAtom(Node.createValueNode("literal", "b", "b"));
+        tree.addBinary("mul", Node.createValueNode("literal", "*", "*"));
+        tree.addAtom(Node.createValueNode("literal", "c", "c"));
+        tree.addBinary("bool", Node.createValueNode("literal", "||", "||"));
+
+        const result = tree.commit();
+        const expected = Node.createNode("expression", "add", [
+            Node.createValueNode("literal", "a", "a"),
+            Node.createValueNode("literal", "+", "+"),
+            Node.createNode("expression", "mul", [
+                Node.createValueNode("literal", "b", "b"),
+                Node.createValueNode("literal", "*", "*"),
+                Node.createValueNode("literal", "c", "c"),
+            ]),
+        ]);
+
+
+        expect(result?.toString()).toBe("a+b*c");
+        expect(result?.toCycleFreeObject()).toEqual(expected.toCycleFreeObject());
+    });
+
+    test("add Partial Binary With Equal Precedence", () => {
+        const tree = new PrecedenceTree({
+            mul: 0,
+            add: 1,
+            bool: 2
+        }, {});
+
+        tree.addAtom(Node.createValueNode("literal", "a", "a"));
+        tree.addBinary("add", Node.createValueNode("literal", "+", "+"));
+        tree.addAtom(Node.createValueNode("literal", "b", "b"));
+        tree.addBinary("mul", Node.createValueNode("literal", "*", "*"));
+        tree.addAtom(Node.createValueNode("literal", "c", "c"));
+        tree.addBinary("mul", Node.createValueNode("literal", "*", "*"));
+
+        const result = tree.commit();
+        const expected = Node.createNode("expression", "add", [
+            Node.createValueNode("literal", "a", "a"),
+            Node.createValueNode("literal", "+", "+"),
+            Node.createNode("expression", "mul", [
+                Node.createValueNode("literal", "b", "b"),
+                Node.createValueNode("literal", "*", "*"),
+                Node.createValueNode("literal", "c", "c"),
+            ]),
+        ]);
+
+        expect(result?.toString()).toBe("a+b*c");
+        expect(result?.toCycleFreeObject()).toEqual(expected.toCycleFreeObject());
+    });
+
+    test("add Partial Binary With Equal Precedence And Right Associated", () => {
+        const tree = new PrecedenceTree({
+            mul: 0,
+            add: 1,
+            bool: 2
+        }, { mul: Association.right });
+
+        tree.addAtom(Node.createValueNode("literal", "a", "a"));
+        tree.addBinary("add", Node.createValueNode("literal", "+", "+"));
+        tree.addAtom(Node.createValueNode("literal", "b", "b"));
+        tree.addBinary("mul", Node.createValueNode("literal", "*", "*"));
+        tree.addAtom(Node.createValueNode("literal", "c", "c"));
+        tree.addBinary("mul", Node.createValueNode("literal", "*", "*"));
+
+        const result = tree.commit();
+        const expected = Node.createNode("expression", "add", [
+            Node.createValueNode("literal", "a", "a"),
+            Node.createValueNode("literal", "+", "+"),
+            Node.createNode("expression", "mul", [
+                Node.createValueNode("literal", "b", "b"),
+                Node.createValueNode("literal", "*", "*"),
+                Node.createValueNode("literal", "c", "c"),
+            ]),
+        ]);
+
+        expect(result?.toString()).toBe("a+b*c");
+        expect(result?.toCycleFreeObject()).toEqual(expected.toCycleFreeObject());
+    });
+
+    test("add Partial Binary With Greater Precedence", () => {
+        const tree = new PrecedenceTree({
+            mul: 0,
+            add: 1,
+            bool: 2
+        }, {});
+
+        tree.addAtom(Node.createValueNode("literal", "a", "a"));
+        tree.addBinary("add", Node.createValueNode("literal", "+", "+"));
+        tree.addAtom(Node.createValueNode("literal", "b", "b"));
+        tree.addBinary("mul", Node.createValueNode("literal", "*", "*"));
+
+
+        const result = tree.commit();
+        const expected = Node.createNode("expression", "add", [
+            Node.createValueNode("literal", "a", "a"),
+            Node.createValueNode("literal", "+", "+"),
+            Node.createValueNode("literal", "b", "b"),
+        ]);
+
+        expect(result?.toString()).toBe("a+b");
         expect(result?.toCycleFreeObject()).toEqual(expected.toCycleFreeObject());
     });
 });

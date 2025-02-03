@@ -11,9 +11,9 @@ export declare class PrecedenceTree {
     private _binaryPlaceholder;
     private _binaryNode;
     private _atomNode;
-    private _orphanedAtom;
     private _precedenceMap;
     private _associationMap;
+    private _revertBinary;
     constructor(precedenceMap?: Record<string, number>, associationMap?: Record<string, Association>);
     addPrefix(name: string, ...prefix: Node[]): void;
     addPostfix(name: string, ...postfix: Node[]): void;

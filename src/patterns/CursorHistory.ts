@@ -112,11 +112,11 @@ export class CursorHistory {
     }
   }
 
-  recordErrorAt(startIndex: number, endIndex: number, pattern: Pattern): void {
-    const error = new ParseError(startIndex, endIndex, pattern);
+  recordErrorAt(startIndex: number, lastIndex: number, pattern: Pattern): void {
+    const error = new ParseError(startIndex, lastIndex, pattern);
     this._currentError = error;
 
-    if (this._furthestError === null || endIndex > this._furthestError.lastIndex) {
+    if (this._furthestError === null || lastIndex > this._furthestError.lastIndex) {
       this._furthestError = error;
     }
 

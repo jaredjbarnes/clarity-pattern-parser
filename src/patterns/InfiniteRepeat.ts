@@ -80,7 +80,7 @@ export class InfiniteRepeat implements Pattern {
     this._children = children;
     this._pattern = children[0];
     this._divider = children[1];
-    this._firstIndex = -1;
+    this._firstIndex = 0;
     this._nodes = [];
     this._trimDivider = options.trimDivider == null ? false : options.trimDivider;
   }
@@ -90,7 +90,6 @@ export class InfiniteRepeat implements Pattern {
       child.parent = this;
     }
   }
-
 
   test(text: string, record = false): boolean {
     return testPattern(this, text, record);
@@ -113,7 +112,6 @@ export class InfiniteRepeat implements Pattern {
       if (node != null) {
         cursor.moveTo(node.lastIndex);
         cursor.recordMatch(this, node);
-
       }
 
       return node;
@@ -314,7 +312,7 @@ export class InfiniteRepeat implements Pattern {
     }
 
     // If there is no divider then suggest the repeating pattern and the next pattern after.
-    if (index === 0 && !this._divider && this._parent) {
+    if (index === 0 && this._divider == null && this._parent) {
       patterns.push(this._children[0]);
       patterns.push(...this._parent.getPatternsAfter(this));
     }
@@ -348,7 +346,6 @@ export class InfiniteRepeat implements Pattern {
     );
 
     clone._id = this._id;
-
     return clone;
   }
 

@@ -5,9 +5,9 @@ export interface Pattern {
     id: string;
     type: string;
     name: string;
-    startedOnIndex: number;
     parent: Pattern | null;
     children: Pattern[];
+    startedOnIndex: number;
     parse(cursor: Cursor): Node | null;
     exec(text: string, record?: boolean): ParseResult;
     test(text: string, record?: boolean): boolean;

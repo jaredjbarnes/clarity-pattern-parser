@@ -16,6 +16,7 @@ export declare class Node {
     private _value;
     get type(): string;
     get name(): string;
+    get value(): string;
     get firstIndex(): number;
     get lastIndex(): number;
     get startIndex(): number;
@@ -24,7 +25,6 @@ export declare class Node {
     get children(): readonly Node[];
     get hasChildren(): boolean;
     get isLeaf(): boolean;
-    get value(): string;
     constructor(type: string, name: string, firstIndex: number, lastIndex: number, children?: Node[], value?: string);
     removeChild(node: Node): void;
     findChildIndex(node: Node): number;
@@ -38,19 +38,18 @@ export declare class Node {
     nextSibling(): Node | null;
     previousSibling(): Node | null;
     find(predicate: (node: Node) => boolean): Node | null;
-    findRoot(): Node;
     findAll(predicate: (node: Node) => boolean): Node[];
+    findRoot(): Node;
     findAncestor(predicate: (node: Node) => boolean): Node | null;
     walkUp(callback: (node: Node) => void): void;
     walkDown(callback: (node: Node) => void): void;
     walkBreadthFirst(callback: (node: Node) => void): void;
     transform(visitors: Record<string, (node: Node) => Node>): Node;
     flatten(): Node[];
-    reduce(): void;
+    compact(): void;
     remove(): void;
     clone(): Node;
     normalize(startIndex?: number): number;
-    compact(): void;
     toString(): string;
     toCycleFreeObject(): CycleFreeNode;
     toJson(space?: number): string;

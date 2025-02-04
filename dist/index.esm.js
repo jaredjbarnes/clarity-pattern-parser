@@ -8,6 +8,9 @@ class Node {
     get name() {
         return this._name;
     }
+    get value() {
+        return this.toString();
+    }
     get firstIndex() {
         return this._firstIndex;
     }
@@ -31,9 +34,6 @@ class Node {
     }
     get isLeaf() {
         return !this.hasChildren;
-    }
-    get value() {
-        return this.toString();
     }
     constructor(type, name, firstIndex, lastIndex, children = [], value = "") {
         this._type = type;
@@ -122,15 +122,6 @@ class Node {
     find(predicate) {
         return this.findAll(predicate)[0] || null;
     }
-    findRoot() {
-        let pattern = this;
-        while (true) {
-            if (pattern.parent == null) {
-                return pattern;
-            }
-            pattern = pattern.parent;
-        }
-    }
     findAll(predicate) {
         const matches = [];
         this.walkUp(n => {
@@ -139,6 +130,15 @@ class Node {
             }
         });
         return matches;
+    }
+    findRoot() {
+        let pattern = this;
+        while (true) {
+            if (pattern.parent == null) {
+                return pattern;
+            }
+            pattern = pattern.parent;
+        }
     }
     findAncestor(predicate) {
         let parent = this._parent;
@@ -185,7 +185,7 @@ class Node {
         });
         return nodes;
     }
-    reduce() {
+    compact() {
         const value = this.toString();
         this.removeAllChildren();
         this._value = value;
@@ -215,10 +215,6 @@ class Node {
         this._firstIndex = startIndex;
         this._lastIndex = Math.max(startIndex + length - 1, 0);
         return length;
-    }
-    compact() {
-        this._value = this.toString();
-        this._children.length = 0;
     }
     toString() {
         if (this._children.length === 0) {
@@ -391,10 +387,10 @@ class CursorHistory {
             }
         }
     }
-    recordErrorAt(startIndex, endIndex, pattern) {
-        const error = new ParseError(startIndex, endIndex, pattern);
+    recordErrorAt(startIndex, lastIndex, pattern) {
+        const error = new ParseError(startIndex, lastIndex, pattern);
         this._currentError = error;
-        if (this._furthestError === null || endIndex > this._furthestError.lastIndex) {
+        if (this._furthestError === null || lastIndex > this._furthestError.lastIndex) {
             this._furthestError = error;
         }
         if (this._isRecording) {
@@ -1188,7 +1184,6 @@ class FiniteRepeat {
     }
     parse(cursor) {
         this._firstIndex = cursor.index;
-        const startIndex = cursor.index;
         const nodes = [];
         const modulo = this._hasDivider ? 2 : 1;
         let matchCount = 0;
@@ -1224,12 +1219,12 @@ class FiniteRepeat {
         }
         if (matchCount < this._min) {
             const lastIndex = cursor.index;
-            cursor.moveTo(startIndex);
-            cursor.recordErrorAt(startIndex, lastIndex, this);
+            cursor.moveTo(this._firstIndex);
+            cursor.recordErrorAt(this._firstIndex, lastIndex, this);
             return null;
         }
         if (nodes.length === 0 && !cursor.hasError) {
-            cursor.moveTo(startIndex);
+            cursor.moveTo(this._firstIndex);
             return null;
         }
         const firstIndex = nodes[0].firstIndex;
@@ -1353,7 +1348,7 @@ class InfiniteRepeat {
         this._children = children;
         this._pattern = children[0];
         this._divider = children[1];
-        this._firstIndex = -1;
+        this._firstIndex = 0;
         this._nodes = [];
         this._trimDivider = options.trimDivider == null ? false : options.trimDivider;
     }
@@ -1533,7 +1528,7 @@ class InfiniteRepeat {
             patterns.push(this._children[0]);
         }
         // If there is no divider then suggest the repeating pattern and the next pattern after.
-        if (index === 0 && !this._divider && this._parent) {
+        if (index === 0 && this._divider == null && this._parent) {
             patterns.push(this._children[0]);
             patterns.push(...this._parent.getPatternsAfter(this));
         }

@@ -329,12 +329,12 @@ describe("Node", () => {
         expect(result).toEqual(expected);
     });
 
-    test("Reduce", () => {
+    test("Compact", () => {
         const parent = new Node("parent", "parent", 0, 6, [
             new Node("child", "child", 0, 6, undefined, "Content")
         ]);
 
-        parent.reduce();
+        parent.compact();
 
         expect(parent.hasChildren).toBeFalsy();
         expect(parent.value).toBe("Content");

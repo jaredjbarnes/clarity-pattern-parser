@@ -28,6 +28,10 @@ export class Node {
     return this._name;
   }
 
+  get value() {
+    return this.toString();
+  }
+
   get firstIndex() {
     return this._firstIndex;
   }
@@ -58,10 +62,6 @@ export class Node {
 
   get isLeaf(): boolean {
     return !this.hasChildren;
-  }
-
-  get value() {
-    return this.toString();
   }
 
   constructor(
@@ -185,6 +185,16 @@ export class Node {
     return this.findAll(predicate)[0] || null;
   }
 
+  findAll(predicate: (node: Node) => boolean): Node[] {
+    const matches: Node[] = [];
+
+    this.walkUp(n => {
+      if (predicate(n)) { matches.push(n); }
+    });
+
+    return matches;
+  }
+
   findRoot() {
     let pattern: Node | null = this;
 
@@ -194,16 +204,6 @@ export class Node {
       }
       pattern = pattern.parent;
     }
-  }
-
-  findAll(predicate: (node: Node) => boolean): Node[] {
-    const matches: Node[] = [];
-
-    this.walkUp(n => {
-      if (predicate(n)) { matches.push(n); }
-    });
-
-    return matches;
   }
 
   findAncestor(predicate: (node: Node) => boolean) {
@@ -267,7 +267,7 @@ export class Node {
     return nodes;
   }
 
-  reduce() {
+  compact() {
     const value = this.toString();
     this.removeAllChildren();
     this._value = value;
@@ -308,11 +308,6 @@ export class Node {
     this._firstIndex = startIndex;
     this._lastIndex = Math.max(startIndex + length - 1, 0);
     return length;
-  }
-
-  compact() {
-    this._value = this.toString();
-    this._children.length = 0;
   }
 
   toString(): string {

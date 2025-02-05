@@ -83,7 +83,7 @@ export class ExpressionPattern implements Pattern {
         this._type = "expression";
         this._name = name;
         this._parent = null;
-        this._firstIndex = -1;
+        this._firstIndex = 0;
         this._atomPatterns = [];
         this._prefixPatterns = [];
         this._prefixNames = [];
@@ -135,11 +135,11 @@ export class ExpressionPattern implements Pattern {
                 finalPatterns.push(postfix);
             } else if (this._isBinary(pattern)) {
                 const name = this._extractName(pattern);
-                const clone = this._extractBinary(pattern);
-                clone.parent = this;
+                const binary = this._extractBinary(pattern);
+                binary.parent = this;
 
                 this._precedenceMap[name] = this._binaryPatterns.length;
-                this._binaryPatterns.push(clone);
+                this._binaryPatterns.push(binary);
                 this._binaryNames.push(name);
 
                 if (pattern.type === "right-associated") {
@@ -148,7 +148,7 @@ export class ExpressionPattern implements Pattern {
                     this._associationMap[name] = Association.left;
                 }
 
-                finalPatterns.push(clone);
+                finalPatterns.push(binary);
             }
         });
 
@@ -183,7 +183,7 @@ export class ExpressionPattern implements Pattern {
         pattern = this._unwrapAssociationIfNecessary(pattern);
 
         const firstChild = pattern.children[0];
-        const lastChild = pattern.children[pattern.children.length -1];
+        const lastChild = pattern.children[pattern.children.length - 1];
         const firstChildIsReference = this._isRecursiveReference(firstChild);
         const lastChildIsReference = this._isRecursiveReference(lastChild);
 
@@ -454,7 +454,10 @@ export class ExpressionPattern implements Pattern {
     }
 
     getTokens(): string[] {
-        return this.atomPatterns.map(p => p.getTokens()).flat();
+        const atomTokens = this._atomPatterns.map(p => p.getTokens()).flat();
+        const prefixTokens = this.prefixPatterns.map(p => p.getTokens()).flat();
+
+        return [...prefixTokens, ...atomTokens];
     }
 
     getTokensAfter(childReference: Pattern): string[] {
@@ -468,7 +471,7 @@ export class ExpressionPattern implements Pattern {
         if (this._atomPatterns.includes(childReference)) {
             const postfixTokens = this.prefixPatterns.map(p => p.getTokens()).flat();
 
-            if (postfixTokens.length === 0){
+            if (postfixTokens.length === 0) {
                 return this._binaryPatterns.map(p => p.getTokens()).flat();
             }
 
@@ -494,7 +497,10 @@ export class ExpressionPattern implements Pattern {
     }
 
     getPatterns(): Pattern[] {
-        return this.atomPatterns.map(p => p.getPatterns()).flat();
+        const atomPatterns = this._atomPatterns.map(p => p.getPatterns()).flat();
+        const prefixPatterns = this.prefixPatterns.map(p => p.getPatterns()).flat();
+
+        return [...prefixPatterns, ...atomPatterns];
     }
 
     getPatternsAfter(childReference: Pattern): Pattern[] {
@@ -508,7 +514,7 @@ export class ExpressionPattern implements Pattern {
         if (this._atomPatterns.includes(childReference)) {
             const postfixPatterns = this.prefixPatterns.map(p => p.getPatterns()).flat();
 
-            if (postfixPatterns.length === 0){
+            if (postfixPatterns.length === 0) {
                 return this._binaryPatterns.map(p => p.getPatterns()).flat();
             }
 

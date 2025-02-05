@@ -2911,7 +2911,7 @@ class ExpressionPattern {
         this._type = "expression";
         this._name = name;
         this._parent = null;
-        this._firstIndex = -1;
+        this._firstIndex = 0;
         this._atomPatterns = [];
         this._prefixPatterns = [];
         this._prefixNames = [];
@@ -2956,10 +2956,10 @@ class ExpressionPattern {
             }
             else if (this._isBinary(pattern)) {
                 const name = this._extractName(pattern);
-                const clone = this._extractBinary(pattern);
-                clone.parent = this;
+                const binary = this._extractBinary(pattern);
+                binary.parent = this;
                 this._precedenceMap[name] = this._binaryPatterns.length;
-                this._binaryPatterns.push(clone);
+                this._binaryPatterns.push(binary);
                 this._binaryNames.push(name);
                 if (pattern.type === "right-associated") {
                     this._associationMap[name] = Association.right;
@@ -2967,7 +2967,7 @@ class ExpressionPattern {
                 else {
                     this._associationMap[name] = Association.left;
                 }
-                finalPatterns.push(clone);
+                finalPatterns.push(binary);
             }
         });
         return finalPatterns;
@@ -3208,7 +3208,9 @@ class ExpressionPattern {
         return execPattern(this, text, record);
     }
     getTokens() {
-        return this.atomPatterns.map(p => p.getTokens()).flat();
+        const atomTokens = this._atomPatterns.map(p => p.getTokens()).flat();
+        const prefixTokens = this.prefixPatterns.map(p => p.getTokens()).flat();
+        return [...prefixTokens, ...atomTokens];
     }
     getTokensAfter(childReference) {
         if (this._prefixPatterns.includes(childReference) || this._binaryPatterns.includes(childReference)) {
@@ -3237,7 +3239,9 @@ class ExpressionPattern {
         return this._parent.getTokensAfter(this);
     }
     getPatterns() {
-        return this.atomPatterns.map(p => p.getPatterns()).flat();
+        const atomPatterns = this._atomPatterns.map(p => p.getPatterns()).flat();
+        const prefixPatterns = this.prefixPatterns.map(p => p.getPatterns()).flat();
+        return [...prefixPatterns, ...atomPatterns];
     }
     getPatternsAfter(childReference) {
         if (this._prefixPatterns.includes(childReference) || this._binaryPatterns.includes(childReference)) {

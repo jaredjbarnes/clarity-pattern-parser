@@ -10,7 +10,7 @@ import { execPattern } from "./execPattern";
 
 let indexId = 0;
 
-export class ExpressionPattern implements Pattern {
+export class Expression implements Pattern {
     private _id: string;
     private _type: string;
     private _name: string;
@@ -544,12 +544,12 @@ export class ExpressionPattern implements Pattern {
     }
 
     clone(name = this._name): Pattern {
-        const clone = new ExpressionPattern(name, this._originalPatterns);
+        const clone = new Expression(name, this._originalPatterns);
         clone._id = this._id;
         return clone;
     }
 
-    isEqual(pattern: ExpressionPattern): boolean {
+    isEqual(pattern: Expression): boolean {
         return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
     }
 }

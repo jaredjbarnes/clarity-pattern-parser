@@ -1,12 +1,12 @@
 import { Options } from "./Options";
 import { Literal } from './Literal';
-import { ExpressionPattern } from './ExpressionPattern';
+import { Expression } from './Expression';
 import { Reference } from "./Reference";
 import { Sequence } from './Sequence';
 import { Regex } from './Regex';
 import { Optional } from "./Optional";
 import { AutoComplete } from "../intellisense/AutoComplete";
-import { RightAssociatedPattern } from "./RightAssociatedPattern";
+import { RightAssociated } from "./RightAssociated";
 
 function createExpressionPattern() {
     const spaces = new Regex("spaces", "\\s+");
@@ -75,11 +75,11 @@ function createExpressionPattern() {
         new Reference("expression"),
     ]);
 
-    const expression = new ExpressionPattern("expression", [
-        new RightAssociatedPattern(multDivExpression),
+    const expression = new Expression("expression", [
+        multDivExpression,
         addSubExpression,
         boolExpression,
-        new RightAssociatedPattern(ternary),
+        new RightAssociated(ternary),
         group,
         variables,
     ]);
@@ -92,8 +92,8 @@ function createOptionsExpression() {
     const b = new Literal("b", "b");
     const c = new Literal("c", "c");
 
-    const expressionPattern = new ExpressionPattern("expression", [a, b, c]);
-    return expressionPattern;
+    const expression = new Expression("expression", [a, b, c]);
+    return expression;
 }
 
 function createTailExpression() {
@@ -115,7 +115,7 @@ function createTailExpression() {
         invocation
     ]);
 
-    const expression = new ExpressionPattern("expression", [
+    const expression = new Expression("expression", [
         refinementExpression,
         invocationExpression,
         variable

@@ -2121,13 +2121,13 @@ const repeatLiteral = new Sequence("repeat-literal", [
 const optionalNot = new Optional("optional-not", new Literal("not", "!"));
 const optionalIsOptional$1 = new Optional("optional-is-optional", new Literal("is-optional", "?"));
 const patternName$1 = name$1.clone("pattern-name");
-const patterns$2 = new Options("and-patterns", [patternName$1, anonymousPattern]);
-const pattern$1 = new Sequence("and-child-pattern", [
+const patterns$2 = new Options("sequence-patterns", [patternName$1, anonymousPattern]);
+const pattern$1 = new Sequence("sequence-child-pattern", [
     optionalNot,
     patterns$2,
     optionalIsOptional$1,
 ]);
-const divider$1 = new Regex("and-divider", "\\s*[+]\\s*");
+const divider$1 = new Regex("sequence-divider", "\\s*[+]\\s*");
 divider$1.setTokens([" + "]);
 const sequenceLiteral = new Repeat("sequence-literal", pattern$1, { divider: divider$1, min: 2, trimDivider: true });
 
@@ -2869,7 +2869,7 @@ class PrecedenceTree {
 }
 
 let indexId$1 = 0;
-class ExpressionPattern {
+class Expression {
     get id() {
         return this._id;
     }
@@ -3273,7 +3273,7 @@ class ExpressionPattern {
         return findPattern(this, predicate);
     }
     clone(name = this._name) {
-        const clone = new ExpressionPattern(name, this._originalPatterns);
+        const clone = new Expression(name, this._originalPatterns);
         clone._id = this._id;
         return clone;
     }
@@ -3283,7 +3283,7 @@ class ExpressionPattern {
 }
 
 let indexId = 0;
-class RightAssociatedPattern {
+class RightAssociated {
     get id() {
         return this._id;
     }
@@ -3322,7 +3322,7 @@ class RightAssociatedPattern {
         return this.children[0].test(text, record);
     }
     clone(_name) {
-        const clone = new RightAssociatedPattern(this.children[0]);
+        const clone = new RightAssociated(this.children[0]);
         clone._id = this._id;
         return clone;
     }
@@ -3415,14 +3415,6 @@ class Grammar {
             return this._buildPatternRecord();
         });
     }
-    _buildPatternRecord() {
-        const patterns = {};
-        const allPatterns = Array.from(this._parseContext.patternsByName.values());
-        allPatterns.forEach(p => {
-            patterns[p.name] = new Context(p.name, p, allPatterns.filter(o => o !== p));
-        });
-        return patterns;
-    }
     parseString(expression) {
         this._parseContext = new ParseContext(this._params);
         const ast = this._tryToParse(expression);
@@ -3431,6 +3423,14 @@ class Grammar {
         }
         this._buildPatterns(ast);
         return this._buildPatternRecord();
+    }
+    _buildPatternRecord() {
+        const patterns = {};
+        const allPatterns = Array.from(this._parseContext.patternsByName.values());
+        allPatterns.forEach(p => {
+            patterns[p.name] = new Context(p.name, p, allPatterns.filter(o => o !== p));
+        });
+        return patterns;
     }
     _tryToParse(expression) {
         const { ast, cursor, options, isComplete } = this._autoComplete.suggestFor(expression);
@@ -3548,7 +3548,7 @@ class Grammar {
         const patterns = patternNodes.map(n => {
             const rightAssociated = n.find(n => n.name === "right-associated");
             if (rightAssociated != null) {
-                return new RightAssociatedPattern(this._buildPattern(n.children[0]));
+                return new RightAssociated(this._buildPattern(n.children[0]));
             }
             else {
                 return this._buildPattern(n.children[0]);
@@ -3557,13 +3557,13 @@ class Grammar {
         const hasRecursivePattern = patterns.some(p => this._isRecursive(name, p));
         if (hasRecursivePattern && !isGreedy) {
             try {
-                const expression = new ExpressionPattern(name, patterns);
+                const expression = new Expression(name, patterns);
                 return expression;
             }
             catch (_a) { }
         }
-        const or = new Options(name, patterns, isGreedy);
-        return or;
+        const options = new Options(name, patterns, isGreedy);
+        return options;
     }
     _isRecursive(name, pattern) {
         if (pattern.type === "right-associated" && this._isRecursivePattern(name, pattern.children[0])) {
@@ -3618,7 +3618,7 @@ class Grammar {
         this._parseContext.patternsByName.set(name, sequence);
     }
     _buildSequence(name, node) {
-        const patternNodes = node.children.filter(n => n.name !== "and-divider");
+        const patternNodes = node.children.filter(n => n.name !== "sequence-divider");
         const patterns = patternNodes.map(n => {
             const patternNode = n.children[0].name === "not" ? n.children[1] : n.children[0];
             const isNot = n.find(n => n.name === "not") != null;
@@ -3823,5 +3823,5 @@ function patterns(strings, ...values) {
     return result;
 }
 
-export { AutoComplete, Context, Cursor, CursorHistory, ExpressionPattern, Grammar, Literal, Node, Not, Optional, Options, ParseError, Reference, Regex, Repeat, Sequence, compact, grammar, patterns, remove };
+export { AutoComplete, Context, Cursor, CursorHistory, Expression, Grammar, Literal, Node, Not, Optional, Options, ParseError, Reference, Regex, Repeat, RightAssociated, Sequence, compact, grammar, patterns, remove };
 //# sourceMappingURL=index.esm.js.map

@@ -11,8 +11,8 @@ import { Repeat, RepeatOptions } from "../patterns/Repeat";
 import { AutoComplete } from "../intellisense/AutoComplete";
 import { Optional } from "../patterns/Optional";
 import { Context } from "../patterns/Context";
-import { ExpressionPattern } from "../patterns/ExpressionPattern";
-import { RightAssociatedPattern } from "../patterns/RightAssociatedPattern";
+import { Expression } from "../patterns/Expression";
+import { RightAssociated } from "../patterns/RightAssociated";
 
 let anonymousIndexId = 0;
 
@@ -88,17 +88,6 @@ export class Grammar {
         return this._buildPatternRecord();
     }
 
-    private _buildPatternRecord() {
-        const patterns: Record<string, Pattern> = {};
-        const allPatterns = Array.from(this._parseContext.patternsByName.values());
-
-        allPatterns.forEach(p => {
-            patterns[p.name] = new Context(p.name, p, allPatterns.filter(o => o !== p));
-        });
-
-        return patterns;
-    }
-
     parseString(expression: string) {
         this._parseContext = new ParseContext(this._params);
         const ast = this._tryToParse(expression);
@@ -110,6 +99,17 @@ export class Grammar {
         this._buildPatterns(ast);
 
         return this._buildPatternRecord();
+    }
+
+    private _buildPatternRecord() {
+        const patterns: Record<string, Pattern> = {};
+        const allPatterns = Array.from(this._parseContext.patternsByName.values());
+
+        allPatterns.forEach(p => {
+            patterns[p.name] = new Context(p.name, p, allPatterns.filter(o => o !== p));
+        });
+
+        return patterns;
     }
 
     private _tryToParse(expression: string): Node {
@@ -252,23 +252,23 @@ export class Grammar {
         const patterns = patternNodes.map(n => {
             const rightAssociated = n.find(n => n.name === "right-associated");
             if (rightAssociated != null) {
-                return new RightAssociatedPattern(this._buildPattern(n.children[0]));
+                return new RightAssociated(this._buildPattern(n.children[0]));
             } else {
                 return this._buildPattern(n.children[0]);
             }
 
         });
-        
+
         const hasRecursivePattern = patterns.some(p => this._isRecursive(name, p));
         if (hasRecursivePattern && !isGreedy) {
             try {
-                const expression = new ExpressionPattern(name, patterns);
+                const expression = new Expression(name, patterns);
                 return expression;
             } catch { }
         }
 
-        const or = new Options(name, patterns, isGreedy);
-        return or;
+        const options = new Options(name, patterns, isGreedy);
+        return options;
     }
 
     private _isRecursive(name: string, pattern: Pattern) {
@@ -280,7 +280,7 @@ export class Grammar {
     }
 
     private _isRecursivePattern(name: string, pattern: Pattern) {
-        if (pattern.children.length === 0){
+        if (pattern.children.length === 0) {
             return false;
         }
 
@@ -333,7 +333,7 @@ export class Grammar {
     }
 
     private _buildSequence(name: string, node: Node) {
-        const patternNodes = node.children.filter(n => n.name !== "and-divider");
+        const patternNodes = node.children.filter(n => n.name !== "sequence-divider");
 
         const patterns = patternNodes.map(n => {
             const patternNode = n.children[0].name === "not" ? n.children[1] : n.children[0];

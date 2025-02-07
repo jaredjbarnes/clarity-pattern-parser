@@ -21,7 +21,8 @@ import { ParseResult } from "./patterns/ParseResult";
 import { grammar } from "./grammar/patterns/grammar";
 import { patterns } from "./grammar/patterns";
 import { Context } from "./patterns/Context";
-import { ExpressionPattern } from "./patterns/ExpressionPattern";
+import { Expression } from "./patterns/Expression";
+import { RightAssociated } from "./patterns/RightAssociated";
 
 export {
   Node,
@@ -35,7 +36,7 @@ export {
   CursorHistory,
   Match,
   Context,
-  ExpressionPattern,
+  Expression,
   Literal,
   Not,
   Options,
@@ -44,6 +45,7 @@ export {
   ParseResult,
   Pattern,
   Reference,
+  RightAssociated,
   Regex,
   Repeat,
   grammar,

@@ -17,8 +17,8 @@ export declare class Grammar {
     constructor(options?: GrammarOptions);
     import(path: string): Promise<Record<string, Pattern>>;
     parse(expression: string): Promise<Record<string, Pattern>>;
-    private _buildPatternRecord;
     parseString(expression: string): Record<string, Pattern>;
+    private _buildPatternRecord;
     private _tryToParse;
     private _hasImports;
     private _buildPatterns;

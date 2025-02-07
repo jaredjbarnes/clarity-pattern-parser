@@ -5,7 +5,7 @@ import { Pattern } from "./Pattern";
 
 let indexId = 0;
 
-export class RightAssociatedPattern implements Pattern {
+export class RightAssociated implements Pattern {
     private _id: string;
     private _type: string;
     private _name: string;
@@ -61,7 +61,7 @@ export class RightAssociatedPattern implements Pattern {
     }
 
     clone(_name?: string | undefined): Pattern {
-        const clone = new RightAssociatedPattern(this.children[0]);
+        const clone = new RightAssociated(this.children[0]);
         clone._id = this._id;
         return clone;
     }

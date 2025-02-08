@@ -737,7 +737,7 @@
         }
         tryToParse(cursor) {
             const result = this._regex.exec(this._substring);
-            if (result != null && result.length > 0 && result.index === 0) {
+            if (result != null && result[0].length > 0 && result.index === 0) {
                 this.processResult(cursor, result);
             }
             else {

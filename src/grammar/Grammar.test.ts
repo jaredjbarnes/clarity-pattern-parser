@@ -172,10 +172,10 @@ describe("Grammar", () => {
         const patterns = Grammar.parseString(expression);
         const pattern = patterns["digits"];
         const digit = new Regex("digit", "\\d");
-        const digits = new Optional("digits", new Repeat("digits", digit, { min: 0 }));
+        const digits = new Optional("optional-digits", new Repeat("digits", digit, { min: 0 }));
 
-        const expected = new Context("digits", digits, [digit]);
-
+        const expected = new Context("optional-digits", digits, [digit]);
+debugger;
         expect(pattern.isEqual(expected)).toBeTruthy();
     });
 

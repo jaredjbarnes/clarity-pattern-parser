@@ -3607,7 +3607,7 @@
                 const isNot = n.find(n => n.name === "not") != null;
                 const isOptional = n.find(n => n.name === "is-optional");
                 const pattern = this._buildPattern(patternNode);
-                const finalPattern = isOptional ? new Optional(pattern.name, pattern) : pattern;
+                const finalPattern = isOptional ? new Optional(`optional-${pattern.name}`, pattern) : pattern;
                 if (isNot) {
                     return new Not(`not-${finalPattern.name}`, finalPattern);
                 }
@@ -3666,7 +3666,7 @@
                     isOptional = true;
                 }
             }
-            return isOptional ? new Optional(name, new Repeat(name, pattern, options)) : new Repeat(name, pattern, options);
+            return isOptional ? new Optional(name, new Repeat(`inner-optional-${name}`, pattern, options)) : new Repeat(name, pattern, options);
         }
         _saveConfigurableAnonymous(node) {
             const nameNode = node.find(n => n.name === "name");

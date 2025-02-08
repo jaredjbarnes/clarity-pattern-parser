@@ -263,11 +263,6 @@ export class Expression implements Pattern {
 
 
     private _tryToParse(cursor: Cursor): Node | null {
-        if (this._isBeyondRecursiveAllowance()) {
-            cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
-            return null;
-        }
-
         this._shouldStopParsing = false;
 
         while (true) {
@@ -424,25 +419,6 @@ export class Expression implements Pattern {
         if (!foundMatch) {
             this._shouldStopParsing = true;
         }
-    }
-
-
-    private _isBeyondRecursiveAllowance() {
-        let depth = 0;
-        let pattern: Pattern | null = this;
-
-        while (pattern != null) {
-            if (pattern.id === this.id && pattern.startedOnIndex === this.startedOnIndex) {
-                depth++;
-            }
-
-            if (depth > 2) {
-                return true;
-            }
-            pattern = pattern.parent;
-        }
-
-        return false;
     }
 
     test(text: string, record = false): boolean {

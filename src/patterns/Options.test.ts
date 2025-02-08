@@ -7,6 +7,7 @@ import { Pattern } from "./Pattern";
 import { Optional } from "./Optional";
 import { Regex } from "./Regex";
 import { Reference } from "./Reference";
+import { Expression } from "./Expression";
 
 describe("Options", () => {
     test("Empty Options", () => {
@@ -283,7 +284,7 @@ describe("Options", () => {
         const space = new Regex("space", "\\s+");
         const expressionReference = new Reference("expression");
         const ternary = new Sequence("ternary", [expressionReference, space, questionMark, space, expressionReference, space, colon, space, expressionReference]);
-        const expression = new Options("expression", [names, ternary], true);
+        const expression = new Expression("expression", [names, ternary]);
 
         let result = expression.exec("John");
         expect(result.ast?.toString()).toBe("John");

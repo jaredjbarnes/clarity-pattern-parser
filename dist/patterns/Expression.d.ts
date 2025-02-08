@@ -51,7 +51,6 @@ export declare class Expression implements Pattern {
     private _tryToMatchAtom;
     private _tryToMatchPostfix;
     private _tryToMatchBinary;
-    private _isBeyondRecursiveAllowance;
     test(text: string, record?: boolean): boolean;
     exec(text: string, record?: boolean): ParseResult;
     getTokens(): string[];

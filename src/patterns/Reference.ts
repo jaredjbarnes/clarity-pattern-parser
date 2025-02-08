@@ -18,6 +18,8 @@ export class Reference implements Pattern {
   private _pattern: Pattern | null;
   private _children: Pattern[];
   private _firstIndex: number;
+  private _cachedAncestors: boolean;
+  private _recursiveAncestors: Reference[];
 
   get id(): string {
     return this._id;
@@ -56,6 +58,8 @@ export class Reference implements Pattern {
     this._cachedPattern = null;
     this._children = [];
     this._firstIndex = 0;
+    this._cachedAncestors = false;
+    this._recursiveAncestors = [];
   }
 
   test(text: string, record = false): boolean {
@@ -68,7 +72,44 @@ export class Reference implements Pattern {
 
   parse(cursor: Cursor): Node | null {
     this._firstIndex = cursor.index;
+    this._cacheAncestors();
+
+    if (this._isBeyondRecursiveAllowance()) {
+      cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
+      return null;
+    }
+
     return this.getReferencePatternSafely().parse(cursor);
+  }
+
+  private _cacheAncestors() {
+    if (!this._cachedAncestors) {
+      let pattern: Pattern | null = this.parent;
+
+      while (pattern != null) {
+        if (pattern.type === this.type && pattern.id === this._id) {
+          this._recursiveAncestors.push(pattern as Reference);
+        }
+        pattern = pattern.parent;
+      }
+    }
+
+  }
+
+  private _isBeyondRecursiveAllowance() {
+    let depth = 0;
+
+    for (let pattern of this._recursiveAncestors) {
+      if (pattern._firstIndex === this._firstIndex) {
+        depth++;
+
+        if (depth > 2) {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   getReferencePatternSafely(): Pattern {

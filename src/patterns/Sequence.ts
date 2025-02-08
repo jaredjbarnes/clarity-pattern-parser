@@ -98,11 +98,6 @@ export class Sequence implements Pattern {
   }
 
   private tryToParse(cursor: Cursor): boolean {
-    if (this._isBeyondRecursiveAllowance()) {
-      cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
-      return false;
-    }
-
     let passed = false;
 
     for (let i = 0; i < this._children.length; i++) {
@@ -171,24 +166,6 @@ export class Sequence implements Pattern {
     }
 
     return nodes[nodes.length - 1];
-  }
-
-  private _isBeyondRecursiveAllowance() {
-    let depth = 0;
-    let pattern: Pattern | null = this;
-
-    while (pattern != null) {
-      if (pattern.id === this.id && pattern.startedOnIndex === this.startedOnIndex) {
-        depth++;
-      }
-
-      if (depth > 1) {
-        return true;
-      }
-      pattern = pattern.parent;
-    }
-
-    return false;
   }
 
   private areRemainingPatternsOptional(fromIndex: number): boolean {

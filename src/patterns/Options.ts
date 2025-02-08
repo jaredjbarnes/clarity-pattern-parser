@@ -94,10 +94,6 @@ export class Options implements Pattern {
   }
 
   private _tryToParse(cursor: Cursor): Node | null {
-    if (this._isBeyondRecursiveAllowance()) {
-      return null;
-    }
-
     const results: (Node | null)[] = [];
 
     for (const pattern of this._children) {
@@ -121,24 +117,6 @@ export class Options implements Pattern {
     nonNullResults.sort((a, b) => b.endIndex - a.endIndex);
 
     return nonNullResults[0] || null;
-  }
-
-  private _isBeyondRecursiveAllowance() {
-    let depth = 0;
-    let pattern: Pattern | null = this;
-
-    while (pattern != null) {
-      if (pattern.id === this.id && pattern.startedOnIndex === this.startedOnIndex) {
-        depth++;
-      }
-
-      if (depth > 2) {
-        return true;
-      }
-      pattern = pattern.parent;
-    }
-
-    return false;
   }
 
   getTokens(): string[] {

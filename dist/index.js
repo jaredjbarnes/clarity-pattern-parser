@@ -848,6 +848,8 @@ class Reference {
         this._cachedPattern = null;
         this._children = [];
         this._firstIndex = 0;
+        this._cachedAncestors = false;
+        this._recursiveAncestors = [];
     }
     test(text, record = false) {
         return testPattern(this, text, record);
@@ -857,7 +859,35 @@ class Reference {
     }
     parse(cursor) {
         this._firstIndex = cursor.index;
+        this._cacheAncestors();
+        if (this._isBeyondRecursiveAllowance()) {
+            cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
+            return null;
+        }
         return this.getReferencePatternSafely().parse(cursor);
+    }
+    _cacheAncestors() {
+        if (!this._cachedAncestors) {
+            let pattern = this.parent;
+            while (pattern != null) {
+                if (pattern.type === this.type && pattern.id === this._id) {
+                    this._recursiveAncestors.push(pattern);
+                }
+                pattern = pattern.parent;
+            }
+        }
+    }
+    _isBeyondRecursiveAllowance() {
+        let depth = 0;
+        for (let pattern of this._recursiveAncestors) {
+            if (pattern._firstIndex === this._firstIndex) {
+                depth++;
+                if (depth > 2) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
     getReferencePatternSafely() {
         if (this._pattern === null) {
@@ -1044,9 +1074,6 @@ class Options {
         return null;
     }
     _tryToParse(cursor) {
-        if (this._isBeyondRecursiveAllowance()) {
-            return null;
-        }
         const results = [];
         for (const pattern of this._children) {
             cursor.moveTo(this._firstIndex);
@@ -1063,20 +1090,6 @@ class Options {
         const nonNullResults = results.filter(r => r != null);
         nonNullResults.sort((a, b) => b.endIndex - a.endIndex);
         return nonNullResults[0] || null;
-    }
-    _isBeyondRecursiveAllowance() {
-        let depth = 0;
-        let pattern = this;
-        while (pattern != null) {
-            if (pattern.id === this.id && pattern.startedOnIndex === this.startedOnIndex) {
-                depth++;
-            }
-            if (depth > 2) {
-                return true;
-            }
-            pattern = pattern.parent;
-        }
-        return false;
     }
     getTokens() {
         const tokens = [];
@@ -1733,10 +1746,6 @@ class Sequence {
         return null;
     }
     tryToParse(cursor) {
-        if (this._isBeyondRecursiveAllowance()) {
-            cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
-            return false;
-        }
         let passed = false;
         for (let i = 0; i < this._children.length; i++) {
             const runningCursorIndex = cursor.index;
@@ -1799,20 +1808,6 @@ class Sequence {
             return null;
         }
         return nodes[nodes.length - 1];
-    }
-    _isBeyondRecursiveAllowance() {
-        let depth = 0;
-        let pattern = this;
-        while (pattern != null) {
-            if (pattern.id === this.id && pattern.startedOnIndex === this.startedOnIndex) {
-                depth++;
-            }
-            if (depth > 1) {
-                return true;
-            }
-            pattern = pattern.parent;
-        }
-        return false;
     }
     areRemainingPatternsOptional(fromIndex) {
         const startOnIndex = fromIndex + 1;
@@ -3057,10 +3052,6 @@ class Expression {
         return null;
     }
     _tryToParse(cursor) {
-        if (this._isBeyondRecursiveAllowance()) {
-            cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
-            return null;
-        }
         this._shouldStopParsing = false;
         while (true) {
             cursor.resolveError();
@@ -3190,20 +3181,6 @@ class Expression {
         if (!foundMatch) {
             this._shouldStopParsing = true;
         }
-    }
-    _isBeyondRecursiveAllowance() {
-        let depth = 0;
-        let pattern = this;
-        while (pattern != null) {
-            if (pattern.id === this.id && pattern.startedOnIndex === this.startedOnIndex) {
-                depth++;
-            }
-            if (depth > 2) {
-                return true;
-            }
-            pattern = pattern.parent;
-        }
-        return false;
     }
     test(text, record = false) {
         return testPattern(this, text, record);

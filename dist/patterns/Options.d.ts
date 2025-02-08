@@ -23,7 +23,6 @@ export declare class Options implements Pattern {
     exec(text: string, record?: boolean): ParseResult;
     parse(cursor: Cursor): Node | null;
     private _tryToParse;
-    private _isBeyondRecursiveAllowance;
     getTokens(): string[];
     getTokensAfter(_childReference: Pattern): string[];
     getNextTokens(): string[];

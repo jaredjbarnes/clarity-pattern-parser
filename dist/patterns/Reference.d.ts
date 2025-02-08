@@ -11,6 +11,8 @@ export declare class Reference implements Pattern {
     private _pattern;
     private _children;
     private _firstIndex;
+    private _cachedAncestors;
+    private _recursiveAncestors;
     get id(): string;
     get type(): string;
     get name(): string;
@@ -22,6 +24,8 @@ export declare class Reference implements Pattern {
     test(text: string, record?: boolean): boolean;
     exec(text: string, record?: boolean): ParseResult;
     parse(cursor: Cursor): Node | null;
+    private _cacheAncestors;
+    private _isBeyondRecursiveAllowance;
     getReferencePatternSafely(): Pattern;
     private _findPattern;
     private _isValidPattern;

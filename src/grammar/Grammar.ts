@@ -416,7 +416,7 @@ export class Grammar {
     private _saveConfigurableAnonymous(node: Node) {
         const nameNode = node.find(n => n.name === "name") as Node;
         const name = nameNode.value;
-        const anonymousNode = node.find(n => n.name === "complex-anonymous-pattern") as Node;
+        const anonymousNode = node.find(n => n.name === "configurable-anonymous-pattern") as Node;
         const isOptional = node.children[1] != null;
 
         const anonymous = isOptional ? new Optional(name, this._buildPattern(anonymousNode)) : this._buildPattern(anonymousNode);

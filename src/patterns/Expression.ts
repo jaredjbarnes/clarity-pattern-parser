@@ -233,7 +233,9 @@ export class Expression implements Pattern {
         }
 
         if (pattern.type === "reference") {
+            pattern.parent = this;
             pattern = (pattern as Reference).getReferencePatternSafely();
+            pattern.parent = null;
         }
 
         return pattern;

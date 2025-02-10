@@ -280,6 +280,10 @@ export class Grammar {
     }
 
     private _isRecursivePattern(name: string, pattern: Pattern) {
+        if (pattern.type === "reference") {
+            return true;
+        }
+
         if (pattern.children.length === 0) {
             return false;
         }
@@ -287,10 +291,9 @@ export class Grammar {
         const firstChild = pattern.children[0];
         const lastChild = pattern.children[pattern.children.length - 1];
         const isLongEnough = pattern.children.length >= 2;
-        return pattern.type === "reference" ||
-            (pattern.type === "sequence" && isLongEnough &&
-                (firstChild.name === name) ||
-                (lastChild.name === name));
+        return (pattern.type === "sequence" && isLongEnough &&
+            (firstChild.name === name) ||
+            (lastChild.name === name));
     }
 
     private _buildPattern(node: Node): Pattern {

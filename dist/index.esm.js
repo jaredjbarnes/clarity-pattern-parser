@@ -3025,7 +3025,9 @@ class Expression {
             pattern = pattern.children[0];
         }
         if (pattern.type === "reference") {
+            pattern.parent = this;
             pattern = pattern.getReferencePatternSafely();
+            pattern.parent = null;
         }
         return pattern;
     }
@@ -3563,16 +3565,18 @@ class Grammar {
         return this._isRecursivePattern(name, pattern);
     }
     _isRecursivePattern(name, pattern) {
+        if (pattern.type === "reference") {
+            return true;
+        }
         if (pattern.children.length === 0) {
             return false;
         }
         const firstChild = pattern.children[0];
         const lastChild = pattern.children[pattern.children.length - 1];
         const isLongEnough = pattern.children.length >= 2;
-        return pattern.type === "reference" ||
-            (pattern.type === "sequence" && isLongEnough &&
-                (firstChild.name === name) ||
-                (lastChild.name === name));
+        return (pattern.type === "sequence" && isLongEnough &&
+            (firstChild.name === name) ||
+            (lastChild.name === name));
     }
     _buildPattern(node) {
         const type = node.name;

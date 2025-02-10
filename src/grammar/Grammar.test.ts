@@ -10,6 +10,7 @@ import { Grammar } from "./Grammar";
 import { Optional } from "../patterns/Optional";
 import { Context } from "../patterns/Context";
 import { patterns } from "./patterns";
+import { Expression } from "../patterns/Expression";
 
 describe("Grammar", () => {
     test("Literal", () => {
@@ -517,7 +518,7 @@ debugger;
             ],
                 true
             ),
-            new Options("anonymous", [
+            new Expression("anonymous", [
                 new Reference("pattern"),
                 new Reference("pattern")
             ])

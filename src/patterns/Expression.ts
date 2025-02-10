@@ -7,6 +7,7 @@ import { Sequence } from "./Sequence";
 import { Association, PrecedenceTree } from './PrecedenceTree';
 import { testPattern } from "./testPattern";
 import { execPattern } from "./execPattern";
+import { Reference } from "./Reference";
 
 let indexId = 0;
 
@@ -227,7 +228,11 @@ export class Expression implements Pattern {
 
     private _unwrapAssociationIfNecessary(pattern: Pattern) {
         if (pattern.type === "right-associated") {
-            return pattern.children[0];
+            pattern = pattern.children[0];
+        }
+
+        if (pattern.type === "reference"){
+            pattern = (pattern as Reference).getReferencePatternSafely();
         }
 
         return pattern;

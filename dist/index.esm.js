@@ -3022,7 +3022,10 @@ class Expression {
     }
     _unwrapAssociationIfNecessary(pattern) {
         if (pattern.type === "right-associated") {
-            return pattern.children[0];
+            pattern = pattern.children[0];
+        }
+        if (pattern.type === "reference") {
+            pattern = pattern.getReferencePatternSafely();
         }
         return pattern;
     }

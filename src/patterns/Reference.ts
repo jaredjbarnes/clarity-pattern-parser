@@ -104,7 +104,7 @@ export class Reference implements Pattern {
       if (pattern._firstIndex === this._firstIndex) {
         depth++;
 
-        if (depth > 2) {
+        if (depth > 1) {
           return true;
         }
       }

@@ -883,7 +883,7 @@ class Reference {
         for (let pattern of this._recursiveAncestors) {
             if (pattern._firstIndex === this._firstIndex) {
                 depth++;
-                if (depth > 2) {
+                if (depth > 1) {
                     return true;
                 }
             }

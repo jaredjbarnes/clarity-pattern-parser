@@ -72,28 +72,29 @@ export class Reference implements Pattern {
 
   parse(cursor: Cursor): Node | null {
     this._firstIndex = cursor.index;
-    this._cacheAncestors();
-
+    
+    const pattern = this.getReferencePatternSafely();
+    
+    this._cacheAncestors(pattern.id);
     if (this._isBeyondRecursiveAllowance()) {
       cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
       return null;
     }
 
-    return this.getReferencePatternSafely().parse(cursor);
+    return pattern.parse(cursor);
   }
 
-  private _cacheAncestors() {
+  private _cacheAncestors(id: string) {
     if (!this._cachedAncestors) {
       let pattern: Pattern | null = this.parent;
 
       while (pattern != null) {
-        if (pattern.type === this.type && pattern.id === this._id) {
+        if (pattern.id === id) {
           this._recursiveAncestors.push(pattern as Reference);
         }
         pattern = pattern.parent;
       }
     }
-
   }
 
   private _isBeyondRecursiveAllowance() {

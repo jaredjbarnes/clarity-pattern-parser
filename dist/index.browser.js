@@ -861,18 +861,19 @@
         }
         parse(cursor) {
             this._firstIndex = cursor.index;
-            this._cacheAncestors();
+            const pattern = this.getReferencePatternSafely();
+            this._cacheAncestors(pattern.id);
             if (this._isBeyondRecursiveAllowance()) {
                 cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
                 return null;
             }
-            return this.getReferencePatternSafely().parse(cursor);
+            return pattern.parse(cursor);
         }
-        _cacheAncestors() {
+        _cacheAncestors(id) {
             if (!this._cachedAncestors) {
                 let pattern = this.parent;
                 while (pattern != null) {
-                    if (pattern.type === this.type && pattern.id === this._id) {
+                    if (pattern.id === id) {
                         this._recursiveAncestors.push(pattern);
                     }
                     pattern = pattern.parent;

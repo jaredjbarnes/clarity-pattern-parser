@@ -272,8 +272,8 @@ export class Grammar {
     }
 
     private _isRecursive(name: string, pattern: Pattern) {
-        if (pattern.type === "right-associated" && this._isRecursivePattern(name, pattern.children[0])) {
-            return true;
+        if (pattern.type === "right-associated") {
+            pattern = pattern.children[0];
         }
 
         return this._isRecursivePattern(name, pattern);
@@ -287,9 +287,10 @@ export class Grammar {
         const firstChild = pattern.children[0];
         const lastChild = pattern.children[pattern.children.length - 1];
         const isLongEnough = pattern.children.length >= 2;
-        return pattern.type === "sequence" && isLongEnough &&
-            (firstChild.type === "reference" && firstChild.name === name) ||
-            (lastChild.type === "reference" && lastChild.name === name);
+        return pattern.type === "reference" ||
+            (pattern.type === "sequence" && isLongEnough &&
+                (firstChild.type === "reference" && firstChild.name === name) ||
+                (lastChild.type === "reference" && lastChild.name === name));
     }
 
     private _buildPattern(node: Node): Pattern {

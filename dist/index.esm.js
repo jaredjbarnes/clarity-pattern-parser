@@ -2918,12 +2918,10 @@ class Expression {
         this._associationMap = {};
         this._precedenceMap = {};
         this._originalPatterns = patterns;
-        this._patterns = this._organizePatterns(patterns);
         this._shouldStopParsing = false;
-        this._precedenceTree = new PrecedenceTree(this._precedenceMap, this._associationMap);
-        if (this._atomPatterns.length === 0) {
-            throw new Error("Need at least one terminating pattern with an 'expression' pattern.");
-        }
+        this._hasOrganized = false;
+        this._patterns = [];
+        this._precedenceTree = new PrecedenceTree({}, {});
     }
     _organizePatterns(patterns) {
         const finalPatterns = [];
@@ -2966,6 +2964,8 @@ class Expression {
                 finalPatterns.push(binary);
             }
         });
+        this._patterns = finalPatterns;
+        this._precedenceTree = new PrecedenceTree(this._precedenceMap, this._associationMap);
         return finalPatterns;
     }
     _extractName(pattern) {
@@ -3040,6 +3040,16 @@ class Expression {
     }
     parse(cursor) {
         this._firstIndex = cursor.index;
+        if (!this._hasOrganized) {
+            this._hasOrganized = true;
+            this._organizePatterns(this._originalPatterns);
+        }
+        // If there are not any atom nodes then nothing can be found.
+        if (this._atomPatterns.length < 1) {
+            cursor.moveTo(this._firstIndex);
+            cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
+            return null;
+        }
         const node = this._tryToParse(cursor);
         if (node != null) {
             node.normalize(this._firstIndex);
@@ -3547,8 +3557,8 @@ class Grammar {
         return options;
     }
     _isRecursive(name, pattern) {
-        if (pattern.type === "right-associated" && this._isRecursivePattern(name, pattern.children[0])) {
-            return true;
+        if (pattern.type === "right-associated") {
+            pattern = pattern.children[0];
         }
         return this._isRecursivePattern(name, pattern);
     }
@@ -3559,9 +3569,10 @@ class Grammar {
         const firstChild = pattern.children[0];
         const lastChild = pattern.children[pattern.children.length - 1];
         const isLongEnough = pattern.children.length >= 2;
-        return pattern.type === "sequence" && isLongEnough &&
-            (firstChild.type === "reference" && firstChild.name === name) ||
-            (lastChild.type === "reference" && lastChild.name === name);
+        return pattern.type === "reference" ||
+            (pattern.type === "sequence" && isLongEnough &&
+                (firstChild.type === "reference" && firstChild.name === name) ||
+                (lastChild.type === "reference" && lastChild.name === name));
     }
     _buildPattern(node) {
         const type = node.name;

@@ -30,6 +30,7 @@ export class Expression implements Pattern {
     private _precedenceMap: Record<string, number>;
     private _shouldStopParsing: boolean;
     private _precedenceTree: PrecedenceTree;
+    private _hasOrganized: boolean;
 
     get id(): string {
         return this._id;
@@ -95,13 +96,10 @@ export class Expression implements Pattern {
         this._associationMap = {};
         this._precedenceMap = {};
         this._originalPatterns = patterns;
-        this._patterns = this._organizePatterns(patterns);
         this._shouldStopParsing = false;
-        this._precedenceTree = new PrecedenceTree(this._precedenceMap, this._associationMap);
-
-        if (this._atomPatterns.length === 0) {
-            throw new Error("Need at least one terminating pattern with an 'expression' pattern.");
-        }
+        this._hasOrganized = false;
+        this._patterns = [];
+        this._precedenceTree = new PrecedenceTree({}, {});
     }
 
     private _organizePatterns(patterns: Pattern[]) {
@@ -152,6 +150,9 @@ export class Expression implements Pattern {
                 finalPatterns.push(binary);
             }
         });
+
+        this._patterns = finalPatterns;
+        this._precedenceTree = new PrecedenceTree(this._precedenceMap, this._associationMap);
 
         return finalPatterns;
     }
@@ -231,7 +232,7 @@ export class Expression implements Pattern {
             pattern = pattern.children[0];
         }
 
-        if (pattern.type === "reference"){
+        if (pattern.type === "reference") {
             pattern = (pattern as Reference).getReferencePatternSafely();
         }
 
@@ -251,6 +252,19 @@ export class Expression implements Pattern {
 
     parse(cursor: Cursor): Node | null {
         this._firstIndex = cursor.index;
+
+        if (!this._hasOrganized) {
+            this._hasOrganized = true;
+            this._organizePatterns(this._originalPatterns);
+        }
+
+        // If there are not any atom nodes then nothing can be found.
+        if (this._atomPatterns.length < 1) {
+            cursor.moveTo(this._firstIndex);
+            cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
+            return null;
+        }
+
         const node = this._tryToParse(cursor);
 
         if (node != null) {

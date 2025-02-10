@@ -21,6 +21,7 @@ export declare class Expression implements Pattern {
     private _precedenceMap;
     private _shouldStopParsing;
     private _precedenceTree;
+    private _hasOrganized;
     get id(): string;
     get type(): string;
     get name(): string;

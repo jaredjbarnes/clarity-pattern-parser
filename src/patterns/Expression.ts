@@ -247,7 +247,7 @@ export class Expression implements Pattern {
         if (pattern == null) {
             return false;
         }
-        return pattern.type === "reference" && pattern.name === this.name;
+        return pattern.name === this.name;
     }
 
     parse(cursor: Cursor): Node | null {

@@ -289,8 +289,8 @@ export class Grammar {
         const isLongEnough = pattern.children.length >= 2;
         return pattern.type === "reference" ||
             (pattern.type === "sequence" && isLongEnough &&
-                (firstChild.type === "reference" && firstChild.name === name) ||
-                (lastChild.type === "reference" && lastChild.name === name));
+                (firstChild.name === name) ||
+                (lastChild.name === name));
     }
 
     private _buildPattern(node: Node): Pattern {

@@ -3040,7 +3040,7 @@ class Expression {
         if (pattern == null) {
             return false;
         }
-        return pattern.type === "reference" && pattern.name === this.name;
+        return pattern.name === this.name;
     }
     parse(cursor) {
         this._firstIndex = cursor.index;
@@ -3575,8 +3575,8 @@ class Grammar {
         const isLongEnough = pattern.children.length >= 2;
         return pattern.type === "reference" ||
             (pattern.type === "sequence" && isLongEnough &&
-                (firstChild.type === "reference" && firstChild.name === name) ||
-                (lastChild.type === "reference" && lastChild.name === name));
+                (firstChild.name === name) ||
+                (lastChild.name === name));
     }
     _buildPattern(node) {
         const type = node.name;

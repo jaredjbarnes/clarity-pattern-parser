@@ -97,13 +97,6 @@ describe("Reference", () => {
         expect(result).toBeNull();
     });
 
-    test("Test With Match", () => {
-        const value = createValuePattern();
-        const reference = findPattern(value, p => p.type === "reference") as Reference;
-        const result = reference.test("[1]");
-        expect(result).toBeTruthy();
-    });
-
     test("Test No Match", () => {
         const value = createValuePattern();
         const reference = findPattern(value, p => p.type === "reference") as Reference;

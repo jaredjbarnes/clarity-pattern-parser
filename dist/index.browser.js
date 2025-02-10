@@ -885,7 +885,7 @@
             for (let pattern of this._recursiveAncestors) {
                 if (pattern._firstIndex === this._firstIndex) {
                     depth++;
-                    if (depth > 1) {
+                    if (depth > 0) {
                         return true;
                     }
                 }

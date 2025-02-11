@@ -10,10 +10,14 @@ export class Query {
             this.find(selector);
         }
     }
-
+    // Actions
     slice(start: number, end?: number) {
         return new Query(this._context.slice(start, end));
     }
+
+    forEach() { }
+    every() { }
+    some() { }
 
     // Modifiers
     append() { }
@@ -24,18 +28,28 @@ export class Query {
 
     before() { }
 
+    replace() { }
 
     // Refiners
+
+    // Filters from the currently matched nodes
     filter(selector: string) { }
 
+    // Selects out of all descedants of currently matched nodes
     find(selector: string) { }
 
+    // Remove nodes from the set of matched nodes.
     not(selector: string) { }
 
+    // Select the parent of currently matched nodes
     parent() { }
 
+    // Select the ancestors of currently matched nodes
     parents(selector: string) { }
 
+    first(){
+        
+    }
 
     // Pop query stack
     end() {

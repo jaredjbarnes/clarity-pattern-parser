@@ -8,11 +8,11 @@ import { Options } from "../patterns/Options";
 import { Not } from "../patterns/Not";
 import { Sequence } from "../patterns/Sequence";
 import { Repeat, RepeatOptions } from "../patterns/Repeat";
-import { AutoComplete } from "../intellisense/AutoComplete";
 import { Optional } from "../patterns/Optional";
 import { Context } from "../patterns/Context";
 import { Expression } from "../patterns/Expression";
 import { RightAssociated } from "../patterns/RightAssociated";
+import { generateErrorMessage } from "../patterns/generate_error_message";
 
 let anonymousIndexId = 0;
 
@@ -55,16 +55,12 @@ export class Grammar {
     private _originResource?: string | null;
     private _resolveImport: (resource: string, originResource: string | null) => Promise<GrammarFile>;
     private _parseContext: ParseContext;
-    private _autoComplete: AutoComplete;
 
     constructor(options: GrammarOptions = {}) {
         this._params = options?.params == null ? [] : options.params;
         this._originResource = options?.originResource == null ? null : options.originResource;
         this._resolveImport = options.resolveImport == null ? defaultImportResolver : options.resolveImport;
         this._parseContext = new ParseContext(this._params);
-        this._autoComplete = new AutoComplete(grammar, {
-            greedyPatternNames: ["spaces", "optional-spaces", "whitespace", "new-line"],
-        });
     }
 
     async import(path: string) {
@@ -113,22 +109,14 @@ export class Grammar {
     }
 
     private _tryToParse(expression: string): Node {
-        const { ast, cursor, options, isComplete } = this._autoComplete.suggestFor(expression);
+        const { ast, cursor } = grammar.exec(expression, true);
 
-        if (!isComplete) {
-            const text = cursor?.text || "";
-            const index = options.reduce((num, o) => Math.max(o.startIndex, num), 0);
-            const foundText = text.slice(Math.max(index - 10, 0), index + 10);
-            const expectedTexts = "'" + options.map(o => {
-                const startText = text.slice(Math.max(o.startIndex - 10), o.startIndex);
-                return startText + o.text;
-            }).join("' or '") + "'";
-            const message = `[Parse Error] Found: '${foundText}', expected: ${expectedTexts}.`;
-            throw new Error(message);
+        if (ast == null) {
+            const message = generateErrorMessage(grammar, cursor);
+            throw new Error(`[Invalid Grammar] ${message}`);
         }
 
-        // If it is complete it will always have a node. So we have to cast it.
-        return ast as Node;
+        return ast;
     }
 
     private _hasImports(ast: Node) {
@@ -291,7 +279,7 @@ export class Grammar {
         const firstChild = pattern.children[0];
         const lastChild = pattern.children[pattern.children.length - 1];
         const isLongEnough = pattern.children.length >= 2;
-        
+
         return pattern.type === "sequence" && isLongEnough &&
             (firstChild.name === name ||
                 lastChild.name === name);

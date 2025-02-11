@@ -48,12 +48,12 @@ export class Selector {
                 return this._selectWithCombinator(n, () => true);
             }).flat();
         }
-        else if (nodeName === "name-selector" || nodeName === "name") {
+        else if (nodeName === "name-selector" || (nodeName === "name" && (!ast.parent || ast.parent.name !== "name-selector"))) {
 
             if (ast.children.length > 1) {
                 this._selectedNodes = this._selectedNodes.map(n => {
                     const attributeName = ast.find(n => n.name === "attribute-name") as Node;
-                    const attributeValue = ast.find(n => n.name === "attribute-value") as Node;
+                    const attributeValue = this._getAttributeValue(ast);
                     const name = ast.children[0].value;
 
                     return this._selectWithCombinator(n, (node: Node) => {
@@ -61,7 +61,7 @@ export class Selector {
                             return false;
                         }
                         return node.name === name &&
-                            (node as any)[attributeName.value].toString() === attributeValue.value.toString();
+                            (node as any)[attributeName.value].toString() === attributeValue;
                     });
 
                 }).flat();
@@ -72,16 +72,16 @@ export class Selector {
             }
 
         }
-        else if (nodeName === "attribute-selector") {
+        else if (nodeName === "attribute-selector" && (ast.parent == null || ast.parent.name !== "name-selector")) {
             this._selectedNodes = this._selectedNodes.map(n => {
                 const attributeName = ast.find(n => n.name === "attribute-name") as Node;
-                const attributeValue = ast.find(n => n.name === "attribute-value") as Node;
+                const attributeValue = this._getAttributeValue(ast);
 
                 return this._selectWithCombinator(n, (node: Node) => {
                     if ((node as any)[attributeName.value] == null) {
                         return false;
                     }
-                    return (node as any)[attributeName.value].toString() === attributeValue.value.toString();
+                    return (node as any)[attributeName.value].toString() === attributeValue;
                 });
 
             }).flat();
@@ -126,6 +126,24 @@ export class Selector {
         } else {
             return [];
         }
+    }
+
+    private _getAttributeValue(nameSelector: Node) {
+        let valueNode: Node | null = nameSelector.find(n => n.name === "single-quote-string-literal");
+
+        if (valueNode != null) {
+            return valueNode.value.slice(1, -1);
+        } else {
+            valueNode = nameSelector.find(n => n.name === "value");
+        }
+
+        if (valueNode != null) {
+            return valueNode.value;
+        } else {
+            valueNode = nameSelector.find(n => n.name === "number");
+        }
+
+        return (valueNode as Node).value;
     }
 
 }

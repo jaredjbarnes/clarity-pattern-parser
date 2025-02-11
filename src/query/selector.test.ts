@@ -87,4 +87,24 @@ describe("Selector", () => {
         expect(result.length).toBe(6);
         expect(result.map(n => n.toString()).join(",")).toEqual("1234,5678,9101112,13141516,17181920,21222324");
     });
+
+    test("More Than One Direct Child", () => {
+        const tree = createNodeTree();
+
+        const selector = new Selector("grand-parent > parent > child");
+        const result = selector.executeOn([tree]);
+
+        expect(result.length).toBe(24);
+        expect(result.map(n => n.toString()).join(",")).toEqual("1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24");
+    });
+
+    test("Direct Child With Attribute", () => {
+        const tree = createNodeTree();
+
+        const selector = new Selector("grand-parent > parent > child[value='4']");
+        const result = selector.executeOn([tree]);
+
+        expect(result.length).toBe(1);
+        expect(result.map(n => n.toString()).join(",")).toEqual("4");
+    });
 });

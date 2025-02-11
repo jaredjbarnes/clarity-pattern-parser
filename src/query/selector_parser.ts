@@ -25,8 +25,9 @@ operators =      equal |
           greater-than | 
              less-than
              
+value = name
 attribute-name = name
-attribute-value = single-quote-string-literal | number | name
+attribute-value = single-quote-string-literal | number | value
 attribute-selector = "[" + spaces? + attribute-name + spaces? + operators + spaces? + attribute-value + "]"
 
 adjacent = spaces? + "+" + spaces?

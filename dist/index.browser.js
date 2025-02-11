@@ -3580,9 +3580,9 @@
             const firstChild = pattern.children[0];
             const lastChild = pattern.children[pattern.children.length - 1];
             const isLongEnough = pattern.children.length >= 2;
-            return (pattern.type === "sequence" && isLongEnough &&
-                (firstChild.name === name) ||
-                (lastChild.name === name));
+            return pattern.type === "sequence" && isLongEnough &&
+                (firstChild.name === name ||
+                    lastChild.name === name);
         }
         _buildPattern(node) {
             const type = node.name;

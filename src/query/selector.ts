@@ -3,10 +3,22 @@ import { selectorParser } from "./selector_parser";
 import { Node } from "../ast/Node";
 
 const combinatorMap: Record<string, boolean> = {
-    adjacent: true,
-    after: true,
-    descendant: true,
+    "adjacent": true,
+    "after": true,
+    "descendant": true,
     "direct-child": true
+};
+
+const operatorMap: Record<string, boolean> = {
+    "equal": true,
+    "not-equal": true,
+    "starts-with": true,
+    "ends-with": true,
+    "contains": true,
+    "greater-than-or-equal": true,
+    "less-than-or-equal": true,
+    "greater-than": true,
+    "less-than": true
 };
 
 export class Selector {
@@ -52,16 +64,10 @@ export class Selector {
 
             if (ast.children.length > 1) {
                 this._selectedNodes = this._selectedNodes.map(n => {
-                    const attributeName = ast.find(n => n.name === "attribute-name") as Node;
-                    const attributeValue = this._getAttributeValue(ast);
                     const name = ast.children[0].value;
 
                     return this._selectWithCombinator(n, (node: Node) => {
-                        if ((node as any)[attributeName.value] == null) {
-                            return false;
-                        }
-                        return node.name === name &&
-                            (node as any)[attributeName.value].toString() === attributeValue;
+                        return node.name === name && this._isAttributeMatch(node, ast);
                     });
 
                 }).flat();
@@ -74,14 +80,8 @@ export class Selector {
         }
         else if (nodeName === "attribute-selector" && (ast.parent == null || ast.parent.name !== "name-selector")) {
             this._selectedNodes = this._selectedNodes.map(n => {
-                const attributeName = ast.find(n => n.name === "attribute-name") as Node;
-                const attributeValue = this._getAttributeValue(ast);
-
                 return this._selectWithCombinator(n, (node: Node) => {
-                    if ((node as any)[attributeName.value] == null) {
-                        return false;
-                    }
-                    return (node as any)[attributeName.value].toString() === attributeValue;
+                    return this._isAttributeMatch(node, ast);
                 });
 
             }).flat();
@@ -128,22 +128,63 @@ export class Selector {
         }
     }
 
-    private _getAttributeValue(nameSelector: Node) {
-        let valueNode: Node | null = nameSelector.find(n => n.name === "single-quote-string-literal");
+    private _isAttributeMatch(node: Node, ast: Node) {
+        const name = this._getAttributeName(ast);
+        const operator = this._getAttributeOperator(ast);
+        const value = this._getAttributeValue(ast);
+        const anyNode = node as any;
+
+        if (anyNode[name] == null) {
+            return false;
+        }
+
+        if (operator === "equal") {
+            return anyNode[name] === value;
+        } else if (operator === "not-equal") {
+            return anyNode[name] !== value;
+        } else if (operator === "starts-with") {
+            return anyNode[name].toString().startsWith(value);
+        } else if (operator === "ends-with") {
+            return anyNode[name].toString().endsWith(value);
+        } else if (operator === "contains") {
+            return anyNode[name].toString().includes(value);
+        } else if (operator === "greater-than-or-equal") {
+            return anyNode[name] >= value;
+        } else if (operator === "less-than-or-equal") {
+            return anyNode[name] <= value;
+        } else if (operator === "greater-than") {
+            return anyNode[name] > value;
+        } else if (operator === "less-than") {
+            return anyNode[name] < value;
+        }
+
+        return false;
+    }
+
+    private _getAttributeName(ast: Node) {
+        return (ast.find(n => n.name === "attribute-name") as Node).value;
+    }
+
+    private _getAttributeValue(ast: Node) {
+        let valueNode: Node | null = ast.find(n => n.name === "single-quote-string-literal");
 
         if (valueNode != null) {
             return valueNode.value.slice(1, -1);
         } else {
-            valueNode = nameSelector.find(n => n.name === "value");
+            valueNode = ast.find(n => n.name === "value");
         }
 
         if (valueNode != null) {
             return valueNode.value;
         } else {
-            valueNode = nameSelector.find(n => n.name === "number");
+            valueNode = ast.find(n => n.name === "number");
         }
 
         return (valueNode as Node).value;
+    }
+
+    private _getAttributeOperator(ast: Node) {
+        return (ast.find(n => operatorMap[n.name]) as Node).name;
     }
 
 }

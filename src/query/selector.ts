@@ -40,16 +40,66 @@ export class Selector {
         this._selectorAst = result.ast;
     }
 
-    executeOn(nodes: Node[]) {
+    find(nodes: Node[]) {
         this._selectedNodes = nodes;
 
         const ast = this._selectorAst;
-
         ast.walkUp((node) => {
             this._process(node);
         });
 
         return this._selectedNodes;
+    }
+
+    filter(nodes: Node[]) {
+        if (nodes.length < 1) {
+            return [];
+        }
+
+        const nodeMap = new Map();
+        nodes.forEach(n => nodeMap.set(n, n));
+
+        this._selectedNodes = [nodes[nodes.length - 1]];
+
+        const ast = this._selectorAst;
+        ast.walkUp((node) => {
+            this._process(node);
+        });
+
+        return this._selectedNodes.filter(n => nodeMap.has(n));
+    }
+
+    not(nodes: Node[]) {
+        if (nodes.length < 1) {
+            return [];
+        }
+
+        this._selectedNodes = [nodes[nodes.length - 1]];
+
+        const ast = this._selectorAst;
+        ast.walkUp((node) => {
+            this._process(node);
+        });
+
+        const nodeMap = new Map();
+        this._selectedNodes.forEach(n => nodeMap.set(n, n));
+
+        return nodes.filter(n => !nodeMap.has(n));
+    }
+
+    parents(nodes: Node[]) {
+        if (nodes.length < 1) {
+            return [];
+        }
+
+        this._selectedNodes = [nodes[nodes.length - 1]];
+
+        const ast = this._selectorAst;
+        ast.walkUp((node) => {
+            this._process(node);
+        });
+
+        return this._selectedNodes.filter(n => n.findAncestor(a=>nodes.includes(a)) != null);
     }
 
     private _process(ast: Node) {
@@ -88,7 +138,7 @@ export class Selector {
         const selectors = selectorNodes.map(n => new Selector(n.toString()));
 
         selectors.map(s => {
-            return s.executeOn(this._selectedNodes.slice());
+            return s.find(this._selectedNodes.slice());
         }).flat().forEach((node) => {
             set.add(node);
         });

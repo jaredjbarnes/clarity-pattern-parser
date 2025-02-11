@@ -86,6 +86,8 @@ export class Reference implements Pattern {
 
   private _cacheAncestors(id: string) {
     if (!this._cachedAncestors) {
+      this._cachedAncestors = true;
+
       let pattern: Pattern | null = this.parent;
 
       while (pattern != null) {
@@ -101,7 +103,7 @@ export class Reference implements Pattern {
     let depth = 0;
 
     for (let pattern of this._recursiveAncestors) {
-      if (pattern._firstIndex === this._firstIndex) {
+      if (pattern.startedOnIndex === this.startedOnIndex) {
         depth++;
 
         if (depth > 0) {

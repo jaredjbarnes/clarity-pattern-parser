@@ -120,6 +120,46 @@ describe("Selector", () => {
         expect(result.map(n => n.toString()).join(",")).toEqual("4");
     });
 
+    test("Adjacent", () => {
+        const tree = createNodeTree();
+
+        const selector = new Selector("child + [value='4']");
+        const result = selector.executeOn([tree]);
+
+        expect(result.length).toBe(1);
+        expect(result.map(n => n.toString()).join(",")).toEqual("4");
+    });
+
+    test("Adjacent Miss", () => {
+        const tree = createNodeTree();
+
+        const selector = new Selector("parent + [value='4']");
+        const result = selector.executeOn([tree]);
+
+        expect(result.length).toBe(0);
+        expect(result.map(n => n.toString()).join(",")).toEqual("");
+    });
+
+    test("After", () => {
+        const tree = createNodeTree();
+
+        const selector = new Selector("[value='2'] ~ *");
+        const result = selector.executeOn([tree]);
+
+        expect(result.length).toBe(2);
+        expect(result.map(n => n.toString()).join(",")).toEqual("3,4");
+    });
+
+    test("After Miss", () => {
+        const tree = createNodeTree();
+
+        const selector = new Selector("[value='2'] ~ not-a-node");
+        const result = selector.executeOn([tree]);
+
+        expect(result.length).toBe(0);
+        expect(result.map(n => n.toString()).join(",")).toEqual("");
+    });
+
     test("Not Equal Attribute", () => {
         const tree = createNodeTree();
 
@@ -198,5 +238,25 @@ describe("Selector", () => {
 
         expect(result.length).toBe(5);
         expect(result.map(n => n.toString()).join(",")).toEqual("1,2,3,4,1234");
+    });
+
+    test("Or Selector", () => {
+        const tree = createNodeTree();
+
+        const selector = new Selector("[value='5'], [value='6']");
+        const result = selector.executeOn([tree]);
+
+        expect(result.length).toBe(2);
+        expect(result.map(n => n.toString()).join(",")).toEqual("5,6");
+    });
+
+    test("Nested Or Selector", () => {
+        const tree = createNodeTree();
+
+        const selector = new Selector("parent > [value='5'], [value='6']");
+        const result = selector.executeOn([tree]);
+
+        expect(result.length).toBe(2);
+        expect(result.map(n => n.toString()).join(",")).toEqual("5,6");
     });
 });

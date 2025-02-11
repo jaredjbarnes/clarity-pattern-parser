@@ -55,36 +55,17 @@ export class Selector {
     private _process(ast: Node) {
         const nodeName = ast.name;
 
-        if (nodeName === "wild-cart") {
-            this._selectedNodes = this._selectedNodes.map(n => {
-                return this._selectWithCombinator(n, () => true);
-            }).flat();
+        if (nodeName === "wild-card") {
+            this._selectedNodes = this._processWildCard();
         }
-        else if (nodeName === "name-selector" || (nodeName === "name" && (!ast.parent || ast.parent.name !== "name-selector"))) {
-
-            if (ast.children.length > 1) {
-                this._selectedNodes = this._selectedNodes.map(n => {
-                    const name = ast.children[0].value;
-
-                    return this._selectWithCombinator(n, (node: Node) => {
-                        return node.name === name && this._isAttributeMatch(node, ast);
-                    });
-
-                }).flat();
-            } else {
-                this._selectedNodes = this._selectedNodes.map(n => {
-                    return this._selectWithCombinator(n, (node: Node) => node.name === ast.value);
-                }).flat();
-            }
-
+        else if (nodeName === "or-selector") {
+            this._selectedNodes = this._processOrSelector(ast);
         }
-        else if (nodeName === "attribute-selector" && (ast.parent == null || ast.parent.name !== "name-selector")) {
-            this._selectedNodes = this._selectedNodes.map(n => {
-                return this._selectWithCombinator(n, (node: Node) => {
-                    return this._isAttributeMatch(node, ast);
-                });
-
-            }).flat();
+        else if (nodeName === "name-selector" || (nodeName === "name" && (ast.parent == null || ast.parent.name === "selector-expression"))) {
+            this._selectedNodes = this._processNameSelector(ast);
+        }
+        else if (nodeName === "attribute-selector" && (ast.parent == null || ast.parent.name === "selector-expression")) {
+            this._selectedNodes = this._processAttributeSelector(ast);
         }
         else if (combinatorMap[nodeName]) {
             this._combinator = nodeName;
@@ -92,6 +73,54 @@ export class Selector {
         else if (nodeName === "selector-expression") {
             this._combinator = null;
         }
+    }
+
+    private _processWildCard() {
+        return this._selectedNodes.map(n => {
+            return this._selectWithCombinator(n, () => true);
+        }).flat();
+    }
+
+    private _processOrSelector(ast: Node) {
+        const selectorNodes = ast.children.filter(n => n.name !== "comma");
+        const set: Set<Node> = new Set();
+
+        const selectors = selectorNodes.map(n => new Selector(n.toString()));
+
+        selectors.map(s => {
+            return s.executeOn(this._selectedNodes.slice());
+        }).flat().forEach((node) => {
+            set.add(node);
+        });
+
+        return Array.from(set);
+    }
+
+
+    private _processNameSelector(ast: Node) {
+        if (ast.children.length > 1) {
+            return this._selectedNodes.map(n => {
+                const name = ast.children[0].value;
+
+                return this._selectWithCombinator(n, (node: Node) => {
+                    return node.name === name && this._isAttributeMatch(node, ast);
+                });
+
+            }).flat();
+        } else {
+            return this._selectedNodes.map(n => {
+                return this._selectWithCombinator(n, (node: Node) => node.name === ast.value);
+            }).flat();
+        }
+    }
+
+    private _processAttributeSelector(ast: Node) {
+        return this._selectedNodes.map(n => {
+            return this._selectWithCombinator(n, (node: Node) => {
+                return this._isAttributeMatch(node, ast);
+            });
+
+        }).flat();
     }
 
     private _selectWithCombinator(node: Node, predicate: (node: Node) => boolean) {
@@ -115,7 +144,7 @@ export class Selector {
             }
 
             const index = parent.findChildIndex(node);
-            const after = parent.children.slice(index);
+            const after = parent.children.slice(index + 1);
             return after.filter(predicate);
         }
         else if (this._combinator === "direct-child") {

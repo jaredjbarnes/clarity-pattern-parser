@@ -105,4 +105,24 @@ describe("Query", () => {
         expect(result.length).toBe(1);
         expect(result.map(n => n.value).join(",")).toBe("1234");
     });
+
+    test("Not", () => {
+        const root = createNodeTree();
+
+        const children = $(root, "parent").not("grand-parent parent[value='1234']");
+        const result = children.toArray();
+
+        expect(result.length).toBe(5);
+        expect(result.map(n => n.value).join(",")).toBe("5678,9101112,13141516,17181920,21222324");
+    });
+
+    test("First Before", () => {
+        const root = createNodeTree();
+
+        $(root, "child").first().before(() => Node.createValueNode("node", "adopted-child", "0"));
+        
+        const adoptedChild = root.find(n => n.name === "adopted-child");
+        const firstChild = root.find(n => n.value === "1");
+        expect(adoptedChild?.nextSibling()).toBe(firstChild);
+    });
 });

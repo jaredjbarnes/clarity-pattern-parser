@@ -74,17 +74,17 @@ export class Selector {
             return [];
         }
 
-        this._selectedNodes = [nodes[nodes.length - 1]];
+        this._selectedNodes = [nodes[0].findRoot()];
 
         const ast = this._selectorAst;
         ast.walkUp((node) => {
             this._process(node);
         });
 
-        const nodeMap = new Map();
-        this._selectedNodes.forEach(n => nodeMap.set(n, n));
+        const selectedNodeMap = new Map();
+        this._selectedNodes.forEach(n => selectedNodeMap.set(n, n));
 
-        return nodes.filter(n => !nodeMap.has(n));
+        return nodes.filter(n => !selectedNodeMap.has(n));
     }
 
     parents(nodes: Node[]) {

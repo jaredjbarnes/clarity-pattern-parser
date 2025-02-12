@@ -46,6 +46,7 @@ export declare class Expression implements Pattern {
     private _unwrapAssociationIfNecessary;
     private _referenceCount;
     private _isRecursiveReference;
+    build(): void;
     parse(cursor: Cursor): Node | null;
     private _tryToParse;
     private _tryToMatchPrefix;

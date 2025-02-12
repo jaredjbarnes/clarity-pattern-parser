@@ -2824,12 +2824,15 @@
             }
             return pattern.name === this.name;
         }
-        parse(cursor) {
-            this._firstIndex = cursor.index;
+        build() {
             if (!this._hasOrganized) {
                 this._hasOrganized = true;
                 this._organizePatterns(this._originalPatterns);
             }
+        }
+        parse(cursor) {
+            this._firstIndex = cursor.index;
+            this.build();
             // If there are not any atom nodes then nothing can be found.
             if (this._atomPatterns.length < 1) {
                 cursor.moveTo(this._firstIndex);

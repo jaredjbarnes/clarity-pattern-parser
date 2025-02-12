@@ -36,7 +36,7 @@ describe("Optional", () => {
         const optional = new Optional("optional-text", text);
         const result = optional.test("Bad Text");
 
-        expect(result).toBeTruthy();
+        expect(result).toBeFalsy();
     });
 
     test("Clone", () => {

@@ -529,20 +529,31 @@
 
     function execPattern(pattern, text, record = false) {
         const cursor = new Cursor(text);
+        if (cursor.length === 0) {
+            return { ast: null, cursor };
+        }
         record && cursor.startRecording();
-        const ast = pattern.parse(cursor);
-        const isMatch = (ast === null || ast === void 0 ? void 0 : ast.value.length) === text.length;
+        let ast = pattern.parse(cursor);
+        const resultLength = ast == null ? 0 : ast.value.length;
+        if (ast != null) {
+            const isMatch = ast.value === text;
+            if (!isMatch && !cursor.hasError) {
+                ast = null;
+                cursor.recordErrorAt(resultLength, cursor.length, pattern);
+            }
+        }
+        else {
+            cursor.recordErrorAt(resultLength, cursor.length, pattern);
+        }
         return {
-            ast: isMatch ? ast : null,
+            ast: ast,
             cursor
         };
     }
 
     function testPattern(pattern, text, record = false) {
-        const cursor = new Cursor(text);
-        record && cursor.startRecording();
-        const ast = pattern.parse(cursor);
-        return (ast === null || ast === void 0 ? void 0 : ast.value.length) === text.length;
+        const result = execPattern(pattern, text, record);
+        return !result.cursor.hasError;
     }
 
     let idIndex$9 = 0;
@@ -606,9 +617,6 @@
         _tryToParse(cursor) {
             let passed = false;
             const literalRuneLength = this._runes.length;
-            if (!cursor.hasNext) {
-                return false;
-            }
             for (let i = 0; i < literalRuneLength; i++) {
                 const literalRune = this._runes[i];
                 const cursorRune = cursor.currentChar;
@@ -1992,19 +2000,11 @@
             this._children = [pattern.clone()];
             this._children[0].parent = this;
         }
-        test(text) {
-            const cursor = new Cursor(text);
-            this.parse(cursor);
-            return !cursor.hasError;
+        test(text, record = false) {
+            return testPattern(this, text, record);
         }
         exec(text, record = false) {
-            const cursor = new Cursor(text);
-            record && cursor.startRecording();
-            const ast = this.parse(cursor);
-            return {
-                ast: (ast === null || ast === void 0 ? void 0 : ast.value) === text ? ast : null,
-                cursor
-            };
+            return execPattern(this, text, record);
         }
         parse(cursor) {
             const firstIndex = cursor.index;

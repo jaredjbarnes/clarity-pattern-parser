@@ -247,7 +247,7 @@ describe("BoundedRepeat", () => {
         const result = numbers.exec("f");
 
         expect(result.ast).toBeNull();
-        expect(result.cursor.hasError).toBeFalsy();
+        expect(result.cursor.hasError).toBeTruthy();
     });
 
     test("Optional With Multiple Matches But Still Below Min", () => {
@@ -255,7 +255,7 @@ describe("BoundedRepeat", () => {
         const result = numbers.exec("12f");
 
         expect(result.ast).toBeNull();
-        expect(result.cursor.hasError).toBeFalsy();
+        expect(result.cursor.hasError).toBeTruthy();
     });
 
     test("Properties", () => {

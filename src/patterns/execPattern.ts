@@ -3,14 +3,30 @@ import { ParseResult } from "./ParseResult";
 import { Pattern } from "./Pattern";
 
 export function execPattern(pattern: Pattern, text: string, record = false): ParseResult {
-    const cursor = new Cursor(text);
-    record && cursor.startRecording();
+  const cursor = new Cursor(text);
 
-    const ast = pattern.parse(cursor);
-    const isMatch = ast?.value.length === text.length;
+  if (cursor.length === 0) {
+    return { ast: null, cursor };
+  }
+  
+  record && cursor.startRecording();
 
-    return {
-        ast: isMatch ? ast : null,
-        cursor
-    };
+  let ast = pattern.parse(cursor);
+  const resultLength = ast == null ? 0 : ast.value.length;
+
+  if (ast != null) {
+    const isMatch = ast.value === text;
+
+    if (!isMatch && !cursor.hasError) {
+      ast = null;
+      cursor.recordErrorAt(resultLength, cursor.length, pattern);
+    }
+  } else {
+    cursor.recordErrorAt(resultLength, cursor.length, pattern);
+  }
+
+  return {
+    ast: ast,
+    cursor
+  };
 }

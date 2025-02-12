@@ -167,8 +167,9 @@ describe("Query", () => {
     test("ReplaceWith", () => {
         const root = createNodeTree();
 
-        $(root, "child").replaceWith(() => Node.createValueNode("node","child","b"));
+        $(root, "child").replaceWith(() => Node.createValueNode("node", "child", "b"));
 
         expect(root.toString()).toBe("bbbbbbbbbbbbbbbbbbbbbbbb");
     });
+
 });

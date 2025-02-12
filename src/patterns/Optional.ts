@@ -1,7 +1,9 @@
 import { Node } from "../ast/Node";
 import { Cursor } from "./Cursor";
+import { execPattern } from "./execPattern";
 import { ParseResult } from "./ParseResult";
 import { Pattern } from "./Pattern";
+import { testPattern } from "./testPattern";
 
 let idIndex = 0;
 
@@ -49,23 +51,12 @@ export class Optional implements Pattern {
     this._children[0].parent = this;
   }
 
-  test(text: string) {
-    const cursor = new Cursor(text);
-    this.parse(cursor);
-
-    return !cursor.hasError;
+  test(text: string, record = false): boolean {
+    return testPattern(this, text, record);
   }
 
   exec(text: string, record = false): ParseResult {
-    const cursor = new Cursor(text);
-    record && cursor.startRecording();
-
-    const ast = this.parse(cursor);
-
-    return {
-      ast: ast?.value === text ? ast : null,
-      cursor
-    };
+    return execPattern(this, text, record);
   }
 
   parse(cursor: Cursor): Node | null {

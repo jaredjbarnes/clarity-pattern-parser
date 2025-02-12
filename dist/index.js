@@ -604,6 +604,9 @@ class Literal {
     _tryToParse(cursor) {
         let passed = false;
         const literalRuneLength = this._runes.length;
+        if (!cursor.hasNext) {
+            return false;
+        }
         for (let i = 0; i < literalRuneLength; i++) {
             const literalRune = this._runes[i];
             const cursorRune = cursor.currentChar;
@@ -869,6 +872,7 @@ class Reference {
     }
     _cacheAncestors(id) {
         if (!this._cachedAncestors) {
+            this._cachedAncestors = true;
             let pattern = this.parent;
             while (pattern != null) {
                 if (pattern.id === id) {
@@ -881,7 +885,7 @@ class Reference {
     _isBeyondRecursiveAllowance() {
         let depth = 0;
         for (let pattern of this._recursiveAncestors) {
-            if (pattern._firstIndex === this._firstIndex) {
+            if (pattern.startedOnIndex === this.startedOnIndex) {
                 depth++;
                 if (depth > 0) {
                     return true;
@@ -1767,7 +1771,7 @@ class Sequence {
                         else {
                             // We are at the end of the text, it may still be valid, if all the
                             // following patterns are optional.
-                            if (this.areRemainingPatternsOptional(i)) {
+                            if (this._areRemainingPatternsOptional(i)) {
                                 passed = true;
                                 break;
                             }
@@ -1786,7 +1790,7 @@ class Sequence {
                 else {
                     // If we don't have any results from what we parsed then record error.
                     const lastNode = this.getLastValidNode();
-                    if (lastNode === null) {
+                    if (lastNode === null && !this._areAllPatternsOptional()) {
                         cursor.recordErrorAt(this._firstIndex, cursor.index, this);
                         break;
                     }
@@ -1810,7 +1814,10 @@ class Sequence {
         }
         return nodes[nodes.length - 1];
     }
-    areRemainingPatternsOptional(fromIndex) {
+    _areAllPatternsOptional() {
+        return this._areRemainingPatternsOptional(-1);
+    }
+    _areRemainingPatternsOptional(fromIndex) {
         const startOnIndex = fromIndex + 1;
         const length = this._children.length;
         for (let i = startOnIndex; i < length; i++) {
@@ -1823,6 +1830,10 @@ class Sequence {
     }
     createNode(cursor) {
         const children = filterOutNull(this._nodes);
+        if (children.length === 0) {
+            cursor.moveTo(this._firstIndex);
+            return null;
+        }
         const lastIndex = children[children.length - 1].lastIndex;
         cursor.moveTo(lastIndex);
         return new Node("sequence", this._name, this._firstIndex, lastIndex, children);
@@ -2364,239 +2375,6 @@ class Not {
     isEqual(pattern) {
         return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
     }
-}
-
-const defaultOptions = { greedyPatternNames: [], customTokens: {} };
-class AutoComplete {
-    constructor(pattern, options = defaultOptions) {
-        this._pattern = pattern;
-        this._options = options;
-        this._text = "";
-    }
-    suggestForWithCursor(cursor) {
-        cursor.moveTo(0);
-        this._cursor = cursor;
-        this._text = cursor.text;
-        this._cursor.startRecording();
-        if (cursor.length === 0) {
-            return {
-                isComplete: false,
-                options: this._createSuggestionsFromRoot(),
-                error: new ParseError(0, 0, this._pattern),
-                errorAtIndex: 0,
-                cursor,
-                ast: null
-            };
-        }
-        let errorAtIndex = null;
-        let error = null;
-        const ast = this._pattern.parse(this._cursor);
-        const isComplete = (ast === null || ast === void 0 ? void 0 : ast.value) === this._text;
-        const options = this._getAllOptions();
-        if (!isComplete && options.length > 0 && !this._cursor.hasError) {
-            const startIndex = options.reduce((lowestIndex, o) => {
-                return Math.min(lowestIndex, o.startIndex);
-            }, Infinity);
-            const lastIndex = cursor.getLastIndex() + 1;
-            error = new ParseError(startIndex, lastIndex, this._pattern);
-            errorAtIndex = startIndex;
-        }
-        else if (!isComplete && options.length === 0 && ast != null) {
-            const startIndex = ast.endIndex;
-            const lastIndex = cursor.getLastIndex() + 1;
-            error = new ParseError(startIndex, lastIndex, this._pattern);
-            errorAtIndex = startIndex;
-        }
-        else if (!isComplete && this._cursor.hasError && this._cursor.furthestError != null) {
-            errorAtIndex = this.getFurthestPosition(cursor);
-            error = new ParseError(errorAtIndex, errorAtIndex, this._pattern);
-        }
-        return {
-            isComplete: isComplete,
-            options: options,
-            error,
-            errorAtIndex,
-            cursor: cursor,
-            ast,
-        };
-    }
-    getFurthestPosition(cursor) {
-        const furthestError = cursor.furthestError;
-        const furthestMatch = cursor.allMatchedNodes[cursor.allMatchedNodes.length - 1];
-        if (furthestError && furthestMatch) {
-            if (furthestError.lastIndex > furthestMatch.endIndex) {
-                return furthestMatch.endIndex;
-            }
-            else {
-                return furthestError.lastIndex;
-            }
-        }
-        if (furthestError == null && furthestMatch != null) {
-            return furthestMatch.endIndex;
-        }
-        if (furthestMatch == null && furthestError != null) {
-            return furthestError.lastIndex;
-        }
-        return 0;
-    }
-    suggestFor(text) {
-        return this.suggestForWithCursor(new Cursor(text));
-    }
-    _getAllOptions() {
-        const errorMatches = this._getOptionsFromErrors();
-        const leafMatches = this._cursor.leafMatches.map((m) => this._createSuggestionsFromMatch(m)).flat();
-        const finalResults = [];
-        [...leafMatches, ...errorMatches].forEach(m => {
-            const index = finalResults.findIndex(f => m.text === f.text);
-            if (index === -1) {
-                finalResults.push(m);
-            }
-        });
-        return finalResults;
-    }
-    _getOptionsFromErrors() {
-        // These errored because the length of the string.
-        const errors = this._cursor.errors.filter(e => e.lastIndex === this._cursor.length);
-        const suggestions = errors.map(e => {
-            const tokens = this._getTokensForPattern(e.pattern);
-            const adjustedTokens = new Set();
-            const currentText = this._cursor.getChars(e.startIndex, e.lastIndex);
-            tokens.forEach((token) => {
-                if (token.startsWith(currentText) && token.length > currentText.length) {
-                    const difference = token.length - currentText.length;
-                    const suggestedText = token.slice(-difference);
-                    adjustedTokens.add(suggestedText);
-                }
-            });
-            return Array.from(adjustedTokens).map(t => {
-                return {
-                    text: t,
-                    startIndex: e.lastIndex,
-                };
-            });
-        });
-        return suggestions.flat();
-    }
-    _createSuggestionsFromRoot() {
-        const suggestions = [];
-        const tokens = this._pattern.getTokens();
-        for (const token of tokens) {
-            if (suggestions.findIndex(s => s.text === token) === -1) {
-                suggestions.push(this._createSuggestion("", token));
-            }
-        }
-        return suggestions;
-    }
-    _createSuggestionsFromMatch(match) {
-        if (match.pattern == null) {
-            return this._createSuggestions(-1, this._getTokensForPattern(this._pattern));
-        }
-        const leafPattern = match.pattern;
-        const parent = match.pattern.parent;
-        if (parent !== null && match.node != null) {
-            const patterns = leafPattern.getNextPatterns();
-            const tokens = patterns.reduce((acc, pattern) => {
-                acc.push(...this._getTokensForPattern(pattern));
-                return acc;
-            }, []);
-            return this._createSuggestions(match.node.lastIndex, tokens);
-        }
-        else {
-            return [];
-        }
-    }
-    _getTokensForPattern(pattern) {
-        const augmentedTokens = this._getAugmentedTokens(pattern);
-        if (this._options.greedyPatternNames != null && this._options.greedyPatternNames.includes(pattern.name)) {
-            const nextPatterns = pattern.getNextPatterns();
-            const tokens = [];
-            const nextPatternTokens = nextPatterns.reduce((acc, pattern) => {
-                acc.push(...this._getTokensForPattern(pattern));
-                return acc;
-            }, []);
-            for (let token of augmentedTokens) {
-                for (let nextPatternToken of nextPatternTokens) {
-                    tokens.push(token + nextPatternToken);
-                }
-            }
-            return tokens;
-        }
-        else {
-            return augmentedTokens;
-        }
-    }
-    _getAugmentedTokens(pattern) {
-        const customTokensMap = this._options.customTokens || {};
-        const leafPatterns = pattern.getPatterns();
-        const tokens = customTokensMap[pattern.name] || [];
-        leafPatterns.forEach(p => {
-            const augmentedTokens = customTokensMap[p.name] || [];
-            tokens.push(...p.getTokens(), ...augmentedTokens);
-        });
-        return tokens;
-    }
-    _createSuggestions(lastIndex, tokens) {
-        let substring = lastIndex === -1 ? "" : this._cursor.getChars(0, lastIndex);
-        const suggestionStrings = [];
-        const options = [];
-        for (const token of tokens) {
-            const suggestion = substring + token;
-            const startsWith = suggestion.startsWith(substring);
-            const alreadyExist = suggestionStrings.includes(suggestion);
-            const isSameAsText = suggestion === this._text;
-            if (startsWith && !alreadyExist && !isSameAsText) {
-                suggestionStrings.push(suggestion);
-                options.push(this._createSuggestion(this._cursor.text, suggestion));
-            }
-        }
-        const reducedOptions = getFurthestOptions(options);
-        reducedOptions.sort((a, b) => a.text.localeCompare(b.text));
-        return reducedOptions;
-    }
-    _createSuggestion(fullText, suggestion) {
-        const furthestMatch = findMatchIndex(suggestion, fullText);
-        const text = suggestion.slice(furthestMatch);
-        return {
-            text: text,
-            startIndex: furthestMatch,
-        };
-    }
-    static suggestFor(text, pattern, options) {
-        return new AutoComplete(pattern, options).suggestFor(text);
-    }
-    static suggestForWithCursor(cursor, pattern, options) {
-        return new AutoComplete(pattern, options).suggestForWithCursor(cursor);
-    }
-}
-function findMatchIndex(str1, str2) {
-    let matchCount = 0;
-    let minLength = str1.length;
-    if (str2.length < minLength) {
-        minLength = str2.length;
-    }
-    for (let i = 0; i < minLength; i++) {
-        if (str1[i] === str2[i]) {
-            matchCount++;
-        }
-        else {
-            break;
-        }
-    }
-    return matchCount;
-}
-function getFurthestOptions(options) {
-    let furthestOptions = [];
-    let furthestIndex = -1;
-    for (const option of options) {
-        if (option.startIndex > furthestIndex) {
-            furthestIndex = option.startIndex;
-            furthestOptions = [];
-        }
-        if (option.startIndex === furthestIndex) {
-            furthestOptions.push(option);
-        }
-    }
-    return furthestOptions;
 }
 
 let contextId = 0;
@@ -3361,6 +3139,30 @@ class RightAssociated {
     }
 }
 
+function generateErrorMessage(pattern, cursor) {
+    const furthestMatch = cursor.leafMatch;
+    if (furthestMatch == null || furthestMatch.node == null || furthestMatch.pattern == null) {
+        const suggestions = cleanSuggestions(pattern.getTokens()).join(", ");
+        return `Error at line 1, column 1. Hint: ${suggestions}`;
+    }
+    const endIndex = furthestMatch.node.endIndex;
+    if (endIndex === 0) {
+        const suggestions = cleanSuggestions(pattern.getTokens()).join(", ");
+        return `Error at line 1, column 1. Hint: ${suggestions}`;
+    }
+    const lastPattern = furthestMatch.pattern;
+    const suggestions = cleanSuggestions(lastPattern.getTokens());
+    const strUpToError = cursor.getChars(0, endIndex);
+    const lines = strUpToError.split("\n");
+    const lastLine = lines[lines.length - 1];
+    const line = lines.length;
+    const column = lastLine.length;
+    return `Error at line ${line}, column ${column}. Hint: ${suggestions}`;
+}
+function cleanSuggestions(suggestions) {
+    return suggestions.map(s => s.trim()).filter(s => s.length > 0);
+}
+
 let anonymousIndexId = 0;
 const patternNodes = {
     "literal": true,
@@ -3388,9 +3190,6 @@ class Grammar {
         this._originResource = (options === null || options === void 0 ? void 0 : options.originResource) == null ? null : options.originResource;
         this._resolveImport = options.resolveImport == null ? defaultImportResolver : options.resolveImport;
         this._parseContext = new ParseContext(this._params);
-        this._autoComplete = new AutoComplete(grammar, {
-            greedyPatternNames: ["spaces", "optional-spaces", "whitespace", "new-line"],
-        });
     }
     import(path) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -3430,19 +3229,11 @@ class Grammar {
         return patterns;
     }
     _tryToParse(expression) {
-        const { ast, cursor, options, isComplete } = this._autoComplete.suggestFor(expression);
-        if (!isComplete) {
-            const text = (cursor === null || cursor === void 0 ? void 0 : cursor.text) || "";
-            const index = options.reduce((num, o) => Math.max(o.startIndex, num), 0);
-            const foundText = text.slice(Math.max(index - 10, 0), index + 10);
-            const expectedTexts = "'" + options.map(o => {
-                const startText = text.slice(Math.max(o.startIndex - 10), o.startIndex);
-                return startText + o.text;
-            }).join("' or '") + "'";
-            const message = `[Parse Error] Found: '${foundText}', expected: ${expectedTexts}.`;
-            throw new Error(message);
+        const { ast, cursor } = grammar.exec(expression, true);
+        if (ast == null) {
+            const message = generateErrorMessage(grammar, cursor);
+            throw new Error(`[Invalid Grammar] ${message}`);
         }
-        // If it is complete it will always have a node. So we have to cast it.
         return ast;
     }
     _hasImports(ast) {
@@ -3807,6 +3598,239 @@ class Grammar {
         const grammar = new Grammar(options);
         return grammar.parseString(expression);
     }
+}
+
+const defaultOptions = { greedyPatternNames: [], customTokens: {} };
+class AutoComplete {
+    constructor(pattern, options = defaultOptions) {
+        this._pattern = pattern;
+        this._options = options;
+        this._text = "";
+    }
+    suggestForWithCursor(cursor) {
+        cursor.moveTo(0);
+        this._cursor = cursor;
+        this._text = cursor.text;
+        this._cursor.startRecording();
+        if (cursor.length === 0) {
+            return {
+                isComplete: false,
+                options: this._createSuggestionsFromRoot(),
+                error: new ParseError(0, 0, this._pattern),
+                errorAtIndex: 0,
+                cursor,
+                ast: null
+            };
+        }
+        let errorAtIndex = null;
+        let error = null;
+        const ast = this._pattern.parse(this._cursor);
+        const isComplete = (ast === null || ast === void 0 ? void 0 : ast.value) === this._text;
+        const options = this._getAllOptions();
+        if (!isComplete && options.length > 0 && !this._cursor.hasError) {
+            const startIndex = options.reduce((lowestIndex, o) => {
+                return Math.min(lowestIndex, o.startIndex);
+            }, Infinity);
+            const lastIndex = cursor.getLastIndex() + 1;
+            error = new ParseError(startIndex, lastIndex, this._pattern);
+            errorAtIndex = startIndex;
+        }
+        else if (!isComplete && options.length === 0 && ast != null) {
+            const startIndex = ast.endIndex;
+            const lastIndex = cursor.getLastIndex() + 1;
+            error = new ParseError(startIndex, lastIndex, this._pattern);
+            errorAtIndex = startIndex;
+        }
+        else if (!isComplete && this._cursor.hasError && this._cursor.furthestError != null) {
+            errorAtIndex = this.getFurthestPosition(cursor);
+            error = new ParseError(errorAtIndex, errorAtIndex, this._pattern);
+        }
+        return {
+            isComplete: isComplete,
+            options: options,
+            error,
+            errorAtIndex,
+            cursor: cursor,
+            ast,
+        };
+    }
+    getFurthestPosition(cursor) {
+        const furthestError = cursor.furthestError;
+        const furthestMatch = cursor.allMatchedNodes[cursor.allMatchedNodes.length - 1];
+        if (furthestError && furthestMatch) {
+            if (furthestError.lastIndex > furthestMatch.endIndex) {
+                return furthestMatch.endIndex;
+            }
+            else {
+                return furthestError.lastIndex;
+            }
+        }
+        if (furthestError == null && furthestMatch != null) {
+            return furthestMatch.endIndex;
+        }
+        if (furthestMatch == null && furthestError != null) {
+            return furthestError.lastIndex;
+        }
+        return 0;
+    }
+    suggestFor(text) {
+        return this.suggestForWithCursor(new Cursor(text));
+    }
+    _getAllOptions() {
+        const errorMatches = this._getOptionsFromErrors();
+        const leafMatches = this._cursor.leafMatches.map((m) => this._createSuggestionsFromMatch(m)).flat();
+        const finalResults = [];
+        [...leafMatches, ...errorMatches].forEach(m => {
+            const index = finalResults.findIndex(f => m.text === f.text);
+            if (index === -1) {
+                finalResults.push(m);
+            }
+        });
+        return finalResults;
+    }
+    _getOptionsFromErrors() {
+        // These errored because the length of the string.
+        const errors = this._cursor.errors.filter(e => e.lastIndex === this._cursor.length);
+        const suggestions = errors.map(e => {
+            const tokens = this._getTokensForPattern(e.pattern);
+            const adjustedTokens = new Set();
+            const currentText = this._cursor.getChars(e.startIndex, e.lastIndex);
+            tokens.forEach((token) => {
+                if (token.startsWith(currentText) && token.length > currentText.length) {
+                    const difference = token.length - currentText.length;
+                    const suggestedText = token.slice(-difference);
+                    adjustedTokens.add(suggestedText);
+                }
+            });
+            return Array.from(adjustedTokens).map(t => {
+                return {
+                    text: t,
+                    startIndex: e.lastIndex,
+                };
+            });
+        });
+        return suggestions.flat();
+    }
+    _createSuggestionsFromRoot() {
+        const suggestions = [];
+        const tokens = this._pattern.getTokens();
+        for (const token of tokens) {
+            if (suggestions.findIndex(s => s.text === token) === -1) {
+                suggestions.push(this._createSuggestion("", token));
+            }
+        }
+        return suggestions;
+    }
+    _createSuggestionsFromMatch(match) {
+        if (match.pattern == null) {
+            return this._createSuggestions(-1, this._getTokensForPattern(this._pattern));
+        }
+        const leafPattern = match.pattern;
+        const parent = match.pattern.parent;
+        if (parent !== null && match.node != null) {
+            const patterns = leafPattern.getNextPatterns();
+            const tokens = patterns.reduce((acc, pattern) => {
+                acc.push(...this._getTokensForPattern(pattern));
+                return acc;
+            }, []);
+            return this._createSuggestions(match.node.lastIndex, tokens);
+        }
+        else {
+            return [];
+        }
+    }
+    _getTokensForPattern(pattern) {
+        const augmentedTokens = this._getAugmentedTokens(pattern);
+        if (this._options.greedyPatternNames != null && this._options.greedyPatternNames.includes(pattern.name)) {
+            const nextPatterns = pattern.getNextPatterns();
+            const tokens = [];
+            const nextPatternTokens = nextPatterns.reduce((acc, pattern) => {
+                acc.push(...this._getTokensForPattern(pattern));
+                return acc;
+            }, []);
+            for (let token of augmentedTokens) {
+                for (let nextPatternToken of nextPatternTokens) {
+                    tokens.push(token + nextPatternToken);
+                }
+            }
+            return tokens;
+        }
+        else {
+            return augmentedTokens;
+        }
+    }
+    _getAugmentedTokens(pattern) {
+        const customTokensMap = this._options.customTokens || {};
+        const leafPatterns = pattern.getPatterns();
+        const tokens = customTokensMap[pattern.name] || [];
+        leafPatterns.forEach(p => {
+            const augmentedTokens = customTokensMap[p.name] || [];
+            tokens.push(...p.getTokens(), ...augmentedTokens);
+        });
+        return tokens;
+    }
+    _createSuggestions(lastIndex, tokens) {
+        let substring = lastIndex === -1 ? "" : this._cursor.getChars(0, lastIndex);
+        const suggestionStrings = [];
+        const options = [];
+        for (const token of tokens) {
+            const suggestion = substring + token;
+            const startsWith = suggestion.startsWith(substring);
+            const alreadyExist = suggestionStrings.includes(suggestion);
+            const isSameAsText = suggestion === this._text;
+            if (startsWith && !alreadyExist && !isSameAsText) {
+                suggestionStrings.push(suggestion);
+                options.push(this._createSuggestion(this._cursor.text, suggestion));
+            }
+        }
+        const reducedOptions = getFurthestOptions(options);
+        reducedOptions.sort((a, b) => a.text.localeCompare(b.text));
+        return reducedOptions;
+    }
+    _createSuggestion(fullText, suggestion) {
+        const furthestMatch = findMatchIndex(suggestion, fullText);
+        const text = suggestion.slice(furthestMatch);
+        return {
+            text: text,
+            startIndex: furthestMatch,
+        };
+    }
+    static suggestFor(text, pattern, options) {
+        return new AutoComplete(pattern, options).suggestFor(text);
+    }
+    static suggestForWithCursor(cursor, pattern, options) {
+        return new AutoComplete(pattern, options).suggestForWithCursor(cursor);
+    }
+}
+function findMatchIndex(str1, str2) {
+    let matchCount = 0;
+    let minLength = str1.length;
+    if (str2.length < minLength) {
+        minLength = str2.length;
+    }
+    for (let i = 0; i < minLength; i++) {
+        if (str1[i] === str2[i]) {
+            matchCount++;
+        }
+        else {
+            break;
+        }
+    }
+    return matchCount;
+}
+function getFurthestOptions(options) {
+    let furthestOptions = [];
+    let furthestIndex = -1;
+    for (const option of options) {
+        if (option.startIndex > furthestIndex) {
+            furthestIndex = option.startIndex;
+            furthestOptions = [];
+        }
+        if (option.startIndex === furthestIndex) {
+            furthestOptions.push(option);
+        }
+    }
+    return furthestOptions;
 }
 
 const kebabRegex = /-([a-z])/g; // Define the regex once

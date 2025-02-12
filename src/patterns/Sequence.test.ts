@@ -323,4 +323,15 @@ describe("Sequence", () => {
         expect(nextPatterns.length).toBe(0);
     });
 
+    test("All Patterns are Optional", () => {
+        const sequence = new Sequence("sequence", [
+            new Optional("optional-a", new Literal("a", "A")),
+            new Optional("optional-b", new Literal("b", "B"))
+        ]);
+        const result = sequence.exec("");
+
+        expect(result.ast).toBe(null);
+        expect(result.cursor.hasError).toBeFalsy();
+    });
+
 });

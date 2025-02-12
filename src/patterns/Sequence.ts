@@ -83,8 +83,8 @@ export class Sequence implements Pattern {
     this._firstIndex = cursor.index;
     this._nodes = [];
     const passed = this.tryToParse(cursor);
-
     if (passed) {
+
       const node = this.createNode(cursor);
 
       if (node !== null) {
@@ -121,7 +121,7 @@ export class Sequence implements Pattern {
             } else {
               // We are at the end of the text, it may still be valid, if all the
               // following patterns are optional.
-              if (this.areRemainingPatternsOptional(i)) {
+              if (this._areRemainingPatternsOptional(i)) {
                 passed = true;
                 break;
               }
@@ -139,7 +139,7 @@ export class Sequence implements Pattern {
         } else {
           // If we don't have any results from what we parsed then record error.
           const lastNode = this.getLastValidNode();
-          if (lastNode === null) {
+          if (lastNode === null && !this._areAllPatternsOptional()) {
             cursor.recordErrorAt(this._firstIndex, cursor.index, this);
             break;
           }
@@ -168,7 +168,11 @@ export class Sequence implements Pattern {
     return nodes[nodes.length - 1];
   }
 
-  private areRemainingPatternsOptional(fromIndex: number): boolean {
+  private _areAllPatternsOptional() {
+    return this._areRemainingPatternsOptional(-1);
+  }
+
+  private _areRemainingPatternsOptional(fromIndex: number): boolean {
     const startOnIndex = fromIndex + 1;
     const length = this._children.length;
 
@@ -184,6 +188,11 @@ export class Sequence implements Pattern {
 
   private createNode(cursor: Cursor): Node | null {
     const children = filterOutNull(this._nodes);
+
+    if (children.length === 0) {
+      cursor.moveTo(this._firstIndex);
+      return null;
+    }
 
     const lastIndex = children[children.length - 1].lastIndex;
 

@@ -24,7 +24,8 @@ export declare class Sequence implements Pattern {
     parse(cursor: Cursor): Node | null;
     private tryToParse;
     private getLastValidNode;
-    private areRemainingPatternsOptional;
+    private _areAllPatternsOptional;
+    private _areRemainingPatternsOptional;
     private createNode;
     getTokens(): string[];
     getTokensAfter(childReference: Pattern): string[];

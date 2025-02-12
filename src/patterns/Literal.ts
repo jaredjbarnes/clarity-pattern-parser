@@ -94,6 +94,10 @@ export class Literal implements Pattern {
     let passed = false;
     const literalRuneLength = this._runes.length;
 
+    if (!cursor.hasNext){
+      return false;
+    }
+
     for (let i = 0; i < literalRuneLength; i++) {
       const literalRune = this._runes[i];
       const cursorRune = cursor.currentChar;

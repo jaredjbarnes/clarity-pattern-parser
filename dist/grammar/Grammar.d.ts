@@ -13,7 +13,6 @@ export declare class Grammar {
     private _originResource?;
     private _resolveImport;
     private _parseContext;
-    private _autoComplete;
     constructor(options?: GrammarOptions);
     import(path: string): Promise<Record<string, Pattern>>;
     parse(expression: string): Promise<Record<string, Pattern>>;

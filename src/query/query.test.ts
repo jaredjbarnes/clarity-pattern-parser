@@ -120,9 +120,55 @@ describe("Query", () => {
         const root = createNodeTree();
 
         $(root, "child").first().before(() => Node.createValueNode("node", "adopted-child", "0"));
-        
+
         const adoptedChild = root.find(n => n.name === "adopted-child");
         const firstChild = root.find(n => n.value === "1");
         expect(adoptedChild?.nextSibling()).toBe(firstChild);
+    });
+
+    test("Last After", () => {
+        const root = createNodeTree();
+
+        $(root, "child").last().after(() => Node.createValueNode("node", "adopted-child", "25"));
+
+        const adoptedChild = root.find(n => n.name === "adopted-child");
+        const lastChild = root.find(n => n.value === "24");
+        expect(adoptedChild?.previousSibling()).toBe(lastChild);
+    });
+
+    test("Append", () => {
+        const root = createNodeTree();
+
+        const parents = $(root, "parent").append((n) => {
+            const lastChild = n.children[n.children.length - 1];
+            const value = Number(lastChild.value) + 1;
+            return Node.createValueNode("node", "adopted-child", String(value));
+        }).toArray();
+
+        const haveFiveChildren = parents.every(n => n.children.length === 5);
+        expect(haveFiveChildren).toBeTruthy();
+        expect(parents.map(n => n.toString()).join(",")).toBe("12345,56789,910111213,1314151617,1718192021,2122232425");
+    });
+
+    test("Prepend", () => {
+        const root = createNodeTree();
+
+        const parents = $(root, "parent").prepend((n) => {
+            const firstChild = n.children[0];
+            const value = Number(firstChild.value) - 1;
+            return Node.createValueNode("node", "adopted-child", String(value));
+        }).toArray();
+
+        const haveFiveChildren = parents.every(n => n.children.length === 5);
+        expect(haveFiveChildren).toBeTruthy();
+        expect(parents.map(n => n.toString()).join(",")).toBe("01234,45678,89101112,1213141516,1617181920,2021222324");
+    });
+
+    test("ReplaceWith", () => {
+        const root = createNodeTree();
+
+        $(root, "child").replaceWith(() => Node.createValueNode("node","child","b"));
+
+        expect(root.toString()).toBe("bbbbbbbbbbbbbbbbbbbbbbbb");
     });
 });

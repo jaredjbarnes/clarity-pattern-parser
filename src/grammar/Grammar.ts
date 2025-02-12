@@ -538,9 +538,17 @@ export class Grammar {
         const aliasNode = statementNode.find(n => n.name === "alias-literal") as Node;
         const aliasName = aliasNode.value;
         const name = nameNode.value;
-        const alias = this._getPattern(aliasName).clone(name);
+        const aliasPattern = this._getPattern(aliasName);
+        
+        // This solves the problem for an alias pointing to a reference.
+        if (aliasPattern.type === "reference"){
+            const sequence = new Sequence(name, [aliasPattern]);
+            this._parseContext.patternsByName.set(name, sequence);
+        } else {
+            const alias = aliasPattern.clone(name);
+            this._parseContext.patternsByName.set(name, alias);
+        }
 
-        this._parseContext.patternsByName.set(name, alias);
     }
 
     static parse(expression: string, options?: GrammarOptions) {

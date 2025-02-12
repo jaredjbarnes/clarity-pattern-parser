@@ -59,7 +59,7 @@ export class Selector {
         const nodeMap = new Map();
         nodes.forEach(n => nodeMap.set(n, n));
 
-        this._selectedNodes = [nodes[nodes.length - 1]];
+        this._selectedNodes = [nodes[0].findRoot()];
 
         const ast = this._selectorAst;
         ast.walkUp((node) => {
@@ -92,14 +92,25 @@ export class Selector {
             return [];
         }
 
-        this._selectedNodes = [nodes[nodes.length - 1]];
+        this._selectedNodes = [nodes[0].findRoot()];
 
         const ast = this._selectorAst;
         ast.walkUp((node) => {
             this._process(node);
         });
 
-        return this._selectedNodes.filter(n => n.findAncestor(a=>nodes.includes(a)) != null);
+        const result = new Set<Node>();
+        const ancestorMap = new Map<Node, boolean>();
+        this._selectedNodes.forEach(n => ancestorMap.set(n, true));
+
+        nodes.forEach(n => {
+            const ancestor = n.findAncestor(a => ancestorMap.has(a));
+            if (ancestor != null) {
+                result.add(ancestor);
+            }
+        });
+
+        return Array.from(result);
     }
 
     private _process(ast: Node) {

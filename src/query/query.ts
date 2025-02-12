@@ -5,30 +5,13 @@ export class Query {
     private _context: Node[];
     private _prevQuery: Query | null;
 
-    constructor(context: Node[], selector?: string, prevQuery: Query | null = null) {
+    constructor(context: Node[], prevQuery: Query | null = null) {
         this._context = context;
         this._prevQuery = prevQuery;
-
-        if (selector != null) {
-            this.find(selector);
-        }
-    }
-    // Actions
-    slice(start: number, end?: number) {
-        return new Query(this._context.slice(start, end));
     }
 
-    forEach(callback: (n: Node) => void) {
-        this._context.forEach(callback);
-        return this;
-    }
-
-    every(predicate: (n: Node) => boolean) {
-        return this._context.every(predicate);
-    }
-
-    some(predicate: (n: Node) => boolean) {
-        return this._context.every(predicate);
+    toArray() {
+        return this._context.slice();
     }
 
     // Modifiers
@@ -117,14 +100,16 @@ export class Query {
         return this;
     }
 
-    // Refiners
-
     // Filters from the currently matched nodes
+    slice(start: number, end?: number) {
+        return new Query(this._context.slice(start, end));
+    }
+
     filter(selectorString: string) {
         const selector = new Selector(selectorString);
         const newContext = selector.filter(this._context);
 
-        return new Query(newContext, undefined, this);
+        return new Query(newContext, this);
     }
 
     // Selects out of all descedants of currently matched nodes
@@ -132,7 +117,7 @@ export class Query {
         const selector = new Selector(selectorString);
         const newContext = selector.find(this._context);
 
-        return new Query(newContext, undefined, this);
+        return new Query(newContext, this);
     }
 
     // Remove nodes from the set of matched nodes.
@@ -140,15 +125,20 @@ export class Query {
         const selector = new Selector(selectorString);
         const newContext = selector.not(this._context);
 
-        return new Query(newContext, undefined, this);
+        return new Query(newContext, this);
     }
 
     // Select the parent of currently matched nodes
     parent() {
         const parents = this._context.map(n => n.parent);
-        const notNullParents = parents.filter(n => n != null) as Node[];
+        const result = new Set<Node>();
+        parents.forEach((n) => {
+            if (n != null) {
+                result.add(n);
+            }
+        });
 
-        return new Query(notNullParents, undefined, this);
+        return new Query(Array.from(result), this);
     }
 
     // Select the ancestors of currently matched nodes
@@ -156,15 +146,22 @@ export class Query {
         const selector = new Selector(selectorString);
         const newContext = selector.parents(this._context);
 
-        return new Query(newContext, undefined, this);
+        const result = new Set<Node>();
+        newContext.forEach((n) => {
+            if (n != null) {
+                result.add(n);
+            }
+        });
+
+        return new Query(Array.from(result), this);
     }
 
     first() {
-        return new Query(this._context.slice(0, 1), undefined, this);
+        return new Query(this._context.slice(0, 1), this);
     }
 
     last() {
-        return new Query(this._context.slice(-1), undefined, this);
+        return new Query(this._context.slice(-1), this);
     }
 
     // Pop query stack
@@ -173,6 +170,15 @@ export class Query {
             return this._prevQuery;
         }
         return this;
+    }
+
+}
+
+export function $(root: Node, selector?: string) {
+    if (selector == null) {
+        return new Query([root]);
+    } else {
+        return new Query([root]).find(selector);
     }
 
 }

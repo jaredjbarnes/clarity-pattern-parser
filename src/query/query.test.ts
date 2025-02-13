@@ -172,4 +172,38 @@ describe("Query", () => {
         expect(root.toString()).toBe("bbbbbbbbbbbbbbbbbbbbbbbb");
     });
 
+    test("Compact", () => {
+        const root = createNodeTree();
+
+        const length = $(root, "parent")
+            .compact()
+            .find("child").length();
+
+        expect(length).toBe(0);
+    });
+
+    test("Slice", () => {
+        const root = createNodeTree();
+
+        const array = $(root, "parent")
+            .slice(0, 1).toArray();
+
+        expect(array.length).toBe(1);
+        expect(array[0].value).toBe("1234");
+    });
+
+    test("End", () => {
+        const root = createNodeTree();
+
+        const grandParents = $(root, "grand-parent");
+        const parents = grandParents.find("parent");
+        const children = parents.find("child");
+
+        expect(children.end().toArray()).toEqual(parents.toArray());
+        expect(parents.end().toArray()).toEqual(grandParents.toArray());
+        expect(grandParents.end().toArray()).toEqual([root]);
+        expect(grandParents.end().end().toArray()).toEqual([root]);
+
+    });
+
 });

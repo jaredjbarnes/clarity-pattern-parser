@@ -64,6 +64,14 @@ export class Repeat implements Pattern {
         return this._repeatPattern.startedOnIndex;
     }
 
+    get pattern() {
+        return this._pattern;
+    }
+
+    get options() {
+        return this._options;
+    }
+
     constructor(name: string, pattern: Pattern, options: RepeatOptions = {}) {
         this._id = `repeat-${idIndex++}`;
         this._pattern = pattern;

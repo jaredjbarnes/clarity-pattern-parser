@@ -72,6 +72,10 @@ export class Expression implements Pattern {
         return this._binaryPatterns;
     }
 
+    get originalPatterns(): readonly Pattern[] {
+        return this._originalPatterns;
+    }
+
     get startedOnIndex() {
         return this._firstIndex;
     }
@@ -252,7 +256,7 @@ export class Expression implements Pattern {
         return pattern.name === this.name;
     }
 
-    build(){
+    build() {
         if (!this._hasOrganized) {
             this._hasOrganized = true;
             this._organizePatterns(this._originalPatterns);

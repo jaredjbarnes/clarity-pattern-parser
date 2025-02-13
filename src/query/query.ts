@@ -92,6 +92,22 @@ export class Query {
         return this;
     }
 
+    setValue(value: string) {
+        this.replaceWith((n) => {
+            return Node.createValueNode(n.type, n.name, value);
+        });
+
+        return this;
+    }
+
+    normalize() {
+        const first = this._context[0];
+
+        if (first != null) {
+            first.findRoot().normalize();
+        }
+    }
+
     remove() {
         this._context.forEach(n => {
             n.remove();
@@ -170,6 +186,10 @@ export class Query {
             return this._prevQuery;
         }
         return this;
+    }
+
+    length() {
+        return this._context.length;
     }
 
 }

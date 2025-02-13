@@ -23,6 +23,8 @@ import { patterns } from "./grammar/patterns";
 import { Context } from "./patterns/Context";
 import { Expression } from "./patterns/Expression";
 import { RightAssociated } from "./patterns/RightAssociated";
+import { Selector } from "./query/selector";
+import { Query } from "./query/query";
 
 export {
   Node,
@@ -48,6 +50,8 @@ export {
   RightAssociated,
   Regex,
   Repeat,
+  Query,
+  Selector,
   grammar,
   patterns,
   compact,

@@ -23,4 +23,6 @@ import { patterns } from "./grammar/patterns";
 import { Context } from "./patterns/Context";
 import { Expression } from "./patterns/Expression";
 import { RightAssociated } from "./patterns/RightAssociated";
-export { Node, Grammar, AutoComplete, AutoCompleteOptions, Suggestion, SuggestionOption, Sequence, Cursor, CursorHistory, Match, Context, Expression, Literal, Not, Options, Optional, ParseError, ParseResult, Pattern, Reference, RightAssociated, Regex, Repeat, grammar, patterns, compact, remove };
+import { Selector } from "./query/selector";
+import { Query } from "./query/query";
+export { Node, Grammar, AutoComplete, AutoCompleteOptions, Suggestion, SuggestionOption, Sequence, Cursor, CursorHistory, Match, Context, Expression, Literal, Not, Options, Optional, ParseError, ParseResult, Pattern, Reference, RightAssociated, Regex, Repeat, Query, Selector, grammar, patterns, compact, remove };

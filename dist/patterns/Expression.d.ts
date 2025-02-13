@@ -32,6 +32,7 @@ export declare class Expression implements Pattern {
     get atomPatterns(): readonly Pattern[];
     get postfixPatterns(): readonly Pattern[];
     get binaryPatterns(): readonly Pattern[];
+    get originalPatterns(): readonly Pattern[];
     get startedOnIndex(): number;
     constructor(name: string, patterns: Pattern[]);
     private _organizePatterns;

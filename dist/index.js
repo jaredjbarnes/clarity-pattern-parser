@@ -1617,6 +1617,12 @@ class Repeat {
     get startedOnIndex() {
         return this._repeatPattern.startedOnIndex;
     }
+    get pattern() {
+        return this._pattern;
+    }
+    get options() {
+        return this._options;
+    }
     constructor(name, pattern, options = {}) {
         this._id = `repeat-${idIndex$3++}`;
         this._pattern = pattern;
@@ -2677,6 +2683,9 @@ class Expression {
     }
     get binaryPatterns() {
         return this._binaryPatterns;
+    }
+    get originalPatterns() {
+        return this._originalPatterns;
     }
     get startedOnIndex() {
         return this._firstIndex;
@@ -3858,6 +3867,435 @@ function patterns(strings, ...values) {
     return result;
 }
 
+const { expression } = patterns `
+number = /[+-]?(\\d+(\\.\\d*)?|\\.\\d+)([eE][+-]?\\d+)?/
+spaces = /\\s+/
+single-quote-string-literal = /'(?:\\\\.|[^'\\\\])*'/
+name = /[a-zA-Z_-]+[a-zA-Z0-9_-]*/
+comma = /\\s*,\\s*/
+wild-card = "*"
+equal = "="
+not-equal = "!="
+starts-with = "^="
+ends-with = "$="
+contains = "*="
+greater-than-or-equal = ">="
+less-than-or-equal = "<="
+greater-than = ">"
+less-than = "<"
+operators =      equal |
+             not-equal | 
+           starts-with | 
+             ends-with | 
+              contains | 
+ greater-than-or-equal | 
+    less-than-or-equal | 
+          greater-than | 
+             less-than
+             
+attribute-name = name
+value = name
+attribute-value = single-quote-string-literal | number | value
+attribute-selector = "[" + spaces? + attribute-name + spaces? + operators + spaces? + attribute-value + "]"
+
+adjacent = spaces? + "+" + spaces?
+after = spaces? + "~" + spaces?
+direct-child = spaces? + ">" + spaces?
+descendant = spaces
+
+combinators =  adjacent | after | direct-child | descendant
+name-selector = name-selector-expression + attribute-selector
+name-selector-expression = name-selector | name
+node-selector = wild-card | attribute-selector | name-selector-expression
+or-selector = (node-selector, comma){2}
+
+selector-expression = expression + combinators + expression
+expression = selector-expression | or-selector | node-selector 
+`;
+const selectorParser = expression;
+
+const combinatorMap = {
+    "adjacent": true,
+    "after": true,
+    "descendant": true,
+    "direct-child": true
+};
+const operatorMap = {
+    "equal": true,
+    "not-equal": true,
+    "starts-with": true,
+    "ends-with": true,
+    "contains": true,
+    "greater-than-or-equal": true,
+    "less-than-or-equal": true,
+    "greater-than": true,
+    "less-than": true
+};
+class Selector {
+    constructor(selector) {
+        this._selectedNodes = [];
+        this._combinator = null;
+        const result = selectorParser.exec(selector);
+        if (result.ast == null) {
+            const message = generateErrorMessage(selectorParser, result.cursor);
+            throw new Error(`[Invalid Selector] ${message}`);
+        }
+        this._selectorAst = result.ast;
+    }
+    find(nodes) {
+        this._selectedNodes = nodes;
+        const ast = this._selectorAst;
+        ast.walkUp((node) => {
+            this._process(node);
+        });
+        return this._selectedNodes;
+    }
+    filter(nodes) {
+        if (nodes.length < 1) {
+            return [];
+        }
+        const nodeMap = new Map();
+        nodes.forEach(n => nodeMap.set(n, n));
+        this._selectedNodes = [nodes[0].findRoot()];
+        const ast = this._selectorAst;
+        ast.walkUp((node) => {
+            this._process(node);
+        });
+        return this._selectedNodes.filter(n => nodeMap.has(n));
+    }
+    not(nodes) {
+        if (nodes.length < 1) {
+            return [];
+        }
+        this._selectedNodes = [nodes[0].findRoot()];
+        const ast = this._selectorAst;
+        ast.walkUp((node) => {
+            this._process(node);
+        });
+        const selectedNodeMap = new Map();
+        this._selectedNodes.forEach(n => selectedNodeMap.set(n, n));
+        return nodes.filter(n => !selectedNodeMap.has(n));
+    }
+    parents(nodes) {
+        if (nodes.length < 1) {
+            return [];
+        }
+        this._selectedNodes = [nodes[0].findRoot()];
+        const ast = this._selectorAst;
+        ast.walkUp((node) => {
+            this._process(node);
+        });
+        const result = new Set();
+        const ancestorMap = new Map();
+        this._selectedNodes.forEach(n => ancestorMap.set(n, true));
+        nodes.forEach(n => {
+            const ancestor = n.findAncestor(a => ancestorMap.has(a));
+            if (ancestor != null) {
+                result.add(ancestor);
+            }
+        });
+        return Array.from(result);
+    }
+    _process(ast) {
+        const nodeName = ast.name;
+        if (nodeName === "wild-card") {
+            this._selectedNodes = this._processWildCard();
+        }
+        else if (nodeName === "or-selector") {
+            this._selectedNodes = this._processOrSelector(ast);
+        }
+        else if (nodeName === "name-selector" || (nodeName === "name" && (ast.parent == null || ast.parent.name === "selector-expression"))) {
+            this._selectedNodes = this._processNameSelector(ast);
+        }
+        else if (nodeName === "attribute-selector" && (ast.parent == null || ast.parent.name === "selector-expression")) {
+            this._selectedNodes = this._processAttributeSelector(ast);
+        }
+        else if (combinatorMap[nodeName]) {
+            this._combinator = nodeName;
+        }
+        else if (nodeName === "selector-expression") {
+            this._combinator = null;
+        }
+    }
+    _processWildCard() {
+        return this._selectedNodes.map(n => {
+            return this._selectWithCombinator(n, () => true);
+        }).flat();
+    }
+    _processOrSelector(ast) {
+        const selectorNodes = ast.children.filter(n => n.name !== "comma");
+        const set = new Set();
+        const selectors = selectorNodes.map(n => new Selector(n.toString()));
+        selectors.map(s => {
+            return s.find(this._selectedNodes.slice());
+        }).flat().forEach((node) => {
+            set.add(node);
+        });
+        return Array.from(set);
+    }
+    _processNameSelector(ast) {
+        if (ast.children.length > 1) {
+            return this._selectedNodes.map(n => {
+                const name = ast.children[0].value;
+                return this._selectWithCombinator(n, (node) => {
+                    return node.name === name && this._isAttributeMatch(node, ast);
+                });
+            }).flat();
+        }
+        else {
+            return this._selectedNodes.map(n => {
+                return this._selectWithCombinator(n, (node) => node.name === ast.value);
+            }).flat();
+        }
+    }
+    _processAttributeSelector(ast) {
+        return this._selectedNodes.map(n => {
+            return this._selectWithCombinator(n, (node) => {
+                return this._isAttributeMatch(node, ast);
+            });
+        }).flat();
+    }
+    _selectWithCombinator(node, predicate) {
+        if (this._combinator === "adjacent") {
+            const sibling = node.nextSibling();
+            if (sibling == null) {
+                return [];
+            }
+            if (predicate(sibling)) {
+                return [sibling];
+            }
+            else {
+                return [];
+            }
+        }
+        else if (this._combinator === "after") {
+            const parent = node.parent;
+            if (parent == null) {
+                return [];
+            }
+            const index = parent.findChildIndex(node);
+            const after = parent.children.slice(index + 1);
+            return after.filter(predicate);
+        }
+        else if (this._combinator === "direct-child") {
+            return node.children.filter(predicate);
+        }
+        else if (this._combinator === "descendant" || this._combinator == null) {
+            return node.findAll(predicate);
+        }
+        else {
+            return [];
+        }
+    }
+    _isAttributeMatch(node, ast) {
+        const name = this._getAttributeName(ast);
+        const operator = this._getAttributeOperator(ast);
+        const value = this._getAttributeValue(ast);
+        const anyNode = node;
+        if (anyNode[name] == null) {
+            return false;
+        }
+        if (operator === "equal") {
+            return anyNode[name] === value;
+        }
+        else if (operator === "not-equal") {
+            return anyNode[name] !== value;
+        }
+        else if (operator === "starts-with") {
+            return anyNode[name].toString().startsWith(value);
+        }
+        else if (operator === "ends-with") {
+            return anyNode[name].toString().endsWith(value);
+        }
+        else if (operator === "contains") {
+            return anyNode[name].toString().includes(value);
+        }
+        else if (operator === "greater-than-or-equal") {
+            return anyNode[name] >= value;
+        }
+        else if (operator === "less-than-or-equal") {
+            return anyNode[name] <= value;
+        }
+        else if (operator === "greater-than") {
+            return anyNode[name] > value;
+        }
+        else if (operator === "less-than") {
+            return anyNode[name] < value;
+        }
+        return false;
+    }
+    _getAttributeName(ast) {
+        return ast.find(n => n.name === "attribute-name").value;
+    }
+    _getAttributeValue(ast) {
+        let valueNode = ast.find(n => n.name === "single-quote-string-literal");
+        if (valueNode != null) {
+            return valueNode.value.slice(1, -1);
+        }
+        else {
+            valueNode = ast.find(n => n.name === "value");
+        }
+        if (valueNode != null) {
+            return valueNode.value;
+        }
+        else {
+            valueNode = ast.find(n => n.name === "number");
+        }
+        return valueNode.value;
+    }
+    _getAttributeOperator(ast) {
+        return ast.find(n => operatorMap[n.name]).name;
+    }
+}
+
+class Query {
+    constructor(context, prevQuery = null) {
+        this._context = context;
+        this._prevQuery = prevQuery;
+    }
+    toArray() {
+        return this._context.slice();
+    }
+    // Modifiers
+    append(visitor) {
+        this._context.forEach(n => {
+            const parent = n.parent;
+            if (parent == null) {
+                return;
+            }
+            const newNode = visitor(n);
+            n.appendChild(newNode);
+        });
+        return this;
+    }
+    prepend(visitor) {
+        this._context.forEach(n => {
+            const parent = n.parent;
+            if (parent == null) {
+                return;
+            }
+            const newNode = visitor(n);
+            n.insertBefore(newNode, n.children[0]);
+        });
+        return this;
+    }
+    after(visitor) {
+        this._context.forEach(n => {
+            const parent = n.parent;
+            if (parent == null) {
+                return;
+            }
+            const index = parent.findChildIndex(n);
+            const newNode = visitor(n);
+            parent.spliceChildren(index + 1, 0, newNode);
+        });
+        return this;
+    }
+    before(visitor) {
+        this._context.forEach(n => {
+            const parent = n.parent;
+            if (parent == null) {
+                return;
+            }
+            const index = parent.findChildIndex(n);
+            const newNode = visitor(n);
+            parent.spliceChildren(index, 0, newNode);
+        });
+        return this;
+    }
+    replaceWith(visitor) {
+        this._context.forEach(n => {
+            const newNode = visitor(n);
+            n.replaceWith(newNode);
+        });
+        return this;
+    }
+    compact() {
+        this._context.forEach(n => {
+            n.compact();
+        });
+        return this;
+    }
+    setValue(value) {
+        this.replaceWith((n) => {
+            return Node.createValueNode(n.type, n.name, value);
+        });
+        return this;
+    }
+    normalize() {
+        const first = this._context[0];
+        if (first != null) {
+            first.findRoot().normalize();
+        }
+    }
+    remove() {
+        this._context.forEach(n => {
+            n.remove();
+        });
+        return this;
+    }
+    // Filters from the currently matched nodes
+    slice(start, end) {
+        return new Query(this._context.slice(start, end));
+    }
+    filter(selectorString) {
+        const selector = new Selector(selectorString);
+        const newContext = selector.filter(this._context);
+        return new Query(newContext, this);
+    }
+    // Selects out of all descedants of currently matched nodes
+    find(selectorString) {
+        const selector = new Selector(selectorString);
+        const newContext = selector.find(this._context);
+        return new Query(newContext, this);
+    }
+    // Remove nodes from the set of matched nodes.
+    not(selectorString) {
+        const selector = new Selector(selectorString);
+        const newContext = selector.not(this._context);
+        return new Query(newContext, this);
+    }
+    // Select the parent of currently matched nodes
+    parent() {
+        const parents = this._context.map(n => n.parent);
+        const result = new Set();
+        parents.forEach((n) => {
+            if (n != null) {
+                result.add(n);
+            }
+        });
+        return new Query(Array.from(result), this);
+    }
+    // Select the ancestors of currently matched nodes
+    parents(selectorString) {
+        const selector = new Selector(selectorString);
+        const newContext = selector.parents(this._context);
+        const result = new Set();
+        newContext.forEach((n) => {
+            if (n != null) {
+                result.add(n);
+            }
+        });
+        return new Query(Array.from(result), this);
+    }
+    first() {
+        return new Query(this._context.slice(0, 1), this);
+    }
+    last() {
+        return new Query(this._context.slice(-1), this);
+    }
+    // Pop query stack
+    end() {
+        if (this._prevQuery) {
+            return this._prevQuery;
+        }
+        return this;
+    }
+    length() {
+        return this._context.length;
+    }
+}
+
 exports.AutoComplete = AutoComplete;
 exports.Context = Context;
 exports.Cursor = Cursor;
@@ -3870,10 +4308,12 @@ exports.Not = Not;
 exports.Optional = Optional;
 exports.Options = Options;
 exports.ParseError = ParseError;
+exports.Query = Query;
 exports.Reference = Reference;
 exports.Regex = Regex;
 exports.Repeat = Repeat;
 exports.RightAssociated = RightAssociated;
+exports.Selector = Selector;
 exports.Sequence = Sequence;
 exports.compact = compact;
 exports.grammar = grammar;

@@ -8,6 +8,11 @@ export interface RepeatOptions {
     divider?: Pattern;
     trimDivider?: boolean;
 }
+interface InternalRepeatOptions {
+    min: number;
+    max: number;
+    divider?: Pattern;
+}
 export declare class Repeat implements Pattern {
     private _id;
     private _repeatPattern;
@@ -24,6 +29,8 @@ export declare class Repeat implements Pattern {
     get min(): number;
     get max(): number;
     get startedOnIndex(): number;
+    get pattern(): Pattern;
+    get options(): InternalRepeatOptions;
     constructor(name: string, pattern: Pattern, options?: RepeatOptions);
     parse(cursor: Cursor): Node | null;
     exec(text: string): ParseResult;
@@ -38,3 +45,4 @@ export declare class Repeat implements Pattern {
     find(predicate: (p: Pattern) => boolean): Pattern | null;
     isEqual(pattern: Repeat): boolean;
 }
+export {};

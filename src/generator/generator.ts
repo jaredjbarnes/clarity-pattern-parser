@@ -38,7 +38,7 @@ export class Generator {
                         return new Generator(this._depth + 2).generate(p);
                     }), this._depth + 2);
 
-                    return `new Context("${name}",${this._generateTabs(this._depth + 1)}${contextPatternString}, [${contextPatternsString.join(", ")}${this._generateTabs(this._depth)}])`;
+                    return `new Context("${name}",${this._generateTabs(this._depth + 1)}${contextPatternString}, [${contextPatternsString.join(", ")}${this._generateTabs(this._depth + 1)}])`;
                 }
                 case "expression": {
                     const expression = pattern as Expression;
@@ -72,7 +72,7 @@ export class Generator {
                 }
                 case "infinite-repeat": {
                     const repeat = pattern as Repeat;
-                    const generator = new Generator(this._depth + 1);
+                    const generator = new Generator(this._depth);
                     const repeatPattern = repeat.pattern;
                     const options = repeat.options;
                     const repeatPatternString = generator.generate(repeatPattern);

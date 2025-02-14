@@ -846,10 +846,11 @@ class Reference {
     get startedOnIndex() {
         return this._firstIndex;
     }
-    constructor(name) {
+    constructor(name, referencePatternName) {
         this._id = `reference-${idIndex$7++}`;
         this._type = "reference";
         this._name = name;
+        this._referencePatternName = referencePatternName || name;
         this._parent = null;
         this._pattern = null;
         this._cachedPattern = null;
@@ -908,7 +909,7 @@ class Reference {
                 pattern = this._cachedPattern;
             }
             if (pattern === null) {
-                throw new Error(`Couldn't find '${this._name}' pattern within tree.`);
+                throw new Error(`Couldn't find '${this._referencePatternName}' pattern within tree.`);
             }
             const clonedPattern = pattern.clone();
             clonedPattern.parent = this;
@@ -924,7 +925,7 @@ class Reference {
                 pattern = pattern.parent;
                 continue;
             }
-            const foundPattern = pattern.getPatternWithinContext(this.name);
+            const foundPattern = pattern.getPatternWithinContext(this._referencePatternName);
             if (foundPattern != null && this._isValidPattern(foundPattern)) {
                 return foundPattern;
             }
@@ -932,7 +933,7 @@ class Reference {
         }
         const root = this._getRoot();
         return findPattern(root, (pattern) => {
-            return pattern.name === this._name && this._isValidPattern(pattern);
+            return pattern.name === this._referencePatternName && this._isValidPattern(pattern);
         });
     }
     _isValidPattern(pattern) {
@@ -991,7 +992,7 @@ class Reference {
         return null;
     }
     clone(name = this._name) {
-        const clone = new Reference(name);
+        const clone = new Reference(name, this._referencePatternName);
         clone._id = this._id;
         // Optimize future clones, by caching the pattern we already found.
         if (this._pattern != null) {
@@ -3594,8 +3595,8 @@ class Grammar {
         const aliasPattern = this._getPattern(aliasName);
         // This solves the problem for an alias pointing to a reference.
         if (aliasPattern.type === "reference") {
-            const sequence = new Sequence(name, [aliasPattern]);
-            this._parseContext.patternsByName.set(name, sequence);
+            const reference = new Reference(name, aliasName);
+            this._parseContext.patternsByName.set(name, reference);
         }
         else {
             const alias = aliasPattern.clone(name);

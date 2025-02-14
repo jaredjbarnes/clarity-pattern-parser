@@ -542,8 +542,8 @@ export class Grammar {
         
         // This solves the problem for an alias pointing to a reference.
         if (aliasPattern.type === "reference"){
-            const sequence = new Sequence(name, [aliasPattern]);
-            this._parseContext.patternsByName.set(name, sequence);
+            const reference = new Reference(name, aliasName);
+            this._parseContext.patternsByName.set(name, reference);
         } else {
             const alias = aliasPattern.clone(name);
             this._parseContext.patternsByName.set(name, alias);

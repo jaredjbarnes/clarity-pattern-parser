@@ -4,9 +4,12 @@ import { Literal } from "../patterns/Literal";
 import { Pattern } from "../patterns/Pattern";
 import { Regex } from "../patterns/Regex";
 import { Repeat } from "../patterns/Repeat";
+import { IVisitor } from "./ivisitor";
 
 export class Generator {
+    private _visitor: IVisitor;
     private _depth = 1;
+    private _usedPatterns: Set<string>;
     private _terminalPatterns = [
         "literal",
         "regex",
@@ -18,94 +21,71 @@ export class Generator {
         "expression"
     ];
 
-    constructor(depth = 0) {
+    constructor(visitor: IVisitor, depth = 0) {
+        this._usedPatterns = new Set();
+        this._visitor = visitor;
+        this._depth = depth;
+    }
+
+    setDepth(depth: number) {
         this._depth = depth;
     }
 
     generate(pattern: Pattern): string {
-        return this._walkUp(pattern, (pattern: Pattern, args: string[]) => {
-            const type = pattern.type;
-            const name = this._escapeString(pattern.name);
+        this._visitor.begin(this);
 
-            args = this._indent(args, this._depth + 1);
+        const body = this._walkUp(pattern, (pattern: Pattern, args: string[]) => {
+            const type = pattern.type;
+            this._usedPatterns.add(type);
+
             switch (type) {
                 case "context": {
-                    const context = pattern as Context;
-                    const contextPatterns = context.getPatternsWithinContext();
-                    const contextPatternString = new Generator(this._depth).generate(context.children[0]);
-
-                    const contextPatternsString = this._indent(Object.values(contextPatterns).map(p => {
-                        return new Generator(this._depth + 2).generate(p);
-                    }), this._depth + 2);
-
-                    return `new Context("${name}",${this._generateTabs(this._depth + 1)}${contextPatternString}, [${contextPatternsString.join(", ")}${this._generateTabs(this._depth + 1)}])`;
+                    return this._visitor.context(pattern, this._depth);
                 }
                 case "expression": {
-                    const expression = pattern as Expression;
-                    const patterns = expression.originalPatterns;
-
-                    const patternsString = this._indent(patterns.map(p => {
-                        return new Generator(this._depth + 2).generate(p);
-                    }), this._depth + 2);
-
-                    return `new Expression("${name}", [${patternsString.join(", ")}${this._generateTabs(this._depth + 1)}])`;
+                    return this._visitor.expression(pattern, this._depth);
                 }
                 case "literal": {
-                    const literal = pattern as Literal;
-                    return `new Literal("${name}", "${this._escapeString(literal.token)}")`;
+                    return this._visitor.literal(pattern, this._depth);
                 }
                 case "not": {
-                    return `new Not("${name}", ${args.join("")})`;
+                    return this._visitor.not(pattern, args, this._depth);
                 }
                 case "optional": {
-                    return `new Optional("${name}", ${args.join("")})`;
+                    return this._visitor.optional(pattern, args, this._depth);
                 }
                 case "options": {
-                    return `new Options("${name}", [${args.join(", ")}${this._generateTabs(this._depth)}])`;
+                    return this._visitor.options(pattern, args, this._depth);
                 }
                 case "reference": {
-                    return `new Reference("${name}")`;
+                    return this._visitor.reference(pattern, this._depth);
                 }
                 case "regex": {
-                    const regex = pattern as Regex;
-                    return `new Literal("${name}", "${this._escapeString(regex.regex)}")`;
+                    return this._visitor.regex(pattern, this._depth);
                 }
                 case "infinite-repeat": {
-                    const repeat = pattern as Repeat;
-                    const generator = new Generator(this._depth);
-                    const repeatPattern = repeat.pattern;
-                    const options = repeat.options;
-                    const repeatPatternString = generator.generate(repeatPattern);
-                    let dividerString = "null";
-
-                    if (options.divider != null) {
-                        dividerString = generator.generate(options.divider);
-                    }
-
-                    return `new Repeat("${name}", ${this._generateTabs(this._depth + 1)}${repeatPatternString}, {min: ${repeat.min}, divider: ${dividerString}})`;
+                    return this._visitor.infiniteRepeat(pattern, this._depth);
                 }
                 case "finite-repeat": {
-                    const repeat = pattern as Repeat;
-                    const generator = new Generator(this._depth);
-                    const repeatPattern = repeat.pattern;
-                    const options = repeat.options;
-                    const repeatPatternString = generator.generate(repeatPattern);
-                    let dividerString = "null";
-
-                    if (options.divider != null) {
-                        dividerString = generator.generate(options.divider);
-                    }
-                    return `new Repeat("${name}", ${this._generateTabs(this._depth + 1)}${repeatPatternString}, {min: ${repeat.min}, max: ${repeat.max} divider: ${dividerString}})`;
+                    return this._visitor.finiteRepeat(pattern, this._depth);
                 }
                 case "right-associated": {
-                    return `new RightAssociation(${args.join("")})`;
+                    return this._visitor.rightAssociated(pattern, args, this._depth);
                 }
                 case "sequence": {
-                    return `new Sequence("${name}", [${args.join(", ")}${this._generateTabs(this._depth)}])`;
+                    return this._visitor.sequence(pattern, args, this._depth);
                 }
             }
             throw Error("Cannot find pattern.");
         });
+
+
+        const header = this._visitor.header(Array.from(this._usedPatterns));
+        const footer = this._visitor.footer();
+
+        this._visitor.end();
+
+        return `${header}${body}${footer}`;
     }
 
     private _walkUp(pattern: Pattern, callback: (pattern: Pattern, args: string[]) => string): string {
@@ -125,17 +105,4 @@ export class Generator {
 
         return callback(pattern, filteredResults);
     }
-
-    private _escapeString(value: string) {
-        return value.replaceAll('"', '\\"');
-    }
-
-    private _generateTabs(depth: number) {
-        return "\n" + new Array(depth).fill("  ").join("");
-    }
-
-    private _indent(args: string[], depth: number) {
-        return args.map(s => this._generateTabs(depth) + s);
-    }
-
 }

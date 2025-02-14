@@ -13,6 +13,7 @@ export class Reference implements Pattern {
   private _id: string;
   private _type: string;
   private _name: string;
+  private _referencePatternName: string;
   private _parent: Pattern | null;
   private _cachedPattern: Pattern | null;
   private _pattern: Pattern | null;
@@ -49,10 +50,11 @@ export class Reference implements Pattern {
     return this._firstIndex;
   }
 
-  constructor(name: string) {
+  constructor(name: string, referencePatternName?: string) {
     this._id = `reference-${idIndex++}`;
     this._type = "reference";
     this._name = name;
+    this._referencePatternName = referencePatternName || name;
     this._parent = null;
     this._pattern = null;
     this._cachedPattern = null;
@@ -126,7 +128,7 @@ export class Reference implements Pattern {
       }
 
       if (pattern === null) {
-        throw new Error(`Couldn't find '${this._name}' pattern within tree.`);
+        throw new Error(`Couldn't find '${this._referencePatternName}' pattern within tree.`);
       }
 
       const clonedPattern = pattern.clone();
@@ -148,7 +150,7 @@ export class Reference implements Pattern {
         continue;
       }
 
-      const foundPattern = (pattern as Context).getPatternWithinContext(this.name);
+      const foundPattern = (pattern as Context).getPatternWithinContext(this._referencePatternName);
 
       if (foundPattern != null && this._isValidPattern(foundPattern)) {
         return foundPattern;
@@ -159,7 +161,7 @@ export class Reference implements Pattern {
 
     const root = this._getRoot();
     return findPattern(root, (pattern: Pattern) => {
-      return pattern.name === this._name && this._isValidPattern(pattern);
+      return pattern.name === this._referencePatternName && this._isValidPattern(pattern);
     });
   }
 
@@ -236,7 +238,7 @@ export class Reference implements Pattern {
   }
 
   clone(name = this._name): Pattern {
-    const clone = new Reference(name);
+    const clone = new Reference(name, this._referencePatternName);
     clone._id = this._id;
 
     // Optimize future clones, by caching the pattern we already found.

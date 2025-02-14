@@ -1,5 +1,6 @@
 import { patterns } from "../grammar/patterns";
 import { Generator } from "./generator";
+import { TypescriptVisitor } from "./typescriptVisitor";
 
 describe("generator", () => {
     test("Every Pattern", () => {
@@ -11,10 +12,11 @@ describe("generator", () => {
             items = (item, comma)+
             array = "[" + space? + items? + space? + "]"
             and-expression = expression + " and " + expression
-            expression = and-expression | names
+            expression = and-expression | item
         `;
 
-        const result = new Generator().generate(expression);
+        const visitor = new TypescriptVisitor();
+        const result = new Generator(visitor).generate(expression);
         expect(result).toBe(result);
 
     });

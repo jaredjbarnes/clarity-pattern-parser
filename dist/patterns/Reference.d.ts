@@ -6,6 +6,7 @@ export declare class Reference implements Pattern {
     private _id;
     private _type;
     private _name;
+    private _referencePatternName;
     private _parent;
     private _cachedPattern;
     private _pattern;
@@ -20,7 +21,7 @@ export declare class Reference implements Pattern {
     set parent(pattern: Pattern | null);
     get children(): Pattern[];
     get startedOnIndex(): number;
-    constructor(name: string);
+    constructor(name: string, referencePatternName?: string);
     test(text: string, record?: boolean): boolean;
     exec(text: string, record?: boolean): ParseResult;
     parse(cursor: Cursor): Node | null;

@@ -1,7 +1,4 @@
-* Fix infinite repeat recursion with a reference
-
-
-* Generate typescript files from cpat
+* Fix Grammar with alias reference, by adding an additional parameter to the constructor of Reference to be the name and then the cloned name of the pattern eventually found.
 
 * We should make a Block, Segments Pattern. These will be breadth first patterns. It look something like this.
 

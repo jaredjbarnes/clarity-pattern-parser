@@ -915,7 +915,7 @@ class Reference {
             if (pattern === null) {
                 throw new Error(`Couldn't find '${this._referencePatternName}' pattern within tree.`);
             }
-            const clonedPattern = pattern.clone();
+            const clonedPattern = pattern.clone(this._name);
             clonedPattern.parent = this;
             this._pattern = clonedPattern;
             this._children = [this._pattern];

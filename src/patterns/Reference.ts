@@ -131,7 +131,7 @@ export class Reference implements Pattern {
         throw new Error(`Couldn't find '${this._referencePatternName}' pattern within tree.`);
       }
 
-      const clonedPattern = pattern.clone();
+      const clonedPattern = pattern.clone(this._name);
       clonedPattern.parent = this;
 
       this._pattern = clonedPattern;

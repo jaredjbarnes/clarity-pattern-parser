@@ -4317,6 +4317,7 @@ exports.RightAssociated = RightAssociated;
 exports.Selector = Selector;
 exports.Sequence = Sequence;
 exports.compact = compact;
+exports.generateErrorMessage = generateErrorMessage;
 exports.grammar = grammar;
 exports.patterns = patterns;
 exports.remove = remove;

@@ -4293,5 +4293,5 @@ class Query {
     }
 }
 
-export { AutoComplete, Context, Cursor, CursorHistory, Expression, Grammar, Literal, Node, Not, Optional, Options, ParseError, Query, Reference, Regex, Repeat, RightAssociated, Selector, Sequence, compact, grammar, patterns, remove };
+export { AutoComplete, Context, Cursor, CursorHistory, Expression, Grammar, Literal, Node, Not, Optional, Options, ParseError, Query, Reference, Regex, Repeat, RightAssociated, Selector, Sequence, compact, generateErrorMessage, grammar, patterns, remove };
 //# sourceMappingURL=index.esm.js.map

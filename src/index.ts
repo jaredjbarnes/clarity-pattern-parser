@@ -25,6 +25,7 @@ import { Expression } from "./patterns/Expression";
 import { RightAssociated } from "./patterns/RightAssociated";
 import { Selector } from "./query/selector";
 import { Query } from "./query/query";
+import { generateErrorMessage } from "./patterns/generate_error_message";
 
 export {
   Node,
@@ -55,5 +56,6 @@ export {
   grammar,
   patterns,
   compact,
-  remove
+  remove,
+  generateErrorMessage
 };

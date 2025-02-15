@@ -4319,6 +4319,7 @@ expression = selector-expression | or-selector | node-selector
     exports.Selector = Selector;
     exports.Sequence = Sequence;
     exports.compact = compact;
+    exports.generateErrorMessage = generateErrorMessage;
     exports.grammar = grammar;
     exports.patterns = patterns;
     exports.remove = remove;

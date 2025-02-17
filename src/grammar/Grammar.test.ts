@@ -682,4 +682,18 @@ describe("Grammar", () => {
         expect(allRecordedPatterns).toEqual(["spaces", "digits"]);
     });
 
+    test("Decorator With Empty Object Literal", () => {
+        patterns`
+            @method({})
+            spaces = /\\s+/
+        `;
+    });
+
+    test("Decorator With Object Literal", () => {
+        patterns`
+            @method({"prop": 2})
+            spaces = /\\s+/
+        `;
+    });
+
 });

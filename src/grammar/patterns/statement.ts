@@ -5,6 +5,7 @@ import { name } from "./name";
 import { spaces } from "./spaces";
 import { pattern } from "./pattern";
 import { Optional } from "../../patterns/Optional";
+import {decoratorStatement} from './decoratorStatement';
 
 const optionalSpaces = new Optional("optional-spaces", spaces);
 const assignOperator = new Literal("assign-operator", "=");
@@ -18,4 +19,4 @@ const assignStatement = new Sequence("assign-statement", [
     pattern,
 ]);
 
-export const statement = new Options("statement", [assignStatement, name.clone("export-name")]);
+export const statement = new Options("statement", [decoratorStatement, assignStatement, name.clone("export-name")]);

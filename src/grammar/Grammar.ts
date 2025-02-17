@@ -13,8 +13,15 @@ import { Context } from "../patterns/Context";
 import { Expression } from "../patterns/Expression";
 import { RightAssociated } from "../patterns/RightAssociated";
 import { generateErrorMessage } from "../patterns/generate_error_message";
+import { tokens } from "./decorators/tokens";
 
 let anonymousIndexId = 0;
+
+export type Decorator = (pattern: Pattern, arg?: string | boolean | number | null | Record<string, any> | any[]) => void;
+
+const defaultDecorators = {
+    tokens: tokens
+};
 
 const patternNodes: Record<string, boolean> = {
     "literal": true,
@@ -27,12 +34,14 @@ const patternNodes: Record<string, boolean> = {
 };
 
 class ParseContext {
-    constructor(params: Pattern[]) {
-        params.forEach(p => this.paramsByName.set(p.name, p));
-    }
     patternsByName = new Map<string, Pattern>();
     importedPatternsByName = new Map<string, Pattern>();
     paramsByName = new Map<string, Pattern>();
+    decorators: Record<string, Decorator>;
+    constructor(params: Pattern[], decorators: Record<string, Decorator> = {}) {
+        params.forEach(p => this.paramsByName.set(p.name, p));
+        this.decorators = { ...decorators, ...defaultDecorators };
+    }
 }
 
 function defaultImportResolver(_path: string, _basePath: string | null): Promise<GrammarFile> {
@@ -48,6 +57,7 @@ export interface GrammarOptions {
     resolveImport?: (resource: string, originResource: string | null) => Promise<GrammarFile>;
     originResource?: string | null;
     params?: Pattern[];
+    decorators?: Record<string, Decorator>;
 }
 
 export class Grammar {
@@ -60,7 +70,7 @@ export class Grammar {
         this._params = options?.params == null ? [] : options.params;
         this._originResource = options?.originResource == null ? null : options.originResource;
         this._resolveImport = options.resolveImport == null ? defaultImportResolver : options.resolveImport;
-        this._parseContext = new ParseContext(this._params);
+        this._parseContext = new ParseContext(this._params, options.decorators || {});
     }
 
     async import(path: string) {
@@ -68,14 +78,15 @@ export class Grammar {
         const grammar = new Grammar({
             resolveImport: this._resolveImport,
             originResource: grammarFile.resource,
-            params: this._params
+            params: this._params,
+            decorators: this._parseContext.decorators
         });
 
         return grammar.parse(grammarFile.expression);
     }
 
     async parse(expression: string) {
-        this._parseContext = new ParseContext(this._params);
+        this._parseContext = new ParseContext(this._params, this._parseContext.decorators);
         const ast = this._tryToParse(expression);
 
         await this._resolveImports(ast);
@@ -85,7 +96,7 @@ export class Grammar {
     }
 
     parseString(expression: string) {
-        this._parseContext = new ParseContext(this._params);
+        this._parseContext = new ParseContext(this._params, this._parseContext.decorators);
         const ast = this._tryToParse(expression);
 
         if (this._hasImports(ast)) {
@@ -216,6 +227,8 @@ export class Grammar {
         const regexNode = statementNode.find(n => n.name === "regex-literal") as Node;
         const name = nameNode.value;
         const regex = this._buildRegex(name, regexNode);
+
+        this._applyDecorators(statementNode, regex);
 
         this._parseContext.patternsByName.set(name, regex);
     }
@@ -433,7 +446,8 @@ export class Grammar {
             const grammar = new Grammar({
                 resolveImport: this._resolveImport,
                 originResource: grammarFile.resource,
-                params
+                params,
+                decorators: this._parseContext.decorators
             });
 
             try {
@@ -486,6 +500,59 @@ export class Grammar {
         }
     }
 
+    private _applyDecorators(statementNode: Node, pattern: Pattern) {
+        const decorators = this._parseContext.decorators;
+        const bodyLine = statementNode.parent;
+
+        if (bodyLine == null) {
+            return;
+        }
+
+        let prevSibling = bodyLine.previousSibling();
+        let decoratorNodes: Node[] = [];
+
+        while (prevSibling != null) {
+            if (prevSibling.find(n => n.name === "assign-statement")) {
+                break;
+            }
+            decoratorNodes.push(prevSibling);
+            prevSibling = prevSibling.previousSibling();
+        }
+
+        decoratorNodes = decoratorNodes.filter(n => n.find(n => n.name.includes("decorator")) != null);
+
+        decoratorNodes.forEach((d) => {
+            const nameNode = d.find(n => n.name === "decorator-name");
+
+            if (nameNode == null || decorators[nameNode.value] == null) {
+                return;
+            }
+
+            const nameDocorator = d.find(n=>n.name === "name-decorator");
+
+            if (nameDocorator != null){
+                decorators[nameNode.value](pattern);
+                return;
+            }
+
+            const methodDecorator = d.find(n => n.name === "method-decorator");
+
+            if (methodDecorator == null){
+                return;
+            }
+
+            methodDecorator.findAll(n=>n.name.includes("space")).forEach(n=>n.remove());
+            const argsNode = methodDecorator.children[3];
+            
+            if (argsNode == null || argsNode.name === "close-paren") {
+                decorators[nameNode.value](pattern);
+            } else {
+                decorators[nameNode.value](pattern, JSON.parse(argsNode.value));
+            }
+        });
+
+    }
+
     private _getParams(importStatement: Node) {
         let params: Pattern[] = [];
         const paramsStatement = importStatement.find(n => n.name === "with-params-statement");
@@ -504,7 +571,8 @@ export class Grammar {
                 const grammar = new Grammar({
                     params: [...importedValues, ...this._parseContext.paramsByName.values()],
                     originResource: this._originResource,
-                    resolveImport: this._resolveImport
+                    resolveImport: this._resolveImport,
+                    decorators: this._parseContext.decorators
                 });
 
                 const patterns = grammar.parseString(expression);
@@ -539,9 +607,9 @@ export class Grammar {
         const aliasName = aliasNode.value;
         const name = nameNode.value;
         const aliasPattern = this._getPattern(aliasName);
-        
+
         // This solves the problem for an alias pointing to a reference.
-        if (aliasPattern.type === "reference"){
+        if (aliasPattern.type === "reference") {
             const reference = new Reference(name, aliasName);
             this._parseContext.patternsByName.set(name, reference);
         } else {

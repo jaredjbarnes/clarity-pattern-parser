@@ -9,7 +9,7 @@ import { Repeat } from "../patterns/Repeat";
 import { Grammar } from "./Grammar";
 import { Optional } from "../patterns/Optional";
 import { Context } from "../patterns/Context";
-import { patterns } from "./patterns";
+import { createPatternsTemplate, patterns } from "./patterns";
 import { Expression } from "../patterns/Expression";
 
 describe("Grammar", () => {
@@ -176,7 +176,7 @@ describe("Grammar", () => {
         const digits = new Optional("optional-digits", new Repeat("digits", digit, { min: 0 }));
 
         const expected = new Context("optional-digits", digits, [digit]);
-debugger;
+        debugger;
         expect(pattern.isEqual(expected)).toBeTruthy();
     });
 
@@ -594,6 +594,92 @@ debugger;
         let result = expression.exec("a ? b : c ? d : e");
         debugger;
         expect(result).toBe(result);
+    });
+
+    test("Decorators", () => {
+        const { spaces } = patterns`
+            @tokens([" "])
+            spaces = /\\s+/
+        `;
+
+        expect(spaces.getTokens()).toEqual([" "]);
+    });
+
+    test("Decorators No Args", () => {
+        const { spaces } = patterns`
+            @tokens()
+            spaces = /\\s+/
+        `;
+
+        expect(spaces.getTokens()).toEqual([]);
+    });
+
+    test("Decorators Bad Args", () => {
+        const { spaces } = patterns`
+            @tokens("Bad")
+            spaces = /\\s+/
+        `;
+
+        expect(spaces.getTokens()).toEqual([]);
+    });
+
+    test("Decorators Bad Decorator", () => {
+        const { spaces } = patterns`
+            @bad-decorator()
+            spaces = /\\s+/
+        `;
+
+        expect(spaces.getTokens()).toEqual([]);
+    });
+
+    test("Decorators On Multiple Patterns", () => {
+        const { spaces, digits } = patterns`
+            @tokens([" "])
+            spaces = /\\s+/
+
+            @tokens(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"])
+            digits = /\\d+/
+        `;
+
+        expect(spaces.getTokens()).toEqual([" "]);
+        expect(digits.getTokens()).toEqual(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]);
+    });
+
+    test("Decorators On Multiple Patterns And Comments", () => {
+        const { spaces, digits } = patterns`
+            #Comment
+            @tokens([" "])
+            spaces = /\\s+/
+
+            #Comment
+            @tokens(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"])
+            #Comment
+            digits = /\\d+/
+        `;
+
+        expect(spaces.getTokens()).toEqual([" "]);
+        expect(digits.getTokens()).toEqual(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]);
+    });
+
+    test("Custom Named Decorator", () => {
+        const allRecordedPatterns: string[] = [];
+        const patterns = createPatternsTemplate({
+            decorators: {
+                record: (pattern) => {
+                    allRecordedPatterns.push(pattern.name);
+                }
+            }
+        });
+
+        patterns`
+            @record
+            spaces = /\\s+/
+
+            @record
+            digits = /\\d+/
+        `;
+
+        expect(allRecordedPatterns).toEqual(["spaces", "digits"]);
     });
 
 });

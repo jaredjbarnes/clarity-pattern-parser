@@ -202,6 +202,7 @@ export class Grammar {
         const name = nameNode.value;
         const literal = this._buildLiteral(name, literalNode);
 
+        this._applyDecorators(statementNode, literal);
         this._parseContext.patternsByName.set(name, literal);
     }
 
@@ -229,7 +230,6 @@ export class Grammar {
         const regex = this._buildRegex(name, regexNode);
 
         this._applyDecorators(statementNode, regex);
-
         this._parseContext.patternsByName.set(name, regex);
     }
 
@@ -244,6 +244,7 @@ export class Grammar {
         const optionsNode = statementNode.find(n => n.name === "options-literal") as Node;
         const options = this._buildOptions(name, optionsNode);
 
+        this._applyDecorators(statementNode, options);
         this._parseContext.patternsByName.set(name, options);
     }
 
@@ -335,6 +336,7 @@ export class Grammar {
         const sequenceNode = statementNode.find(n => n.name === "sequence-literal") as Node;
         const sequence = this._buildSequence(name, sequenceNode);
 
+        this._applyDecorators(statementNode, sequence);
         this._parseContext.patternsByName.set(name, sequence);
     }
 
@@ -364,6 +366,7 @@ export class Grammar {
         const repeatNode = statementNode.find(n => n.name === "repeat-literal") as Node;
         const repeat = this._buildRepeat(name, repeatNode);
 
+        this._applyDecorators(statementNode, repeat);
         this._parseContext.patternsByName.set(name, repeat);
     }
 
@@ -426,6 +429,8 @@ export class Grammar {
         const isOptional = node.children[1] != null;
 
         const anonymous = isOptional ? new Optional(name, this._buildPattern(anonymousNode.children[0])) : this._buildPattern(anonymousNode.children[0]);
+
+        this._applyDecorators(node, anonymous);
         this._parseContext.patternsByName.set(name, anonymous);
     }
 
@@ -528,22 +533,22 @@ export class Grammar {
                 return;
             }
 
-            const nameDocorator = d.find(n=>n.name === "name-decorator");
+            const nameDocorator = d.find(n => n.name === "name-decorator");
 
-            if (nameDocorator != null){
+            if (nameDocorator != null) {
                 decorators[nameNode.value](pattern);
                 return;
             }
 
             const methodDecorator = d.find(n => n.name === "method-decorator");
 
-            if (methodDecorator == null){
+            if (methodDecorator == null) {
                 return;
             }
 
-            methodDecorator.findAll(n=>n.name.includes("space")).forEach(n=>n.remove());
+            methodDecorator.findAll(n => n.name.includes("space")).forEach(n => n.remove());
             const argsNode = methodDecorator.children[3];
-            
+
             if (argsNode == null || argsNode.name === "close-paren") {
                 decorators[nameNode.value](pattern);
             } else {
@@ -611,9 +616,11 @@ export class Grammar {
         // This solves the problem for an alias pointing to a reference.
         if (aliasPattern.type === "reference") {
             const reference = new Reference(name, aliasName);
+            this._applyDecorators(statementNode, reference);
             this._parseContext.patternsByName.set(name, reference);
         } else {
             const alias = aliasPattern.clone(name);
+            this._applyDecorators(statementNode, alias);
             this._parseContext.patternsByName.set(name, alias);
         }
 

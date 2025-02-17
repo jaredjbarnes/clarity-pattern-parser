@@ -3390,6 +3390,7 @@ class Grammar {
         const literalNode = statementNode.find(n => n.name === "literal");
         const name = nameNode.value;
         const literal = this._buildLiteral(name, literalNode);
+        this._applyDecorators(statementNode, literal);
         this._parseContext.patternsByName.set(name, literal);
     }
     _buildLiteral(name, node) {
@@ -3424,6 +3425,7 @@ class Grammar {
         const name = nameNode.value;
         const optionsNode = statementNode.find(n => n.name === "options-literal");
         const options = this._buildOptions(name, optionsNode);
+        this._applyDecorators(statementNode, options);
         this._parseContext.patternsByName.set(name, options);
     }
     _buildOptions(name, node) {
@@ -3502,6 +3504,7 @@ class Grammar {
         const name = nameNode.value;
         const sequenceNode = statementNode.find(n => n.name === "sequence-literal");
         const sequence = this._buildSequence(name, sequenceNode);
+        this._applyDecorators(statementNode, sequence);
         this._parseContext.patternsByName.set(name, sequence);
     }
     _buildSequence(name, node) {
@@ -3524,6 +3527,7 @@ class Grammar {
         const name = nameNode.value;
         const repeatNode = statementNode.find(n => n.name === "repeat-literal");
         const repeat = this._buildRepeat(name, repeatNode);
+        this._applyDecorators(statementNode, repeat);
         this._parseContext.patternsByName.set(name, repeat);
     }
     _buildRepeat(name, repeatNode) {
@@ -3578,6 +3582,7 @@ class Grammar {
         const anonymousNode = node.find(n => n.name === "configurable-anonymous-pattern");
         const isOptional = node.children[1] != null;
         const anonymous = isOptional ? new Optional(name, this._buildPattern(anonymousNode.children[0])) : this._buildPattern(anonymousNode.children[0]);
+        this._applyDecorators(node, anonymous);
         this._parseContext.patternsByName.set(name, anonymous);
     }
     _buildComplexAnonymousPattern(node) {
@@ -3725,10 +3730,12 @@ class Grammar {
         // This solves the problem for an alias pointing to a reference.
         if (aliasPattern.type === "reference") {
             const reference = new Reference(name, aliasName);
+            this._applyDecorators(statementNode, reference);
             this._parseContext.patternsByName.set(name, reference);
         }
         else {
             const alias = aliasPattern.clone(name);
+            this._applyDecorators(statementNode, alias);
             this._parseContext.patternsByName.set(name, alias);
         }
     }

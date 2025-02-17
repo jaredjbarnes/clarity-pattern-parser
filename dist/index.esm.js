@@ -2431,7 +2431,7 @@ class Context {
         return this._pattern.test(text, record);
     }
     clone(name = this._name) {
-        const clone = new Context(name, this._pattern, Object.values(this._patterns));
+        const clone = new Context(name, this._pattern.clone(name), Object.values(this._patterns));
         clone._id = this._id;
         return clone;
     }

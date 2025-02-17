@@ -1943,8 +1943,8 @@ class Sequence {
     }
 }
 
-const literal = new Regex("literal", '"(?:\\\\.|[^"\\\\])*"');
-literal.setTokens(["[LITERAL]"]);
+const literal$1 = new Regex("literal", '"(?:\\\\.|[^"\\\\])*"');
+literal$1.setTokens(["[LITERAL]"]);
 
 const tabs$1 = new Regex("tabs", "\\t+");
 tabs$1.setTokens(["\t"]);
@@ -1963,7 +1963,7 @@ regexLiteral.setTokens(["[REGEX_EXPRESSION]"]);
 
 const patternName$3 = name$1.clone("pattern-name");
 const anonymousLiterals = new Options("anonymous-literals", [
-    literal,
+    literal$1,
     regexLiteral,
     patternName$3,
     new Reference("repeat-literal"),
@@ -2084,9 +2084,9 @@ const anonymousPattern = new Options("anonymous-pattern", [
 ]);
 
 const optionalSpaces$3 = new Optional("optional-spaces", spaces$1);
-const openBracket$1 = new Literal("repeat-open-bracket", "{");
-const closeBracket$1 = new Literal("repeat-close-bracket", "}");
-const comma = new Literal("comma", ",");
+const openBracket$2 = new Literal("repeat-open-bracket", "{");
+const closeBracket$2 = new Literal("repeat-close-bracket", "}");
+const comma$1 = new Literal("comma", ",");
 const integer = new Regex("integer", "([1-9][0-9]*)|0");
 integer.setTokens(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]);
 const min = new Optional("optional-min", integer.clone("min"));
@@ -2094,21 +2094,21 @@ const max = new Optional("optional-max", integer.clone("max"));
 const trimKeyword = new Literal("trim-keyword", "trim");
 const trimFlag = new Optional("optional-trim-flag", new Sequence("trim-flag", [lineSpaces$1, trimKeyword]));
 const bounds = new Sequence("bounds", [
-    openBracket$1,
+    openBracket$2,
     optionalSpaces$3,
     min,
     optionalSpaces$3,
-    comma,
+    comma$1,
     optionalSpaces$3,
     max,
-    closeBracket$1
+    closeBracket$2
 ]);
 const exactCount = new Sequence("exact-count", [
-    openBracket$1,
+    openBracket$2,
     optionalSpaces$3,
     integer,
     optionalSpaces$3,
-    closeBracket$1,
+    closeBracket$2,
 ]);
 const quantifierShorthand = new Regex("quantifier-shorthand", "\\*|\\+");
 quantifierShorthand.setTokens(["*", "+"]);
@@ -2117,8 +2117,8 @@ const quantifier = new Options("quantifier", [
     exactCount,
     bounds
 ]);
-const openParen = new Literal("repeat-open-paren", "(");
-const closeParen = new Literal("repeat-close-paren", ")");
+const openParen$1 = new Literal("repeat-open-paren", "(");
+const closeParen$1 = new Literal("repeat-close-paren", ")");
 const dividerComma = new Regex("divider-comma", "\\s*,\\s*");
 dividerComma.setTokens([", "]);
 const patternName$2 = name$1.clone("pattern-name");
@@ -2127,12 +2127,12 @@ const repeatDividerPattern = repeatPattern.clone("repeat-divider-pattern");
 const repeatDividerSection = new Sequence("repeat-divider-section", [dividerComma, repeatDividerPattern, trimFlag]);
 const repeatOptionalDividerSection = new Optional("repeat-optional-divider-section", repeatDividerSection);
 const repeatLiteral = new Sequence("repeat-literal", [
-    openParen,
+    openParen$1,
     optionalSpaces$3,
     repeatPattern,
     repeatOptionalDividerSection,
     optionalSpaces$3,
-    closeParen,
+    closeParen$1,
     new Sequence("quantifier-section", [quantifier]),
 ]);
 
@@ -2167,7 +2167,7 @@ aliasLiteral.setTokens(["[ALIAS_LITERAL]"]);
 const optionalIsOptional = new Optional("optional-flag", new Literal("is-optional", "?"));
 const configurableAnonymousPattern = new Sequence("configurable-anonymous-pattern", [anonymousPattern, optionalIsOptional]);
 const pattern = new Options("pattern", [
-    literal,
+    literal$1,
     regexLiteral,
     repeatLiteral,
     aliasLiteral,
@@ -2175,6 +2175,74 @@ const pattern = new Options("pattern", [
     sequenceLiteral,
     configurableAnonymousPattern,
 ], true);
+
+const colon = new Literal("colon", ":");
+const comma = new Regex("comma", "\\s*,\\s*");
+const openBracket$1 = new Literal("open-bracket", "{");
+const closeBracket$1 = new Literal("close-bracket", "}");
+const openSquareBracket = new Literal("open-square-bracket", "[");
+const closeSquareBracket = new Literal("close-square-bracket", "]");
+const optionalAllSpaces = new Optional("optional-all-spaces", allSpaces);
+const stringLiteral = new Regex("string-literal", '"(?:\\\\.|[^"\\\\])*"');
+const numberLiteral = new Regex("number-literal", '[+-]?\\d+(\\\\.\\d+)?([eE][+-]?\\d+)?');
+const nullLiteral = new Literal("null-literal", "null");
+const trueLiteral = new Literal("true-literal", "true");
+const falseLiteral = new Literal("false-literal", "false");
+const booleanLiteral = new Options("", [trueLiteral, falseLiteral]);
+const objectKey = name$1.clone("object-key");
+const objectProperty = new Sequence("object-property", [
+    objectKey,
+    optionalAllSpaces,
+    colon,
+    optionalAllSpaces,
+    new Reference("literal"),
+]);
+const objectProperies = new Repeat("object-properties", objectProperty, { divider: comma });
+const objectLiteral = new Sequence("object-literal", [
+    openBracket$1,
+    optionalAllSpaces,
+    new Optional("optional-object-properties", objectProperies),
+    optionalAllSpaces,
+    closeBracket$1
+]);
+const arrayItems = new Repeat("array-items", new Reference("literal"), { divider: comma });
+const arrayLiteral = new Sequence("array-literal", [
+    openSquareBracket,
+    optionalAllSpaces,
+    arrayItems,
+    optionalAllSpaces,
+    closeSquareBracket,
+]);
+const literal = new Options("literal", [
+    objectLiteral,
+    arrayLiteral,
+    stringLiteral,
+    booleanLiteral,
+    nullLiteral,
+    numberLiteral,
+]);
+const decoratorPrefix = new Literal("decorator-prefix", "@");
+const decoratorName = name$1.clone("decorator-name");
+const openParen = new Literal("open-paren", "(");
+const closeParen = new Literal("close-paren", ")");
+const methodDecoration = new Sequence("method-decorator", [
+    decoratorPrefix,
+    decoratorName,
+    optionalAllSpaces,
+    openParen,
+    optionalAllSpaces,
+    new Optional("optional-args", literal),
+    optionalAllSpaces,
+    closeParen
+]);
+const nameDecoration = new Sequence("name-decorator", [
+    decoratorPrefix,
+    decoratorName,
+]);
+const decoratorStatement = new Options("decorator-statement", [
+    methodDecoration,
+    nameDecoration,
+]);
 
 const optionalSpaces$2 = new Optional("optional-spaces", spaces$1);
 const assignOperator = new Literal("assign-operator", "=");
@@ -2186,7 +2254,7 @@ const assignStatement = new Sequence("assign-statement", [
     optionalSpaces$2,
     pattern,
 ]);
-const statement = new Options("statement", [assignStatement, name$1.clone("export-name")]);
+const statement = new Options("statement", [decoratorStatement, assignStatement, name$1.clone("export-name")]);
 
 const bodyLineContent = new Options("body-line-content", [
     comment,
@@ -2217,7 +2285,7 @@ const importAlias = new Sequence("import-alias", [name, lineSpaces$1, asKeyword,
 const importedNames = new Repeat("imported-names", new Options("import-names", [importAlias, name]), { divider: importNameDivider });
 const paramName = name.clone("param-name");
 const paramNames = new Repeat("param-names", paramName, { divider: importNameDivider });
-const resource = literal.clone("resource");
+const resource = literal$1.clone("resource");
 const useParams = new Sequence("import-params", [
     useParamsKeyword,
     optionalLineSpaces$1,
@@ -3176,7 +3244,23 @@ function cleanSuggestions(suggestions) {
     return suggestions.map(s => s.trim()).filter(s => s.length > 0);
 }
 
+const tokens = (pattern, arg) => {
+    if (pattern.type === "regex" && Array.isArray(arg)) {
+        const regex = pattern;
+        const tokens = [];
+        arg.forEach(token => {
+            if (typeof token === "string") {
+                tokens.push(token);
+            }
+        });
+        regex.setTokens(tokens);
+    }
+};
+
 let anonymousIndexId = 0;
+const defaultDecorators = {
+    tokens: tokens
+};
 const patternNodes = {
     "literal": true,
     "regex-literal": true,
@@ -3187,11 +3271,12 @@ const patternNodes = {
     "configurable-anonymous-pattern": true
 };
 class ParseContext {
-    constructor(params) {
+    constructor(params, decorators = {}) {
         this.patternsByName = new Map();
         this.importedPatternsByName = new Map();
         this.paramsByName = new Map();
         params.forEach(p => this.paramsByName.set(p.name, p));
+        this.decorators = Object.assign(Object.assign({}, decorators), defaultDecorators);
     }
 }
 function defaultImportResolver(_path, _basePath) {
@@ -3202,7 +3287,7 @@ class Grammar {
         this._params = (options === null || options === void 0 ? void 0 : options.params) == null ? [] : options.params;
         this._originResource = (options === null || options === void 0 ? void 0 : options.originResource) == null ? null : options.originResource;
         this._resolveImport = options.resolveImport == null ? defaultImportResolver : options.resolveImport;
-        this._parseContext = new ParseContext(this._params);
+        this._parseContext = new ParseContext(this._params, options.decorators || {});
     }
     import(path) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -3210,14 +3295,15 @@ class Grammar {
             const grammar = new Grammar({
                 resolveImport: this._resolveImport,
                 originResource: grammarFile.resource,
-                params: this._params
+                params: this._params,
+                decorators: this._parseContext.decorators
             });
             return grammar.parse(grammarFile.expression);
         });
     }
     parse(expression) {
         return __awaiter(this, void 0, void 0, function* () {
-            this._parseContext = new ParseContext(this._params);
+            this._parseContext = new ParseContext(this._params, this._parseContext.decorators);
             const ast = this._tryToParse(expression);
             yield this._resolveImports(ast);
             this._buildPatterns(ast);
@@ -3225,7 +3311,7 @@ class Grammar {
         });
     }
     parseString(expression) {
-        this._parseContext = new ParseContext(this._params);
+        this._parseContext = new ParseContext(this._params, this._parseContext.decorators);
         const ast = this._tryToParse(expression);
         if (this._hasImports(ast)) {
             throw new Error("Cannot use imports on parseString, use parse instead.");
@@ -3330,6 +3416,7 @@ class Grammar {
         const regexNode = statementNode.find(n => n.name === "regex-literal");
         const name = nameNode.value;
         const regex = this._buildRegex(name, regexNode);
+        this._applyDecorators(statementNode, regex);
         this._parseContext.patternsByName.set(name, regex);
     }
     _buildRegex(name, node) {
@@ -3513,7 +3600,8 @@ class Grammar {
                 const grammar = new Grammar({
                     resolveImport: this._resolveImport,
                     originResource: grammarFile.resource,
-                    params
+                    params,
+                    decorators: this._parseContext.decorators
                 });
                 try {
                     const patterns = yield grammar.parse(grammarFile.expression);
@@ -3556,6 +3644,46 @@ class Grammar {
             }
         });
     }
+    _applyDecorators(statementNode, pattern) {
+        const decorators = this._parseContext.decorators;
+        const bodyLine = statementNode.parent;
+        if (bodyLine == null) {
+            return;
+        }
+        let prevSibling = bodyLine.previousSibling();
+        let decoratorNodes = [];
+        while (prevSibling != null) {
+            if (prevSibling.find(n => n.name === "assign-statement")) {
+                break;
+            }
+            decoratorNodes.push(prevSibling);
+            prevSibling = prevSibling.previousSibling();
+        }
+        decoratorNodes = decoratorNodes.filter(n => n.find(n => n.name.includes("decorator")) != null);
+        decoratorNodes.forEach((d) => {
+            const nameNode = d.find(n => n.name === "decorator-name");
+            if (nameNode == null || decorators[nameNode.value] == null) {
+                return;
+            }
+            const nameDocorator = d.find(n => n.name === "name-decorator");
+            if (nameDocorator != null) {
+                decorators[nameNode.value](pattern);
+                return;
+            }
+            const methodDecorator = d.find(n => n.name === "method-decorator");
+            if (methodDecorator == null) {
+                return;
+            }
+            methodDecorator.findAll(n => n.name.includes("space")).forEach(n => n.remove());
+            const argsNode = methodDecorator.children[3];
+            if (argsNode == null || argsNode.name === "close-paren") {
+                decorators[nameNode.value](pattern);
+            }
+            else {
+                decorators[nameNode.value](pattern, JSON.parse(argsNode.value));
+            }
+        });
+    }
     _getParams(importStatement) {
         let params = [];
         const paramsStatement = importStatement.find(n => n.name === "with-params-statement");
@@ -3570,7 +3698,8 @@ class Grammar {
                 const grammar = new Grammar({
                     params: [...importedValues, ...this._parseContext.paramsByName.values()],
                     originResource: this._originResource,
-                    resolveImport: this._resolveImport
+                    resolveImport: this._resolveImport,
+                    decorators: this._parseContext.decorators
                 });
                 const patterns = grammar.parseString(expression);
                 params = Array.from(Object.values(patterns));

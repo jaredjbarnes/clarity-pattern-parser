@@ -1,4 +1,5 @@
 import { Pattern } from "../patterns/Pattern";
+export type Decorator = (pattern: Pattern, arg?: string | boolean | number | null | Record<string, any> | any[]) => void;
 export interface GrammarFile {
     resource: string;
     expression: string;
@@ -7,6 +8,7 @@ export interface GrammarOptions {
     resolveImport?: (resource: string, originResource: string | null) => Promise<GrammarFile>;
     originResource?: string | null;
     params?: Pattern[];
+    decorators?: Record<string, Decorator>;
 }
 export declare class Grammar {
     private _params;
@@ -38,6 +40,7 @@ export declare class Grammar {
     private _saveConfigurableAnonymous;
     private _buildComplexAnonymousPattern;
     private _resolveImports;
+    private _applyDecorators;
     private _getParams;
     private _getPattern;
     private _saveAlias;

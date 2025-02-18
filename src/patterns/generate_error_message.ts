@@ -17,7 +17,7 @@ export function generateErrorMessage(pattern: Pattern, cursor: Cursor) {
     }
 
     const lastPattern = furthestMatch.pattern as Pattern;
-    const suggestions = cleanSuggestions(lastPattern.getTokens());
+    const suggestions = cleanSuggestions(lastPattern.getNextTokens());
     const strUpToError = cursor.getChars(0, endIndex);
     const lines = strUpToError.split("\n");
     const lastLine = lines[lines.length - 1];

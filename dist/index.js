@@ -3234,7 +3234,7 @@ function generateErrorMessage(pattern, cursor) {
         return `Error at line 1, column 1. Hint: ${suggestions}`;
     }
     const lastPattern = furthestMatch.pattern;
-    const suggestions = cleanSuggestions(lastPattern.getTokens());
+    const suggestions = cleanSuggestions(lastPattern.getNextTokens());
     const strUpToError = cursor.getChars(0, endIndex);
     const lines = strUpToError.split("\n");
     const lastLine = lines[lines.length - 1];

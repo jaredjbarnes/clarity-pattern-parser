@@ -2180,12 +2180,12 @@ const openSquareBracket = new Literal("open-square-bracket", "[");
 const closeSquareBracket = new Literal("close-square-bracket", "]");
 const optionalAllSpaces = new Optional("optional-all-spaces", allSpaces);
 const stringLiteral = new Regex("string-literal", '"(?:\\\\.|[^"\\\\])*"');
-const numberLiteral = new Regex("number-literal", '[+-]?\\d+(\\\\.\\d+)?([eE][+-]?\\d+)?');
+const numberLiteral = new Regex("number-literal", '[+-]?\\d+(\\.\\d+)?([eE][+-]?\\d+)?');
 const nullLiteral = new Literal("null-literal", "null");
 const trueLiteral = new Literal("true-literal", "true");
 const falseLiteral = new Literal("false-literal", "false");
 const booleanLiteral = new Options("", [trueLiteral, falseLiteral]);
-const objectKey = name$1.clone("object-key");
+const objectKey = stringLiteral.clone("object-key");
 const objectProperty = new Sequence("object-property", [
     objectKey,
     optionalAllSpaces,
@@ -2205,7 +2205,7 @@ const arrayItems = new Repeat("array-items", new Reference("literal"), { divider
 const arrayLiteral = new Sequence("array-literal", [
     openSquareBracket,
     optionalAllSpaces,
-    arrayItems,
+    new Optional("optional-array-items", arrayItems),
     optionalAllSpaces,
     closeSquareBracket,
 ]);
@@ -2762,6 +2762,7 @@ class Expression {
         this._id = `expression-${indexId$1++}`;
         this._type = "expression";
         this._name = name;
+        this._originalName = name;
         this._parent = null;
         this._firstIndex = 0;
         this._atomPatterns = [];
@@ -2894,7 +2895,7 @@ class Expression {
         if (pattern == null) {
             return false;
         }
-        return pattern.name === this.name;
+        return pattern.name === this._originalName;
     }
     build() {
         if (!this._hasOrganized) {
@@ -3126,6 +3127,7 @@ class Expression {
     }
     clone(name = this._name) {
         const clone = new Expression(name, this._originalPatterns);
+        clone._originalName = this.name;
         clone._id = this._id;
         return clone;
     }

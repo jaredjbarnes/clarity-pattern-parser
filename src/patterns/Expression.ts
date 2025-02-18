@@ -15,6 +15,7 @@ export class Expression implements Pattern {
     private _id: string;
     private _type: string;
     private _name: string;
+    private _originalName: string;
     private _parent: Pattern | null;
     private _firstIndex: number;
     private _originalPatterns: Pattern[];
@@ -88,6 +89,7 @@ export class Expression implements Pattern {
         this._id = `expression-${indexId++}`;
         this._type = "expression";
         this._name = name;
+        this._originalName = name;
         this._parent = null;
         this._firstIndex = 0;
         this._atomPatterns = [];
@@ -253,7 +255,7 @@ export class Expression implements Pattern {
         if (pattern == null) {
             return false;
         }
-        return pattern.name === this.name;
+        return pattern.name === this._originalName;
     }
 
     build() {
@@ -550,6 +552,7 @@ export class Expression implements Pattern {
 
     clone(name = this._name): Pattern {
         const clone = new Expression(name, this._originalPatterns);
+        clone._originalName = this.name;
         clone._id = this._id;
         return clone;
     }

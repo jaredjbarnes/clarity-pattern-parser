@@ -166,4 +166,12 @@ describe("Expression Pattern", () => {
         const suggestion = autoComplete.suggestFor("a ? b ");
         expect(suggestion).toBe(suggestion);
     });
+
+    test("Clone With New Name", ()=>{
+        const expression = createTailExpression();
+        const clone = expression.clone("new-expression");
+
+        const result = clone.exec("a.b");
+        expect(result).toBe(result);
+    });
 });

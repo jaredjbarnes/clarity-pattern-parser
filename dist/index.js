@@ -3131,7 +3131,7 @@ class Expression {
     }
     clone(name = this._name) {
         const clone = new Expression(name, this._originalPatterns);
-        clone._originalName = this.name;
+        clone._originalName = this._originalName;
         clone._id = this._id;
         return clone;
     }

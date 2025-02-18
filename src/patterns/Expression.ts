@@ -552,7 +552,7 @@ export class Expression implements Pattern {
 
     clone(name = this._name): Pattern {
         const clone = new Expression(name, this._originalPatterns);
-        clone._originalName = this.name;
+        clone._originalName = this._originalName;
         clone._id = this._id;
         return clone;
     }

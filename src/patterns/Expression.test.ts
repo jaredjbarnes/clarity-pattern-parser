@@ -168,10 +168,10 @@ describe("Expression Pattern", () => {
     });
 
     test("Clone With New Name", ()=>{
-        const expression = createTailExpression();
+        const expression = createExpressionPattern();
         const clone = expression.clone("new-expression");
 
-        const result = clone.exec("a.b");
+        const result = clone.exec("a || b && c * d");
         expect(result).toBe(result);
     });
 });

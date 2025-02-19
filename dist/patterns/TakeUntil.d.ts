@@ -1,0 +1,35 @@
+import { Node } from "../ast/Node";
+import { Cursor } from "./Cursor";
+import { ParseResult } from "./ParseResult";
+import { Pattern } from "./Pattern";
+export declare class TakeUntil implements Pattern {
+    private _id;
+    private _type;
+    private _name;
+    private _parent;
+    private _children;
+    private _startedOnIndex;
+    private _terminatingPattern;
+    private _tokens;
+    get id(): string;
+    get type(): string;
+    get name(): string;
+    get children(): Pattern[];
+    get parent(): Pattern | null;
+    set parent(pattern: Pattern | null);
+    get startedOnIndex(): number;
+    constructor(name: string, terminatingPattern: Pattern);
+    parse(cursor: Cursor): Node | null;
+    exec(text: string, record?: boolean | undefined): ParseResult;
+    test(text: string, record?: boolean | undefined): boolean;
+    clone(name?: string): Pattern;
+    getTokens(): string[];
+    getTokensAfter(_childReference: Pattern): string[];
+    getNextTokens(): string[];
+    getPatterns(): Pattern[];
+    getPatternsAfter(_childReference: Pattern): Pattern[];
+    getNextPatterns(): Pattern[];
+    find(_predicate: (p: Pattern) => boolean): Pattern | null;
+    setTokens(tokens: string[]): void;
+    isEqual(pattern: Pattern): boolean;
+}

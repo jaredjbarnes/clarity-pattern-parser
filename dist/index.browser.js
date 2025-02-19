@@ -556,7 +556,7 @@
         return !result.cursor.hasError;
     }
 
-    let idIndex$9 = 0;
+    let idIndex$a = 0;
     class Literal {
         get id() {
             return this._id;
@@ -586,7 +586,7 @@
             if (value.length === 0) {
                 throw new Error("Value Cannot be empty.");
             }
-            this._id = `literal-${idIndex$9++}`;
+            this._id = `literal-${idIndex$a++}`;
             this._type = "literal";
             this._name = name;
             this._token = value;
@@ -677,7 +677,7 @@
         }
     }
 
-    let idIndex$8 = 0;
+    let idIndex$9 = 0;
     class Regex {
         get id() {
             return this._id;
@@ -709,7 +709,7 @@
             this._firstIndex = 0;
             this._substring = "";
             this._tokens = [];
-            this._id = `regex-${idIndex$8++}`;
+            this._id = `regex-${idIndex$9++}`;
             this._type = "regex";
             this._name = name;
             this._parent = null;
@@ -829,7 +829,7 @@
         }
     }
 
-    let idIndex$7 = 0;
+    let idIndex$8 = 0;
     class Reference {
         get id() {
             return this._id;
@@ -853,7 +853,7 @@
             return this._firstIndex;
         }
         constructor(name, referencePatternName) {
-            this._id = `reference-${idIndex$7++}`;
+            this._id = `reference-${idIndex$8++}`;
             this._type = "reference";
             this._name = name;
             this._referencePatternName = referencePatternName || name;
@@ -1030,7 +1030,7 @@
         return false;
     }
 
-    let idIndex$6 = 0;
+    let idIndex$7 = 0;
     class Options {
         get id() {
             return this._id;
@@ -1059,7 +1059,7 @@
             }
             const children = clonePatterns(options);
             this._assignChildrenToParent(children);
-            this._id = `options-${idIndex$6++}`;
+            this._id = `options-${idIndex$7++}`;
             this._type = "options";
             this._name = name;
             this._parent = null;
@@ -1164,7 +1164,7 @@
         }
     }
 
-    let idIndex$5 = 0;
+    let idIndex$6 = 0;
     class FiniteRepeat {
         get id() {
             return this._id;
@@ -1194,7 +1194,7 @@
             return this._firstIndex;
         }
         constructor(name, pattern, options = {}) {
-            this._id = `finite-repeat-${idIndex$5++}`;
+            this._id = `finite-repeat-${idIndex$6++}`;
             this._type = "finite-repeat";
             this._name = name;
             this._parent = null;
@@ -1336,7 +1336,7 @@
         }
     }
 
-    let idIndex$4 = 0;
+    let idIndex$5 = 0;
     class InfiniteRepeat {
         get id() {
             return this._id;
@@ -1373,7 +1373,7 @@
                 children = [pattern.clone()];
             }
             this._assignChildrenToParent(children);
-            this._id = `infinite-repeat-${idIndex$4++}`;
+            this._id = `infinite-repeat-${idIndex$5++}`;
             this._type = "infinite-repeat";
             this._name = name;
             this._min = min;
@@ -1591,7 +1591,7 @@
         }
     }
 
-    let idIndex$3 = 0;
+    let idIndex$4 = 0;
     class Repeat {
         get id() {
             return this._id;
@@ -1627,7 +1627,7 @@
             return this._options;
         }
         constructor(name, pattern, options = {}) {
-            this._id = `repeat-${idIndex$3++}`;
+            this._id = `repeat-${idIndex$4++}`;
             this._pattern = pattern;
             this._parent = null;
             this._options = Object.assign(Object.assign({}, options), { min: options.min == null ? 1 : options.min, max: options.max == null ? Infinity : options.max });
@@ -1706,7 +1706,7 @@
         return filteredNodes;
     }
 
-    let idIndex$2 = 0;
+    let idIndex$3 = 0;
     class Sequence {
         get id() {
             return this._id;
@@ -1735,7 +1735,7 @@
             }
             const children = clonePatterns(sequence);
             this._assignChildrenToParent(children);
-            this._id = `sequence-${idIndex$2++}`;
+            this._id = `sequence-${idIndex$3++}`;
             this._type = "sequence";
             this._name = name;
             this._parent = null;
@@ -1971,12 +1971,13 @@
         new Reference("repeat-literal"),
     ]);
     const anonymousWrappedLiterals = new Options("anonymous-wrapped-literals", [
+        new Reference("take-until-literal"),
         new Reference("options-literal"),
         new Reference("sequence-literal"),
         new Reference("complex-anonymous-pattern")
     ]);
 
-    let idIndex$1 = 0;
+    let idIndex$2 = 0;
     class Optional {
         get id() {
             return this._id;
@@ -2000,7 +2001,7 @@
             return this._children[0].startedOnIndex;
         }
         constructor(name, pattern) {
-            this._id = `optional-${idIndex$1++}`;
+            this._id = `optional-${idIndex$2++}`;
             this._type = "optional";
             this._name = name;
             this._parent = null;
@@ -2072,12 +2073,12 @@
 
     const inlinePatternOpenParen = new Literal("anonymous-pattern-open-paren", "(");
     const inlinePatternCloseParen = new Literal("anonymous-pattern-close-paren", ")");
-    const optionalLineSpaces$3 = new Optional("optional-line-spaces", lineSpaces$1);
+    const optionalLineSpaces$4 = new Optional("optional-line-spaces", lineSpaces$1);
     const complexAnonymousPattern = new Sequence("complex-anonymous-pattern", [
         inlinePatternOpenParen,
-        optionalLineSpaces$3,
+        optionalLineSpaces$4,
         anonymousWrappedLiterals,
-        optionalLineSpaces$3,
+        optionalLineSpaces$4,
         inlinePatternCloseParen,
     ]);
     const anonymousPattern = new Options("anonymous-pattern", [
@@ -2164,6 +2165,20 @@
     const divider = new Options("options-divider", [defaultDivider, greedyDivider]);
     const optionsLiteral = new Repeat("options-literal", patterns$1, { divider, min: 2, trimDivider: true });
 
+    const anyChar = new Literal("any-char", "?");
+    const upTo = new Literal("up-to", "->");
+    const wall = new Literal("wall", "|");
+    const optionalLineSpaces$3 = new Optional("optional-line-spaces", lineSpaces$1);
+    const takeUntilLiteral = new Sequence("take-until-literal", [
+        anyChar,
+        optionalLineSpaces$3,
+        upTo,
+        optionalLineSpaces$3,
+        wall,
+        optionalLineSpaces$3,
+        new Reference("pattern")
+    ]);
+
     const aliasLiteral = name$1.clone("alias-literal");
     aliasLiteral.setTokens(["[ALIAS_LITERAL]"]);
     const optionalIsOptional = new Optional("optional-flag", new Literal("is-optional", "?"));
@@ -2172,6 +2187,7 @@
         literal$1,
         regexLiteral,
         repeatLiteral,
+        takeUntilLiteral,
         aliasLiteral,
         optionsLiteral,
         sequenceLiteral,
@@ -2365,7 +2381,7 @@
         optionalSpaces
     ]);
 
-    let idIndex = 0;
+    let idIndex$1 = 0;
     class Not {
         get id() {
             return this._id;
@@ -2389,7 +2405,7 @@
             return this.children[0].startedOnIndex;
         }
         constructor(name, pattern) {
-            this._id = `not-${idIndex++}`;
+            this._id = `not-${idIndex$1++}`;
             this._type = "not";
             this._name = name;
             this._parent = null;
@@ -3158,6 +3174,126 @@
         }
     }
 
+    let idIndex = 0;
+    class TakeUntil {
+        get id() {
+            return this._id;
+        }
+        get type() {
+            return this._type;
+        }
+        get name() {
+            return this._name;
+        }
+        get children() {
+            return this._children;
+        }
+        get parent() {
+            return this._parent;
+        }
+        set parent(pattern) {
+            this._parent = pattern;
+        }
+        get startedOnIndex() {
+            return this._startedOnIndex;
+        }
+        constructor(name, terminatingPattern) {
+            this._id = String(idIndex++);
+            this._type = "take-until";
+            this._name = name;
+            this._parent = null;
+            this._terminatingPattern = terminatingPattern;
+            this._children = [this._terminatingPattern];
+            this._tokens = [];
+            this._startedOnIndex = 0;
+        }
+        parse(cursor) {
+            let cursorIndex = cursor.index;
+            let foundMatch = false;
+            this._startedOnIndex = cursor.index;
+            let terminatingResult = this._terminatingPattern.parse(cursor);
+            if (terminatingResult == null) {
+                foundMatch = true;
+                cursor.moveTo(cursorIndex);
+                cursorIndex += 1;
+                cursor.hasNext() && cursor.next();
+                cursor.resolveError();
+            }
+            while (true) {
+                terminatingResult = this._terminatingPattern.parse(cursor);
+                if (terminatingResult == null) {
+                    cursor.moveTo(cursorIndex);
+                    cursorIndex += 1;
+                    if (cursor.hasNext()) {
+                        cursor.next();
+                    }
+                    else {
+                        break;
+                    }
+                    cursor.resolveError();
+                }
+                else {
+                    break;
+                }
+            }
+            if (foundMatch) {
+                cursor.moveTo(cursorIndex - 1);
+                const value = cursor.getChars(this.startedOnIndex, cursorIndex - 1);
+                return Node.createValueNode(this._type, this._name, value);
+            }
+            else {
+                cursor.resolveError();
+                cursor.moveTo(this.startedOnIndex);
+                cursor.recordErrorAt(this._startedOnIndex, this._startedOnIndex, this);
+                return null;
+            }
+        }
+        exec(text, record) {
+            return execPattern(this, text, record);
+        }
+        test(text, record) {
+            return testPattern(this, text, record);
+        }
+        clone(name = this.name) {
+            const clone = new TakeUntil(name, this._terminatingPattern);
+            clone._id = this._id;
+            return clone;
+        }
+        getTokens() {
+            return this._tokens;
+        }
+        getTokensAfter(_childReference) {
+            return [];
+        }
+        getNextTokens() {
+            if (this.parent == null) {
+                return [];
+            }
+            return this.parent.getTokensAfter(this);
+        }
+        getPatterns() {
+            return [this];
+        }
+        getPatternsAfter(_childReference) {
+            return [];
+        }
+        getNextPatterns() {
+            if (this.parent == null) {
+                return [];
+            }
+            return this.parent.getPatternsAfter(this);
+        }
+        find(_predicate) {
+            return null;
+        }
+        setTokens(tokens) {
+            this._tokens = tokens;
+        }
+        isEqual(pattern) {
+            return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
+        }
+    }
+
     let indexId = 0;
     class RightAssociated {
         get id() {
@@ -3288,6 +3424,7 @@
         "sequence-literal": true,
         "repeat-literal": true,
         "alias-literal": true,
+        "take-until-literal": true,
         "configurable-anonymous-pattern": true
     };
     class ParseContext {
@@ -3396,6 +3533,10 @@
                     }
                     case "alias-literal": {
                         this._saveAlias(n);
+                        break;
+                    }
+                    case "take-until-literal": {
+                        this._saveTakeUntil(n);
                         break;
                     }
                     case "configurable-anonymous-pattern": {
@@ -3517,6 +3658,9 @@
                 case "sequence-literal": {
                     return this._buildSequence(name, node);
                 }
+                case "take-until-literal": {
+                    return this._buildTakeUntil(name, node);
+                }
                 case "complex-anonymous-pattern": {
                     return this._buildComplexAnonymousPattern(node);
                 }
@@ -3599,6 +3743,19 @@
                 }
             }
             return isOptional ? new Optional(name, new Repeat(`inner-optional-${name}`, pattern, options)) : new Repeat(name, pattern, options);
+        }
+        _saveTakeUntil(statementNode) {
+            const nameNode = statementNode.find(n => n.name === "name");
+            const name = nameNode.value;
+            const takeUntilNode = statementNode.find(n => n.name === "take-until-literal");
+            const takeUntil = this._buildTakeUntil(name, takeUntilNode);
+            this._applyDecorators(statementNode, takeUntil);
+            this._parseContext.patternsByName.set(name, takeUntil);
+        }
+        _buildTakeUntil(name, takeUntilNode) {
+            const patternNode = takeUntilNode.children[takeUntilNode.children.length - 1];
+            const untilPattern = this._buildPattern(patternNode);
+            return new TakeUntil(name, untilPattern);
         }
         _saveConfigurableAnonymous(node) {
             const nameNode = node.find(n => n.name === "name");

@@ -37,6 +37,8 @@ export declare class Grammar {
     private _buildSequence;
     private _saveRepeat;
     private _buildRepeat;
+    private _saveTakeUntil;
+    private _buildTakeUntil;
     private _saveConfigurableAnonymous;
     private _buildComplexAnonymousPattern;
     private _resolveImports;

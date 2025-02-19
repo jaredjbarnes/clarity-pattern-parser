@@ -1,8 +1,8 @@
 import { patterns } from "./patterns";
 
-describe("Patterns String Template Literal", ()=>{
-    test("Baseline", ()=>{
-        const {fullName} = patterns`
+describe("Patterns String Template Literal", () => {
+    test("Baseline", () => {
+        const { fullName } = patterns`
         first-name = "John"
         last-name = "Doe"
         space = /\\s+/
@@ -13,8 +13,8 @@ describe("Patterns String Template Literal", ()=>{
         expect(result?.ast?.value).toBe("John Doe");
     });
 
-    test("Simple Markup", ()=>{
-        const {body} = patterns`
+    test("Simple Markup", () => {
+        const { body } = patterns`
         tag-name = /[a-zA-Z_-]+[a-zA-Z0-9_-]*/
         space = /\\s+/
         opening-tag = "<" + tag-name + space? + ">"
@@ -32,7 +32,7 @@ describe("Patterns String Template Literal", ()=>{
             <div></div>    
         </div>
         `, true);
-        result && result.ast && result.ast.findAll(n=>n.name.includes("space")).forEach(n=>n.remove());
+        result && result.ast && result.ast.findAll(n => n.name.includes("space")).forEach(n => n.remove());
         expect(result?.ast?.value).toBe("<div><div></div><div></div></div>");
     });
 });

@@ -440,69 +440,106 @@ export class Grammar {
     }
 
     private async _resolveImports(ast: Node) {
-        const parseContext = this._parseContext;
-        const importStatements = ast.findAll(n => n.name === "import-from");
+        const importStatements = ast.findAll(n => {
+            return n.name === "import-from" || n.name === "param-name-with-default-value"
+        });
 
-        for (const importStatement of importStatements) {
-            const resourceNode = importStatement.find(n => n.name === "resource") as Node;
-            const params = this._getParams(importStatement);
-            const resource = resourceNode.value.slice(1, -1);
-            const grammarFile = await this._resolveImport(resource, this._originResource || null);
-            const grammar = new Grammar({
-                resolveImport: this._resolveImport,
-                originResource: grammarFile.resource,
-                params,
-                decorators: this._parseContext.decorators
+        for (const statement of importStatements) {
+            if (statement.name === "import-from") {
+                await this.processImport(statement);
+            } else {
+                this.processUseParams(statement);
+            }
+        }
+    }
+
+    private async processImport(importStatement: Node) {
+        const parseContext = this._parseContext;
+        const resourceNode = importStatement.find(n => n.name === "resource") as Node;
+        const params = this._getParams(importStatement);
+        const resource = resourceNode.value.slice(1, -1);
+        const grammarFile = await this._resolveImport(resource, this._originResource || null);
+        const grammar = new Grammar({
+            resolveImport: this._resolveImport,
+            originResource: grammarFile.resource,
+            params,
+            decorators: this._parseContext.decorators
+        });
+
+        try {
+            const patterns = await grammar.parse(grammarFile.expression);
+            const importStatements = importStatement.findAll(n => n.name === "import-name" || n.name === "import-alias");
+
+            importStatements.forEach((node) => {
+                if (node.name === "import-name" && node.parent?.name === "import-alias") {
+                    return;
+                }
+
+                if (node.name === "import-name" && node.parent?.name !== "import-alias") {
+                    const importName = node.value;
+
+                    if (parseContext.importedPatternsByName.has(importName)) {
+                        throw new Error(`'${importName}' was already used within another import.`);
+                    }
+
+                    const pattern = patterns[importName];
+                    if (pattern == null) {
+                        throw new Error(`Couldn't find pattern with name: ${importName}, from import: ${resource}.`);
+                    }
+
+                    parseContext.importedPatternsByName.set(importName, pattern);
+                } else {
+                    const importNameNode = node.find(n => n.name === "import-name") as Node;
+                    const importName = importNameNode.value;
+                    const aliasNode = node.find(n => n.name === "import-name-alias") as Node;
+                    const alias = aliasNode.value;
+
+                    if (parseContext.importedPatternsByName.has(alias)) {
+                        throw new Error(`'${alias}' was already used within another import.`);
+                    }
+
+                    const pattern = patterns[importName];
+                    if (pattern == null) {
+                        throw new Error(`Couldn't find pattern with name: ${importName}, from import: ${resource}.`);
+                    }
+
+                    parseContext.importedPatternsByName.set(alias, pattern.clone(alias));
+                }
             });
 
-            try {
-                const patterns = await grammar.parse(grammarFile.expression);
-                const importStatements = importStatement.findAll(n => n.name === "import-name" || n.name === "import-alias");
-
-                importStatements.forEach((node) => {
-                    if (node.name === "import-name" && node.parent?.name === "import-alias") {
-                        return;
-                    }
-
-                    if (node.name === "import-name" && node.parent?.name !== "import-alias") {
-                        const importName = node.value;
-
-                        if (parseContext.importedPatternsByName.has(importName)) {
-                            throw new Error(`'${importName}' was already used within another import.`);
-                        }
-
-                        const pattern = patterns[importName];
-                        if (pattern == null) {
-                            throw new Error(`Couldn't find pattern with name: ${importName}, from import: ${resource}.`);
-                        }
-
-                        parseContext.importedPatternsByName.set(importName, pattern);
-                    } else {
-                        const importNameNode = node.find(n => n.name === "import-name") as Node;
-                        const importName = importNameNode.value;
-                        const aliasNode = node.find(n => n.name === "import-name-alias") as Node;
-                        const alias = aliasNode.value;
-
-                        if (parseContext.importedPatternsByName.has(alias)) {
-                            throw new Error(`'${alias}' was already used within another import.`);
-                        }
-
-                        const pattern = patterns[importName];
-                        if (pattern == null) {
-                            throw new Error(`Couldn't find pattern with name: ${importName}, from import: ${resource}.`);
-                        }
-
-                        parseContext.importedPatternsByName.set(alias, pattern.clone(alias));
-                    }
-                });
-
-
-
-            } catch (e: any) {
-                throw new Error(`Failed loading expression from: "${resource}". Error details: "${e.message}"`);
-            }
-
+        } catch (e: any) {
+            throw new Error(`Failed loading expression from: "${resource}". Error details: "${e.message}"`);
         }
+
+    }
+
+    private processUseParams(paramName: Node) {
+        const defaultValueNode = paramName.find(n => n.name === "param-default");
+        if (defaultValueNode === null) {
+            return;
+        }
+
+        const nameNode = paramName.find(n => n.name === "param-name");
+        const defaultNameNode = defaultValueNode.find(n => n.name === "default-param-name");
+
+        if (nameNode == null || defaultNameNode == null) {
+            return;
+        }
+
+        const name = nameNode.value;
+        const defaultName = defaultNameNode.value;
+
+        if (this._parseContext.paramsByName.has(name)) {
+            return;
+        }
+
+        let pattern = this._parseContext.importedPatternsByName.get(defaultName);
+
+        if (pattern == null) {
+            pattern = new Reference(defaultName);
+        }
+
+        this._parseContext.importedPatternsByName.set(name, pattern);
     }
 
     private _applyDecorators(statementNode: Node, pattern: Pattern) {
@@ -615,7 +652,7 @@ export class Grammar {
 
         // This solves the problem for an alias pointing to a reference.
         if (aliasPattern.type === "reference") {
-            const reference = new Reference(name, aliasName);
+            const reference = aliasPattern.clone(name);
             this._applyDecorators(statementNode, reference);
             this._parseContext.patternsByName.set(name, reference);
         } else {

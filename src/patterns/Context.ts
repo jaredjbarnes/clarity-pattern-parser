@@ -9,6 +9,7 @@ export class Context implements Pattern {
     private _id: string;
     private _type: string;
     private _name: string;
+    private _referencePatternName: string;
     private _parent: Pattern | null;
     private _children: Pattern[];
     private _pattern: Pattern;
@@ -43,6 +44,10 @@ export class Context implements Pattern {
     }
 
     getPatternWithinContext(name: string): Pattern | null {
+        if (this._name === name || this._referencePatternName === name){
+            return this;
+        }
+
         return this._patterns[name] || null;
     }
 
@@ -56,6 +61,7 @@ export class Context implements Pattern {
         this._name = name;
         this._parent = null;
         this._patterns = {};
+        this._referencePatternName = name;
 
         const clonedPattern = pattern.clone();
         context.forEach(p => this._patterns[p.name] = p);
@@ -79,6 +85,7 @@ export class Context implements Pattern {
 
     clone(name = this._name): Pattern {
         const clone = new Context(name, this._pattern.clone(name), Object.values(this._patterns));
+        clone._referencePatternName = this._referencePatternName;
         clone._id = this._id;
         return clone;
     }

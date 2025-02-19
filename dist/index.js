@@ -2280,11 +2280,22 @@ const asKeyword = new Literal("as", "as");
 const fromKeyword = new Literal("from", "from");
 const openBracket = new Literal("open-bracket", "{");
 const closeBracket = new Literal("close-bracket", "}");
+const equal = new Literal("equal", "=");
 const importNameAlias = name.clone("import-name-alias");
 const importAlias = new Sequence("import-alias", [name, lineSpaces$1, asKeyword, lineSpaces$1, importNameAlias]);
 const importedNames = new Repeat("imported-names", new Options("import-names", [importAlias, name]), { divider: importNameDivider });
 const paramName = name.clone("param-name");
-const paramNames = new Repeat("param-names", paramName, { divider: importNameDivider });
+const defaultParamName = name.clone("default-param-name");
+const paramNameWithDefault = new Sequence("param-name-with-default-value", [
+    paramName,
+    new Optional("optional-param-default", new Sequence("param-default", [
+        optionalLineSpaces$1,
+        equal,
+        optionalLineSpaces$1,
+        defaultParamName,
+    ])),
+]);
+const paramNames = new Repeat("param-names", paramNameWithDefault, { divider: importNameDivider });
 const resource = literal$1.clone("resource");
 const useParams = new Sequence("import-params", [
     useParamsKeyword,
@@ -2476,6 +2487,9 @@ class Context {
         return this.children[0].startedOnIndex;
     }
     getPatternWithinContext(name) {
+        if (this._name === name || this._referencePatternName === name) {
+            return this;
+        }
         return this._patterns[name] || null;
     }
     getPatternsWithinContext() {
@@ -2487,6 +2501,7 @@ class Context {
         this._name = name;
         this._parent = null;
         this._patterns = {};
+        this._referencePatternName = name;
         const clonedPattern = pattern.clone();
         context.forEach(p => this._patterns[p.name] = p);
         clonedPattern.parent = this;
@@ -2504,6 +2519,7 @@ class Context {
     }
     clone(name = this._name) {
         const clone = new Context(name, this._pattern.clone(name), Object.values(this._patterns));
+        clone._referencePatternName = this._referencePatternName;
         clone._id = this._id;
         return clone;
     }
@@ -3597,59 +3613,92 @@ class Grammar {
     }
     _resolveImports(ast) {
         return __awaiter(this, void 0, void 0, function* () {
-            const parseContext = this._parseContext;
-            const importStatements = ast.findAll(n => n.name === "import-from");
-            for (const importStatement of importStatements) {
-                const resourceNode = importStatement.find(n => n.name === "resource");
-                const params = this._getParams(importStatement);
-                const resource = resourceNode.value.slice(1, -1);
-                const grammarFile = yield this._resolveImport(resource, this._originResource || null);
-                const grammar = new Grammar({
-                    resolveImport: this._resolveImport,
-                    originResource: grammarFile.resource,
-                    params,
-                    decorators: this._parseContext.decorators
-                });
-                try {
-                    const patterns = yield grammar.parse(grammarFile.expression);
-                    const importStatements = importStatement.findAll(n => n.name === "import-name" || n.name === "import-alias");
-                    importStatements.forEach((node) => {
-                        var _a, _b;
-                        if (node.name === "import-name" && ((_a = node.parent) === null || _a === void 0 ? void 0 : _a.name) === "import-alias") {
-                            return;
-                        }
-                        if (node.name === "import-name" && ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.name) !== "import-alias") {
-                            const importName = node.value;
-                            if (parseContext.importedPatternsByName.has(importName)) {
-                                throw new Error(`'${importName}' was already used within another import.`);
-                            }
-                            const pattern = patterns[importName];
-                            if (pattern == null) {
-                                throw new Error(`Couldn't find pattern with name: ${importName}, from import: ${resource}.`);
-                            }
-                            parseContext.importedPatternsByName.set(importName, pattern);
-                        }
-                        else {
-                            const importNameNode = node.find(n => n.name === "import-name");
-                            const importName = importNameNode.value;
-                            const aliasNode = node.find(n => n.name === "import-name-alias");
-                            const alias = aliasNode.value;
-                            if (parseContext.importedPatternsByName.has(alias)) {
-                                throw new Error(`'${alias}' was already used within another import.`);
-                            }
-                            const pattern = patterns[importName];
-                            if (pattern == null) {
-                                throw new Error(`Couldn't find pattern with name: ${importName}, from import: ${resource}.`);
-                            }
-                            parseContext.importedPatternsByName.set(alias, pattern.clone(alias));
-                        }
-                    });
+            const importStatements = ast.findAll(n => {
+                return n.name === "import-from" || n.name === "param-name-with-default-value";
+            });
+            for (const statement of importStatements) {
+                if (statement.name === "import-from") {
+                    yield this.processImport(statement);
                 }
-                catch (e) {
-                    throw new Error(`Failed loading expression from: "${resource}". Error details: "${e.message}"`);
+                else {
+                    this.processUseParams(statement);
                 }
             }
         });
+    }
+    processImport(importStatement) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const parseContext = this._parseContext;
+            const resourceNode = importStatement.find(n => n.name === "resource");
+            const params = this._getParams(importStatement);
+            const resource = resourceNode.value.slice(1, -1);
+            const grammarFile = yield this._resolveImport(resource, this._originResource || null);
+            const grammar = new Grammar({
+                resolveImport: this._resolveImport,
+                originResource: grammarFile.resource,
+                params,
+                decorators: this._parseContext.decorators
+            });
+            try {
+                const patterns = yield grammar.parse(grammarFile.expression);
+                const importStatements = importStatement.findAll(n => n.name === "import-name" || n.name === "import-alias");
+                importStatements.forEach((node) => {
+                    var _a, _b;
+                    if (node.name === "import-name" && ((_a = node.parent) === null || _a === void 0 ? void 0 : _a.name) === "import-alias") {
+                        return;
+                    }
+                    if (node.name === "import-name" && ((_b = node.parent) === null || _b === void 0 ? void 0 : _b.name) !== "import-alias") {
+                        const importName = node.value;
+                        if (parseContext.importedPatternsByName.has(importName)) {
+                            throw new Error(`'${importName}' was already used within another import.`);
+                        }
+                        const pattern = patterns[importName];
+                        if (pattern == null) {
+                            throw new Error(`Couldn't find pattern with name: ${importName}, from import: ${resource}.`);
+                        }
+                        parseContext.importedPatternsByName.set(importName, pattern);
+                    }
+                    else {
+                        const importNameNode = node.find(n => n.name === "import-name");
+                        const importName = importNameNode.value;
+                        const aliasNode = node.find(n => n.name === "import-name-alias");
+                        const alias = aliasNode.value;
+                        if (parseContext.importedPatternsByName.has(alias)) {
+                            throw new Error(`'${alias}' was already used within another import.`);
+                        }
+                        const pattern = patterns[importName];
+                        if (pattern == null) {
+                            throw new Error(`Couldn't find pattern with name: ${importName}, from import: ${resource}.`);
+                        }
+                        parseContext.importedPatternsByName.set(alias, pattern.clone(alias));
+                    }
+                });
+            }
+            catch (e) {
+                throw new Error(`Failed loading expression from: "${resource}". Error details: "${e.message}"`);
+            }
+        });
+    }
+    processUseParams(paramName) {
+        const defaultValueNode = paramName.find(n => n.name === "param-default");
+        if (defaultValueNode === null) {
+            return;
+        }
+        const nameNode = paramName.find(n => n.name === "param-name");
+        const defaultNameNode = defaultValueNode.find(n => n.name === "default-param-name");
+        if (nameNode == null || defaultNameNode == null) {
+            return;
+        }
+        const name = nameNode.value;
+        const defaultName = defaultNameNode.value;
+        if (this._parseContext.paramsByName.has(name)) {
+            return;
+        }
+        let pattern = this._parseContext.importedPatternsByName.get(defaultName);
+        if (pattern == null) {
+            pattern = new Reference(defaultName);
+        }
+        this._parseContext.importedPatternsByName.set(name, pattern);
     }
     _applyDecorators(statementNode, pattern) {
         const decorators = this._parseContext.decorators;
@@ -3735,7 +3784,7 @@ class Grammar {
         const aliasPattern = this._getPattern(aliasName);
         // This solves the problem for an alias pointing to a reference.
         if (aliasPattern.type === "reference") {
-            const reference = new Reference(name, aliasName);
+            const reference = aliasPattern.clone(name);
             this._applyDecorators(statementNode, reference);
             this._parseContext.patternsByName.set(name, reference);
         }

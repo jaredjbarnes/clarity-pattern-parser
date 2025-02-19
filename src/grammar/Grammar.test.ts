@@ -496,9 +496,81 @@ describe("Grammar", () => {
         }
         const patterns = await Grammar.parse(expression, { resolveImport });
         const pattern = patterns["name"] as Literal;
+        const result = pattern.exec("Value");
+        expect(result.ast?.value).toBe("Value");
+    });
+
+    test("Default Params Resolves to Default Value", async () => {
+        const expression = `
+        use params {
+            value = default-value
+        }
+
+        default-value = "DefaultValue"
+        alias = value
+        `;
+
+        function resolveImport(_: string) {
+            return Promise.reject(new Error("No Import"));
+        }
+
+        const patterns = await Grammar.parse(expression, { resolveImport });
+        const pattern = patterns["alias"] as Literal;
+
+        const result = pattern.exec("DefaultValue");
+        expect(result.ast?.value).toBe("DefaultValue");
+    });
+
+    test("Default Params Resolves to params imported", async () => {
+        const expression = `
+        use params {
+            value = default-value
+        }
+
+        default-value = "DefaultValue"
+        alias = value
+        `;
+
+        function resolveImport(_: string) {
+            return Promise.reject(new Error("No Import"));
+        }
+
+        const patterns = await Grammar.parse(expression, { resolveImport, params: [new Literal("value", "Value")] });
+        const pattern = patterns["alias"] as Literal;
 
         const result = pattern.exec("Value");
         expect(result.ast?.value).toBe("Value");
+    });
+
+    test("Default Params Resolves to imported default value", async () => {
+        const expression = `
+        import { my-value as default-value } from "resource1"
+        use params {
+            value = default-value
+        }
+
+        default-value = "DefaultValue"
+        alias = value
+        `;
+
+        const resource1 = `
+            my-value = "MyValue"
+        `;
+
+
+        const pathMap: Record<string, string> = {
+            "resource1": resource1,
+        };
+
+        function resolveImport(resource: string) {
+            return Promise.resolve({ expression: pathMap[resource], resource });
+        }
+
+        const patterns = await Grammar.parse(expression, { resolveImport });
+        const pattern = patterns["alias"] as Literal;
+
+        const result = pattern.exec("MyValue");
+        expect(result.ast?.value).toBe("MyValue");
     });
 
     test("Anonymous Patterns", () => {

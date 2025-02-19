@@ -40,6 +40,8 @@ export declare class Grammar {
     private _saveConfigurableAnonymous;
     private _buildComplexAnonymousPattern;
     private _resolveImports;
+    private processImport;
+    private processUseParams;
     private _applyDecorators;
     private _getParams;
     private _getPattern;

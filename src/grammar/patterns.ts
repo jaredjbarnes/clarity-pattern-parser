@@ -38,5 +38,5 @@ export function createPatternsTemplate(options: GrammarOptions){
         });
     
         return result;
-    }
+    };
 }

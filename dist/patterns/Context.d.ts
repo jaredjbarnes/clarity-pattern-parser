@@ -6,6 +6,7 @@ export declare class Context implements Pattern {
     private _id;
     private _type;
     private _name;
+    private _referencePatternName;
     private _parent;
     private _children;
     private _pattern;

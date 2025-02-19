@@ -23,12 +23,24 @@ const asKeyword = new Literal("as", "as");
 const fromKeyword = new Literal("from", "from");
 const openBracket = new Literal("open-bracket", "{");
 const closeBracket = new Literal("close-bracket", "}");
+const equal = new Literal("equal", "=");
 
 const importNameAlias = name.clone("import-name-alias");
 const importAlias = new Sequence("import-alias", [name, lineSpaces, asKeyword, lineSpaces, importNameAlias]);
 const importedNames = new Repeat("imported-names", new Options("import-names", [importAlias, name]), { divider: importNameDivider });
 const paramName = name.clone("param-name");
-const paramNames = new Repeat("param-names", paramName, { divider: importNameDivider });
+const defaultParamName = name.clone("default-param-name");
+
+const paramNameWithDefault = new Sequence("param-name-with-default-value", [
+    paramName,
+    new Optional("optional-param-default", new Sequence("param-default", [
+        optionalLineSpaces,
+        equal,
+        optionalLineSpaces,
+        defaultParamName,
+    ])),
+]);
+const paramNames = new Repeat("param-names", paramNameWithDefault, { divider: importNameDivider });
 const resource = literal.clone("resource");
 
 const useParams = new Sequence("import-params", [

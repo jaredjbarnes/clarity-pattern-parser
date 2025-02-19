@@ -5,6 +5,7 @@ import { repeatLiteral } from "./repeatLiteral";
 import { sequenceLiteral } from "./sequenceLiteral";
 import { optionsLiteral } from "./optionsLiteral";
 import { anonymousPattern } from "./anonymousPattern";
+import { takeUntilLiteral } from "./takeUtilLiteral";
 import { Sequence } from "../../patterns/Sequence";
 import { Literal } from "../../patterns/Literal";
 import { name } from "./name";
@@ -20,8 +21,9 @@ export const pattern = new Options("pattern", [
     literal,
     regexLiteral,
     repeatLiteral,
+    takeUntilLiteral,
     aliasLiteral,
     optionsLiteral,
     sequenceLiteral,
     configurableAnonymousPattern,
-],  true);
+], true);

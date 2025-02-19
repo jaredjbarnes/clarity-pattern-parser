@@ -11,6 +11,7 @@ import { Optional } from "../patterns/Optional";
 import { Context } from "../patterns/Context";
 import { createPatternsTemplate, patterns } from "./patterns";
 import { Expression } from "../patterns/Expression";
+import { Cursor } from "../patterns/Cursor";
 
 describe("Grammar", () => {
     test("Literal", () => {
@@ -766,6 +767,15 @@ describe("Grammar", () => {
             @method({"prop": 2})
             spaces = /\\s+/
         `;
+    });
+
+    test("Take Until", () => {
+        const { scriptText } = patterns`
+            script-text = ?->| "</script"
+        `;
+        const result = scriptText.parse(new Cursor("function(){}</script"));
+
+        expect(result?.value).toBe("function(){}");
     });
 
 });

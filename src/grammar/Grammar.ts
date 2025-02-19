@@ -11,6 +11,7 @@ import { Repeat, RepeatOptions } from "../patterns/Repeat";
 import { Optional } from "../patterns/Optional";
 import { Context } from "../patterns/Context";
 import { Expression } from "../patterns/Expression";
+import { TakeUntil } from "../patterns/TakeUntil";
 import { RightAssociated } from "../patterns/RightAssociated";
 import { generateErrorMessage } from "../patterns/generate_error_message";
 import { tokens } from "./decorators/tokens";
@@ -30,6 +31,7 @@ const patternNodes: Record<string, boolean> = {
     "sequence-literal": true,
     "repeat-literal": true,
     "alias-literal": true,
+    "take-until-literal": true,
     "configurable-anonymous-pattern": true
 };
 
@@ -180,6 +182,10 @@ export class Grammar {
                     this._saveAlias(n);
                     break;
                 }
+                case "take-until-literal": {
+                    this._saveTakeUntil(n);
+                    break;
+                }
                 case "configurable-anonymous-pattern": {
                     this._saveConfigurableAnonymous(n);
                     break;
@@ -195,6 +201,7 @@ export class Grammar {
             this._parseContext.patternsByName.set(n.value, pattern);
         });
     }
+
 
     private _saveLiteral(statementNode: Node) {
         const nameNode = statementNode.find(n => n.name === "name") as Node;
@@ -322,6 +329,9 @@ export class Grammar {
             case "sequence-literal": {
                 return this._buildSequence(name, node);
             }
+            case "take-until-literal": {
+                return this._buildTakeUntil(name, node);
+            }
             case "complex-anonymous-pattern": {
                 return this._buildComplexAnonymousPattern(node);
             }
@@ -422,6 +432,24 @@ export class Grammar {
         return isOptional ? new Optional(name, new Repeat(`inner-optional-${name}`, pattern, options)) : new Repeat(name, pattern, options);
     }
 
+    private _saveTakeUntil(statementNode: Node) {
+        const nameNode = statementNode.find(n => n.name === "name") as Node;
+        const name = nameNode.value;
+        const takeUntilNode = statementNode.find(n => n.name === "take-until-literal") as Node;
+        const takeUntil = this._buildTakeUntil(name, takeUntilNode);
+
+        this._applyDecorators(statementNode, takeUntil);
+        this._parseContext.patternsByName.set(name, takeUntil);
+    }
+
+
+    private _buildTakeUntil(name: string, takeUntilNode: Node) {
+        const patternNode = takeUntilNode.children[takeUntilNode.children.length - 1];
+        const untilPattern = this._buildPattern(patternNode);
+
+        return new TakeUntil(name, untilPattern);
+    }
+
     private _saveConfigurableAnonymous(node: Node) {
         const nameNode = node.find(n => n.name === "name") as Node;
         const name = nameNode.value;
@@ -441,7 +469,7 @@ export class Grammar {
 
     private async _resolveImports(ast: Node) {
         const importStatements = ast.findAll(n => {
-            return n.name === "import-from" || n.name === "param-name-with-default-value"
+            return n.name === "import-from" || n.name === "param-name-with-default-value";
         });
 
         for (const statement of importStatements) {

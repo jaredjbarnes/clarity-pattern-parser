@@ -14,6 +14,7 @@ export const anonymousLiterals = new Options("anonymous-literals", [
 ]);
 
 export const anonymousWrappedLiterals = new Options("anonymous-wrapped-literals", [
+    new Reference("take-until-literal"),
     new Reference("options-literal"),
     new Reference("sequence-literal"),
     new Reference("complex-anonymous-pattern")

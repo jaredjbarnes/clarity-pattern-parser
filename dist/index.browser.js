@@ -3212,15 +3212,16 @@
             let foundMatch = false;
             this._startedOnIndex = cursor.index;
             let terminatingResult = this._terminatingPattern.parse(cursor);
+            cursor.resolveError();
             if (terminatingResult == null) {
                 foundMatch = true;
                 cursor.moveTo(cursorIndex);
                 cursorIndex += 1;
                 cursor.hasNext() && cursor.next();
-                cursor.resolveError();
             }
             while (true) {
                 terminatingResult = this._terminatingPattern.parse(cursor);
+                cursor.resolveError();
                 if (terminatingResult == null) {
                     cursor.moveTo(cursorIndex);
                     cursorIndex += 1;
@@ -3230,7 +3231,6 @@
                     else {
                         break;
                     }
-                    cursor.resolveError();
                 }
                 else {
                     break;
@@ -3242,7 +3242,6 @@
                 return Node.createValueNode(this._type, this._name, value);
             }
             else {
-                cursor.resolveError();
                 cursor.moveTo(this.startedOnIndex);
                 cursor.recordErrorAt(this._startedOnIndex, this._startedOnIndex, this);
                 return null;

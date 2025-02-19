@@ -62,6 +62,7 @@ export class TakeUntil implements Pattern {
         this._startedOnIndex = cursor.index;
 
         let terminatingResult = this._terminatingPattern.parse(cursor);
+        cursor.resolveError();
 
         if (terminatingResult == null) {
             foundMatch = true;
@@ -69,12 +70,11 @@ export class TakeUntil implements Pattern {
             cursor.moveTo(cursorIndex);
             cursorIndex += 1;
             cursor.hasNext() && cursor.next();
-
-            cursor.resolveError();
         }
 
         while (true) {
             terminatingResult = this._terminatingPattern.parse(cursor);
+            cursor.resolveError();
 
             if (terminatingResult == null) {
                 cursor.moveTo(cursorIndex);
@@ -85,8 +85,6 @@ export class TakeUntil implements Pattern {
                 } else {
                     break;
                 }
-
-                cursor.resolveError();
             } else {
                 break;
             }
@@ -97,7 +95,6 @@ export class TakeUntil implements Pattern {
             const value = cursor.getChars(this.startedOnIndex, cursorIndex - 1);
             return Node.createValueNode(this._type, this._name, value);
         } else {
-            cursor.resolveError();
             cursor.moveTo(this.startedOnIndex);
             cursor.recordErrorAt(this._startedOnIndex, this._startedOnIndex, this);
             return null;

@@ -6,7 +6,6 @@ import { testPattern } from "./testPattern";
 import { execPattern } from "./execPattern";
 
 let idIndex = 0;
-let cacheHit = 0;
 
 export class Regex implements Pattern {
   private _id: string;
@@ -98,7 +97,6 @@ export class Regex implements Pattern {
 
     if (record != null) {
       if (record.ast != null) {
-        console.log(cacheHit++);
         const node = new Node(
           this._type,
           this._name,

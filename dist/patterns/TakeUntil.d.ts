@@ -11,6 +11,7 @@ export declare class TakeUntil implements Pattern {
     private _startedOnIndex;
     private _terminatingPattern;
     private _tokens;
+    private _shouldCache;
     get id(): string;
     get type(): string;
     get name(): string;

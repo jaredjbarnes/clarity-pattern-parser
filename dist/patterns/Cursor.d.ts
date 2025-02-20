@@ -34,9 +34,12 @@ export declare class Cursor {
     moveToLastChar(): void;
     getLastIndex(): number;
     getChars(first: number, last: number): string;
-    recordMatch(pattern: Pattern, node: Node): void;
-    recordErrorAt(startIndex: number, endIndex: number, onPattern: Pattern): void;
+    recordMatch(pattern: Pattern, node: Node, cache?: boolean): void;
+    recordErrorAt(startIndex: number, lastIndex: number, onPattern: Pattern, cache?: boolean): void;
+    getRecord(pattern: Pattern, startIndex: number): import("./CursorHistory").HistoryRecord | null;
     resolveError(): void;
     startRecording(): void;
     stopRecording(): void;
+    disableCache(): void;
+    enableCache(): void;
 }

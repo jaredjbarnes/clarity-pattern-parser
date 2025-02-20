@@ -23,6 +23,8 @@ export class CursorHistory {
   private _nodes: Node[] = [];
   private _errors: ParseError[] = [];
   private _records: HistoryRecord[] = [];
+  private _cache: Record<string, HistoryRecord> = {};
+  private _isCacheEnabled = true;
 
   get isRecording(): boolean {
     return this._isRecording;
@@ -64,15 +66,21 @@ export class CursorHistory {
     return this._patterns;
   }
 
-  recordMatch(pattern: Pattern, node: Node): void {
+  recordMatch(pattern: Pattern, node: Node, cache = false): void {
+    const record: HistoryRecord = {
+      pattern,
+      ast: node,
+      error: null
+    };
+
+    if (cache && this._isCacheEnabled) {
+      this._cache[this._buildKeyFromRecord(record)] = record;
+    }
+
     if (this._isRecording) {
       this._patterns.push(pattern);
       this._nodes.push(node);
-      this._records.push({
-        pattern,
-        ast: node,
-        error: null
-      });
+      this._records.push(record);
     }
 
     this._rootMatch.pattern = pattern;
@@ -112,8 +120,42 @@ export class CursorHistory {
     }
   }
 
-  recordErrorAt(startIndex: number, lastIndex: number, pattern: Pattern): void {
+  getRecord(pattern: Pattern, startIndex: number) {
+    const record = this._cache[`${pattern.id}|${startIndex}`];
+
+    if (record == null) {
+      return null;
+    }
+    return record;
+  }
+
+  private _buildKeyFromRecord(record: HistoryRecord) {
+    let startIndex = 0;
+
+    if (record.ast != null) {
+      startIndex = record.ast.startIndex;
+    }
+
+    if (record.error != null) {
+      startIndex = record.error.startIndex;
+    }
+
+
+    return `${record.pattern.id}|${startIndex}`;
+  }
+
+  recordErrorAt(startIndex: number, lastIndex: number, pattern: Pattern, cache = false): void {
     const error = new ParseError(startIndex, lastIndex, pattern);
+    const record: HistoryRecord = {
+      pattern,
+      ast: null,
+      error
+    };
+
+    if (cache) {
+      this._cache[this._buildKeyFromRecord(record)] = record;
+    }
+
     this._currentError = error;
 
     if (this._furthestError === null || lastIndex > this._furthestError.lastIndex) {
@@ -122,12 +164,12 @@ export class CursorHistory {
 
     if (this._isRecording) {
       this._errors.push(error);
-      this.records.push({
-        pattern,
-        ast: null,
-        error
-      });
+      this.records.push(record);
     }
+  }
+
+  resolveError() {
+    this._currentError = null;
   }
 
   startRecording(): void {
@@ -138,8 +180,13 @@ export class CursorHistory {
     this._isRecording = false;
   }
 
-  resolveError() {
-    this._currentError = null;
+  disableCache() {
+    this._isCacheEnabled = false;
   }
+
+  enableCache() {
+    this._isCacheEnabled = true;
+  }
+
 
 }

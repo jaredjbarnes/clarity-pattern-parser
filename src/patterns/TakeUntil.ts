@@ -16,7 +16,7 @@ export class TakeUntil implements Pattern {
     private _startedOnIndex: number;
     private _terminatingPattern: Pattern;
     private _tokens: string[];
-
+    private _shouldCache: boolean;
     get id(): string {
         return this._id;
     }
@@ -54,9 +54,41 @@ export class TakeUntil implements Pattern {
         this._children = [this._terminatingPattern];
         this._tokens = [];
         this._startedOnIndex = 0;
+        this._shouldCache = terminatingPattern.type === "literal" || terminatingPattern.type === "regex";
     }
 
     parse(cursor: Cursor): Node | null {
+        // We can use caching if our terminating pattern is a literal or a regex.
+        if (this._shouldCache) {
+            // This is a major optimization when backtracking happens.
+            // Most parsing will be cached.
+            const record = cursor.getRecord(this, cursor.index);
+
+            if (record != null) {
+                if (record.ast != null) {
+                    const node = new Node(
+                        this._type,
+                        this._name,
+                        record.ast.firstIndex,
+                        record.ast.lastIndex,
+                        [],
+                        record.ast.value
+                    );
+
+                    cursor.recordMatch(this, node);
+                    cursor.moveTo(node.lastIndex);
+                    return node;
+                }
+
+                if (record.error) {
+                    cursor.recordErrorAt(record.error.startIndex, record.error.lastIndex, this);
+                    cursor.moveTo(record.error.lastIndex);
+                    return null;
+                }
+            }
+        }
+
+
         let cursorIndex = cursor.index;
         let foundMatch = false;
         this._startedOnIndex = cursor.index;
@@ -93,7 +125,10 @@ export class TakeUntil implements Pattern {
         if (foundMatch) {
             cursor.moveTo(cursorIndex - 1);
             const value = cursor.getChars(this.startedOnIndex, cursorIndex - 1);
-            return Node.createValueNode(this._type, this._name, value);
+            const node = Node.createValueNode(this._type, this._name, value);
+
+            cursor.recordMatch(this, node, this._shouldCache);
+            return node;
         } else {
             cursor.moveTo(this.startedOnIndex);
             cursor.recordErrorAt(this._startedOnIndex, this._startedOnIndex, this);

@@ -126,12 +126,16 @@ export class Cursor {
     return this._text.slice(first, last + 1);
   }
 
-  recordMatch(pattern: Pattern, node: Node): void {
-    this._history.recordMatch(pattern, node);
+  recordMatch(pattern: Pattern, node: Node, cache = false): void {
+    this._history.recordMatch(pattern, node, cache);
   }
 
-  recordErrorAt(startIndex: number, endIndex: number, onPattern: Pattern): void {
-    this._history.recordErrorAt(startIndex, endIndex, onPattern);
+  recordErrorAt(startIndex: number, lastIndex: number, onPattern: Pattern, cache = false): void {
+    this._history.recordErrorAt(startIndex, lastIndex, onPattern, cache);
+  }
+
+  getRecord(pattern: Pattern, startIndex: number) {
+    return this._history.getRecord(pattern, startIndex);
   }
 
   resolveError(): void {
@@ -144,6 +148,14 @@ export class Cursor {
 
   stopRecording(): void {
     this._history.stopRecording();
+  }
+
+  disableCache() {
+    this._history.disableCache();
+  }
+
+  enableCache() {
+    this._history.enableCache();
   }
 
 }

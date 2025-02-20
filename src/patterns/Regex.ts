@@ -6,6 +6,7 @@ import { testPattern } from "./testPattern";
 import { execPattern } from "./execPattern";
 
 let idIndex = 0;
+let cacheHit = 0;
 
 export class Regex implements Pattern {
   private _id: string;
@@ -91,6 +92,34 @@ export class Regex implements Pattern {
   }
 
   parse(cursor: Cursor) {
+    // This is a major optimization when backtracking happens.
+    // Most parsing will be cached.
+    const record = cursor.getRecord(this, cursor.index);
+
+    if (record != null) {
+      if (record.ast != null) {
+        console.log(cacheHit++);
+        const node = new Node(
+          this._type,
+          this._name,
+          record.ast.firstIndex,
+          record.ast.lastIndex,
+          [],
+          record.ast.value
+        );
+
+        cursor.recordMatch(this, node);
+        cursor.moveTo(node.lastIndex);
+        return node;
+      }
+
+      if (record.error) {
+        cursor.recordErrorAt(record.error.startIndex, record.error.lastIndex, this);
+        cursor.moveTo(record.error.lastIndex);
+        return null;
+      }
+    }
+
     this._firstIndex = cursor.index;
     this.resetState(cursor);
     this.tryToParse(cursor);
@@ -129,7 +158,7 @@ export class Regex implements Pattern {
     );
 
     cursor.moveTo(newIndex);
-    cursor.recordMatch(this, this._node);
+    cursor.recordMatch(this, this._node, true);
   }
 
   private processError(cursor: Cursor) {

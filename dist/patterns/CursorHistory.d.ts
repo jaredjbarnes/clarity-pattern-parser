@@ -20,6 +20,8 @@ export declare class CursorHistory {
     private _nodes;
     private _errors;
     private _records;
+    private _cache;
+    private _isCacheEnabled;
     get isRecording(): boolean;
     get rootMatch(): Match;
     get leafMatch(): Match;
@@ -30,9 +32,13 @@ export declare class CursorHistory {
     get records(): HistoryRecord[];
     get nodes(): Node[];
     get patterns(): Pattern[];
-    recordMatch(pattern: Pattern, node: Node): void;
-    recordErrorAt(startIndex: number, lastIndex: number, pattern: Pattern): void;
+    recordMatch(pattern: Pattern, node: Node, cache?: boolean): void;
+    getRecord(pattern: Pattern, startIndex: number): HistoryRecord | null;
+    private _buildKeyFromRecord;
+    recordErrorAt(startIndex: number, lastIndex: number, pattern: Pattern, cache?: boolean): void;
+    resolveError(): void;
     startRecording(): void;
     stopRecording(): void;
-    resolveError(): void;
+    disableCache(): void;
+    enableCache(): void;
 }

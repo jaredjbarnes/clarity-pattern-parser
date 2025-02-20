@@ -1,4 +1,10 @@
-* Fix Grammar with alias reference, by adding an additional parameter to the constructor of Reference to be the name and then the cloned name of the pattern eventually found.
+* Add cache parameter to record match, this will allow patterns to cache if they are idempotent.
+
+cursor.recordMatch(node: Node, pattern: Pattern, cache?: boolean)
+cursor.history.cache.get(pattern) => HistoryRecord | null
+
+Based on what is returned the terminal pattern can return the cache result and tell the cursor 
+the same result again.
 
 * We should make a Block, Segments Pattern. These will be breadth first patterns. It look something like this.
 

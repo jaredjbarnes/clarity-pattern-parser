@@ -320,6 +320,8 @@ class CursorHistory {
         this._nodes = [];
         this._errors = [];
         this._records = [];
+        this._cache = {};
+        this._isCacheEnabled = true;
     }
     get isRecording() {
         return this._isRecording;
@@ -351,15 +353,19 @@ class CursorHistory {
     get patterns() {
         return this._patterns;
     }
-    recordMatch(pattern, node) {
+    recordMatch(pattern, node, cache = false) {
+        const record = {
+            pattern,
+            ast: node,
+            error: null
+        };
+        if (cache && this._isCacheEnabled) {
+            this._cache[this._buildKeyFromRecord(record)] = record;
+        }
         if (this._isRecording) {
             this._patterns.push(pattern);
             this._nodes.push(node);
-            this._records.push({
-                pattern,
-                ast: node,
-                error: null
-            });
+            this._records.push(record);
         }
         this._rootMatch.pattern = pattern;
         this._rootMatch.node = node;
@@ -391,20 +397,44 @@ class CursorHistory {
             }
         }
     }
-    recordErrorAt(startIndex, lastIndex, pattern) {
+    getRecord(pattern, startIndex) {
+        const record = this._cache[`${pattern.id}|${startIndex}`];
+        if (record == null) {
+            return null;
+        }
+        return record;
+    }
+    _buildKeyFromRecord(record) {
+        let startIndex = 0;
+        if (record.ast != null) {
+            startIndex = record.ast.startIndex;
+        }
+        if (record.error != null) {
+            startIndex = record.error.startIndex;
+        }
+        return `${record.pattern.id}|${startIndex}`;
+    }
+    recordErrorAt(startIndex, lastIndex, pattern, cache = false) {
         const error = new ParseError(startIndex, lastIndex, pattern);
+        const record = {
+            pattern,
+            ast: null,
+            error
+        };
+        if (cache) {
+            this._cache[this._buildKeyFromRecord(record)] = record;
+        }
         this._currentError = error;
         if (this._furthestError === null || lastIndex > this._furthestError.lastIndex) {
             this._furthestError = error;
         }
         if (this._isRecording) {
             this._errors.push(error);
-            this.records.push({
-                pattern,
-                ast: null,
-                error
-            });
+            this.records.push(record);
         }
+    }
+    resolveError() {
+        this._currentError = null;
     }
     startRecording() {
         this._isRecording = true;
@@ -412,8 +442,11 @@ class CursorHistory {
     stopRecording() {
         this._isRecording = false;
     }
-    resolveError() {
-        this._currentError = null;
+    disableCache() {
+        this._isCacheEnabled = false;
+    }
+    enableCache() {
+        this._isCacheEnabled = true;
     }
 }
 
@@ -508,11 +541,14 @@ class Cursor {
     getChars(first, last) {
         return this._text.slice(first, last + 1);
     }
-    recordMatch(pattern, node) {
-        this._history.recordMatch(pattern, node);
+    recordMatch(pattern, node, cache = false) {
+        this._history.recordMatch(pattern, node, cache);
     }
-    recordErrorAt(startIndex, endIndex, onPattern) {
-        this._history.recordErrorAt(startIndex, endIndex, onPattern);
+    recordErrorAt(startIndex, lastIndex, onPattern, cache = false) {
+        this._history.recordErrorAt(startIndex, lastIndex, onPattern, cache);
+    }
+    getRecord(pattern, startIndex) {
+        return this._history.getRecord(pattern, startIndex);
     }
     resolveError() {
         this._history.resolveError();
@@ -522,6 +558,12 @@ class Cursor {
     }
     stopRecording() {
         this._history.stopRecording();
+    }
+    disableCache() {
+        this._history.disableCache();
+    }
+    enableCache() {
+        this._history.enableCache();
     }
 }
 
@@ -601,12 +643,28 @@ class Literal {
         return execPattern(this, text, record);
     }
     parse(cursor) {
+        // This is a major optimization when backtracking happens.
+        // Most parsing will be cached.
+        const record = cursor.getRecord(this, cursor.index);
+        if (record != null) {
+            if (record.ast != null) {
+                const node = new Node(this._type, this._name, record.ast.firstIndex, record.ast.lastIndex, [], record.ast.value);
+                cursor.recordMatch(this, node);
+                cursor.moveTo(node.lastIndex);
+                return node;
+            }
+            if (record.error) {
+                cursor.recordErrorAt(record.error.startIndex, record.error.lastIndex, this);
+                cursor.moveTo(record.error.lastIndex);
+                return null;
+            }
+        }
         this._firstIndex = cursor.index;
         const passed = this._tryToParse(cursor);
         if (passed) {
             cursor.resolveError();
             const node = this._createNode();
-            cursor.recordMatch(this, node);
+            cursor.recordMatch(this, node, true);
             return node;
         }
         cursor.recordErrorAt(this._firstIndex, this._endIndex, this);
@@ -733,6 +791,22 @@ class Regex {
         return execPattern(this, text, record);
     }
     parse(cursor) {
+        // This is a major optimization when backtracking happens.
+        // Most parsing will be cached.
+        const record = cursor.getRecord(this, cursor.index);
+        if (record != null) {
+            if (record.ast != null) {
+                const node = new Node(this._type, this._name, record.ast.firstIndex, record.ast.lastIndex, [], record.ast.value);
+                cursor.recordMatch(this, node);
+                cursor.moveTo(node.lastIndex);
+                return node;
+            }
+            if (record.error) {
+                cursor.recordErrorAt(record.error.startIndex, record.error.lastIndex, this);
+                cursor.moveTo(record.error.lastIndex);
+                return null;
+            }
+        }
         this._firstIndex = cursor.index;
         this.resetState(cursor);
         this.tryToParse(cursor);
@@ -758,7 +832,7 @@ class Regex {
         const newIndex = currentIndex + result[0].length - 1;
         this._node = new Node("regex", this._name, currentIndex, newIndex, undefined, result[0]);
         cursor.moveTo(newIndex);
-        cursor.recordMatch(this, this._node);
+        cursor.recordMatch(this, this._node, true);
     }
     processError(cursor) {
         cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
@@ -3204,8 +3278,28 @@ class TakeUntil {
         this._children = [this._terminatingPattern];
         this._tokens = [];
         this._startedOnIndex = 0;
+        this._shouldCache = terminatingPattern.type === "literal" || terminatingPattern.type === "regex";
     }
     parse(cursor) {
+        // We can use caching if our terminating pattern is a literal or a regex.
+        if (this._shouldCache) {
+            // This is a major optimization when backtracking happens.
+            // Most parsing will be cached.
+            const record = cursor.getRecord(this, cursor.index);
+            if (record != null) {
+                if (record.ast != null) {
+                    const node = new Node(this._type, this._name, record.ast.firstIndex, record.ast.lastIndex, [], record.ast.value);
+                    cursor.recordMatch(this, node);
+                    cursor.moveTo(node.lastIndex);
+                    return node;
+                }
+                if (record.error) {
+                    cursor.recordErrorAt(record.error.startIndex, record.error.lastIndex, this);
+                    cursor.moveTo(record.error.lastIndex);
+                    return null;
+                }
+            }
+        }
         let cursorIndex = cursor.index;
         let foundMatch = false;
         this._startedOnIndex = cursor.index;
@@ -3237,7 +3331,9 @@ class TakeUntil {
         if (foundMatch) {
             cursor.moveTo(cursorIndex - 1);
             const value = cursor.getChars(this.startedOnIndex, cursorIndex - 1);
-            return Node.createValueNode(this._type, this._name, value);
+            const node = Node.createValueNode(this._type, this._name, value);
+            cursor.recordMatch(this, node, this._shouldCache);
+            return node;
         }
         else {
             cursor.moveTo(this.startedOnIndex);

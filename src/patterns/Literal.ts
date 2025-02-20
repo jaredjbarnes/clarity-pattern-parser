@@ -75,13 +75,40 @@ export class Literal implements Pattern {
   }
 
   parse(cursor: Cursor): Node | null {
+    // This is a major optimization when backtracking happens.
+    // Most parsing will be cached.
+    const record = cursor.getRecord(this, cursor.index);
+
+    if (record != null) {
+      if (record.ast != null) {
+        const node = new Node(
+          this._type,
+          this._name,
+          record.ast.firstIndex,
+          record.ast.lastIndex,
+          [],
+          record.ast.value
+        );
+
+        cursor.recordMatch(this, node);
+        cursor.moveTo(node.lastIndex);
+        return node;
+      }
+
+      if (record.error) {
+        cursor.recordErrorAt(record.error.startIndex, record.error.lastIndex, this);
+        cursor.moveTo(record.error.lastIndex);
+        return null;
+      }
+    }
+
     this._firstIndex = cursor.index;
     const passed = this._tryToParse(cursor);
 
     if (passed) {
       cursor.resolveError();
       const node = this._createNode();
-      cursor.recordMatch(this, node);
+      cursor.recordMatch(this, node, true);
 
       return node;
     }

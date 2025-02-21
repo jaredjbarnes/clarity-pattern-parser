@@ -1,10 +1,6 @@
-import { getHits, getEffiency } from "../patterns/HistoryRecordCache";
 import { patterns } from "./patterns";
 
 describe("Patterns String Template Literal", () => {
-    afterAll(() => {
-        console.log(getHits(), getEffiency());
-    });
     test("Baseline", () => {
         const { fullName } = patterns`
         first-name = "John"

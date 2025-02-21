@@ -12,8 +12,12 @@ import { Context } from "../patterns/Context";
 import { createPatternsTemplate, patterns } from "./patterns";
 import { Expression } from "../patterns/Expression";
 import { Cursor } from "../patterns/Cursor";
+import { getEffiency, getHits } from "../patterns/HistoryRecordCache";
 
 describe("Grammar", () => {
+    afterAll(() => {
+        console.log(getHits(), getEffiency());
+    });
     test("Literal", () => {
         const expression = `
             name = "John"

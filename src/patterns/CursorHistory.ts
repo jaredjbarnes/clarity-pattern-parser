@@ -1,16 +1,11 @@
 import { Node } from "../ast/Node";
 import { ParseError } from "./ParseError";
 import { Pattern } from "./Pattern";
+import { HistoryRecord } from "./HistoryRecord";
 
 export interface Match {
   pattern: Pattern | null;
   node: Node | null;
-}
-
-export interface HistoryRecord {
-  pattern: Pattern;
-  error: ParseError | null;
-  ast: Node | null;
 }
 
 export class CursorHistory {
@@ -23,8 +18,6 @@ export class CursorHistory {
   private _nodes: Node[] = [];
   private _errors: ParseError[] = [];
   private _records: HistoryRecord[] = [];
-  private _cache: Record<string, HistoryRecord> = {};
-  private _isCacheEnabled = true;
 
   get isRecording(): boolean {
     return this._isRecording;
@@ -66,16 +59,12 @@ export class CursorHistory {
     return this._patterns;
   }
 
-  recordMatch(pattern: Pattern, node: Node, cache = false): void {
+  recordMatch(pattern: Pattern, node: Node): void {
     const record: HistoryRecord = {
       pattern,
       ast: node,
       error: null
     };
-
-    if (cache && this._isCacheEnabled) {
-      this._cache[this._buildKeyFromRecord(record)] = record;
-    }
 
     if (this._isRecording) {
       this._patterns.push(pattern);
@@ -120,41 +109,13 @@ export class CursorHistory {
     }
   }
 
-  getRecord(pattern: Pattern, startIndex: number) {
-    const record = this._cache[`${pattern.id}|${startIndex}`];
-
-    if (record == null) {
-      return null;
-    }
-    return record;
-  }
-
-  private _buildKeyFromRecord(record: HistoryRecord) {
-    let startIndex = 0;
-
-    if (record.ast != null) {
-      startIndex = record.ast.startIndex;
-    }
-
-    if (record.error != null) {
-      startIndex = record.error.startIndex;
-    }
-
-
-    return `${record.pattern.id}|${startIndex}`;
-  }
-
-  recordErrorAt(startIndex: number, lastIndex: number, pattern: Pattern, cache = false): void {
+  recordErrorAt(startIndex: number, lastIndex: number, pattern: Pattern): void {
     const error = new ParseError(startIndex, lastIndex, pattern);
     const record: HistoryRecord = {
       pattern,
       ast: null,
       error
     };
-
-    if (cache) {
-      this._cache[this._buildKeyFromRecord(record)] = record;
-    }
 
     this._currentError = error;
 
@@ -179,14 +140,5 @@ export class CursorHistory {
   stopRecording(): void {
     this._isRecording = false;
   }
-
-  disableCache() {
-    this._isCacheEnabled = false;
-  }
-
-  enableCache() {
-    this._isCacheEnabled = true;
-  }
-
 
 }

@@ -2,7 +2,10 @@ function defaultVisitor(node: Node) {
   return node;
 }
 
+let idIndex = 0;
+
 export interface CycleFreeNode {
+  id: string;
   type: string;
   name: string;
   startIndex: number;
@@ -12,6 +15,7 @@ export interface CycleFreeNode {
 }
 
 export class Node {
+  private _id: string;
   private _type: string;
   private _name: string;
   private _firstIndex: number;
@@ -19,6 +23,10 @@ export class Node {
   private _parent: Node | null;
   private _children: Node[];
   private _value: string;
+
+  get id() {
+    return this._id;
+  }
 
   get type() {
     return this._type;
@@ -72,6 +80,7 @@ export class Node {
     children: Node[] = [],
     value = ""
   ) {
+    this._id = String(idIndex++);
     this._type = type;
     this._name = name;
     this._firstIndex = firstIndex;
@@ -280,7 +289,7 @@ export class Node {
   }
 
   clone(): Node {
-    return new Node(
+    const node = new Node(
       this._type,
       this._name,
       this._firstIndex,
@@ -288,6 +297,8 @@ export class Node {
       this._children.map((c) => c.clone()),
       this._value
     );
+
+    return node;
   }
 
   normalize(startIndex = this._firstIndex): number {
@@ -320,6 +331,7 @@ export class Node {
 
   toCycleFreeObject(): CycleFreeNode {
     return {
+      id: this._id,
       type: this._type,
       name: this._name,
       value: this.toString(),
@@ -333,8 +345,13 @@ export class Node {
     return JSON.stringify(this.toCycleFreeObject(), null, space);
   }
 
-  isEqual(node: Node) {
-    return node.toJson(0) === this.toJson(0);
+  isEqual(node: Node): boolean {
+    return node._type === this._type &&
+      node._name === this._name &&
+      node._firstIndex === this._firstIndex &&
+      node._lastIndex === this._lastIndex &&
+      node._value === this._value &&
+      this._children.every((child, index) => child.isEqual(node._children[index]));
   }
 
   static createValueNode(type: string, name: string, value = "") {

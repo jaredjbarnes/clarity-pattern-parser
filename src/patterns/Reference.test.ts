@@ -42,7 +42,7 @@ describe("Reference", () => {
             new Node("literal", "close-bracket", 5, 5, [], "]"),
         ]);
 
-        expect(result).toEqual(expected);
+        expect(result?.isEqual(expected));
     });
 
     test("No Reference Pattern", () => {

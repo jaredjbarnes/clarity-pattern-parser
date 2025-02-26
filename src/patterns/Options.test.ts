@@ -22,7 +22,7 @@ describe("Options", () => {
         const result = a.parse(cursor);
         const expected = new Node("literal", "a", 0, 0, [], "A")
 
-        expect(result).toEqual(expected);
+        expect(result?.isEqual(expected)).toBeTruthy();
     });
 
     test("One Option Failed", () => {
@@ -39,9 +39,9 @@ describe("Options", () => {
         const a = new Options("a-b", [new Literal("a", "A"), new Literal("b", "B")]);
         const cursor = new Cursor("AB");
         let result = a.parse(cursor);
-        let expected = new Node("literal", "a", 0, 0, [], "A")
+        let expected = new Node("literal", "a", 0, 0, [], "A");
 
-        expect(result).toEqual(expected);
+        expect(result?.isEqual(expected)).toBeTruthy();
 
         cursor.next();
 

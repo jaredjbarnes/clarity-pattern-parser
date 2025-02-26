@@ -26,7 +26,7 @@ describe("BoundedRepeat", () => {
             new Node("regex", "number", 1, 1, [], "2"),
         ]);
 
-        expect(result).toEqual(expected);
+        expect(result?.isEqual(expected)).toBeTruthy();
         expect(cursor.hasError).toBeFalsy();
 
         cursor = new Cursor("123");
@@ -37,7 +37,7 @@ describe("BoundedRepeat", () => {
             new Node("regex", "number", 2, 2, [], "3"),
         ]);
 
-        expect(result).toEqual(expected);
+        expect(result?.isEqual(expected)).toBeTruthy();
         expect(cursor.hasError).toBeFalsy();
 
         cursor = new Cursor("1234");
@@ -48,7 +48,7 @@ describe("BoundedRepeat", () => {
             new Node("regex", "number", 2, 2, [], "3"),
         ]);
 
-        expect(result).toEqual(expected);
+        expect(result?.isEqual(expected)).toBeTruthy();
         expect(cursor.hasError).toBeFalsy();
         expect(cursor.index).toBe(2);
 
@@ -59,7 +59,7 @@ describe("BoundedRepeat", () => {
             new Node("regex", "number", 1, 1, [], "2"),
         ]);
 
-        expect(result).toEqual(expected);
+        expect(result?.isEqual(expected)).toBeTruthy();
         expect(cursor.hasError).toBeFalsy();
     });
 
@@ -87,7 +87,7 @@ describe("BoundedRepeat", () => {
             new Node("regex", "number", 2, 2, [], "3"),
         ]);
 
-        expect(result).toEqual(expected);
+        expect(result?.isEqual(expected)).toBeTruthy();
         expect(cursor.hasError).toBeFalsy();
 
         cursor = new Cursor("1234");
@@ -98,7 +98,7 @@ describe("BoundedRepeat", () => {
             new Node("regex", "number", 2, 2, [], "3"),
         ]);
 
-        expect(result).toEqual(expected);
+        expect(result?.isEqual(expected)).toBeTruthy();
         expect(cursor.hasError).toBeFalsy();
         expect(cursor.index).toBe(2);
 
@@ -122,7 +122,7 @@ describe("BoundedRepeat", () => {
             new Node("regex", "number", 2, 2, [], "2"),
         ]);
 
-        expect(result).toEqual(expected);
+        expect(result?.isEqual(expected)).toBeTruthy();
         expect(cursor.hasError).toBeFalsy();
 
         cursor = new Cursor("1,2,3,");
@@ -135,7 +135,7 @@ describe("BoundedRepeat", () => {
             new Node("regex", "number", 4, 4, [], "3"),
         ]);
 
-        expect(result).toEqual(expected);
+        expect(result?.isEqual(expected)).toBeTruthy();
         expect(cursor.hasError).toBeFalsy();
 
         cursor = new Cursor("1,2,3,4");
@@ -148,7 +148,7 @@ describe("BoundedRepeat", () => {
             new Node("regex", "number", 4, 4, [], "3"),
         ]);
 
-        expect(result).toEqual(expected);
+        expect(result?.isEqual(expected)).toBeTruthy();
         expect(cursor.hasError).toBeFalsy();
     });
 
@@ -171,7 +171,7 @@ describe("BoundedRepeat", () => {
             new Node("regex", "divider", 4, 4, [], "\n"),
         ]);
 
-        expect(result).toEqual(expected);
+        expect(result?.isEqual(expected)).toBeTruthy();
         expect(cursor.hasError).toBeFalsy();
     });
 
@@ -202,7 +202,7 @@ describe("BoundedRepeat", () => {
             new Node("regex", "number", 4, 4, [], "3"),
         ]);
 
-        expect(result).toEqual(expected);
+        expect(result?.isEqual(expected)).toBeTruthy();
         expect(cursor.hasError).toBeFalsy();
 
         cursor = new Cursor("1,2,3,4");
@@ -215,7 +215,7 @@ describe("BoundedRepeat", () => {
             new Node("regex", "number", 4, 4, [], "3"),
         ]);
 
-        expect(result).toEqual(expected);
+        expect(result?.isEqual(expected)).toBeTruthy();
         expect(cursor.hasError).toBeFalsy();
     });
 

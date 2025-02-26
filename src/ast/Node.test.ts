@@ -295,7 +295,7 @@ describe("Node", () => {
         const parent = new Node("parent", "parent", 0, 0, [a, b]);
         const clone = parent.clone();
 
-        expect(clone).toEqual(parent);
+        expect(clone.isEqual(parent)).toBeTruthy();
     });
 
     test("Turn Into JSON", () => {
@@ -304,12 +304,14 @@ describe("Node", () => {
         const parent = new Node("parent", "parent", 0, 0, [a, b]);
         const result = parent.toJson();
         const expected = JSON.stringify({
+            id: parent.id,
             type: "parent",
             name: "parent",
             value: "AB",
             startIndex: 0,
             endIndex: 1,
             children: [{
+                id: parent.children[0].id,
                 type: "a",
                 name: "a",
                 value: "A",
@@ -317,6 +319,7 @@ describe("Node", () => {
                 endIndex: 1,
                 children: [],
             }, {
+                id: parent.children[1].id,
                 type: "b",
                 name: "b",
                 value: "B",
@@ -471,7 +474,7 @@ describe("Node", () => {
             Node.createValueNode("family", "aunt", "aunt")
         ]);
 
-        expect(result.toJson()).toBe(expected.toJson());
+        expect(result.isEqual(expected)).toBeTruthy();
     });
 
 });

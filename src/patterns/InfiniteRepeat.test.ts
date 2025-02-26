@@ -20,7 +20,7 @@ describe("InfiniteRepeat", () => {
             new Node("regex", "digit", 2, 2, [], "7"),
         ]);
 
-        expect(result).toEqual(expected);
+        expect(result?.isEqual(expected)).toBeTruthy();
         expect(cursor.hasError).toBeFalsy();
     });
 
@@ -32,7 +32,7 @@ describe("InfiniteRepeat", () => {
         let result = integer.parse(cursor);
         let expected: Node | null = null;
 
-        expect(result).toEqual(expected);
+        expect(result).toBeNull();
         expect(cursor.hasError).toBeTruthy();
 
         cursor = new Cursor("33");
@@ -42,7 +42,7 @@ describe("InfiniteRepeat", () => {
             new Node("regex", "digit", 1, 1, [], "3")
         ]);
 
-        expect(result).toEqual(expected);
+        expect(result?.isEqual(expected)).toBeTruthy();
         expect(cursor.hasError).toBeFalsy();
     });
 
@@ -70,7 +70,7 @@ describe("InfiniteRepeat", () => {
             new Node("regex", "digit", 4, 4, [], "7"),
         ]);
 
-        expect(result).toEqual(expected);
+        expect(result?.isEqual(expected)).toBeTruthy();
         expect(cursor.hasError).toBeFalsy();
     });
 
@@ -88,7 +88,7 @@ describe("InfiniteRepeat", () => {
             new Node("regex", "digit", 4, 4, [], "7"),
         ]);
 
-        expect(result).toEqual(expected);
+        expect(result?.isEqual(expected)).toBeTruthy();
         expect(cursor.hasError).toBeFalsy();
     });
 
@@ -106,7 +106,7 @@ describe("InfiniteRepeat", () => {
             new Node("regex", "digit", 4, 4, [], "7"),
         ]);
 
-        expect(result).toEqual(expected);
+        expect(result?.isEqual(expected)).toBeTruthy();
         expect(cursor.hasError).toBeFalsy();
     });
 

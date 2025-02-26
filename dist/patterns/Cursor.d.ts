@@ -19,7 +19,7 @@ export declare class Cursor {
     get furthestError(): ParseError | null;
     get error(): ParseError | null;
     get errors(): ParseError[];
-    get records(): import("./CursorHistory").HistoryRecord[];
+    get records(): import("./HistoryRecord").HistoryRecord[];
     get index(): number;
     get length(): number;
     get hasError(): boolean;
@@ -34,12 +34,9 @@ export declare class Cursor {
     moveToLastChar(): void;
     getLastIndex(): number;
     getChars(first: number, last: number): string;
-    recordMatch(pattern: Pattern, node: Node, cache?: boolean): void;
-    recordErrorAt(startIndex: number, lastIndex: number, onPattern: Pattern, cache?: boolean): void;
-    getRecord(pattern: Pattern, startIndex: number): import("./CursorHistory").HistoryRecord | null;
+    recordMatch(pattern: Pattern, node: Node): void;
+    recordErrorAt(startIndex: number, lastIndex: number, onPattern: Pattern): void;
     resolveError(): void;
     startRecording(): void;
     stopRecording(): void;
-    disableCache(): void;
-    enableCache(): void;
 }

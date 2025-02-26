@@ -40,7 +40,7 @@ describe("Precedence Tree", () => {
 
 
         expect(result?.toString()).toBe("a+b*c||d+e");
-        expect(result?.toCycleFreeObject()).toEqual(expected.toCycleFreeObject());
+        expect(result?.isEqual(expected));
     });
 
     test("add Prefix", () => {
@@ -64,7 +64,7 @@ describe("Precedence Tree", () => {
         ]);
 
         expect(result?.toString()).toBe("!+++a");
-        expect(result?.toCycleFreeObject()).toEqual(expected.toCycleFreeObject());
+        expect(result?.isEqual(expected));
     });
 
     test("add Postfix", () => {
@@ -84,7 +84,7 @@ describe("Precedence Tree", () => {
 
         const result = tree.commit();
         expect(result?.toString()).toBe("a--++");
-        expect(result?.toCycleFreeObject()).toEqual(expected.toCycleFreeObject());
+        expect(result?.isEqual(expected));
     });
 
     test("all", () => {
@@ -120,7 +120,7 @@ describe("Precedence Tree", () => {
         ]);
 
         expect(result?.toString()).toBe("!a++*b+c");
-        expect(result?.toCycleFreeObject()).toEqual(expected.toCycleFreeObject());
+        expect(result?.isEqual(expected));
     });
 
     test("Incomplete", () => {
@@ -157,7 +157,7 @@ describe("Precedence Tree", () => {
         ]);
 
         expect(result?.toString()).toBe("!a++*b+c");
-        expect(result?.toCycleFreeObject()).toEqual(expected.toCycleFreeObject());
+        expect(result?.isEqual(expected));
     });
 
     test("add Partial Binary With Lower Precedence", () => {
@@ -187,7 +187,7 @@ describe("Precedence Tree", () => {
 
 
         expect(result?.toString()).toBe("a+b*c");
-        expect(result?.toCycleFreeObject()).toEqual(expected.toCycleFreeObject());
+        expect(result?.isEqual(expected));
     });
 
     test("add Partial Binary With Equal Precedence", () => {
@@ -216,7 +216,7 @@ describe("Precedence Tree", () => {
         ]);
 
         expect(result?.toString()).toBe("a+b*c");
-        expect(result?.toCycleFreeObject()).toEqual(expected.toCycleFreeObject());
+        expect(result?.isEqual(expected));
     });
 
     test("add Partial Binary With Equal Precedence And Right Associated", () => {
@@ -245,7 +245,7 @@ describe("Precedence Tree", () => {
         ]);
 
         expect(result?.toString()).toBe("a+b*c");
-        expect(result?.toCycleFreeObject()).toEqual(expected.toCycleFreeObject());
+        expect(result?.isEqual(expected));
     });
 
     test("mul Partial Binary With Greater Precedence", () => {
@@ -269,6 +269,6 @@ describe("Precedence Tree", () => {
         ]);
 
         expect(result?.toString()).toBe("a+b");
-        expect(result?.toCycleFreeObject()).toEqual(expected.toCycleFreeObject());
+        expect(result?.isEqual(expected));
     });
 });

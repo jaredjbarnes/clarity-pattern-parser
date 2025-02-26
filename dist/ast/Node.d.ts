@@ -1,4 +1,5 @@
 export interface CycleFreeNode {
+    id: string;
     type: string;
     name: string;
     startIndex: number;
@@ -7,6 +8,7 @@ export interface CycleFreeNode {
     children: CycleFreeNode[];
 }
 export declare class Node {
+    private _id;
     private _type;
     private _name;
     private _firstIndex;
@@ -14,6 +16,7 @@ export declare class Node {
     private _parent;
     private _children;
     private _value;
+    get id(): string;
     get type(): string;
     get name(): string;
     get value(): string;

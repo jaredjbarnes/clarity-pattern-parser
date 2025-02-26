@@ -20,7 +20,7 @@ describe("Sequence", () => {
             new Node("literal", "a", 0, 0, [], "A")
         ]);
 
-        expect(result).toEqual(expected);
+        expect(result?.isEqual(expected)).toBeTruthy();
         expect(cursor.furthestError).toBe(null);
         expect(cursor.index).toBe(0);
     });
@@ -48,7 +48,7 @@ describe("Sequence", () => {
             new Node("literal", "b", 1, 1, [], "B")
         ]);
 
-        expect(result).toEqual(expected);
+        expect(result?.isEqual(expected)).toBeTruthy();
         expect(cursor.error).toBe(null)
         expect(cursor.index).toBe(1);
     });
@@ -88,7 +88,7 @@ describe("Sequence", () => {
             new Node("literal", "a", 0, 0, [], "A")
         ]);
 
-        expect(result).toEqual(expected);
+        expect(result?.isEqual(expected)).toBeTruthy();
         expect(cursor.error).toBe(null);
         expect(cursor.index).toBe(0);
     });
@@ -104,7 +104,7 @@ describe("Sequence", () => {
             new Node("literal", "a", 0, 0, [], "A")
         ]);
 
-        expect(result).toEqual(expected);
+        expect(result?.isEqual(expected)).toBeTruthy();
         expect(cursor.error).toBe(null)
         expect(cursor.index).toBe(0);
     });
@@ -135,7 +135,7 @@ describe("Sequence", () => {
             new Node("literal", "c", 1, 1, [], "C"),
         ]);
 
-        expect(result).toEqual(expected);
+        expect(result?.isEqual(expected)).toBeTruthy();
         expect(cursor.error).toBe(null)
         expect(cursor.index).toBe(1);
     });
@@ -186,7 +186,7 @@ describe("Sequence", () => {
             new Node("literal", "a", 0, 0, undefined, "A")
         ]);
 
-        expect(result).toEqual(expected)
+        expect(result?.isEqual(expected)).toBeTruthy();
         expect(cursor).not.toBeNull();
     });
 

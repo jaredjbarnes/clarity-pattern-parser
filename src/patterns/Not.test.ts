@@ -31,7 +31,7 @@ describe("Not", () => {
         const clone = notA.clone();
 
         expect(clone.name).toBe("not-a");
-        expect(clone).not.toBe(notA)
+        expect(clone).not.toBe(notA);
     });
 
     test("Tokens", () => {

@@ -17,7 +17,7 @@ describe("Repeat", () => {
         let result = finiteRepeat.parse(cursor);
         let expected: Node | null = null;
 
-        expect(result).toBe(expected);
+        expect(result).toBeNull();
         expect(cursor.hasError).toBeTruthy();
 
         cursor = new Cursor("1");
@@ -26,7 +26,7 @@ describe("Repeat", () => {
             new Node("regex", "number", 0, 0, [], "1")
         ]);
 
-        expect(result?.toJson()).toEqual(expected.toJson());
+        expect(result?.isEqual(expected));
         expect(cursor.hasError).toBeFalsy();
 
         cursor = new Cursor("12");
@@ -36,7 +36,7 @@ describe("Repeat", () => {
             new Node("regex", "number", 1, 1, [], "2")
         ]);
 
-        expect(result?.toJson()).toEqual(expected.toJson());
+        expect(result?.isEqual(expected));
         expect(cursor.hasError).toBeFalsy();
 
         cursor = new Cursor("123");
@@ -46,7 +46,7 @@ describe("Repeat", () => {
             new Node("regex", "number", 1, 1, [], "2")
         ]);
 
-        expect(result?.toJson()).toEqual(expected.toJson());
+        expect(result?.isEqual(expected));
         expect(cursor.hasError).toBeFalsy();
         expect(cursor.index).toBe(1);
     });
@@ -59,14 +59,14 @@ describe("Repeat", () => {
         let result = finiteRepeat.parse(cursor);
         let expected: Node | null = null;
 
-        expect(result).toBe(expected);
+        expect(result).toBeNull();
         expect(cursor.hasError).toBeTruthy();
 
         cursor = new Cursor("1");
         result = finiteRepeat.parse(cursor);
         expected = null;
 
-        expect(result).toEqual(expected);
+        expect(result).toBeNull();
         expect(cursor.hasError).toBeTruthy();
 
         cursor = new Cursor("12");
@@ -76,7 +76,7 @@ describe("Repeat", () => {
             new Node("regex", "number", 1, 1, [], "2")
         ]);
 
-        expect(result?.toJson()).toEqual(expected.toJson());
+        expect(result?.isEqual(expected));
         expect(cursor.hasError).toBeFalsy();
 
         cursor = new Cursor("123");
@@ -86,7 +86,7 @@ describe("Repeat", () => {
             new Node("regex", "number", 1, 1, [], "2")
         ]);
 
-        expect(result?.toJson()).toEqual(expected.toJson());
+        expect(result?.isEqual(expected));
         expect(cursor.hasError).toBeFalsy();
         expect(cursor.index).toBe(1);
     });

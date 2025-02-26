@@ -17,12 +17,12 @@ describe("Literal", () => {
         const result = literal.parse(cursor);
         const expected = new Node("literal", "greeting", 0, 11, [], "Hello World!");
 
-        expect(result).toEqual(expected);
+        expect(result?.isEqual(expected)).toBeTruthy();
         expect(cursor.index).toBe(11);
         expect(cursor.error).toBeNull();
-        expect(cursor.leafMatch.node).toEqual(expected);
+        expect(cursor.leafMatch.node?.isEqual(expected)).toBeTruthy();
         expect(cursor.leafMatch.pattern).toBe(literal);
-        expect(cursor.rootMatch.node).toEqual(expected);
+        expect(cursor.rootMatch.node?.isEqual(expected)).toBeTruthy();
         expect(cursor.rootMatch.pattern).toBe(literal);
     });
 

@@ -2,7 +2,6 @@ import { Literal } from "../../patterns/Literal"
 import { Optional } from "../../patterns/Optional";
 import { Sequence } from "../../patterns/Sequence";
 import { lineSpaces } from "./spaces";
-import { name } from "./name";
 import { Reference } from "../../patterns/Reference";
 
 const anyChar = new Literal("any-char", "?");

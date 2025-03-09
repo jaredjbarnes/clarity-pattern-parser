@@ -23,6 +23,7 @@ export declare class Expression implements Pattern {
     private _shouldStopParsing;
     private _precedenceTree;
     private _hasOrganized;
+    private _atomsIdToAncestorsMap;
     get id(): string;
     get type(): string;
     get name(): string;
@@ -37,6 +38,7 @@ export declare class Expression implements Pattern {
     get startedOnIndex(): number;
     constructor(name: string, patterns: Pattern[]);
     private _organizePatterns;
+    private _cacheAncestors;
     private _extractName;
     private _isPrefix;
     private _extractPrefix;
@@ -53,6 +55,7 @@ export declare class Expression implements Pattern {
     private _tryToParse;
     private _tryToMatchPrefix;
     private _tryToMatchAtom;
+    private _isBeyondRecursiveAllowance;
     private _tryToMatchPostfix;
     private _tryToMatchBinary;
     test(text: string, record?: boolean): boolean;

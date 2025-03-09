@@ -32,6 +32,7 @@ export class Expression implements Pattern {
     private _shouldStopParsing: boolean;
     private _precedenceTree: PrecedenceTree;
     private _hasOrganized: boolean;
+    private _atomsIdToAncestorsMap: Record<string, Pattern[]>
 
     get id(): string {
         return this._id;
@@ -106,6 +107,7 @@ export class Expression implements Pattern {
         this._hasOrganized = false;
         this._patterns = [];
         this._precedenceTree = new PrecedenceTree({}, {});
+        this._atomsIdToAncestorsMap = {};
     }
 
     private _organizePatterns(patterns: Pattern[]) {
@@ -161,6 +163,21 @@ export class Expression implements Pattern {
         this._precedenceTree = new PrecedenceTree(this._precedenceMap, this._associationMap);
 
         return finalPatterns;
+    }
+
+    private _cacheAncestors() {
+        for (let atom of this._atomPatterns) {
+            const id = atom.id;
+            const ancestors: Pattern[] = this._atomsIdToAncestorsMap[id] = [];
+
+            let pattern: Pattern | null = this.parent;
+            while (pattern != null) {
+                if (pattern.id === id) {
+                    ancestors.push(pattern);
+                }
+                pattern = pattern.parent;
+            }
+        }
     }
 
     private _extractName(pattern: Pattern) {
@@ -262,6 +279,7 @@ export class Expression implements Pattern {
         if (!this._hasOrganized) {
             this._hasOrganized = true;
             this._organizePatterns(this._originalPatterns);
+            this._cacheAncestors();
         }
     }
 
@@ -367,6 +385,11 @@ export class Expression implements Pattern {
             cursor.moveTo(onIndex);
 
             const pattern = this._atomPatterns[i];
+
+            if (this._isBeyondRecursiveAllowance(pattern, onIndex)) {
+                continue;
+            }
+
             const node = pattern.parse(cursor);
 
             if (node != null) {
@@ -384,6 +407,11 @@ export class Expression implements Pattern {
                 cursor.moveTo(onIndex);
             }
         }
+    }
+
+    private _isBeyondRecursiveAllowance(atom: Pattern, onIndex: number) {
+        const ancestors = this._atomsIdToAncestorsMap[atom.id];
+        return ancestors.some(a => a.startedOnIndex === onIndex);
     }
 
     private _tryToMatchPostfix(cursor: Cursor) {

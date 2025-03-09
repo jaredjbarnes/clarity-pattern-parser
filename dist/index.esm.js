@@ -906,7 +906,7 @@ class Reference {
         for (let pattern of this._recursiveAncestors) {
             if (pattern.startedOnIndex === this.startedOnIndex) {
                 depth++;
-                if (depth > 0) {
+                if (depth > 1) {
                     return true;
                 }
             }
@@ -2825,6 +2825,7 @@ class Expression {
         this._hasOrganized = false;
         this._patterns = [];
         this._precedenceTree = new PrecedenceTree({}, {});
+        this._atomsIdToAncestorsMap = {};
     }
     _organizePatterns(patterns) {
         const finalPatterns = [];
@@ -2870,6 +2871,19 @@ class Expression {
         this._patterns = finalPatterns;
         this._precedenceTree = new PrecedenceTree(this._precedenceMap, this._associationMap);
         return finalPatterns;
+    }
+    _cacheAncestors() {
+        for (let atom of this._atomPatterns) {
+            const id = atom.id;
+            const ancestors = this._atomsIdToAncestorsMap[id] = [];
+            let pattern = this.parent;
+            while (pattern != null) {
+                if (pattern.id === id) {
+                    ancestors.push(pattern);
+                }
+                pattern = pattern.parent;
+            }
+        }
     }
     _extractName(pattern) {
         if (pattern.type === "right-associated") {
@@ -2947,6 +2961,7 @@ class Expression {
         if (!this._hasOrganized) {
             this._hasOrganized = true;
             this._organizePatterns(this._originalPatterns);
+            this._cacheAncestors();
         }
     }
     parse(cursor) {
@@ -3027,6 +3042,9 @@ class Expression {
         for (let i = 0; i < this._atomPatterns.length; i++) {
             cursor.moveTo(onIndex);
             const pattern = this._atomPatterns[i];
+            if (this._isBeyondRecursiveAllowance(pattern, onIndex)) {
+                continue;
+            }
             const node = pattern.parse(cursor);
             if (node != null) {
                 this._precedenceTree.addAtom(node);
@@ -3043,6 +3061,10 @@ class Expression {
                 cursor.moveTo(onIndex);
             }
         }
+    }
+    _isBeyondRecursiveAllowance(atom, onIndex) {
+        const ancestors = this._atomsIdToAncestorsMap[atom.id];
+        return ancestors.some(a => a.startedOnIndex === onIndex);
     }
     _tryToMatchPostfix(cursor) {
         let onIndex = cursor.index;

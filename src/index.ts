@@ -26,6 +26,7 @@ import { RightAssociated } from "./patterns/RightAssociated";
 import { Selector } from "./query/selector";
 import { Query } from "./query/query";
 import { generateErrorMessage } from "./patterns/generate_error_message";
+import { HistoryRecord } from "./patterns/HistoryRecord";
 
 export {
   Node,
@@ -57,5 +58,6 @@ export {
   patterns,
   compact,
   remove,
-  generateErrorMessage
+  generateErrorMessage,
+  HistoryRecord
 };

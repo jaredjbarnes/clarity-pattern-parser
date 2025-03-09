@@ -26,4 +26,5 @@ import { RightAssociated } from "./patterns/RightAssociated";
 import { Selector } from "./query/selector";
 import { Query } from "./query/query";
 import { generateErrorMessage } from "./patterns/generate_error_message";
-export { Node, Grammar, AutoComplete, AutoCompleteOptions, Suggestion, SuggestionOption, Sequence, Cursor, CursorHistory, Match, Context, Expression, Literal, Not, Options, Optional, ParseError, ParseResult, Pattern, Reference, RightAssociated, Regex, Repeat, Query, Selector, grammar, patterns, compact, remove, generateErrorMessage };
+import { HistoryRecord } from "./patterns/HistoryRecord";
+export { Node, Grammar, AutoComplete, AutoCompleteOptions, Suggestion, SuggestionOption, Sequence, Cursor, CursorHistory, Match, Context, Expression, Literal, Not, Options, Optional, ParseError, ParseResult, Pattern, Reference, RightAssociated, Regex, Repeat, Query, Selector, grammar, patterns, compact, remove, generateErrorMessage, HistoryRecord };

@@ -912,7 +912,7 @@
             for (let pattern of this._recursiveAncestors) {
                 if (pattern.startedOnIndex === this.startedOnIndex) {
                     depth++;
-                    if (depth > 1) {
+                    if (depth > 0) {
                         return true;
                     }
                 }

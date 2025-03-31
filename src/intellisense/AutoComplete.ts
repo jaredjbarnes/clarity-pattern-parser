@@ -197,21 +197,21 @@ export class AutoComplete {
 
     if (this._options.greedyPatternNames != null && this._options.greedyPatternNames.includes(pattern.name)) {
       const nextPatterns = pattern.getNextPatterns();
-      const tokens: string[] = [];
-
       const nextPatternTokens = nextPatterns.reduce((acc: string[], pattern) => {
         acc.push(...this._getTokensForPattern(pattern));
         return acc;
       }, []);
-
-      for (let token of augmentedTokens) {
-        for (let nextPatternToken of nextPatternTokens) {
-          tokens.push(token + nextPatternToken);
+      // using set to prevent duplicates
+      const tokens = new Set<string>();
+      
+      for (const token of augmentedTokens) {
+        for (const nextPatternToken of nextPatternTokens) {    
+          tokens.add(token + nextPatternToken);
         }
       }
 
-      return tokens;
-    } else {
+      return [...tokens]
+        } else {
       return augmentedTokens;
     }
   }
@@ -219,14 +219,22 @@ export class AutoComplete {
   private _getAugmentedTokens(pattern: Pattern) {
     const customTokensMap: any = this._options.customTokens || {};
     const leafPatterns = pattern.getPatterns();
-    const tokens: string[] = customTokensMap[pattern.name] || [];
 
-    leafPatterns.forEach(p => {
-      const augmentedTokens = customTokensMap[p.name] || [];
-      tokens.push(...p.getTokens(), ...augmentedTokens);
-    });
+  /** Using Set to
+   * - prevent duplicates
+   * - prevent mutation of original customTokensMap
+   */
+  const customTokensForPattern = new Set<string>(customTokensMap[pattern.name] ?? []);
 
-    return tokens;
+  for (const lp of leafPatterns) {
+    const augmentedTokens = customTokensMap[lp.name] ?? [];
+    const lpsCombinedTokens = [...lp.getTokens(), ...augmentedTokens];
+
+  for (const token of lpsCombinedTokens) {    
+    customTokensForPattern.add(token);
+  }
+  }
+    return [...customTokensForPattern];
   }
 
   private _createSuggestions(lastIndex: number, tokens: string[]): SuggestionOption[] {

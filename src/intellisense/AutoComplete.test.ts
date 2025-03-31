@@ -681,4 +681,33 @@ describe("AutoComplete", () => {
         }
     ]);
     });
+
+
+    test("Calling AutoComplete -> _getAllOptions Does not mutate customTokensMap", () => {
+
+        const jediLuke = new Literal(`jedi`, 'luke');
+        const names = new Options('names', [jediLuke]);
+        const divider = new Literal('divider', ', ');
+        const pattern = new Repeat('name-list', names, { divider, trimDivider: true });
+        
+        const customTokensMap:Record<string, string[]> = {
+            'jedi': ["leia"]
+        }
+        
+        const copiedCustomTokensMap:Record<string, string[]>  = JSON.parse(JSON.stringify(customTokensMap));
+        
+        const autoCompleteOptions: AutoCompleteOptions = {
+            greedyPatternNames:['jedi'],
+            customTokens: customTokensMap
+        };
+        const autoComplete = new AutoComplete(pattern,autoCompleteOptions);
+        
+        // provide a non-empty input to trigger the logic flow that hits _getAllOptions
+        autoComplete.suggestFor('l')
+        
+        expect(customTokensMap).toEqual(copiedCustomTokensMap)
+    })
+
 });
+
+  

@@ -159,7 +159,7 @@ export class AutoComplete {
 
   private _createSuggestionsFromRoot(): SuggestionOption[] {
     const suggestions: SuggestionOption[] = [];
-    const tokens = this._pattern.getTokens();
+    const tokens = [...this._pattern.getTokens(),... this._getTokensForPattern(this._pattern)];
 
     for (const token of tokens) {
       if (suggestions.findIndex(s => s.text === token) === -1) {

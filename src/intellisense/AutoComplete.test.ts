@@ -236,6 +236,39 @@ describe("AutoComplete", () => {
 
     });
 
+
+    test("Options AutoComplete on Root Pattern", () => {
+
+        const jack = new Literal("first-name", "Jack");
+        const john = new Literal("first-name", "John");
+
+        const names = new Options('names', [jack,john]);
+        const divider = new Literal('divider', ', ');
+        const repeat = new Repeat('name-list', names, { divider, trimDivider: true });
+
+        const text = ''
+
+        const autoCompleteOptions: AutoCompleteOptions = {
+            customTokens: {
+                'first-name': ["James"]
+            }
+        };
+        const autoComplete = new AutoComplete(repeat,autoCompleteOptions);
+
+        const suggestion = autoComplete.suggestFor(text)
+
+        console.log('suggestion: ',suggestion)
+
+        const expectedOptions = [
+            { text: "Jack", startIndex: 0 },
+            { text: "John", startIndex: 0 },
+            { text: "James", startIndex: 0 },
+        ];
+
+        expect(suggestion.options).toEqual(expectedOptions)
+    
+    })
+
     test("Options AutoComplete On Leaf Pattern", () => {
         const autoCompleteOptions: AutoCompleteOptions = {
             greedyPatternNames: ["space"],
@@ -648,4 +681,33 @@ describe("AutoComplete", () => {
         }
     ]);
     });
+
+
+    test("Calling AutoComplete -> _getAllOptions Does not mutate customTokensMap", () => {
+
+        const jediLuke = new Literal(`jedi`, 'luke');
+        const names = new Options('names', [jediLuke]);
+        const divider = new Literal('divider', ', ');
+        const pattern = new Repeat('name-list', names, { divider, trimDivider: true });
+        
+        const customTokensMap:Record<string, string[]> = {
+            'jedi': ["leia"]
+        }
+        
+        const copiedCustomTokensMap:Record<string, string[]>  = JSON.parse(JSON.stringify(customTokensMap));
+        
+        const autoCompleteOptions: AutoCompleteOptions = {
+            greedyPatternNames:['jedi'],
+            customTokens: customTokensMap
+        };
+        const autoComplete = new AutoComplete(pattern,autoCompleteOptions);
+        
+        // provide a non-empty input to trigger the logic flow that hits _getAllOptions
+        autoComplete.suggestFor('l')
+        
+        expect(customTokensMap).toEqual(copiedCustomTokensMap)
+    })
+
 });
+
+  

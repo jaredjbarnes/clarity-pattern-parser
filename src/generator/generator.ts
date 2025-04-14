@@ -1,9 +1,4 @@
-import { Context } from "../patterns/Context";
-import { Expression } from "../patterns/Expression";
-import { Literal } from "../patterns/Literal";
 import { Pattern } from "../patterns/Pattern";
-import { Regex } from "../patterns/Regex";
-import { Repeat } from "../patterns/Repeat";
 import { IVisitor } from "./ivisitor";
 
 export class Generator {

@@ -1,472 +1,588 @@
+# Clarity Pattern Parser
+
+A powerful pattern matching and parsing library that provides a flexible grammar for defining complex patterns. Perfect for building parsers, validators, and text processing tools.
+
+> **Try it online!** 🚀 [Open in Playground](https://jaredjbarnes.github.io/cpat-editor/)
+
+## Features
+
+- 🎯 Flexible pattern matching with both grammar and direct API
+- 🔄 Support for recursive patterns and expressions
+- 🎨 Customizable pattern composition
+- 🚀 High performance parsing
+- 🔍 Built-in debugging support
+- 📝 Rich AST manipulation capabilities
+- 🔌 Extensible through custom patterns and decorators
+
 ## Installation
 
-```
+```bash
 npm install clarity-pattern-parser
 ```
-## Overview
 
-### Leaf Patterns
-* Literal
-* Regex
+## Quick Start
 
-### Composing Patterns
-* And
-* Or
-* Repeat
-* Reference
-* Not
+### Using Grammar
 
-The `Not` pattern is a negative look ahead and used with the `And` pattern. This will be illustrated in more detail within the `Not` pattern section.
+```typescript
+import { patterns } from "clarity-pattern-parser";
 
-## Literal
-The `Literal` pattern uses a string literal to match patterns.
-```ts
+// Define patterns using grammar
+const { fullName } = patterns`
+    first-name = "John"
+    last-name = "Doe"
+    space = /\s+/
+    full-name = first-name + space + last-name
+`;
+
+// Execute pattern
+const result = fullName.exec("John Doe");
+console.log(result.ast?.value); // "John Doe"
+```
+
+### Using Direct API
+
+```typescript
+import { Literal, Sequence } from "clarity-pattern-parser";
+
+// Create patterns directly
+const firstName = new Literal("first-name", "John");
+const space = new Literal("space", " ");
+const lastName = new Literal("last-name", "Doe");
+const fullName = new Sequence("full-name", [firstName, space, lastName]);
+
+// Execute pattern
+const result = fullName.exec("John Doe");
+console.log(result.ast?.value); // "John Doe"
+```
+
+## Online Playground
+
+Try Clarity Pattern Parser in your browser with our interactive playground:
+
+[Open in Playground](https://jaredjbarnes.github.io/cpat-editor/)
+
+The playground allows you to:
+- Write and test patterns in real-time
+- See the AST visualization
+- Debug pattern execution
+- Share patterns with others
+- Try out different examples
+
+## Table of Contents
+
+1. [Grammar Documentation](#grammar-documentation)
+   - [Basic Patterns](#basic-patterns)
+   - [Pattern Operators](#pattern-operators)
+   - [Repetition](#repetition)
+   - [Imports and Parameters](#imports-and-parameters)
+   - [Decorators](#decorators)
+   - [Comments](#comments)
+   - [Pattern References](#pattern-references)
+   - [Pattern Aliasing](#pattern-aliasing)
+   - [String Template Patterns](#string-template-patterns)
+
+2. [Direct Pattern Usage](#direct-pattern-usage)
+   - [Basic Patterns](#basic-patterns-1)
+   - [Composite Patterns](#composite-patterns)
+   - [Pattern Context](#pattern-context)
+   - [Pattern Reference](#pattern-reference)
+   - [Pattern Execution](#pattern-execution)
+   - [AST Manipulation](#ast-manipulation)
+
+3. [Advanced Topics](#advanced-topics)
+   - [Custom Patterns](#custom-patterns)
+   - [Performance Tips](#performance-tips)
+   - [Debugging](#debugging)
+   - [Error Handling](#error-handling)
+
+## Advanced Topics
+
+### Custom Patterns
+
+You can create custom patterns by extending the base `Pattern` class:
+
+```typescript
+import { Pattern } from "clarity-pattern-parser";
+
+class CustomPattern extends Pattern {
+    constructor(name: string) {
+        super(name);
+    }
+
+    exec(text: string) {
+        // Custom pattern implementation
+    }
+}
+```
+
+### Performance Tips
+
+1. Use `test()` instead of `exec()` when you only need to check if a pattern matches
+2. Cache frequently used patterns
+3. Use `Reference` for recursive patterns instead of direct recursion
+4. Minimize the use of optional patterns in sequences
+5. Use bounded repetition when possible
+
+### Debugging
+
+Enable debug mode to get detailed information about pattern execution:
+
+```typescript
+const result = pattern.exec("some text", true);
+// Debug information will be available in result.debug
+```
+
+### Error Handling
+
+Pattern execution returns a `ParseResult` that includes error information:
+
+```typescript
+const result = pattern.exec("invalid text");
+if (result.error) {
+    console.error(result.error.message);
+    console.error(result.error.expected);
+    console.error(result.error.position);
+}
+```
+
+## Examples
+
+### JSON Parser
+```typescript
+const { json } = patterns`
+    # Basic JSON grammar
+    ws = /\s+/
+    string = /"[^"]*"/
+    number = /-?\d+(\.\d+)?/
+    boolean = "true" | "false"
+    null = "null"
+    value = string | number | boolean | null | array | object
+    array-items = (value, /\s*,\s*/)+
+    array = "[" +ws? + array-items? + ws? + "]"
+    object-property = string + ws? + ":" + ws? + value
+    object-properties = (object-property, /\s*,\s*/ trim)+
+    object = "{" + ws? + object-properties? + ws? + "}"
+    json = ws? + value + ws?
+`;
+```
+
+### HTML Parser
+```typescript
+const { html } = patterns`
+    # Basic HTML grammar
+    ws = /\s+/
+    tag-name = /[a-zA-Z_-]+[a-zA-Z0-9_-]*/
+    attribute-name = /[a-zA-Z_-]+[a-zA-Z0-9_-]*/
+    attribute-value = /"[^"]*"/ 
+    value-attribute = attribute-name + "=" + attribute-value
+    bool-attribute = attribute-name
+    attribute = value-attribute | bool-attribute
+    attributes = (attribute, ws)*
+    opening-tag = "<" + ws? + tag-name + ws? + attributes? + ">"
+    closing-tag = "</" + ws? + tag-name + ws? + ">"
+    text = /[^<]+/
+    child = text | element
+    children = (child, /\s*/)+
+    element = opening-tag + children? + closing-tag
+    html = ws? + element + ws?
+`;
+```
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Grammar Documentation
+
+This document describes the grammar features supported by the Clarity Pattern Parser.
+
+## Basic Patterns
+
+### Literal Strings
+Define literal string patterns using double quotes:
+```
+name = "John"
+```
+
+Escaped characters are supported in literals:
+- `\n` - newline
+- `\r` - carriage return
+- `\t` - tab
+- `\b` - backspace
+- `\f` - form feed
+- `\v` - vertical tab
+- `\0` - null character
+- `\x00` - hex character
+- `\u0000` - unicode character
+- `\"` - escaped quote
+- `\\` - escaped backslash
+
+### Regular Expressions
+Define regex patterns using forward slashes:
+```
+name = /\w/
+```
+
+## Pattern Operators
+
+### Options (|)
+Match one of multiple patterns using the `|` operator. This is used for simple alternatives where order doesn't matter:
+```
+names = john | jane
+```
+
+### Expression (|)
+Expression patterns also use the `|` operator but are used for defining operator precedence in expressions. The order of alternatives determines precedence, with earlier alternatives having higher precedence. By default, operators are left-associative.
+
+Example of an arithmetic expression grammar:
+```
+prefix-operators = "+" | "-"
+prefix-expression = prefix-operators + expression
+postfix-operators = "++" | "--"
+postfix-expression = expression + postfix-operators
+add-sub-operators = "+" | "-"
+add-sub-expression = expression + add-sub-operators + expression
+mul-div-operators = "*" | "/"
+mul-div-expression = expression + mul-div-operators + expression
+expression = prefix-expression | mul-div-expression | add-sub-expression | postfix-expression
+```
+
+In this example:
+- `prefix-expression` has highest precedence
+- `mul-div-expression` has next highest precedence
+- `add-sub-expression` has next highest precedence
+- `postfix-expression` has lowest precedence
+
+To make an operator right-associative, add the `right` keyword:
+```
+expression = prefix-expression | mul-div-expression | add-sub-expression right | postfix-expression
+```
+
+### Sequence (+)
+Concatenate patterns in sequence using the `+` operator:
+```
+full-name = first-name + space + last-name
+```
+
+### Optional (?)
+Make a pattern optional using the `?` operator:
+```
+full-name = first-name + space + middle-name? + last-name
+```
+
+### Not (!)
+Negative lookahead using the `!` operator:
+```
+pattern = !excluded-pattern + actual-pattern
+```
+
+### Take Until (?->|)
+Match all characters until a specific pattern is found:
+```
+script-text = ?->| "</script"
+```
+
+## Repetition
+
+### Basic Repeat
+Repeat a pattern one or more times using `+`:
+```
+digits = (digit)+
+```
+
+### Zero or More
+Repeat a pattern zero or more times using `*`:
+```
+digits = (digit)*
+```
+
+### Bounded Repetition
+Specify exact repetition counts using curly braces:
+- `{n}` - Exactly n times: `(pattern){3}`
+- `{n,}` - At least n times: `(pattern){1,}`
+- `{,n}` - At most n times: `(pattern){,3}`
+- `{n,m}` - Between n and m times: `(pattern){1,3}`
+
+### Repetition with Divider
+Repeat patterns with a divider between occurrences:
+```
+digits = (digit, comma){3}
+```
+
+Add `trim` keyword to trim the divider from the end:
+```
+digits = (digit, comma trim)+
+```
+
+## Imports and Parameters
+
+### Basic Import
+Import patterns from other files:
+```
+import { pattern-name } from "path/to/file.cpat"
+```
+
+### Import with Parameters
+Import with custom parameters:
+```
+import { pattern } from "file.cpat" with params {
+  custom-param = "value"
+}
+```
+
+### Parameter Declaration
+Declare parameters that can be passed to the grammar:
+```
+use params {
+  param-name
+}
+```
+
+### Default Parameters
+Specify default values for parameters:
+```
+use params {
+  param = default-value
+}
+```
+
+## Decorators
+
+Decorators can be applied to patterns using the `@` syntax:
+
+### Token Decorator
+Specify tokens for a pattern:
+```
+@tokens([" "])
+spaces = /\s+/
+```
+
+### Custom Decorators
+Support for custom decorators with various argument types:
+```
+@decorator()  // No arguments
+@decorator(["value"])  // Array argument
+@decorator({"prop": value})  // Object argument
+```
+
+## Comments
+Add comments using the `#` symbol:
+```
+# This is a comment
+pattern = "value"
+```
+
+## Pattern References
+Reference other patterns by name:
+```
+pattern1 = "value"
+pattern2 = pattern1
+```
+
+## Pattern Aliasing
+Import patterns with aliases:
+```
+import { original as alias } from "file.cpat"
+```
+
+## String Template Patterns
+
+Patterns can be defined inline using string templates. This allows for quick pattern definition and testing without creating separate files.
+
+### Basic Example
+```typescript
+const { fullName } = patterns`
+    first-name = "John"
+    last-name = "Doe"
+    space = /\s+/
+    full-name = first-name + space + last-name
+`;
+
+const result = fullName.exec("John Doe");
+// result.ast.value will be "John Doe"
+```
+
+### Complex Example (HTML-like Markup)
+```typescript
+const { body } = patterns`
+    tag-name = /[a-zA-Z_-]+[a-zA-Z0-9_-]*/
+    space = /\s+/
+    opening-tag = "<" + tag-name + space? + ">"
+    closing-tag = "</" + tag-name + space? + ">"
+    child = space? + element + space?
+    children = (child)*
+    element = opening-tag + children + closing-tag
+    body = space? + element + space?
+`;
+
+const result = body.exec(`
+    <div>
+        <div></div>
+        <div></div>    
+    </div>
+`, true);
+
+// Clean up spaces from the AST
+result?.ast?.findAll(n => n.name.includes("space")).forEach(n => n.remove());
+// result.ast.value will be "<div><div></div><div></div></div>"
+```
+
+### Key Features
+1. Patterns are defined using backticks (`)
+2. Each pattern definition is on a new line
+3. The `patterns` function returns an object with all defined patterns
+4. Patterns can be used immediately after definition
+5. The AST can be manipulated after parsing (e.g., removing spaces)
+6. The `exec` method can take an optional second parameter to enable debug mode
+
+## Direct Pattern Usage
+
+While the grammar provides a convenient way to define patterns, you can also use the Pattern classes directly for more control and flexibility.
+
+### Basic Patterns
+
+#### Literal
+```typescript
 import { Literal } from "clarity-pattern-parser";
 
 const firstName = new Literal("first-name", "John");
-
-const { ast } = firstName.exec("John");
-
-ast.toJson(2)
-```
-```json
-{
-  "type": "literal",
-  "name": "first-name",
-  "value": "John",
-  "firstIndex": 0,
-  "lastIndex": 3,
-  "startIndex": 0,
-  "endIndex": 4,
-  "children": []
-}
+const result = firstName.exec("John");
+// result.ast.value will be "John"
 ```
 
-## Regex
-The `Regex` pattern uses regular expressions to match patterns.
-```ts
+#### Regex
+```typescript
 import { Regex } from "clarity-pattern-parser";
 
 const digits = new Regex("digits", "\\d+");
-
-const { ast } = digits.exec("12");
-
-ast.toJson(2);
-```
-```json
-{
-  "type": "regex",
-  "name": "digits",
-  "value": "12",
-  "firstIndex": 0,
-  "lastIndex": 1,
-  "startIndex": 0,
-  "endIndex": 2,
-  "children": []
-}
+const result = digits.exec("123");
+// result.ast.value will be "123"
 ```
 
-### Regex Caveats
-Do not use "^" at the beginning or "$" at the end of your regular expression. If you are creating a regular expression that is concerned about the beginning and end of the text you should probably just use a regular expression. 
+### Composite Patterns
 
-## And
-The `And` pattern is a way to make a sequence pattern. `And` accepts all other patterns as children. 
-```ts
-import { And, Literal } from "clarity-pattern-parser";
+#### Sequence
+```typescript
+import { Sequence, Literal } from "clarity-pattern-parser";
 
-const jane = new Literal("first-name", "Jane");
+const firstName = new Literal("first-name", "John");
 const space = new Literal("space", " ");
-const doe = new Literal("last-name", "Doe");
-const fullName = new And("full-name", [jane, space, doe]);
+const lastName = new Literal("last-name", "Doe");
+const fullName = new Sequence("full-name", [firstName, space, lastName]);
 
-const { ast } = fullName.exec("Jane Doe");
-
-ast.toJson(2); // Look Below for output
+const result = fullName.exec("John Doe");
+// result.ast.value will be "John Doe"
 ```
 
-```json
-{
-    "type": "and",
-    "name": "full-name",
-    "value": "Jane Doe",
-    "firstIndex": 0,
-    "lastIndex": 7,
-    "startIndex": 0,
-    "endIndex": 8,
-    "children": [
-        {
-            "type": "literal",
-            "name": "first-name",
-            "value": "Jane",
-            "firstIndex": 0,
-            "lastIndex": 3,
-            "startIndex": 0,
-            "endIndex": 4,
-            "children": []
-        },
-        {
-            "type": "and",
-            "name": "space",
-            "value": " ",
-            "firstIndex": 4,
-            "lastIndex": 4,
-            "startIndex": 4,
-            "endIndex": 5,
-            "children": []
-        },
-        {
-            "type": "and",
-            "name": "last-name",
-            "value": "Doe",
-            "firstIndex": 5,
-            "lastIndex": 7,
-            "startIndex": 5,
-            "endIndex": 8,
-            "children": []
-        }         
-    ]
-}
-```
+#### Options
+```typescript
+import { Options, Literal } from "clarity-pattern-parser";
 
-## Or
-The `Or` pattern matches any of the patterns given to the constructor. 
-```ts
-import { Or, Literal } from "clarity-pattern-parser";
-
-const jane = new Literal("jane", "Jane");
 const john = new Literal("john", "John");
-const firstName = new Or("first-name", [jane, john]);
-const { ast } = firstName.exec("Jane");
+const jane = new Literal("jane", "Jane");
+const names = new Options("names", [john, jane]);
 
-ast.toJson(2)
+const result = names.exec("Jane");
+// result.ast.value will be "Jane"
 ```
-```json
-{
-  "type": "literal",
-  "name": "jane",
-  "value": "Jane",
-  "firstIndex": 0,
-  "lastIndex": 3,
-  "startIndex": 0,
-  "endIndex": 4,
-  "children": []
-}
-```
-## Repeat
-The `Repeat` patterns allows you to match repeating patterns with, or without a divider.
 
-For example you may want to match a pattern like so.
+#### Expression
+```typescript
+import { Expression, Literal } from "clarity-pattern-parser";
+
+const a = new Literal("a", "a");
+const b = new Literal("b", "b");
+const c = new Literal("c", "c");
+const expression = new Expression("expression", [a, b, c]);
+
+const result = expression.exec("a ? b : c");
+// result.ast.value will be "a ? b : c"
 ```
-1,2,3
+
+#### Not (Negative Lookahead)
+```typescript
+import { Not, Literal, Sequence } from "clarity-pattern-parser";
+
+const notJohn = new Not("not-john", new Literal("john", "John"));
+const name = new Literal("name", "Jane");
+const pattern = new Sequence("pattern", [notJohn, name]);
+
+const result = pattern.exec("Jane");
+// result.ast.value will be "Jane"
 ```
-Here is the code to do so. 
-```ts
-import { Repeat, Literal, Regex } from "clarity-pattern-parser";
+
+#### Repeat
+```typescript
+import { Repeat, Regex, Literal } from "clarity-pattern-parser";
 
 const digit = new Regex("digit", "\\d+");
-const commaDivider = new Literal("comma", ",");
-const numberList = new Repeat("number-list", digit, commaDivider);
+const comma = new Literal("comma", ",");
+const digits = new Repeat("digits", digit, { divider: comma, min: 1, max: 3 });
 
-const ast = numberList.exec("1,2,3").ast;
-
-ast.type // ==> "repeat"
-ast.name // ==> "number-list"
-ast.value // ==> "1,2,3
-
-ast.children[0].value // ==> "1"
-ast.children[1].value // ==> ","
-ast.children[2].value // ==> "2"
-ast.children[3].value // ==> ","
-ast.children[4].value // ==> "3"
+const result = digits.exec("1,2,3");
+// result.ast.value will be "1,2,3"
 ```
 
-If there is a trailing divider without the repeating pattern, it will not include the trailing divider as part of the result. Here is an example.
+#### Take Until
+```typescript
+import { TakeUntil, Literal } from "clarity-pattern-parser";
 
-```ts
-import { Repeat, Literal, Regex } from "clarity-pattern-parser";
-
-const digit = new Regex("digit", "\\d+");
-const commaDivider = new Literal("comma", ",");
-const numberList = new Repeat("number-list", digit, commaDivider);
-
-const ast = numberList.exec("1,2,").ast;
-
-ast.type // ==> "repeat"
-ast.name // ==> "number-list"
-ast.value // ==> "1,2
-
-ast.children[0].value // ==> "1"
-ast.children[1].value // ==> ","
-ast.children[2].value // ==> "2"
-ast.children.length // ==> 3
+const scriptText = new TakeUntil("script-text", new Literal("end-script", "</script>"));
+const result = scriptText.exec("function() { return 1; }</script>");
+// result.ast.value will be "function() { return 1; }"
 ```
 
-## Reference
-Reference is a way to handle cyclical patterns. An example of this would be arrays within arrays. Lets say we want to make a pattern that matches an array that can store numbers and arrays.
+### Pattern Context
+```typescript
+import { Context, Literal } from "clarity-pattern-parser";
+
+const name = new Literal("name", "John");
+const context = new Context("name-context", name);
+
+const result = context.exec("John");
+// result.ast.value will be "John"
 ```
-[[1, [1]], 1, 2, 3]
+
+### Pattern Reference
+```typescript
+import { Reference, Literal, Sequence } from "clarity-pattern-parser";
+
+const name = new Literal("name", "John");
+const reference = new Reference("name-ref", name);
+const pattern = new Sequence("pattern", [reference]);
+
+const result = pattern.exec("John");
+// result.ast.value will be "John"
 ```
-Here is an example of using `Reference` to parse this pattern.
-```ts
-import { Regex, Literal, Or, Repeat, And, Reference } from "clarity-pattern-parser";
 
-const integer = new Regex("integer", "\\d+");
-const commaDivider = new Regex("comma-divider", "\\s*,\\s*");
+### Key Features of Direct Pattern Usage
+1. Full control over pattern construction and configuration
+2. Ability to create custom pattern types
+3. Direct access to pattern execution and AST manipulation
+4. Better performance for complex patterns
+5. Easier debugging and testing
+6. More flexible pattern composition
 
-const openBracket = new Literal("open-bracket", "[");
-const closeBracket = new Literal("close-bracket", "]");
-const item = new Or("item", [integer, new Reference("array")]);
-const items = new Repeat("items", item, commaDivider);
+### Pattern Execution
+All patterns support the following methods:
+- `exec(text: string, debug?: boolean)`: Execute the pattern against the given text
+- `test(text: string)`: Test if the pattern matches the given text
+- `getTokens()`: Get the tokens that the pattern can match
+- `getNextTokens(text: string)`: Get the next possible tokens based on the current text
 
-const array = new And("array", [openBracket, items, closeBracket]);
-const { ast } = array.exec("[[1, [1]], 1, 2, 3]");
-
-ast.toJson();
-```
-```json
-{
-  "type": "and",
-  "name": "array",
-  "value": "[[1, [1]], 1, 2, 3]",
-  "firstIndex": 0,
-  "lastIndex": 18,
-  "startIndex": 0,
-  "endIndex": 19,
-  "children": [
-    {
-      "type": "literal",
-      "name": "open-bracket",
-      "value": "[",
-      "firstIndex": 0,
-      "lastIndex": 0,
-      "startIndex": 0,
-      "endIndex": 1,
-      "children": []
-    },
-    {
-      "type": "repeat",
-      "name": "items",
-      "value": "[1, [1]], 1, 2, 3",
-      "firstIndex": 1,
-      "lastIndex": 17,
-      "startIndex": 1,
-      "endIndex": 18,
-      "children": [
-        {
-          "type": "and",
-          "name": "array",
-          "value": "[1, [1]]",
-          "firstIndex": 1,
-          "lastIndex": 8,
-          "startIndex": 1,
-          "endIndex": 9,
-          "children": [
-            {
-              "type": "literal",
-              "name": "open-bracket",
-              "value": "[",
-              "firstIndex": 1,
-              "lastIndex": 1,
-              "startIndex": 1,
-              "endIndex": 2,
-              "children": []
-            },
-            {
-              "type": "repeat",
-              "name": "items",
-              "value": "1, [1]",
-              "firstIndex": 2,
-              "lastIndex": 7,
-              "startIndex": 2,
-              "endIndex": 8,
-              "children": [
-                {
-                  "type": "regex",
-                  "name": "integer",
-                  "value": "1",
-                  "firstIndex": 2,
-                  "lastIndex": 2,
-                  "startIndex": 2,
-                  "endIndex": 3,
-                  "children": []
-                },
-                {
-                  "type": "regex",
-                  "name": "comma-divider",
-                  "value": ", ",
-                  "firstIndex": 3,
-                  "lastIndex": 4,
-                  "startIndex": 3,
-                  "endIndex": 5,
-                  "children": []
-                },
-                {
-                  "type": "and",
-                  "name": "array",
-                  "value": "[1]",
-                  "firstIndex": 5,
-                  "lastIndex": 7,
-                  "startIndex": 5,
-                  "endIndex": 8,
-                  "children": [
-                    {
-                      "type": "literal",
-                      "name": "open-bracket",
-                      "value": "[",
-                      "firstIndex": 5,
-                      "lastIndex": 5,
-                      "startIndex": 5,
-                      "endIndex": 6,
-                      "children": []
-                    },
-                    {
-                      "type": "repeat",
-                      "name": "items",
-                      "value": "1",
-                      "firstIndex": 6,
-                      "lastIndex": 6,
-                      "startIndex": 6,
-                      "endIndex": 7,
-                      "children": [
-                        {
-                          "type": "regex",
-                          "name": "integer",
-                          "value": "1",
-                          "firstIndex": 6,
-                          "lastIndex": 6,
-                          "startIndex": 6,
-                          "endIndex": 7,
-                          "children": []
-                        }
-                      ]
-                    },
-                    {
-                      "type": "literal",
-                      "name": "close-bracket",
-                      "value": "]",
-                      "firstIndex": 7,
-                      "lastIndex": 7,
-                      "startIndex": 7,
-                      "endIndex": 8,
-                      "children": []
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "literal",
-              "name": "close-bracket",
-              "value": "]",
-              "firstIndex": 8,
-              "lastIndex": 8,
-              "startIndex": 8,
-              "endIndex": 9,
-              "children": []
-            }
-          ]
-        },
-        {
-          "type": "regex",
-          "name": "comma-divider",
-          "value": ", ",
-          "firstIndex": 9,
-          "lastIndex": 10,
-          "startIndex": 9,
-          "endIndex": 11,
-          "children": []
-        },
-        {
-          "type": "regex",
-          "name": "integer",
-          "value": "1",
-          "firstIndex": 11,
-          "lastIndex": 11,
-          "startIndex": 11,
-          "endIndex": 12,
-          "children": []
-        },
-        {
-          "type": "regex",
-          "name": "comma-divider",
-          "value": ", ",
-          "firstIndex": 12,
-          "lastIndex": 13,
-          "startIndex": 12,
-          "endIndex": 14,
-          "children": []
-        },
-        {
-          "type": "regex",
-          "name": "integer",
-          "value": "2",
-          "firstIndex": 14,
-          "lastIndex": 14,
-          "startIndex": 14,
-          "endIndex": 15,
-          "children": []
-        },
-        {
-          "type": "regex",
-          "name": "comma-divider",
-          "value": ", ",
-          "firstIndex": 15,
-          "lastIndex": 16,
-          "startIndex": 15,
-          "endIndex": 17,
-          "children": []
-        },
-        {
-          "type": "regex",
-          "name": "integer",
-          "value": "3",
-          "firstIndex": 17,
-          "lastIndex": 17,
-          "startIndex": 17,
-          "endIndex": 18,
-          "children": []
-        }
-      ]
-    },
-    {
-      "type": "literal",
-      "name": "close-bracket",
-      "value": "]",
-      "firstIndex": 18,
-      "lastIndex": 18,
-      "startIndex": 18,
-      "endIndex": 19,
-      "children": []
-    }
-  ]
+### AST Manipulation
+The AST (Abstract Syntax Tree) returned by pattern execution can be manipulated:
+```typescript
+const result = pattern.exec("some text");
+if (result.ast) {
+    // Find all nodes with a specific name
+    const nodes = result.ast.findAll(n => n.name === "space");
+    
+    // Remove nodes
+    nodes.forEach(n => n.remove());
+    
+    // Get the final value
+    const value = result.ast.value;
 }
 ```
-The `Reference` pattern traverses the pattern composition to find the pattern that matches the one given to it at construction. It will then clone that pattern and tell that pattern to parse the text. If it cannot find the pattern with the given name, it will throw a runtime error.
-## Not
-
-## Intellisense
-Because the patterns are composed in a tree and the cursor remembers what patterns matched last, we can ask what tokens are next. We will discuss how you can use clarity-pattern-parser for text auto complete and other interesting approaches for intellisense.
-
-## GetTokens
-The `getTokens` method allow you to ask the pattern what tokens it is looking for. The Regex pattern was the only pattern that didn't already intrinsically know what patterns it was looking for, and we solved this by adding a `setTokens` to its class. This allows you to define a regexp that can capture infinitely many patterns, but suggest a finite set. We will discuss this further in the setTokens section. For now we will demonstrate what `getTokens` does.
-
-```ts
-import { Or, Literal } from "clarity-pattern-parser";
-
-const jane = new Literal("jane", "Jane");
-const john = new Literal("john", "John");
-const jack = new Literal("jack", "Jack");
-const jill = new Literal("jill", "Jill");
-
-const names = new Or("names", [jane, john, jack, jill]);
-
-names.getTokens();
-```
-```json
-["Jane", "John", "Jack", "Jill"]
-```
-## GetNextTokens
-
-## SetTokens
-
-## Error Handling

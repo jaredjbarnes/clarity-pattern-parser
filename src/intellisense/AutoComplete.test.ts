@@ -81,7 +81,7 @@ describe("AutoComplete", () => {
         expect(result.isComplete).toBeFalsy();
     });
 
-    test("Full Pattern Match", () => {
+    test("Full Pattern Match Simple", () => {
         const john = new Literal("john", "John");
         const space = new Literal("space", " ");
         const doe = new Literal("doe", "Doe");
@@ -123,6 +123,63 @@ describe("AutoComplete", () => {
         expect(result.cursor).not.toBeNull();
     });
 
+    test("Root Regex Pattern suggests customTokens", () => {
+        const freeTextPattern = new Regex(
+            `free-text`,
+            '[(\\w)\\s]+'
+          );
+
+          const customTokensMap:Record<string, string[]> = {
+            'free-text': ['luke',"leia skywalker",'luke skywalker']
+        }
+        const autoComplete = new AutoComplete(freeTextPattern,{
+            customTokens:customTokensMap
+        });
+        const result = autoComplete.suggestFor("luke");
+
+        const expected = [
+            { text: " skywalker", startIndex: 4 },
+        ];       
+
+        expect(result.ast?.value).toBe("luke");
+        expect(result.options).toEqual(expected);
+        expect(result.errorAtIndex).toBeNull()
+        expect(result.isComplete).toBeTruthy();
+        expect(result.cursor).not.toBeNull();
+
+    });
+
+
+    test("Sequence Regex Pattern suggests customTokens", () => {
+        const jediLiteral = new Literal("jedi", "jedi ");
+        const freeTextPattern = new Regex(
+            `free-text`,
+            '[(\\w)\\s]+'
+          );
+        const sequence = new Sequence('sequence', [jediLiteral,freeTextPattern])
+
+
+        const customTokensMap:Record<string, string[]> = {
+            'free-text': ['luke',"leia skywalker",'luke skywalker']
+        }
+        const autoComplete = new AutoComplete(sequence,{
+            customTokens:customTokensMap
+        });
+        const result = autoComplete.suggestFor("jedi luke sky");
+
+        const expected = [
+            { text: "walker", startIndex: 13 },
+        ];       
+
+        expect(result.ast?.value).toBe("jedi luke sky");
+        expect(result.options).toEqual(expected);
+        expect(result.errorAtIndex).toBeNull()
+        expect(result.isComplete).toBeTruthy();
+        expect(result.cursor).not.toBeNull();
+    });
+
+
+
     test("Full Pattern Match With Root Repeat", () => {
         const john = new Literal("john", "John");
         const space = new Literal("space", " ");
@@ -148,7 +205,7 @@ describe("AutoComplete", () => {
         expect(result.cursor).not.toBeNull();
     });
 
-    test("Partial", () => {
+    test("Partial Simple", () => {
         const name = new Literal("name", "Name");
         const autoComplete = new AutoComplete(name);
         // Use deprecated suggest for code coverage.
@@ -256,8 +313,6 @@ describe("AutoComplete", () => {
         const autoComplete = new AutoComplete(repeat,autoCompleteOptions);
 
         const suggestion = autoComplete.suggestFor(text)
-
-        console.log('suggestion: ',suggestion)
 
         const expectedOptions = [
             { text: "Jack", startIndex: 0 },

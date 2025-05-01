@@ -175,18 +175,31 @@ export class AutoComplete {
       return this._createSuggestions(-1, this._getTokensForPattern(this._pattern));
     }
 
-    const leafPattern = match.pattern;
-    const parent = match.pattern.parent;
+    if ( match.node != null) {
+    const textStartingMatch = this._text.slice(match.node.startIndex,match.node.endIndex)
+    const currentPatternsTokens = this._getTokensForPattern(match.pattern);
+    /**
+     * Compares tokens to current text and extracts remainder tokens
+     * - IE. **currentText:** *abc*, **baseToken:** *abcdef*, **trailingToken:** *def*
+     */
+    const trailingTokens = currentPatternsTokens.reduce<string[]>((acc, token) => {
+      if (token.startsWith(textStartingMatch)) {
+        const sliced = token.slice(textStartingMatch.length);
+        if (sliced !== '') {
+          acc.push(sliced);
+        }
+      }
+      return acc;
+    }, []);
+    
+    const leafPatterns = match.pattern.getNextPatterns();
+    const leafTokens = leafPatterns.reduce((acc: string[], leafPattern) => {
+      acc.push(...this._getTokensForPattern(leafPattern));
+      return acc;
+    }, []);
 
-    if (parent !== null && match.node != null) {
-      const patterns = leafPattern.getNextPatterns();
-
-      const tokens = patterns.reduce((acc: string[], pattern) => {
-        acc.push(...this._getTokensForPattern(pattern));
-        return acc;
-      }, []);
-
-      return this._createSuggestions(match.node.lastIndex, tokens);
+    const allTokens = [...trailingTokens,...leafTokens]
+      return this._createSuggestions(match.node.lastIndex, allTokens);
     } else {
       return [];
     }
@@ -238,19 +251,20 @@ export class AutoComplete {
   }
 
   private _createSuggestions(lastIndex: number, tokens: string[]): SuggestionOption[] {
-    let substring = lastIndex === -1 ? "" : this._cursor.getChars(0, lastIndex);
+    let textToIndex = lastIndex === -1 ? "" : this._cursor.getChars(0, lastIndex);
     const suggestionStrings: string[] = [];
     const options: SuggestionOption[] = [];
 
     for (const token of tokens) {
-      const suggestion = substring + token;
-      const startsWith = suggestion.startsWith(substring);
+      // concatenated for start index identification inside createSuggestion
+      const suggestion = textToIndex + token;
       const alreadyExist = suggestionStrings.includes(suggestion);
       const isSameAsText = suggestion === this._text;
 
-      if (startsWith && !alreadyExist && !isSameAsText) {
+      if ( !alreadyExist && !isSameAsText) {
         suggestionStrings.push(suggestion);
-        options.push(this._createSuggestion(this._cursor.text, suggestion));
+        const suggestionOption = this._createSuggestion(this._cursor.text, suggestion)
+        options.push(suggestionOption);
       }
     }
 
@@ -264,11 +278,13 @@ export class AutoComplete {
     const furthestMatch = findMatchIndex(suggestion, fullText);
     const text = suggestion.slice(furthestMatch);
 
-    return {
+    const option:SuggestionOption = {
       text: text,
       startIndex: furthestMatch,
     };
+    return option
   }
+
 
   static suggestFor(text: string, pattern: Pattern, options?: AutoCompleteOptions) {
     return new AutoComplete(pattern, options).suggestFor(text);

@@ -347,6 +347,142 @@ use params {
 }
 ```
 
+## Custom Grammar Resolvers
+
+The Clarity Pattern Parser allows you to provide your own resolver for handling imports of `.cpat` files. This is useful when you need to load patterns from different sources like a database, network, or custom file system.
+
+### Basic Resolver Example
+
+```typescript
+import { Grammar } from "clarity-pattern-parser";
+
+// Simple in-memory resolver
+const pathMap: Record<string, string> = {
+    "first-name.cpat": `first-name = "John"`,
+    "space.cpat": `space = " "`
+};
+
+const resolver = (resource: string) => {
+    return Promise.resolve({ 
+        expression: pathMap[resource],
+        resource 
+    });
+};
+
+const patterns = await Grammar.parse(`
+    import { first-name } from "first-name.cpat"
+    import { space } from "space.cpat"
+    last-name = "Doe"
+    full-name = first-name + space + last-name
+`, { resolveImport: resolver });
+
+const result = patterns["full-name"].exec("John Doe");
+// result.ast.value will be "John Doe"
+```
+
+### Resolver with Parameters
+
+```typescript
+const spaceExpression = `
+    use params { custom-space }
+    space = custom-space
+`;
+
+const pathMap: Record<string, string> = {
+    "space.cpat": spaceExpression
+};
+
+const resolver = (resource: string) => {
+    return Promise.resolve({ 
+        expression: pathMap[resource],
+        resource 
+    });
+};
+
+const patterns = await Grammar.parse(`
+    import { space } from "space.cpat" with params {
+        custom-space = "  "
+    }
+    last-name = "Doe"
+    full-name = first-name + space + last-name
+`, { resolveImport: resolver });
+
+const result = patterns["full-name"].exec("John  Doe");
+// result.ast.value will be "John  Doe"
+```
+
+### Resolver with Aliases
+
+```typescript
+const pathMap: Record<string, string> = {
+    "resource1.cpat": `value = "Value"`,
+    "resource2.cpat": `
+        use params { param }
+        export-value = param
+    `
+};
+
+const resolver = (resource: string) => {
+    return Promise.resolve({ 
+        expression: pathMap[resource],
+        resource 
+    });
+};
+
+const patterns = await Grammar.parse(`
+    import { value as alias } from "resource1.cpat"
+    import { export-value } from "resource2.cpat" with params {
+        param = alias
+    }
+    name = export-value
+`, { resolveImport: resolver });
+
+const result = patterns["name"].exec("Value");
+// result.ast.value will be "Value"
+```
+
+### Resolver with Default Values
+
+```typescript
+const resolver = (_: string) => {
+    return Promise.reject(new Error("No Import"));
+};
+
+const patterns = await Grammar.parse(`
+    use params {
+        value = default-value
+    }
+    default-value = "DefaultValue"
+    alias = value
+`, { 
+    resolveImport: resolver,
+    params: [new Literal("value", "Value")] 
+});
+
+const result = patterns["alias"].exec("Value");
+// result.ast.value will be "Value"
+```
+
+### Key Features of Custom Resolvers
+
+1. **Flexibility**: Load patterns from any source (filesystem, network, database, etc.)
+2. **Parameter Support**: Handle parameter passing between imported patterns
+3. **Alias Support**: Support pattern aliasing during import
+4. **Default Values**: Provide default values for parameters
+5. **Error Handling**: Custom error handling for import failures
+6. **Resource Tracking**: Track the origin of imported patterns
+
+### Resolver Interface
+
+The resolver function should implement the following interface:
+
+```typescript
+type Resolver = (resource: string, originResource: string | null) => Promise<{
+    expression: string;  // The pattern expression to parse
+    resource: string;    // The resource identifier
+}>;
+```
+
 ## Decorators
 
 Decorators can be applied to patterns using the `@` syntax:
@@ -407,13 +543,13 @@ const result = fullName.exec("John Doe");
 ```typescript
 const { body } = patterns`
     tag-name = /[a-zA-Z_-]+[a-zA-Z0-9_-]*/
-    space = /\s+/
-    opening-tag = "<" + tag-name + space? + ">"
-    closing-tag = "</" + tag-name + space? + ">"
-    child = space? + element + space?
+    ws = /\s+/
+    opening-tag = "<" + tag-name + ws? + ">"
+    closing-tag = "</" + tag-name + ws? + ">"
+    child = ws? + element + ws?
     children = (child)*
     element = opening-tag + children + closing-tag
-    body = space? + element + space?
+    body = ws? + element + ws?
 `;
 
 const result = body.exec(`
@@ -424,7 +560,7 @@ const result = body.exec(`
 `, true);
 
 // Clean up spaces from the AST
-result?.ast?.findAll(n => n.name.includes("space")).forEach(n => n.remove());
+result?.ast?.findAll(n => n.name.includes("ws")).forEach(n => n.remove());
 // result.ast.value will be "<div><div></div><div></div></div>"
 ```
 
@@ -528,7 +664,7 @@ const result = digits.exec("1,2,3");
 ```typescript
 import { TakeUntil, Literal } from "clarity-pattern-parser";
 
-const scriptText = new TakeUntil("script-text", new Literal("end-script", "</script>"));
+const scriptText = new TakeUntil("script-text", new Literal("end-script", "</script"));
 const result = scriptText.exec("function() { return 1; }</script>");
 // result.ast.value will be "function() { return 1; }"
 ```
@@ -564,12 +700,84 @@ const result = pattern.exec("John");
 5. Easier debugging and testing
 6. More flexible pattern composition
 
-### Pattern Execution
-All patterns support the following methods:
-- `exec(text: string, debug?: boolean)`: Execute the pattern against the given text
-- `test(text: string)`: Test if the pattern matches the given text
-- `getTokens()`: Get the tokens that the pattern can match
-- `getNextTokens(text: string)`: Get the next possible tokens based on the current text
+## Pattern Interface
+
+All patterns implement the `Pattern` interface, which provides a consistent API for pattern matching and manipulation.
+
+### Core Methods
+
+#### `parse(cursor: Cursor): Node | null`
+Parses the text using the provided cursor and returns a Node if successful.
+- `cursor`: The cursor tracking the current parsing position
+- Returns: A Node if parsing succeeds, null otherwise
+
+#### `exec(text: string, record?: boolean): ParseResult`
+Executes the pattern against the given text and returns a `ParseResult` containing the AST and any errors.
+- `text`: The text to parse
+- `record`: Optional boolean to enable debug recording
+- Returns: `ParseResult` with AST and error information
+
+#### `test(text: string, record?: boolean): boolean`
+Tests if the pattern matches the given text without building an AST.
+- `text`: The text to test
+- `record`: Optional boolean to enable debug recording
+- Returns: `true` if the pattern matches, `false` otherwise
+
+#### `clone(name?: string): Pattern`
+Creates a deep copy of the pattern.
+- `name`: Optional new name for the cloned pattern
+- Returns: A new instance of the pattern
+
+### Token Methods
+
+#### `getTokens(): string[]`
+Returns all possible tokens that this pattern can match.
+- Returns: Array of possible token strings
+
+#### `getTokensAfter(childReference: Pattern): string[]`
+Returns tokens that can appear after a specific child pattern.
+- `childReference`: The child pattern to check after
+- Returns: Array of possible token strings
+
+#### `getNextTokens(): string[]`
+Returns the next possible tokens based on the current state.
+- Returns: Array of possible token strings
+
+### Pattern Methods
+
+#### `getPatterns(): Pattern[]`
+Returns all child patterns.
+- Returns: Array of child patterns
+
+#### `getPatternsAfter(childReference: Pattern): Pattern[]`
+Returns patterns that can appear after a specific child pattern.
+- `childReference`: The child pattern to check after
+- Returns: Array of possible patterns
+
+#### `getNextPatterns(): Pattern[]`
+Returns the next possible patterns based on the current state.
+- Returns: Array of possible patterns
+
+### Utility Methods
+
+#### `find(predicate: (pattern: Pattern) => boolean): Pattern | null`
+Finds a pattern that matches the given predicate.
+- `predicate`: Function that tests each pattern
+- Returns: The first matching pattern or null
+
+#### `isEqual(pattern: Pattern): boolean`
+Tests if this pattern is equal to another pattern.
+- `pattern`: The pattern to compare with
+- Returns: `true` if patterns are equal, `false` otherwise
+
+### Properties
+
+- `id`: Unique identifier for the pattern
+- `type`: Type of the pattern (e.g., "literal", "regex", "sequence")
+- `name`: Name of the pattern
+- `parent`: Parent pattern or null
+- `children`: Array of child patterns
+- `startedOnIndex`: Index where pattern matching started parsing
 
 ### AST Manipulation
 The AST (Abstract Syntax Tree) returned by pattern execution can be manipulated:
@@ -586,3 +794,94 @@ if (result.ast) {
     const value = result.ast.value;
 }
 ```
+
+### Node Class Reference
+
+The `Node` class is the fundamental building block of the AST (Abstract Syntax Tree) in Clarity Pattern Parser. It provides a rich set of methods for tree manipulation and traversal.
+
+#### Basic Properties
+- `id`: Unique identifier for the node
+- `type`: Type of the node (e.g., "literal", "regex", "sequence")
+- `name`: Name of the node
+- `value`: String value of the node (concatenated from children if present)
+- `firstIndex`: First character index in the input text
+- `lastIndex`: Last character index in the input text
+- `startIndex`: Starting position in the input text
+- `endIndex`: Ending position in the input text
+- `parent`: Parent node or null
+- `children`: Array of child nodes
+- `hasChildren`: Whether the node has any children
+- `isLeaf`: Whether the node is a leaf (no children)
+
+#### Tree Manipulation
+```typescript
+// Create nodes
+const node = Node.createValueNode("type", "name", "value");
+const parent = Node.createNode("type", "name", [node]);
+
+// Add/remove children
+parent.appendChild(newNode);
+parent.removeChild(node);
+parent.removeAllChildren();
+
+// Insert/replace nodes
+parent.insertBefore(newNode, referenceNode);
+parent.replaceChild(newNode, referenceNode);
+node.replaceWith(newNode);
+
+// Navigate siblings
+const next = node.nextSibling();
+const prev = node.previousSibling();
+```
+
+#### Tree Traversal
+```typescript
+// Find nodes
+const found = node.find(n => n.name === "target");
+const all = node.findAll(n => n.type === "literal");
+
+// Walk the tree
+node.walkUp(n => console.log(n.name));  // Bottom-up
+node.walkDown(n => console.log(n.name)); // Top-down
+node.walkBreadthFirst(n => console.log(n.name)); // Level by level
+
+// Find ancestors
+const ancestor = node.findAncestor(n => n.type === "parent");
+```
+
+#### Tree Transformation
+```typescript
+// Transform nodes based on type
+const transformed = node.transform({
+    "literal": n => Node.createValueNode("new-type", n.name, n.value),
+    "sequence": n => Node.createNode("new-type", n.name, n.children)
+});
+```
+
+#### Tree Operations
+```typescript
+// Flatten tree to array
+const nodes = node.flatten();
+
+// Compact node (remove children, keep value)
+node.compact();
+
+// Clone node
+const clone = node.clone();
+
+// Normalize indices
+node.normalize();
+
+// Convert to JSON
+const json = node.toJson(2);
+```
+
+#### Static Methods
+```typescript
+// Create a value node
+const valueNode = Node.createValueNode("type", "name", "value");
+
+// Create a node with children
+const parentNode = Node.createNode("type", "name", [child1, child2]);
+```
+

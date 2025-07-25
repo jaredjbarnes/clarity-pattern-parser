@@ -123,6 +123,30 @@ describe("AutoComplete", () => {
         expect(result.cursor).not.toBeNull();
     });
 
+
+    test("Option should error at furthest match index", () => {
+        const john = new Literal("john", "John");
+        const space = new Literal("space", " ");
+        const doe = new Literal("doe", "Doe");
+        const smith = new Literal("smith", "Smith");
+        const name = new Sequence("name", [john, space, new Options("last-name", [smith, doe])]);
+
+        const text = "John Smi"
+        const autoComplete = new AutoComplete(name);
+        const result = autoComplete.suggestFor(text);
+        const expectedOptions = [{
+            text: "th",
+            startIndex: 8
+        }];
+
+        expect(result.ast).toBeNull();
+        expect(result.options).toEqual(expectedOptions);
+        expect(result.errorAtIndex).toBe(text.length);
+        expect(result.isComplete).toBeFalsy();
+        expect(result.cursor).not.toBeNull();
+    });
+
+
     test("Root Regex Pattern suggests customTokens", () => {
         const freeTextPattern = new Regex(
             `free-text`,

@@ -93,7 +93,7 @@ export class AutoComplete {
     const furthestMatch = cursor.allMatchedNodes[cursor.allMatchedNodes.length - 1];
 
     if (furthestError && furthestMatch) {
-      if (furthestError.lastIndex > furthestMatch.endIndex) {
+      if (furthestMatch.endIndex  > furthestError.lastIndex ) {
         return furthestMatch.endIndex;
       } else {
         return furthestError.lastIndex;

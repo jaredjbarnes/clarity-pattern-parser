@@ -221,10 +221,13 @@ export class InfiniteRepeat implements Pattern {
   private _createNode(cursor: Cursor): Node | null {
     const hasDivider = this._divider != null;
 
+    const previousNode = this._nodes[this._nodes.length - 1]
+    const dividerPatternNames = this._getDividerPatternNames()
+
     if (
       hasDivider &&
       this._trimDivider &&
-      this._nodes[this._nodes.length - 1].name === this._divider?.name
+      dividerPatternNames.includes(previousNode.name)
     ) {
       const dividerNode = this._nodes.pop() as Node;
       cursor.moveTo(dividerNode.firstIndex);
@@ -245,6 +248,15 @@ export class InfiniteRepeat implements Pattern {
       lastIndex,
       this._nodes
     );
+  }
+
+  // previous node may correlate to a child of the divider pattern; ie. in the case of Options.
+  // so we gather all the names of the divider pattern and its children for comparison
+  private _getDividerPatternNames(): string[] {
+    const dividerPattern = this._divider
+    const dividerPatternName = dividerPattern?.name?[dividerPattern.name]:[]
+    const dividerPatternsChildrenNames = dividerPattern?.children.map(p => p.name) ?? []
+    return [...dividerPatternName, ...dividerPatternsChildrenNames]
   }
 
   private _getLastValidNode(): Node | null {

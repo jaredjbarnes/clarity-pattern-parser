@@ -1255,12 +1255,10 @@ class FiniteRepeat {
                 }
             }
         }
-        if (this._trimDivider && this._hasDivider) {
-            const isDividerLastMatch = this.children.length > 1 && nodes.length > 1 && nodes[nodes.length - 1].name === this.children[1].name;
-            if (isDividerLastMatch) {
-                const node = nodes.pop();
-                cursor.moveTo(node.firstIndex);
-            }
+        const endedOnDivider = this._hasDivider && nodes.length % modulo === 0;
+        if (this._trimDivider && endedOnDivider) {
+            const node = nodes.pop();
+            cursor.moveTo(node.firstIndex);
         }
         if (matchCount < this._min) {
             const lastIndex = cursor.index;
@@ -1396,6 +1394,7 @@ class InfiniteRepeat {
         this._firstIndex = 0;
         this._nodes = [];
         this._trimDivider = options.trimDivider == null ? false : options.trimDivider;
+        this._patterns = [];
     }
     _assignChildrenToParent(children) {
         for (const child of children) {
@@ -1411,6 +1410,7 @@ class InfiniteRepeat {
     parse(cursor) {
         this._firstIndex = cursor.index;
         this._nodes = [];
+        this._patterns = [];
         const passed = this._tryToParse(cursor);
         if (passed) {
             cursor.resolveError();
@@ -1462,6 +1462,7 @@ class InfiniteRepeat {
                 }
                 if (repeatNode != null) {
                     this._nodes.push(repeatNode);
+                    this._patterns.push(this._pattern);
                     if (!cursor.hasNext()) {
                         passed = true;
                         break;
@@ -1486,6 +1487,7 @@ class InfiniteRepeat {
                         }
                         else {
                             this._nodes.push(dividerNode);
+                            this._patterns.push(this._divider);
                             if (!cursor.hasNext()) {
                                 passed = true;
                                 break;
@@ -1508,11 +1510,11 @@ class InfiniteRepeat {
         return passed;
     }
     _createNode(cursor) {
-        var _a;
         const hasDivider = this._divider != null;
+        const lastPattern = this._patterns[this._patterns.length - 1];
         if (hasDivider &&
             this._trimDivider &&
-            this._nodes[this._nodes.length - 1].name === ((_a = this._divider) === null || _a === void 0 ? void 0 : _a.name)) {
+            lastPattern === this._divider) {
             const dividerNode = this._nodes.pop();
             cursor.moveTo(dividerNode.firstIndex);
         }

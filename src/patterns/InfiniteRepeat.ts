@@ -26,6 +26,7 @@ export class InfiniteRepeat implements Pattern {
   private _firstIndex: number;
   private _min: number;
   private _trimDivider: boolean;
+  private _patterns: Pattern[];
 
   get id(): string {
     return this._id;
@@ -83,6 +84,7 @@ export class InfiniteRepeat implements Pattern {
     this._firstIndex = 0;
     this._nodes = [];
     this._trimDivider = options.trimDivider == null ? false : options.trimDivider;
+    this._patterns = [];
   }
 
   private _assignChildrenToParent(children: Pattern[]): void {
@@ -102,6 +104,7 @@ export class InfiniteRepeat implements Pattern {
   parse(cursor: Cursor): Node | null {
     this._firstIndex = cursor.index;
     this._nodes = [];
+    this._patterns = [];
 
     const passed = this._tryToParse(cursor);
 
@@ -165,6 +168,7 @@ export class InfiniteRepeat implements Pattern {
 
         if (repeatNode != null) {
           this._nodes.push(repeatNode);
+          this._patterns.push(this._pattern);
 
           if (!cursor.hasNext()) {
             passed = true;
@@ -192,6 +196,7 @@ export class InfiniteRepeat implements Pattern {
               }
             } else {
               this._nodes.push(dividerNode);
+              this._patterns.push(this._divider);
 
               if (!cursor.hasNext()) {
                 passed = true;
@@ -220,11 +225,12 @@ export class InfiniteRepeat implements Pattern {
 
   private _createNode(cursor: Cursor): Node | null {
     const hasDivider = this._divider != null;
+    const lastPattern = this._patterns[this._patterns.length - 1];
 
     if (
       hasDivider &&
       this._trimDivider &&
-      this._nodes[this._nodes.length - 1].name === this._divider?.name
+      lastPattern === this._divider
     ) {
       const dividerNode = this._nodes.pop() as Node;
       cursor.moveTo(dividerNode.firstIndex);

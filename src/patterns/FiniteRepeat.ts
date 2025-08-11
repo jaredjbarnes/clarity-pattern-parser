@@ -123,12 +123,10 @@ export class FiniteRepeat implements Pattern {
             }
         }
 
-        if (this._trimDivider && this._hasDivider) {
-            const isDividerLastMatch = this.children.length > 1 && nodes.length > 1 && nodes[nodes.length - 1].name === this.children[1].name;
-            if (isDividerLastMatch) {
-                const node = nodes.pop() as Node;
-                cursor.moveTo(node.firstIndex);
-            }
+        const endedOnDivider = this._hasDivider && nodes.length % modulo === 0;
+        if (this._trimDivider && endedOnDivider) {
+            const node = nodes.pop() as Node;
+            cursor.moveTo(node.firstIndex);
         }
 
         if (matchCount < this._min) {

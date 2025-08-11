@@ -523,6 +523,29 @@ describe("AutoComplete", () => {
         expect(result.options).toEqual([{ text: 'a', startIndex: 4 }]);
     });
 
+    test("Remove options divider", () => {
+        const jediLuke = new Literal(`jedi`, 'luke');
+        const names = new Options('names', [jediLuke]);
+        const literalA = new Literal('literal-a', 'a');
+        const literalB = new Literal('literal-b', 'b');
+
+        const optionsDivider = new Options('options-divider', [literalA, literalB]);
+
+        // control to prove the pattern works without trimDivider
+        const controlPattern = new Repeat('name-list', names, { divider: optionsDivider });
+        const controlAutoComplete = new AutoComplete(controlPattern);
+        const controlResult = controlAutoComplete.suggestFor('lukea');
+        expect(controlResult.isComplete).toEqual(true);
+
+        const trimPattern = new Repeat('name-list', names, { divider: optionsDivider, trimDivider: true });
+        const trimAutoComplete = new AutoComplete(trimPattern);
+
+        const trimResult = trimAutoComplete.suggestFor('lukea');
+        expect(trimResult.isComplete).toEqual(false);
+    })
+
+
+
     test("Expect Divider", () => {
         const repeat = new Repeat("repeat", new Literal("a", "a"), { divider: new Literal("pipe", "|") });
         const autoComplete = new AutoComplete(repeat);

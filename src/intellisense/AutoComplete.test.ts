@@ -9,13 +9,13 @@ import { AutoComplete, AutoCompleteOptions } from "./AutoComplete";
 import { Optional } from "../patterns/Optional";
 import { SuggestionOption } from "./SuggestionOption";
 
-interface ExpectedOption{
+interface ExpectedOption {
     text: string;
     startIndex: number;
     subElements: ExpectedSubElement[];
 }
 
-interface ExpectedSubElement{
+interface ExpectedSubElement {
     text: string;
     // maps to the name of the pattern
     pattern: string;
@@ -41,11 +41,6 @@ function generateFlagPattern(flagNames: string[]): Pattern {
 
 function optionsMatchExpected(resultOptions: SuggestionOption[], expectedOptions: ExpectedOption[]) {
 
-
-    console.log('resultOptions: ', resultOptions.map(r => 'result: '  + r.text + ' - [' + r.suggestionSequence.map(s => s.pattern.name).join(' ') + ']'));
-    console.log('expectedOptions: ', expectedOptions.map(e => 'expected: ' + e.text + ' - [' + e.subElements.map(s => s.pattern).join(' ') + ']'));
-
-    
     const expectedOptionsPatternNames = expectedOptions.map(e => e.subElements.map(s => s.pattern));
     const resultOptionsPatternNames = resultOptions.map(r => r.suggestionSequence.map(s => s.pattern.name));
 
@@ -432,15 +427,15 @@ describe("AutoComplete", () => {
         const results = autoComplete.suggestFor(text)
 
 
-        // TODO: Show Jared this!!!; see how literals share a name and so two suggestions with different patterns are returned
         const expectedOptions:ExpectedOption[] = [
-            { text: "James", startIndex: 0, subElements: [{
-                text: "James",
-                pattern: 'first-name'
-            }] },
+
             { text: "Jack", startIndex: 0, subElements: [{
                 text: "Jack",
                 pattern: jack.name
+            }] },
+            { text: "James", startIndex: 0, subElements: [{
+                text: "James",
+                pattern: 'first-name'
             }] },
             { text: "James", startIndex: 0, subElements: [{
                 text: "James",
@@ -531,8 +526,6 @@ describe("AutoComplete", () => {
         const text = "John went to a gas station.";
         const result = autoComplete.suggestFor(text);
 
-        // TODO: show Jared this and ask if this was the intent of the test
-        //  expected because there is a "space" between the start and the literals. the space is an error
         const expected:ExpectedOption[] = [
             { text: "the store.", startIndex: 12, subElements: [{
                 text: "the",
@@ -781,7 +774,6 @@ describe("AutoComplete", () => {
             }] }
         ];
         
-
         optionsMatchExpected(result.options, expected);
 
     });
@@ -871,8 +863,6 @@ describe("AutoComplete", () => {
     });
 
 
-
-    //// FIXME: resolve dedupe
     test("Dedup suggestions", () => {
         const branchOne = new Sequence("branch-1", [new Literal("space", " "), new Literal("A", "A")]);
         const branchTwo = new Sequence("branch-2", [new Literal("space", " "), new Literal("B", "B")]);
@@ -1022,8 +1012,6 @@ describe("AutoComplete", () => {
         const suggestion = autoComplete.suggestFor("John, ");
 
 
-    // FIXME: this test doesnt make any sense
-
         expect(suggestion).toBe(suggestion);
     });
 
@@ -1043,13 +1031,11 @@ describe("AutoComplete", () => {
 
         const autoComplete = new AutoComplete(list, { greedyPatternNames: ["comma"] });
         const suggestion = autoComplete.suggestFor("John");
-    // FIXME: this test doesnt make any sense
 
         expect(suggestion).toBe(suggestion);
     });
 
 
-    // TODO: show Jared, as this test changed, but i believe it was wrong before
     test("Mid sequence suggestion", () => {
         const operator = new Options("operator", [
             new Literal("==", "=="),
@@ -1132,7 +1118,6 @@ describe("AutoComplete", () => {
 
     test("Suggests entire greedy node, with appended successive nodes", () => {
 
-        // Define Pattern
         const start = new Literal("start", "start");
         const separator = new Literal("separator", '==');
 
@@ -1143,13 +1128,11 @@ describe("AutoComplete", () => {
         
         const fullSequence = new Sequence("full-sequence", [start, separator, abcOptions]);
 
-        // Configure AutoComplete
         const autoCompleteOptions: AutoCompleteOptions = {
             greedyPatternNames: ["separator"],
         };
         const autoComplete = new AutoComplete(fullSequence, autoCompleteOptions);
         
-        // process suggestFor text
         const text = "start";
         const results = autoComplete.suggestFor(text);
 
@@ -1178,16 +1161,12 @@ describe("AutoComplete", () => {
             }] },
         ];
 
-
-        // Assess Results
-
         optionsMatchExpected(results.options, expectedOptions);
 
     });
 
     test("incomplete greedy text, suggests node completion with appended successive nodes", () => {
 
-        // Define Pattern
         const start = new Literal("start", "start");
         const separator = new Literal("separator", '==');
 
@@ -1198,26 +1177,13 @@ describe("AutoComplete", () => {
         
         const fullSequence = new Sequence("full-sequence", [start, separator, abcOptions]);
 
-        // Configure AutoComplete
         const autoCompleteOptions: AutoCompleteOptions = {
             greedyPatternNames: ["separator"],
         };
         const autoComplete = new AutoComplete(fullSequence, autoCompleteOptions);
         
-        // We provide an incomplete greedy node text, to see if it can complete the node with appended successive nodes.
         const text = "start=";
         const results = autoComplete.suggestFor(text);
-
-        console.log('options:', results.options.map(o => {
-            return {
-                text: o.text,
-                startIndex: o.startIndex,
-                pattern: o.suggestionSequence?.map(s => s.pattern.name).join(','),
-                patternId: o.suggestionSequence?.map(s => s.pattern.id).join(',')
-            }
-        }));
-
-        // Assess Results
 
         const expectedOptions:ExpectedOption[] = [
             { text: "=A", startIndex: 6, subElements: [{
@@ -1247,10 +1213,7 @@ describe("AutoComplete", () => {
 
     });
 
-    test("failure 1", () => {
-        // fails if starting root node is greedy
-
-        // Define Pattern
+    test("greedy root node", () => {
         const separator = new Literal("separator", '==');
 
         const aLiteral = new Literal("letter", "A");
@@ -1260,26 +1223,13 @@ describe("AutoComplete", () => {
         
         const fullSequence = new Sequence("full-sequence", [separator, abcOptions]);
 
-        // Configure AutoComplete
         const autoCompleteOptions: AutoCompleteOptions = {
             greedyPatternNames: ["separator"],
         };
         const autoComplete = new AutoComplete(fullSequence, autoCompleteOptions);
         
-        // process suggestFor text
         const text = "";
         const results = autoComplete.suggestFor(text);
-
-        console.log('options:', results.options.map(o => {
-            return {
-                text: o.text,
-                startIndex: o.startIndex,
-                pattern: o.suggestionSequence?.map(s => s.pattern.name).join(','),
-                patternId: o.suggestionSequence?.map(s => s.pattern.id).join(',')
-            }
-        }));
-
-        // Assess Results
 
         const expectedOptions:ExpectedOption[] = [
             { text: "==A", startIndex: 0, subElements: [{

@@ -22,6 +22,6 @@ export interface CompositeSuggestion{
 /** A segment of a parent composite suggestion and a reference to the pattern that this segment token was derived from. */
 export interface SuggestionSegment {
   text: string;
-  pattern:Pattern
+  pattern: Pattern;
 }
 

@@ -7,6 +7,19 @@ import { Regex } from "../patterns/Regex";
 import { Repeat } from "../patterns/Repeat";
 import { AutoComplete, AutoCompleteOptions } from "./AutoComplete";
 import { Optional } from "../patterns/Optional";
+import { SuggestionOption } from "./SuggestionOption";
+
+interface ExpectedOption {
+    text: string;
+    startIndex: number;
+    subElements: ExpectedSubElement[];
+}
+
+interface ExpectedSubElement {
+    text: string;
+    // maps to the name of the pattern
+    pattern: string;
+}
 
 function generateFlagFromList(flagNames: string[]) {
     return flagNames.map(flagName => {
@@ -23,6 +36,26 @@ function generateFlagPattern(flagNames: string[]): Pattern {
     const flagPattern = new Options('flags', generateFlagFromList(flagNames));
     return flagPattern;
 }
+
+
+
+function optionsMatchExpected(resultOptions: SuggestionOption[], expectedOptions: ExpectedOption[]) {
+
+    const expectedOptionsPatternNames = expectedOptions.map(e => e.subElements.map(s => s.pattern));
+    const resultOptionsPatternNames = resultOptions.map(r => r.suggestionSequence.map(s => s.pattern.name));
+
+    
+    expect(resultOptions.length).toBe(expectedOptions.length);
+    resultOptions.forEach((resultOption, index) => {
+        expect(resultOption.text).toBe(expectedOptions[index].text);
+        expect(resultOption.startIndex).toBe(expectedOptions[index].startIndex);
+        expect(resultOption.suggestionSequence.length).toBe(expectedOptions[index].subElements.length);
+        expect(expectedOptionsPatternNames).toEqual(resultOptionsPatternNames);
+    });
+}
+
+
+
 
 export function generateExpression(flagNames: string[]): Repeat {
     if (flagNames.length === 0) {
@@ -103,21 +136,35 @@ describe("AutoComplete", () => {
         const space = new Literal("space", " ");
         const doe = new Literal("doe", "Doe");
         const smith = new Literal("smith", "Smith");
-        const name = new Sequence("name", [john, space, new Options("last-name", [smith, doe])]);
+        const lastNameOptions = new Options("last-name", [smith, doe]);
+        const name = new Sequence("name", [john, space, lastNameOptions]);
+
+        const autoComplete = new AutoComplete(name);
 
         const text = "John "
-        const autoComplete = new AutoComplete(name);
         const result = autoComplete.suggestFor(text);
-        const expectedOptions = [{
+
+        const expectedOptions = [
+            {
             text: "Doe",
-            startIndex: 5
-        }, {
+            startIndex: 5,
+            subElements: [{
+                text: "Doe",
+                pattern: 'doe'
+            }]
+        },
+        {
             text: "Smith",
-            startIndex: 5
-        }];
+            startIndex: 5,
+            subElements: [{
+                text: "Smith",
+                pattern: smith.name
+            }]
+        }
+    ];
 
         expect(result.ast).toBeNull();
-        expect(result.options).toEqual(expectedOptions);
+        optionsMatchExpected(result.options, expectedOptions);
         expect(result.errorAtIndex).toBe(text.length);
         expect(result.isComplete).toBeFalsy();
         expect(result.cursor).not.toBeNull();
@@ -129,18 +176,24 @@ describe("AutoComplete", () => {
         const space = new Literal("space", " ");
         const doe = new Literal("doe", "Doe");
         const smith = new Literal("smith", "Smith");
-        const name = new Sequence("name", [john, space, new Options("last-name", [smith, doe])]);
+        const lastNameOptions = new Options("last-name", [smith, doe]);
+        const name = new Sequence("name", [john, space, lastNameOptions]);
 
         const text = "John Smi"
         const autoComplete = new AutoComplete(name);
         const result = autoComplete.suggestFor(text);
+
         const expectedOptions = [{
             text: "th",
-            startIndex: 8
+            startIndex: 8,
+            subElements: [{
+                text: "Smith",
+                pattern: smith.name
+            }]
         }];
 
         expect(result.ast).toBeNull();
-        expect(result.options).toEqual(expectedOptions);
+        optionsMatchExpected(result.options, expectedOptions);
         expect(result.errorAtIndex).toBe(text.length);
         expect(result.isComplete).toBeFalsy();
         expect(result.cursor).not.toBeNull();
@@ -161,12 +214,18 @@ describe("AutoComplete", () => {
         });
         const result = autoComplete.suggestFor("luke");
 
-        const expected = [
-            { text: " skywalker", startIndex: 4 },
-        ];       
-
+        const expectedOptions = [{
+            text: " skywalker",
+            startIndex: 4,
+            subElements: [{
+                text: " skywalker",
+                pattern: freeTextPattern.name
+            }]
+        }];
+        
+        
         expect(result.ast?.value).toBe("luke");
-        expect(result.options).toEqual(expected);
+        optionsMatchExpected(result.options, expectedOptions);
         expect(result.errorAtIndex).toBeNull()
         expect(result.isComplete).toBeTruthy();
         expect(result.cursor).not.toBeNull();
@@ -192,11 +251,15 @@ describe("AutoComplete", () => {
         const result = autoComplete.suggestFor("jedi luke sky");
 
         const expected = [
-            { text: "walker", startIndex: 13 },
+            { text: "walker", startIndex: 13, subElements: [{
+                text: "walker",
+                startIndex: 13,
+                pattern: freeTextPattern.name
+            }] },
         ];       
 
         expect(result.ast?.value).toBe("jedi luke sky");
-        expect(result.options).toEqual(expected);
+        optionsMatchExpected(result.options, expected);
         expect(result.errorAtIndex).toBeNull()
         expect(result.isComplete).toBeTruthy();
         expect(result.cursor).not.toBeNull();
@@ -215,15 +278,20 @@ describe("AutoComplete", () => {
         divider.setTokens([", "])
 
         const text = "John Doe";
-        const autoComplete = new AutoComplete(new Repeat("last-names", name, { divider }));
+        const repeat = new Repeat("last-names", name, { divider }); 
+        const autoComplete = new AutoComplete(repeat);
         const result = autoComplete.suggestFor(text);
         const expectedOptions = [{
             text: ", ",
-            startIndex: 8
+            startIndex: 8,
+            subElements: [{
+                text: ", ",
+                pattern: 'divider'
+            }]
         }];
 
         expect(result.ast?.value).toBe(text);
-        expect(result.options).toEqual(expectedOptions);
+        optionsMatchExpected(result.options, expectedOptions);
         expect(result.errorAtIndex).toBeNull()
         expect(result.isComplete).toBeTruthy();
         expect(result.cursor).not.toBeNull();
@@ -236,11 +304,15 @@ describe("AutoComplete", () => {
         const result = autoComplete.suggestFor("Na");
         const expectedOptions = [{
             text: "me",
-            startIndex: 2
+            startIndex: 2,
+            subElements: [{
+                text: "me",
+                pattern: 'name'
+            }]
         }];
 
         expect(result.ast).toBeNull();
-        expect(result.options).toEqual(expectedOptions);
+        optionsMatchExpected(result.options, expectedOptions);
         expect(result.errorAtIndex).toBe(2);
         expect(result.isComplete).toBeFalsy();
         expect(result.cursor).not.toBeNull();
@@ -253,11 +325,15 @@ describe("AutoComplete", () => {
 
         const expectedOptions = [{
             text: "ame",
-            startIndex: 1
+            startIndex: 1,
+            subElements: [{
+                text: "ame",
+                pattern: 'name'
+            }]
         }];
 
         expect(result.ast).toBeNull();
-        expect(result.options).toEqual(expectedOptions);
+        optionsMatchExpected(result.options, expectedOptions);
         expect(result.errorAtIndex).toBe(1);
         expect(result.isComplete).toBeFalsy();
         expect(result.cursor).not.toBeNull();
@@ -270,7 +346,7 @@ describe("AutoComplete", () => {
         const result = autoComplete.suggestFor(text);
 
         expect(result.ast?.value).toBe(text);
-        expect(result.options).toEqual([]);
+        optionsMatchExpected(result.options, []);
         expect(result.errorAtIndex).toBeNull();
         expect(result.isComplete).toBeTruthy();
         expect(result.cursor).not.toBeNull();
@@ -295,27 +371,39 @@ describe("AutoComplete", () => {
 
         const text = "Jack";
         const autoComplete = new AutoComplete(fullName, autoCompleteOptions);
-        const { options, ast, errorAtIndex } = autoComplete.suggestFor(text);
+        const result = autoComplete.suggestFor(text);
 
-        const expectedOptions = [
-            { text: " Doe", startIndex: 4 },
-            { text: " Smith", startIndex: 4 },
-            { text: " Sparrow", startIndex: 4 },
+        const expectedOptions:ExpectedOption[] = [
+            { text: " Doe", startIndex: 4, subElements: [{
+                text: " ",
+                pattern: space.name
+            },{
+                text: "Doe",
+                pattern: doe.name
+            }] },
+            { text: " Smith", startIndex: 4, subElements: [{
+                text: " ",
+                pattern: space.name
+            },{
+                text: "Smith",
+                pattern: smith.name
+            }] },
+            { text: " Sparrow", startIndex: 4, subElements: [{
+                text: " ",
+                pattern: space.name
+            },{
+                text: "Sparrow",
+                pattern: "last-name"
+            }] },
         ];
 
-        const results = expectedOptions.map(o => text.slice(0, o.startIndex) + o.text);
-        const expectedResults = [
-            "Jack Doe",
-            "Jack Smith",
-            "Jack Sparrow",
-        ]
 
-        expect(ast).toBeNull();
-        expect(errorAtIndex).toBe(4);
-        expect(options).toEqual(expectedOptions);
-        expect(results).toEqual(expectedResults);
+        expect(result.ast).toBeNull();
+        expect(result.errorAtIndex).toBe(4);
+        optionsMatchExpected(result.options, expectedOptions);
 
     });
+
 
 
     test("Options AutoComplete on Root Pattern", () => {
@@ -327,25 +415,43 @@ describe("AutoComplete", () => {
         const divider = new Literal('divider', ', ');
         const repeat = new Repeat('name-list', names, { divider, trimDivider: true });
 
-        const text = ''
-
         const autoCompleteOptions: AutoCompleteOptions = {
             customTokens: {
                 'first-name': ["James"]
-            }
+            },
+            disableDedupe: true
         };
         const autoComplete = new AutoComplete(repeat,autoCompleteOptions);
+        
+        const text = ''
+        const results = autoComplete.suggestFor(text)
 
-        const suggestion = autoComplete.suggestFor(text)
 
-        const expectedOptions = [
-            { text: "Jack", startIndex: 0 },
-            { text: "John", startIndex: 0 },
-            { text: "James", startIndex: 0 },
+        const expectedOptions:ExpectedOption[] = [
+
+            { text: "Jack", startIndex: 0, subElements: [{
+                text: "Jack",
+                pattern: jack.name
+            }] },
+            { text: "James", startIndex: 0, subElements: [{
+                text: "James",
+                pattern: 'first-name'
+            }] },
+            { text: "James", startIndex: 0, subElements: [{
+                text: "James",
+                pattern: 'first-name'
+            }] },
+            { text: "John", startIndex: 0, subElements: [{
+                text: "John",
+                pattern: john.name
+            }] },
         ];
 
-        expect(suggestion.options).toEqual(expectedOptions)
-    
+        optionsMatchExpected(results.options, expectedOptions);
+        // because autoCompleteOptions specifies "last-name" which is shared by two literals, we get two suggestions each mapping to a respective pattern of that name
+        expect(results.options[0].suggestionSequence[0].pattern.id).toBe(jack.id);
+        expect(results.options[2].suggestionSequence[0].pattern.id).toBe(john.id);
+
     })
 
     test("Options AutoComplete On Leaf Pattern", () => {
@@ -367,26 +473,41 @@ describe("AutoComplete", () => {
 
         const text = "Jack";
         const autoComplete = new AutoComplete(fullName, autoCompleteOptions);
-        const { options, ast, errorAtIndex } = autoComplete.suggestFor(text);
-        const expectedOptions = [
-            { text: "  Doe", startIndex: 4 },
-            { text: "  Smith", startIndex: 4 },
-            { text: " Doe", startIndex: 4 },
-            { text: " Smith", startIndex: 4 },
+        const results = autoComplete.suggestFor(text);
+        const expectedOptions:ExpectedOption[] = [
+            { text: "  Doe", startIndex: 4, subElements: [{
+                text: " ",
+                pattern: space.name 
+            },{
+                text: "Doe",
+                pattern: doe.name
+            }] },
+            { text: "  Smith", startIndex: 4, subElements: [{
+                text: " ",
+                pattern: space.name
+            },{
+                text: "Smith",
+                pattern: smith.name
+            }] },
+            { text: " Doe", startIndex: 4, subElements: [{
+                text: " ",
+                pattern: space.name
+            },{
+                text: "Doe",
+                pattern: doe.name
+            }] },
+            { text: " Smith", startIndex: 4, subElements: [{
+                text: " ",
+                pattern: space.name
+            },{
+                text: "Smith",
+                pattern: smith.name
+            }] },
         ];
 
-        const results = expectedOptions.map(o => text.slice(0, o.startIndex) + o.text);
-        const expectedResults = [
-            "Jack  Doe",
-            "Jack  Smith",
-            "Jack Doe",
-            "Jack Smith",
-        ]
-
-        expect(ast).toBeNull();
-        expect(errorAtIndex).toBe(4);
-        expect(options).toEqual(expectedOptions);
-        expect(results).toEqual(expectedResults)
+        expect(results.ast).toBeNull();
+        expect(results.errorAtIndex).toBe(4);
+        optionsMatchExpected(results.options, expectedOptions);
 
     });
 
@@ -401,96 +522,170 @@ describe("AutoComplete", () => {
         const both = new Options("both", [first, second]);
 
         const autoComplete = new AutoComplete(both);
-        const result = autoComplete.suggestFor("John went to a gas station.");
-        const expected = [
-            { text: "the store.", startIndex: 12 },
-            { text: "a bank.", startIndex: 12 }
+
+        const text = "John went to a gas station.";
+        const result = autoComplete.suggestFor(text);
+
+        const expected:ExpectedOption[] = [
+            { text: "the store.", startIndex: 12, subElements: [{
+                text: "the",
+                pattern: the.name
+            },] },
+            { text: "a bank.", startIndex: 12, subElements: [{
+                text: "a",
+                pattern: a.name
+            }] }
         ];
-        expect(result.options).toEqual(expected);
+
+
+        optionsMatchExpected(result.options, expected);
     });
 
     test("Options on errors because of string ending, with match", () => {
+
+        const large = new Literal("large", "kahnnnnnn");
+        const medium = new Literal("medium", "kahnnnnn");
+        const small = new Literal("small", "kahn");
+
+
         const smalls = new Options("kahns", [
-            new Literal("large", "kahnnnnnn"),
-            new Literal("medium", "kahnnnnn"),
-            new Literal("small", "kahn"),
+            large,
+            medium,
+            small,
         ]);
 
         const autoComplete = new AutoComplete(smalls);
         const result = autoComplete.suggestFor("kahn");
 
-        const expected = [
-            { text: "nnnnn", startIndex: 4 },
-            { text: "nnnn", startIndex: 4 }
+        const expected:ExpectedOption[] = [
+            { text: "nnnnn", startIndex: 4, subElements: [{
+                text: "nnnnn",
+                pattern: large.name
+            }] },
+            { text: "nnnn", startIndex: 4, subElements: [{
+                text: "nnnn",
+                pattern: medium.name
+            }] }
         ];
 
-        expect(result.options).toEqual(expected);
+        optionsMatchExpected(result.options, expected);
+
         expect(result.isComplete).toBeTruthy();
     });
 
+
     test("Options on errors because of string ending, between matches", () => {
+
+        const large = new Literal("large", "kahnnnnnn");
+        const medium = new Literal("medium", "kahnnnnn");
+        const small = new Literal("small", "kahn");
+
+
         const smalls = new Options("kahns", [
-            new Literal("large", "kahnnnnnn"),
-            new Literal("medium", "kahnnnnn"),
-            new Literal("small", "kahn"),
+            large,
+            medium,
+            small,
         ]);
 
         const autoComplete = new AutoComplete(smalls);
         const result = autoComplete.suggestFor("kahnn");
 
-        const expected = [
-            { text: "nnnn", startIndex: 5 },
-            { text: "nnn", startIndex: 5 }
+        const expected:ExpectedOption[] = [
+            { text: "nnnn", startIndex: 5, subElements: [{
+                text: "nnnn",
+                pattern: large.name
+            }] },
+            { text: "nnn", startIndex: 5, subElements: [{
+                text: "nnn",
+                pattern: medium.name
+            }] }
         ];
 
-        expect(result.options).toEqual(expected);
+
+        optionsMatchExpected(result.options, expected); 
         expect(result.isComplete).toBeFalsy();
     });
 
     test("Options on errors because of string ending, match middle", () => {
+        const large = new Literal("large", "kahnnnnnn");
+        const medium = new Literal("medium", "kahnnnnn");
+        const small = new Literal("small", "kahn");
         const smalls = new Options("kahns", [
-            new Literal("large", "kahnnnnnn"),
-            new Literal("medium", "kahnnnnn"),
-            new Literal("small", "kahn"),
+            large,
+            medium,
+            small,
         ]);
 
         const autoComplete = new AutoComplete(smalls);
         const result = autoComplete.suggestFor("kahnnnnn");
 
-        const expected = [
-            { text: "n", startIndex: 8 },
+        const expected:ExpectedOption[] = [
+            { text: "n", startIndex: 8, subElements: [{
+                text: "n",
+                pattern: large.name
+            }] },
         ];
 
-        expect(result.options).toEqual(expected);
+        optionsMatchExpected(result.options, expected);
+
         expect(result.isComplete).toBeTruthy();
     });
 
 
     test("Options on errors because of string ending on a variety, with match", () => {
+        const different3 = new Literal("different-3", "kahnnnnnnn3");
+        const different21 = new Literal("different-21", "kahnnnnnn21");
+        const different22 = new Literal("different-22", "kahnnnnnn22");
+        const different2 = new Literal("different-2", "kahnnnnnn2");
+        const different1 = new Literal("different", "kahnnnnnn1");
+        const large = new Literal("large", "kahnnnnnn");
+        const small = new Literal("small", "kahn");
+        const medium = new Literal("medium", "kahnnnnn");           
+       
         const smalls = new Options("kahns", [
-            new Literal("different-3", "kahnnnnnnn3"),
-            new Literal("different-21", "kahnnnnnn21"),
-            new Literal("different-22", "kahnnnnnn22"),
-            new Literal("different-2", "kahnnnnnn2"),
-            new Literal("different", "kahnnnnnn1"),
-            new Literal("large", "kahnnnnnn"),
-            new Literal("medium", "kahnnnnn"),
-            new Literal("small", "kahn"),
+            different3,
+            different21,
+            different22,
+            different2,
+            different1,
+            large,
+            medium,
+            small,
         ]);
 
         const autoComplete = new AutoComplete(smalls);
         const result = autoComplete.suggestFor("kahnnnnn");
 
-        const expected = [
-            { text: "nn3", startIndex: 8 },
-            { text: "n21", startIndex: 8 },
-            { text: "n22", startIndex: 8 },
-            { text: "n2", startIndex: 8 },
-            { text: "n1", startIndex: 8 },
-            { text: "n", startIndex: 8 },
+        const expected:ExpectedOption[]        = [
+            { text: "nn3", startIndex: 8, subElements: [{
+                text: "nn3",
+                pattern: different3.name
+            }] },
+                { text: "n21", startIndex: 8, subElements: [{
+                text: "n21",
+                pattern: different21.name
+            }] },
+            { text: "n22", startIndex: 8 , subElements: [{
+                text: "n22",
+                pattern: different22.name
+            }] },
+            { text: "n2", startIndex: 8, subElements: [{
+                text: "n2",
+                pattern: different2.name
+            }] },
+            { text: "n1", startIndex: 8, subElements: [{
+                text: "n1",
+                pattern: different1.name
+            }] },
+            { text: "n", startIndex: 8, subElements: [{
+                text: "n",
+                pattern: large.name
+            }] },
         ];
 
-        expect(result.options).toEqual(expected);
+
+
+        optionsMatchExpected(result.options, expected); 
         expect(result.isComplete).toBeTruthy();
     });
 
@@ -505,13 +700,23 @@ describe("AutoComplete", () => {
         const autoComplete = new AutoComplete(smalls);
         const result = autoComplete.suggestFor("kahn");
 
-        const expected = [
-            { text: "2", startIndex: 4 },
-            { text: "1", startIndex: 4 },
-            { text: "3", startIndex: 4 },
-        ];
+        const expected:ExpectedOption[] = [
+            { text: "2", startIndex: 4, subElements: [{
+                text: "2",
+                pattern: "two"
+            }] },
+            { text: "1", startIndex: 4, subElements: [{
+                text: "1",
+                pattern: "one"
+            }] },
+            { text: "3", startIndex: 4, subElements: [{
+                text: "3",
+                pattern: "three"
+            }] },
+            ];
 
-        expect(result.options).toEqual(expected);
+
+        optionsMatchExpected(result.options, expected);  
         expect(result.isComplete).toBeTruthy();
     });
 
@@ -520,7 +725,16 @@ describe("AutoComplete", () => {
         const autoComplete = new AutoComplete(repeat);
         const result = autoComplete.suggestFor("a|a|");
 
-        expect(result.options).toEqual([{ text: 'a', startIndex: 4 }]);
+        const expected:ExpectedOption[] = [
+            { text: "a", startIndex: 4, subElements: [{
+                text: "a",
+                pattern: "a"
+            }] },
+        ];
+
+
+        optionsMatchExpected(result.options, expected);
+
     });
 
     test("Remove options divider", () => {
@@ -546,12 +760,22 @@ describe("AutoComplete", () => {
 
 
 
+
     test("Expect Divider", () => {
         const repeat = new Repeat("repeat", new Literal("a", "a"), { divider: new Literal("pipe", "|") });
         const autoComplete = new AutoComplete(repeat);
         const result = autoComplete.suggestFor("a|a");
 
-        expect(result.options).toEqual([{ text: '|', startIndex: 3 }]);
+
+        const expected:ExpectedOption[] = [
+            { text: '|', startIndex: 3, subElements: [{
+                text: '|',
+                pattern: 'pipe'
+            }] }
+        ];
+        
+        optionsMatchExpected(result.options, expected);
+
     });
 
     test("Repeat with bad second repeat", () => {
@@ -559,7 +783,16 @@ describe("AutoComplete", () => {
         const autoComplete = new AutoComplete(repeat);
         const result = autoComplete.suggestFor("a|b");
 
-        expect(result.options).toEqual([{ text: 'a', startIndex: 2 }]);
+
+        const expected:ExpectedOption[] = [
+            { text: "a", startIndex: 2, subElements: [{
+                text: "a",
+                pattern: "a"
+            }] },
+        ];
+
+        optionsMatchExpected(result.options, expected);
+
     });
 
     test("Repeat with bad trailing content", () => {
@@ -588,28 +821,47 @@ describe("AutoComplete", () => {
 
         const autoComplete = new AutoComplete(names);
         const results = autoComplete.suggestFor("John ");
-        const expected = [
+        const expected:ExpectedOption[] = [
             {
                 text: "Doe",
                 startIndex: 5,
+                subElements: [{
+                    text: "Doe",
+                    pattern: "doe"
+                }]
             },
             {
                 text: "Smith",
                 startIndex: 5,
+                subElements: [{
+                    text: "Smith",
+                    pattern: "smith"
+                }]
             },
             {
                 text: "Stockton",
                 startIndex: 5,
+                subElements: [{
+                    text: "Stockton",
+                    pattern: "john-stockton"
+                }]
             },
             {
                 text: "Johnson",
-                startIndex: 5,
+                startIndex: 5,  
+                subElements: [{
+                    text: "Johnson",
+                    pattern: "john-johnson"
+                }]
             },
         ];
-        expect(results.options).toEqual(expected);
+
+
+        optionsMatchExpected(results.options, expected);
         expect(results.ast).toBeNull();
         expect(results.errorAtIndex).toBe(5);
     });
+
 
     test("Dedup suggestions", () => {
         const branchOne = new Sequence("branch-1", [new Literal("space", " "), new Literal("A", "A")]);
@@ -618,11 +870,16 @@ describe("AutoComplete", () => {
 
         const autoComplete = new AutoComplete(eitherBranch);
         const results = autoComplete.suggestFor("");
-        const expected = [{
+        const expected:ExpectedOption[] = [{
             startIndex: 0,
-            text: " "
+            text: " ",
+            subElements: [{
+                text: " ",
+                pattern: "space"
+            }]
         }];
-        expect(results.options).toEqual(expected);
+
+        optionsMatchExpected(results.options, expected);
     });
 
     test("Multiple Complex Branches", () => {
@@ -647,12 +904,23 @@ describe("AutoComplete", () => {
 
         const autoComplete = new AutoComplete(eitherBranch);
         const results = autoComplete.suggestFor("  B");
-        const expected = [
-            { startIndex: 3, text: "A" },
-            { startIndex: 3, text: "B" },
-            { startIndex: 3, text: "C" },
+
+        const expected:ExpectedOption[] = [
+            { startIndex: 3, text: "A", subElements: [{
+                text: "A",
+                pattern: "BA"
+            }] },
+            { startIndex: 3, text: "B", subElements: [{
+                text: "B",
+                pattern: "BB"
+            }] },
+            { startIndex: 3, text: "C", subElements: [{
+                text: "C",
+                pattern: "BC"
+            }] },
         ];
-        expect(results.options).toEqual(expected);
+
+        optionsMatchExpected(results.options, expected);
     });
 
 
@@ -667,9 +935,15 @@ describe("AutoComplete", () => {
         const autoComplete = new AutoComplete(names);
         const suggestion = autoComplete.suggestFor("Jo");
 
-        expect(suggestion.options).toEqual([
-            { text: 'hn', startIndex: 2 }
-        ]);
+        const expected:ExpectedOption[] = [
+            { text: 'hn', startIndex: 2, subElements: [{
+                text: 'hn',
+                pattern: "john"
+            }] },
+        ];
+
+        optionsMatchExpected(suggestion.options, expected);
+
         expect(suggestion.error?.lastIndex).toBe(2);
     });
 
@@ -702,13 +976,26 @@ describe("AutoComplete", () => {
         });
         const suggestion = autoComplete.suggestFor("John");
 
-        expect(suggestion.options).toEqual([{
-            "text": " Doe",
-            "startIndex": 4
-        }, {
-            "text": " Smith",
-            "startIndex": 4
-        }]);
+
+        const expected:ExpectedOption[] = [
+            { text: " Doe", startIndex: 4, subElements: [{
+                text: " ",
+                pattern: "space"
+            },{
+                text: "Doe",
+                pattern: "doe"
+            }] },
+            { text: " Smith", startIndex: 4, subElements: [{
+                text: " ",
+                pattern: "space"
+            },{
+                text: "Smith",
+                pattern: "smith"
+            }] },
+        ];
+
+        optionsMatchExpected(suggestion.options, expected);
+
     });
 
     test("Repeat With Options", () => {
@@ -723,6 +1010,7 @@ describe("AutoComplete", () => {
 
         const autoComplete = new AutoComplete(list);
         const suggestion = autoComplete.suggestFor("John, ");
+
 
         expect(suggestion).toBe(suggestion);
     });
@@ -747,6 +1035,7 @@ describe("AutoComplete", () => {
         expect(suggestion).toBe(suggestion);
     });
 
+
     test("Mid sequence suggestion", () => {
         const operator = new Options("operator", [
             new Literal("==", "=="),
@@ -769,19 +1058,35 @@ describe("AutoComplete", () => {
         );
         const result = autoComplete.suggestFor("variable1 ==");
 
-        expect(result.options).toEqual([{
-            text: " ",
-            startIndex: 12,
-        },
-        {
-            text: "variable3",
-            startIndex: 12,
-        },
-        {
-            text: "variable4",
-            startIndex: 12,
-        }
-    ]);
+
+        const expected:ExpectedOption[] = [
+            { text: " variable3", startIndex: 12, subElements: [{
+                text: " ",
+                pattern: "space"
+            },{
+                text: "variable3",
+                pattern: "variable-3"
+            }] },
+            { text: " variable4", startIndex: 12, subElements: [{
+                text: " ",
+                pattern: "space"
+            },{
+                text: "variable4",
+                pattern: "variable-4"
+            }] },
+            { text: "variable3", startIndex: 12, subElements: [{
+                text: "variable3",
+                pattern: "variable-3"
+            }] },
+            { text: "variable4", startIndex: 12, subElements: [{
+                text: "variable4",
+                pattern: "variable-4"
+            }] },
+
+        ];
+
+        optionsMatchExpected(result.options, expected);
+
     });
 
 
@@ -809,6 +1114,151 @@ describe("AutoComplete", () => {
         
         expect(customTokensMap).toEqual(copiedCustomTokensMap)
     })
+
+
+    test("Suggests entire greedy node, with appended successive nodes", () => {
+
+        const start = new Literal("start", "start");
+        const separator = new Literal("separator", '==');
+
+        const aLiteral = new Literal("letter", "A");
+        const bLiteral = new Literal("letter", "B");
+        const cLiteral = new Literal("letter", "C");
+        const abcOptions = new Options("letters-options", [aLiteral, bLiteral, cLiteral]);
+        
+        const fullSequence = new Sequence("full-sequence", [start, separator, abcOptions]);
+
+        const autoCompleteOptions: AutoCompleteOptions = {
+            greedyPatternNames: ["separator"],
+        };
+        const autoComplete = new AutoComplete(fullSequence, autoCompleteOptions);
+        
+        const text = "start";
+        const results = autoComplete.suggestFor(text);
+
+
+        const expectedOptions:ExpectedOption[] = [
+            { text: "==A", startIndex: 5, subElements: [{
+                text: "==",
+                pattern: separator.name
+            },{
+                text: "A",
+                pattern: aLiteral.name
+            }] },
+            { text: "==B", startIndex: 5, subElements: [{
+                text: "==",
+                pattern: separator.name
+            },{
+                text: "B",
+                pattern: bLiteral.name
+            }] },
+            { text: "==C", startIndex: 5, subElements: [{
+                text: "==",
+                pattern: separator.name
+            },{
+                text: "C",
+                pattern: cLiteral.name
+            }] },
+        ];
+
+        optionsMatchExpected(results.options, expectedOptions);
+
+    });
+
+    test("incomplete greedy text, suggests node completion with appended successive nodes", () => {
+
+        const start = new Literal("start", "start");
+        const separator = new Literal("separator", '==');
+
+        const aLiteral = new Literal("letter", "A");
+        const bLiteral = new Literal("letter", "B");
+        const cLiteral = new Literal("letter", "C");
+        const abcOptions = new Options("letters-options", [aLiteral, bLiteral, cLiteral]);
+        
+        const fullSequence = new Sequence("full-sequence", [start, separator, abcOptions]);
+
+        const autoCompleteOptions: AutoCompleteOptions = {
+            greedyPatternNames: ["separator"],
+        };
+        const autoComplete = new AutoComplete(fullSequence, autoCompleteOptions);
+        
+        const text = "start=";
+        const results = autoComplete.suggestFor(text);
+
+        const expectedOptions:ExpectedOption[] = [
+            { text: "=A", startIndex: 6, subElements: [{
+                text: "=",
+                pattern: separator.name
+            },{
+                text: "A",
+                pattern: aLiteral.name
+            }] },
+            { text: "=B", startIndex: 6, subElements: [{
+                text: "=",
+                pattern: separator.name
+            },{
+                text: "B",
+                pattern: bLiteral.name
+            }] },
+            { text: "=C", startIndex: 6, subElements: [{
+                text: "=",
+                pattern: separator.name
+            },{
+                text: "C",
+                pattern: cLiteral.name
+            }] },
+        ];      
+
+        optionsMatchExpected(results.options, expectedOptions);
+
+    });
+
+    test("greedy root node", () => {
+        const separator = new Literal("separator", '==');
+
+        const aLiteral = new Literal("letter", "A");
+        const bLiteral = new Literal("letter", "B");
+        const cLiteral = new Literal("letter", "C");
+        const abcOptions = new Options("letters-options", [aLiteral, bLiteral, cLiteral]);
+        
+        const fullSequence = new Sequence("full-sequence", [separator, abcOptions]);
+
+        const autoCompleteOptions: AutoCompleteOptions = {
+            greedyPatternNames: ["separator"],
+        };
+        const autoComplete = new AutoComplete(fullSequence, autoCompleteOptions);
+        
+        const text = "";
+        const results = autoComplete.suggestFor(text);
+
+        const expectedOptions:ExpectedOption[] = [
+            { text: "==A", startIndex: 0, subElements: [{
+                text: "==",
+                pattern: separator.name
+            },{
+                text: "A",
+                pattern: aLiteral.name
+            }] },
+            { text: "==B", startIndex: 0, subElements: [{
+                text: "==",
+                pattern: separator.name
+            },{
+                text: "B",
+                pattern: bLiteral.name
+            }] },
+            { text: "==C", startIndex: 0, subElements: [{
+                text: "==",
+                pattern: separator.name
+            },{
+                text: "C",
+                pattern: cLiteral.name
+            }] },
+        ];
+
+        optionsMatchExpected(results.options, expectedOptions);
+    });
+
+
 
 });
 

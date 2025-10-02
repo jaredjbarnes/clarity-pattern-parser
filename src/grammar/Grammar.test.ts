@@ -363,6 +363,7 @@ describe("Grammar", () => {
         space = " "
         full-name = first-name + space + last-name
         `;
+
         function resolveImport(resource: string) {
             expect(resource).toBe("some/path/to/file.cpat");
             return Promise.resolve({ expression: importExpression, resource });

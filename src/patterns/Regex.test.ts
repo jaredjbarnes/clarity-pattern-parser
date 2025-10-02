@@ -7,15 +7,15 @@ import { Pattern } from "./Pattern";
 
 describe("Regex", () => {
     test("Empty String", () => {
-        expect(() => new Regex("empty", "")).toThrowError();
+        expect(() => new Regex("empty", "")).toThrow();
     });
 
     test("Starts With ^", () => {
-        expect(() => new Regex("carrot", "^")).toThrowError();
+        expect(() => new Regex("carrot", "^")).toThrow();
     });
 
     test("Ends With $", () => {
-        expect(() => new Regex("money", ".$")).toThrowError();
+        expect(() => new Regex("money", ".$")).toThrow();
     });
 
     test("Successful Parse", () => {

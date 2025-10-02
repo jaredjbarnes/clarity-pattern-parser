@@ -50,7 +50,7 @@ describe("Reference", () => {
 
         expect(() => {
             ref.parse(new Cursor("text"));
-        }).toThrowError();
+        }).toThrow();
     });
 
     test("Get Tokens", () => {

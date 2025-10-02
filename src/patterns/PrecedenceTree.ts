@@ -175,14 +175,38 @@ export class PrecedenceTree {
     private _compileAtomNode() {
         let node = this._atomNode;
 
-        if (this._prefixNode != null && this._atomNode != null) {
-            node = this._prefixNode.findRoot();
-            this._prefixPlaceholder.replaceWith(this._atomNode);
-        }
+        if (this._prefixNode != null && this._postfixNode != null && this._atomNode != null) {
+            let firstNode = this._prefixNode;
+            let secondNode = this._postfixNode;
+            let firstPlaceholder = this._prefixPlaceholder;
+            let secondPlaceholder = this._postfixPlaceholder;
+            const prefixName = this._prefixNode.name;
+            const postfixName = this._postfixNode.name;
+            const prefixPrecedence = this._getPrecedence(prefixName);
+            const postfixPrecedence = this._getPrecedence(postfixName);
 
-        if (this._postfixNode != null && node != null) {
-            this._postfixPlaceholder.replaceWith(node);
-            node = this._postfixNode;
+            // The Precedence is the index of the patterns, so its lower not higher :\
+            if (prefixPrecedence > postfixPrecedence) {
+                firstNode = this._postfixNode;
+                secondNode = this._prefixNode;
+                firstPlaceholder = this._postfixPlaceholder;
+                secondPlaceholder = this._prefixPlaceholder;
+            }
+
+            node = firstNode.findRoot();
+            firstPlaceholder.replaceWith(this._atomNode);
+            secondPlaceholder.replaceWith(node);
+            node = secondNode;
+        } else {
+            if (this._prefixNode != null && this._atomNode != null) {
+                node = this._prefixNode.findRoot();
+                this._prefixPlaceholder.replaceWith(this._atomNode);
+            }
+
+            if (this._postfixNode != null && node != null) {
+                this._postfixPlaceholder.replaceWith(node);
+                node = this._postfixNode;
+            }
         }
 
         this._prefixNode = null;

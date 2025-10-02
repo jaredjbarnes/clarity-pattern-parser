@@ -7,7 +7,7 @@ describe("Literal", () => {
     test("Empty Value", () => {
         expect(() => {
             new Literal("empty", "");
-        }).toThrowError();
+        }).toThrow();
     });
 
     test("Successful Parse", () => {

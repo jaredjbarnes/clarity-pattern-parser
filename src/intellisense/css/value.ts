@@ -5,6 +5,6 @@ import method from "./method";
 import name from "./name"
 import { Options } from "../../patterns/Options";
 
-const value = new Or("value", [hex, method, unit, number, name]);
+const value = new Options("value", [hex, method, unit, number, name]);
 
 export default value;

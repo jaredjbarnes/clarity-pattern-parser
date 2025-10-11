@@ -1260,6 +1260,25 @@ describe("AutoComplete", () => {
 
 
 
-});
 
-  
+  test('options return farthest match when encountering options with shared initial literals', () => {
+    const startBracket = new Literal('shared-starting-literal', '{');
+
+    const abcLiteral = new Literal('abc', 'abc');
+    const xyzLiteral = new Literal('xyz', 'xyz');
+
+    const sequenceOne = new Sequence('sequence-one', [startBracket, abcLiteral]);
+    const sequenceTwo = new Sequence('sequence-two', [startBracket, xyzLiteral]);
+
+    // create options with sequences that have matching initial literals
+    const options = new Options('options', [sequenceOne, sequenceTwo]);
+
+    const autoComplete = new AutoComplete(options);
+    const results = autoComplete.suggestFor('{a');
+
+    const expectedOptions: ExpectedOption[] = [
+      { text: 'bc', startIndex: 2, subElements: [{ text: 'abc', pattern: abcLiteral.name }] },
+    ];
+    optionsMatchExpected(results.options, expectedOptions);
+  });
+});

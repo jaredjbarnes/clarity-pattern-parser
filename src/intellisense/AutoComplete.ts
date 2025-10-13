@@ -140,7 +140,7 @@ export class AutoComplete {
       }
     });
 
-    return finalResults;
+    return getFurthestOptions(finalResults);
   }
 
   private _createSuggestionOptionsFromErrors() {

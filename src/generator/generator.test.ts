@@ -16,6 +16,7 @@ describe("generator", () => {
             postfix-expression = expression + "post"
             infix-expression = expression + " and " + expression
             expression = prefix-expression | postfix-expression | infix-expression | item
+            take-until = ? -> | "</script"
         `;
 
         const visitor = new TypescriptVisitor();

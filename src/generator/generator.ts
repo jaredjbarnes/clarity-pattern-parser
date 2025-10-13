@@ -70,6 +70,9 @@ export class Generator {
                 case "sequence": {
                     return this._visitor.sequence(pattern, args, this._depth);
                 }
+                case "take-until": {
+                    return this._visitor.takeUntil(pattern, args, this._depth);
+                }
             }
             throw Error("Cannot find pattern.");
         });

@@ -289,6 +289,8 @@ export class Grammar {
     }
 
     private _isRecursivePattern(name: string, pattern: Pattern) {
+        // Because we don't know if the pattern is a sequence with a reference we have to just assume it is.
+        // The better solution here would be to not have options at all and just use expresssion pattern instead.
         if (pattern.type === "reference") {
             return true;
         }

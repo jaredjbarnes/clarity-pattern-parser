@@ -7,6 +7,20 @@ import { Repeat } from "../patterns/Repeat";
 import { IGenerator } from "./igenerator";
 import { IVisitor } from "./ivisitor";
 
+const importMap: any = {
+    "literal": "Literal",
+    "optional": "Optional",
+    "options": "Options",
+    "reference": "Reference",
+    "regex": "Regex",
+    "repeat": "Repeat",
+    "right-associated": "RightAssociation",
+    "sequence": "Sequence",
+    "take-until": "TakeUntil",
+    "context": "Context",
+    "expression": "Expression"
+};
+
 export class TypescriptVisitor implements IVisitor {
     private _generator: IGenerator | null = null;
 
@@ -24,9 +38,11 @@ export class TypescriptVisitor implements IVisitor {
 
     end() { }
 
-    header(): string {
-        return "";
+    header( patterns: string[]): string {
+        console.log(patterns);
+        return `import { ${patterns.map(p => importMap[p]).join(", ")} } from "../index.ts";`;
     }
+
     footer(): string {
         return "";
     }
@@ -97,7 +113,6 @@ export class TypescriptVisitor implements IVisitor {
         const name = pattern.name;
         const regex = pattern as Regex;
         return `new Literal("${name}", "${this._escapeString(regex.regex)}")`;
-
     }
 
     infiniteRepeat(pattern: Pattern, depth: number): string {
@@ -141,6 +156,12 @@ export class TypescriptVisitor implements IVisitor {
         args = this._indent(args, depth + 1);
         const name = pattern.name;
         return `new Sequence("${name}", [${args.join(", ")}${this._generateTabs(depth)}])`;
+    }
+
+    takeUntil(pattern: Pattern, args: string[], depth: number): string {
+        args = this._indent(args, depth + 1);
+        const name = pattern.name;
+        return `new TakeUntil("${name}", ${args.join("")})`;
     }
 
     private _escapeString(value: string) {

@@ -20,4 +20,5 @@ export interface IVisitor {
     finiteRepeat(pattern: Pattern, depth: number): string
     rightAssociated(pattern: Pattern, args: string[], depth: number): string;
     sequence(pattern: Pattern, args: string[], depth: number): string;
+    takeUntil(pattern: Pattern, args: string[], depth: number): string;
 }

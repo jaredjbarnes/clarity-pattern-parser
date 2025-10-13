@@ -35,4 +35,40 @@ describe("Patterns String Template Literal", () => {
         result && result.ast && result.ast.findAll(n => n.name.includes("space")).forEach(n => n.remove());
         expect(result?.ast?.value).toBe("<div><div></div><div></div></div>");
     });
+
+    test("Expression Pattern", () => {
+        const { expr } = patterns`
+        integer = /\\d+/
+        operator = "+" | "-" | "*" | "/"
+        unary-operator = "+" | "-"
+        postfix-operator = "++" | "--"
+        binary-expr = expr + operator + expr
+        unary-expr = unary-operator + expr
+        postfix-expr = expr + postfix-operator
+        expr = postfix-expr | unary-expr | binary-expr | integer
+        `;
+
+        const result = expr.exec("-10++");
+        const ast = result?.ast;
+
+        expect(ast?.name).toBe("unary-expr");
+
+        expect(ast?.children[0].type).toBe("literal");
+        expect(ast?.children[0].name).toBe("-");
+        expect(ast?.children[0].value).toBe("-");
+
+        expect(ast?.children[1].type).toBe("expression");
+        expect(ast?.children[1].name).toBe("postfix-expr");
+        expect(ast?.children[1].value).toBe("10++");
+
+        expect(ast?.children[1].children[0].type).toBe("regex");
+        expect(ast?.children[1].children[0].name).toBe("integer");
+        expect(ast?.children[1].children[0].value).toBe("10");
+
+        expect(ast?.children[1].children[1].type).toBe("literal");
+        expect(ast?.children[1].children[1].name).toBe("++");
+        expect(ast?.children[1].children[1].value).toBe("++");
+
+        expect(result?.ast?.value).toBe("-10++");
+    });
 });

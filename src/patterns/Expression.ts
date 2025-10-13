@@ -112,7 +112,7 @@ export class Expression implements Pattern {
 
     private _organizePatterns(patterns: Pattern[]) {
         const finalPatterns: Pattern[] = [];
-        patterns.forEach((pattern) => {
+        patterns.forEach((pattern, index) => {
 
             if (this._isAtom(pattern)) {
                 const atom = pattern.clone();
@@ -127,6 +127,7 @@ export class Expression implements Pattern {
 
                 prefix.parent = this;
 
+                this._precedenceMap[name] = index;
                 this._prefixPatterns.push(prefix);
                 this._prefixNames.push(name);
 
@@ -136,6 +137,7 @@ export class Expression implements Pattern {
                 const postfix = this._extractPostfix(pattern);
                 postfix.parent = this;
 
+                this._precedenceMap[name] = index;
                 this._postfixPatterns.push(postfix);
                 this._postfixNames.push(name);
 
@@ -145,7 +147,7 @@ export class Expression implements Pattern {
                 const binary = this._extractBinary(pattern);
                 binary.parent = this;
 
-                this._precedenceMap[name] = this._binaryPatterns.length;
+                this._precedenceMap[name] = index;
                 this._binaryPatterns.push(binary);
                 this._binaryNames.push(name);
 

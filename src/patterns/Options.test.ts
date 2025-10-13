@@ -13,7 +13,7 @@ describe("Options", () => {
     test("Empty Options", () => {
         expect(() => {
             new Options("bad", []);
-        }).toThrowError();
+        }).toThrow();
     });
 
     test("One Option Successful", () => {

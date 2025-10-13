@@ -9,7 +9,7 @@ describe("Sequence", () => {
     test("No Patterns", () => {
         expect(() => {
             new Sequence("empty", []);
-        }).toThrowError();
+        }).toThrow();
     });
 
     test("One Pattern Match Successful", () => {

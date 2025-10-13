@@ -2721,13 +2721,36 @@ class PrecedenceTree {
     }
     _compileAtomNode() {
         let node = this._atomNode;
-        if (this._prefixNode != null && this._atomNode != null) {
-            node = this._prefixNode.findRoot();
-            this._prefixPlaceholder.replaceWith(this._atomNode);
+        if (this._prefixNode != null && this._postfixNode != null && this._atomNode != null) {
+            let firstNode = this._prefixNode;
+            let secondNode = this._postfixNode;
+            let firstPlaceholder = this._prefixPlaceholder;
+            let secondPlaceholder = this._postfixPlaceholder;
+            const prefixName = this._prefixNode.name;
+            const postfixName = this._postfixNode.name;
+            const prefixPrecedence = this._getPrecedence(prefixName);
+            const postfixPrecedence = this._getPrecedence(postfixName);
+            // The Precedence is the index of the patterns, so its lower not higher :\
+            if (prefixPrecedence > postfixPrecedence) {
+                firstNode = this._postfixNode;
+                secondNode = this._prefixNode;
+                firstPlaceholder = this._postfixPlaceholder;
+                secondPlaceholder = this._prefixPlaceholder;
+            }
+            node = firstNode.findRoot();
+            firstPlaceholder.replaceWith(this._atomNode);
+            secondPlaceholder.replaceWith(node);
+            node = secondNode;
         }
-        if (this._postfixNode != null && node != null) {
-            this._postfixPlaceholder.replaceWith(node);
-            node = this._postfixNode;
+        else {
+            if (this._prefixNode != null && this._atomNode != null) {
+                node = this._prefixNode.findRoot();
+                this._prefixPlaceholder.replaceWith(this._atomNode);
+            }
+            if (this._postfixNode != null && node != null) {
+                this._postfixPlaceholder.replaceWith(node);
+                node = this._postfixNode;
+            }
         }
         this._prefixNode = null;
         this._atomNode = null;
@@ -2835,7 +2858,7 @@ class Expression {
     }
     _organizePatterns(patterns) {
         const finalPatterns = [];
-        patterns.forEach((pattern) => {
+        patterns.forEach((pattern, index) => {
             if (this._isAtom(pattern)) {
                 const atom = pattern.clone();
                 atom.parent = this;
@@ -2846,6 +2869,7 @@ class Expression {
                 const name = this._extractName(pattern);
                 const prefix = this._extractPrefix(pattern);
                 prefix.parent = this;
+                this._precedenceMap[name] = index;
                 this._prefixPatterns.push(prefix);
                 this._prefixNames.push(name);
                 finalPatterns.push(prefix);
@@ -2854,6 +2878,7 @@ class Expression {
                 const name = this._extractName(pattern);
                 const postfix = this._extractPostfix(pattern);
                 postfix.parent = this;
+                this._precedenceMap[name] = index;
                 this._postfixPatterns.push(postfix);
                 this._postfixNames.push(name);
                 finalPatterns.push(postfix);
@@ -2862,7 +2887,7 @@ class Expression {
                 const name = this._extractName(pattern);
                 const binary = this._extractBinary(pattern);
                 binary.parent = this;
-                this._precedenceMap[name] = this._binaryPatterns.length;
+                this._precedenceMap[name] = index;
                 this._binaryPatterns.push(binary);
                 this._binaryNames.push(name);
                 if (pattern.type === "right-associated") {
@@ -3660,6 +3685,8 @@ class Grammar {
         return this._isRecursivePattern(name, pattern);
     }
     _isRecursivePattern(name, pattern) {
+        // Because we don't know if the pattern is a sequence with a reference we have to just assume it is.
+        // The better solution here would be to not have options at all and just use expresssion pattern instead.
         if (pattern.type === "reference") {
             return true;
         }
@@ -4011,26 +4038,30 @@ class AutoComplete {
         this._options = options;
         this._text = "";
     }
+    suggestFor(text) {
+        return this.suggestForWithCursor(new Cursor(text));
+    }
     suggestForWithCursor(cursor) {
         cursor.moveTo(0);
         this._cursor = cursor;
         this._text = cursor.text;
         this._cursor.startRecording();
         if (cursor.length === 0) {
-            return {
+            const suggestion = {
                 isComplete: false,
-                options: this._createSuggestionsFromRoot(),
+                options: this._createSuggestionOptionsFromMatch(),
                 error: new ParseError(0, 0, this._pattern),
                 errorAtIndex: 0,
                 cursor,
                 ast: null
             };
+            return suggestion;
         }
         let errorAtIndex = null;
         let error = null;
         const ast = this._pattern.parse(this._cursor);
         const isComplete = (ast === null || ast === void 0 ? void 0 : ast.value) === this._text;
-        const options = this._getAllOptions();
+        const options = this._getAllSuggestionsOptions();
         if (!isComplete && options.length > 0 && !this._cursor.hasError) {
             const startIndex = options.reduce((lowestIndex, o) => {
                 return Math.min(lowestIndex, o.startIndex);
@@ -4077,150 +4108,202 @@ class AutoComplete {
         }
         return 0;
     }
-    suggestFor(text) {
-        return this.suggestForWithCursor(new Cursor(text));
-    }
-    _getAllOptions() {
-        const errorMatches = this._getOptionsFromErrors();
-        const leafMatches = this._cursor.leafMatches.map((m) => this._createSuggestionsFromMatch(m)).flat();
+    _getAllSuggestionsOptions() {
+        const errorMatchOptions = this._createSuggestionOptionsFromErrors();
+        const leafMatchOptions = this._cursor.leafMatches.map((m) => this._createSuggestionOptionsFromMatch(m)).flat();
         const finalResults = [];
-        [...leafMatches, ...errorMatches].forEach(m => {
+        [...leafMatchOptions, ...errorMatchOptions].forEach(m => {
             const index = finalResults.findIndex(f => m.text === f.text);
             if (index === -1) {
                 finalResults.push(m);
             }
         });
-        return finalResults;
+        return getFurthestOptions(finalResults);
     }
-    _getOptionsFromErrors() {
+    _createSuggestionOptionsFromErrors() {
         // These errored because the length of the string.
         const errors = this._cursor.errors.filter(e => e.lastIndex === this._cursor.length);
-        const suggestions = errors.map(e => {
-            const tokens = this._getTokensForPattern(e.pattern);
-            const adjustedTokens = new Set();
-            const currentText = this._cursor.getChars(e.startIndex, e.lastIndex);
-            tokens.forEach((token) => {
-                if (token.startsWith(currentText) && token.length > currentText.length) {
-                    const difference = token.length - currentText.length;
-                    const suggestedText = token.slice(-difference);
-                    adjustedTokens.add(suggestedText);
-                }
-            });
-            return Array.from(adjustedTokens).map(t => {
-                return {
-                    text: t,
-                    startIndex: e.lastIndex,
-                };
-            });
-        });
-        return suggestions.flat();
+        const errorSuggestionOptions = errors.map(parseError => {
+            const currentText = this._cursor.getChars(parseError.startIndex, parseError.lastIndex);
+            const compositeSuggestions = this._getCompositeSuggestionsForPattern(parseError.pattern);
+            const trimmedErrorCompositeSuggestions = this._trimSuggestionsByExistingText(currentText, compositeSuggestions);
+            return this._createSuggestions(parseError.lastIndex, trimmedErrorCompositeSuggestions);
+        }).flat();
+        const dedupedErrorSuggestionOptions = this._deDupeCompositeSuggestions(errorSuggestionOptions);
+        return dedupedErrorSuggestionOptions;
     }
-    _createSuggestionsFromRoot() {
-        const suggestions = [];
-        const tokens = [...this._pattern.getTokens(), ...this._getTokensForPattern(this._pattern)];
-        for (const token of tokens) {
-            if (suggestions.findIndex(s => s.text === token) === -1) {
-                suggestions.push(this._createSuggestion("", token));
-            }
+    _createSuggestionOptionsFromMatch(match) {
+        if ((match === null || match === void 0 ? void 0 : match.pattern) == null) {
+            const compositeSuggestions = this._getCompositeSuggestionsForPattern(this._pattern);
+            return this._createSuggestions(-1, compositeSuggestions);
         }
-        return suggestions;
-    }
-    _createSuggestionsFromMatch(match) {
-        if (match.pattern == null) {
-            return this._createSuggestions(-1, this._getTokensForPattern(this._pattern));
-        }
-        if (match.node != null) {
-            const textStartingMatch = this._text.slice(match.node.startIndex, match.node.endIndex);
-            const currentPatternsTokens = this._getTokensForPattern(match.pattern);
-            /**
-             * Compares tokens to current text and extracts remainder tokens
-             * - IE. **currentText:** *abc*, **baseToken:** *abcdef*, **trailingToken:** *def*
-             */
-            const trailingTokens = currentPatternsTokens.reduce((acc, token) => {
-                if (token.startsWith(textStartingMatch)) {
-                    const sliced = token.slice(textStartingMatch.length);
-                    if (sliced !== '') {
-                        acc.push(sliced);
-                    }
-                }
-                return acc;
-            }, []);
+        if ((match === null || match === void 0 ? void 0 : match.node) != null) {
+            const currentText = this._text.slice(match.node.startIndex, match.node.endIndex);
+            /**Captures suggestions for a "completed" match pattern that still has existing possible suggestions.
+             * particularly relevant when working with set/custom tokens.
+            */
+            const matchCompositeSuggestions = this._getCompositeSuggestionsForPattern(match.pattern);
+            const trimmedMatchCompositeSuggestions = this._trimSuggestionsByExistingText(currentText, matchCompositeSuggestions);
             const leafPatterns = match.pattern.getNextPatterns();
-            const leafTokens = leafPatterns.reduce((acc, leafPattern) => {
-                acc.push(...this._getTokensForPattern(leafPattern));
-                return acc;
-            }, []);
-            const allTokens = [...trailingTokens, ...leafTokens];
-            return this._createSuggestions(match.node.lastIndex, allTokens);
+            const leafCompositeSuggestions = leafPatterns.flatMap(leafPattern => this._getCompositeSuggestionsForPattern(leafPattern));
+            const allCompositeSuggestions = [...leafCompositeSuggestions, ...trimmedMatchCompositeSuggestions,];
+            const dedupedCompositeSuggestions = this._deDupeCompositeSuggestions(allCompositeSuggestions);
+            return this._createSuggestions(match.node.lastIndex, dedupedCompositeSuggestions);
         }
         else {
             return [];
         }
     }
-    _getTokensForPattern(pattern) {
-        const augmentedTokens = this._getAugmentedTokens(pattern);
-        if (this._options.greedyPatternNames != null && this._options.greedyPatternNames.includes(pattern.name)) {
-            const nextPatterns = pattern.getNextPatterns();
-            const nextPatternTokens = nextPatterns.reduce((acc, pattern) => {
-                acc.push(...this._getTokensForPattern(pattern));
-                return acc;
-            }, []);
-            // using set to prevent duplicates
-            const tokens = new Set();
-            for (const token of augmentedTokens) {
-                for (const nextPatternToken of nextPatternTokens) {
-                    tokens.add(token + nextPatternToken);
+    /**
+     * Compares suggestions with provided text and removes completed sub-sequences and preceding text
+     * - IE. **currentText:** *abc*, **sequence:** *[{ab}{cd}{ef}*
+     *   - refines to {d}{ef}
+     */
+    _trimSuggestionsByExistingText(currentText, compositeSuggestions) {
+        const trimmedSuggestions = compositeSuggestions.reduce((acc, compositeSuggestion) => {
+            if (compositeSuggestion.text.startsWith(currentText)) {
+                const filteredSegments = this._filterCompletedSubSegments(currentText, compositeSuggestion);
+                const slicedSuggestionText = compositeSuggestion.text.slice(currentText.length);
+                if (slicedSuggestionText !== '') {
+                    const refinedCompositeSuggestion = {
+                        text: slicedSuggestionText,
+                        suggestionSequence: filteredSegments,
+                    };
+                    acc.push(refinedCompositeSuggestion);
                 }
             }
-            return [...tokens];
+            return acc;
+        }, []);
+        return trimmedSuggestions;
+    }
+    /** Removed segments already accounted for in the existing text.
+   * ie. sequence pattern segments ≈ [{look}, {an example}, {phrase}]
+   * fullText = "look an"
+   * remove {look} segment as its already been completed by the existing text.
+ */
+    _filterCompletedSubSegments(currentText, compositeSuggestion) {
+        let elementsToRemove = [];
+        let workingText = currentText;
+        compositeSuggestion.suggestionSequence.forEach(segment => {
+            /**sub segment has been completed, remove it from the sequence */
+            if (workingText.startsWith(segment.text)) {
+                workingText = workingText.slice(segment.text.length);
+                elementsToRemove.push(segment);
+            }
+        });
+        const filteredSegments = compositeSuggestion.suggestionSequence.filter(segment => !elementsToRemove.includes(segment));
+        return filteredSegments;
+    }
+    _getCompositeSuggestionsForPattern(pattern) {
+        const suggestionsToReturn = [];
+        const leafPatterns = pattern.getPatterns();
+        // for when pattern has no leafPatterns and only returns itself
+        if (leafPatterns.length === 1 && leafPatterns[0].id === pattern.id) {
+            const currentCustomTokens = this._getCustomTokens(pattern);
+            const currentTokens = pattern.getTokens();
+            const allTokens = [...currentCustomTokens, ...currentTokens];
+            const leafCompositeSuggestions = allTokens.map(token => {
+                const segment = {
+                    text: token,
+                    pattern: pattern,
+                };
+                const compositeSuggestion = {
+                    text: token,
+                    suggestionSequence: [segment],
+                };
+                return compositeSuggestion;
+            });
+            suggestionsToReturn.push(...leafCompositeSuggestions);
         }
         else {
-            return augmentedTokens;
+            const currentCustomTokens = this._getCustomTokens(pattern);
+            const patternsSuggestionList = currentCustomTokens.map(token => {
+                const segment = {
+                    text: token,
+                    pattern: pattern,
+                };
+                const patternSuggestion = {
+                    text: token,
+                    suggestionSequence: [segment],
+                };
+                return patternSuggestion;
+            });
+            const leafCompositeSuggestions = leafPatterns.map(lp => this._getCompositeSuggestionsForPattern(lp)).flat();
+            suggestionsToReturn.push(...patternsSuggestionList, ...leafCompositeSuggestions);
+        }
+        if (this._options.greedyPatternNames != null && this._options.greedyPatternNames.includes(pattern.name)) {
+            const nextPatterns = pattern.getNextPatterns();
+            const nextPatternedTokensList = nextPatterns.reduce((acc, pattern) => {
+                const patternedTokensList = this._getCompositeSuggestionsForPattern(pattern);
+                acc.push(...patternedTokensList);
+                return acc;
+            }, []);
+            const compositeSuggestionList = [];
+            for (const currentSuggestion of suggestionsToReturn) {
+                for (const nextSuggestionWithSubElements of nextPatternedTokensList) {
+                    const augmentedTokenWithPattern = {
+                        text: currentSuggestion.text + nextSuggestionWithSubElements.text,
+                        suggestionSequence: [...currentSuggestion.suggestionSequence, ...nextSuggestionWithSubElements.suggestionSequence],
+                    };
+                    compositeSuggestionList.push(augmentedTokenWithPattern);
+                }
+            }
+            return compositeSuggestionList;
+        }
+        else {
+            const dedupedSuggestions = this._deDupeCompositeSuggestions(suggestionsToReturn);
+            return dedupedSuggestions;
         }
     }
-    _getAugmentedTokens(pattern) {
-        var _a, _b;
+    _getCustomTokens(pattern) {
+        var _a;
         const customTokensMap = this._options.customTokens || {};
-        const leafPatterns = pattern.getPatterns();
-        /** Using Set to
-         * - prevent duplicates
-         * - prevent mutation of original customTokensMap
-         */
-        const customTokensForPattern = new Set((_a = customTokensMap[pattern.name]) !== null && _a !== void 0 ? _a : []);
-        for (const lp of leafPatterns) {
-            const augmentedTokens = (_b = customTokensMap[lp.name]) !== null && _b !== void 0 ? _b : [];
-            const lpsCombinedTokens = [...lp.getTokens(), ...augmentedTokens];
-            for (const token of lpsCombinedTokens) {
-                customTokensForPattern.add(token);
+        const customTokens = (_a = customTokensMap[pattern.name]) !== null && _a !== void 0 ? _a : [];
+        const allTokens = [...customTokens];
+        return allTokens;
+    }
+    _deDupeCompositeSuggestions(suggestions) {
+        if (this._options.disableDedupe) {
+            return suggestions;
+        }
+        const seen = new Set();
+        const unique = [];
+        for (const suggestion of suggestions) {
+            // Create a unique key based on text and subElements
+            const subElementsKey = suggestion.suggestionSequence
+                .map(sub => ` ${sub.pattern.name} - ${sub.text}  `)
+                .sort()
+                .join('|');
+            const key = `${suggestion.text}|${subElementsKey}`;
+            if (!seen.has(key)) {
+                seen.add(key);
+                unique.push(suggestion);
             }
         }
-        return [...customTokensForPattern];
+        return unique;
     }
-    _createSuggestions(lastIndex, tokens) {
+    _createSuggestions(lastIndex, compositeSuggestionList) {
         let textToIndex = lastIndex === -1 ? "" : this._cursor.getChars(0, lastIndex);
-        const suggestionStrings = [];
         const options = [];
-        for (const token of tokens) {
+        for (const compositeSuggestion of compositeSuggestionList) {
             // concatenated for start index identification inside createSuggestion
-            const suggestion = textToIndex + token;
-            const alreadyExist = suggestionStrings.includes(suggestion);
-            const isSameAsText = suggestion === this._text;
-            if (!alreadyExist && !isSameAsText) {
-                suggestionStrings.push(suggestion);
-                const suggestionOption = this._createSuggestion(this._cursor.text, suggestion);
-                options.push(suggestionOption);
-            }
+            const existingTextWithSuggestion = textToIndex + compositeSuggestion.text;
+            existingTextWithSuggestion === this._text;
+            const suggestionOption = this._createSuggestionOption(this._cursor.text, existingTextWithSuggestion, compositeSuggestion.suggestionSequence);
+            options.push(suggestionOption);
+            // }
         }
         const reducedOptions = getFurthestOptions(options);
         reducedOptions.sort((a, b) => a.text.localeCompare(b.text));
         return reducedOptions;
     }
-    _createSuggestion(fullText, suggestion) {
+    _createSuggestionOption(fullText, suggestion, segments) {
         const furthestMatch = findMatchIndex(suggestion, fullText);
         const text = suggestion.slice(furthestMatch);
         const option = {
             text: text,
             startIndex: furthestMatch,
+            suggestionSequence: segments,
         };
         return option;
     }

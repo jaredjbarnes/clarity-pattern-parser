@@ -4120,7 +4120,7 @@
                     finalResults.push(m);
                 }
             });
-            return finalResults;
+            return getFurthestOptions(finalResults);
         }
         _createSuggestionOptionsFromErrors() {
             // These errored because the length of the string.

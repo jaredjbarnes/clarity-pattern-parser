@@ -1659,11 +1659,11 @@
         parse(cursor) {
             return this._repeatPattern.parse(cursor);
         }
-        exec(text) {
-            return this._repeatPattern.exec(text);
+        exec(text, record = false) {
+            return this._repeatPattern.exec(text, record);
         }
-        test(text) {
-            return this._repeatPattern.test(text);
+        test(text, record = false) {
+            return this._repeatPattern.test(text, record);
         }
         clone(name = this.name) {
             let min = this._options.min;

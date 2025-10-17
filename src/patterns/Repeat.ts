@@ -96,12 +96,12 @@ export class Repeat implements Pattern {
         return this._repeatPattern.parse(cursor);
     }
 
-    exec(text: string): ParseResult {
-        return this._repeatPattern.exec(text);
+    exec(text: string, record = false): ParseResult {
+        return this._repeatPattern.exec(text, record);
     }
 
-    test(text: string): boolean {
-        return this._repeatPattern.test(text);
+    test(text: string, record = false): boolean {
+        return this._repeatPattern.test(text, record);
     }
 
     clone(name = this.name) {

@@ -33,8 +33,8 @@ export declare class Repeat implements Pattern {
     get options(): InternalRepeatOptions;
     constructor(name: string, pattern: Pattern, options?: RepeatOptions);
     parse(cursor: Cursor): Node | null;
-    exec(text: string): ParseResult;
-    test(text: string): boolean;
+    exec(text: string, record?: boolean): ParseResult;
+    test(text: string, record?: boolean): boolean;
     clone(name?: string): Repeat;
     getTokens(): string[];
     getTokensAfter(_childReference: Pattern): string[];

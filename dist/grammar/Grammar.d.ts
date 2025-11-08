@@ -6,6 +6,7 @@ export interface GrammarFile {
 }
 export interface GrammarOptions {
     resolveImport?: (resource: string, originResource: string | null) => Promise<GrammarFile>;
+    resolveImportSync?: (resource: string, originResource: string | null) => GrammarFile;
     originResource?: string | null;
     params?: Pattern[];
     decorators?: Record<string, Decorator>;
@@ -14,6 +15,7 @@ export declare class Grammar {
     private _params;
     private _originResource?;
     private _resolveImport;
+    private _resolveImportSync;
     private _parseContext;
     constructor(options?: GrammarOptions);
     import(path: string): Promise<Record<string, Pattern>>;
@@ -42,8 +44,10 @@ export declare class Grammar {
     private _saveConfigurableAnonymous;
     private _buildComplexAnonymousPattern;
     private _resolveImports;
-    private processImport;
-    private processUseParams;
+    private _resolveImportsSync;
+    private _processImportSync;
+    private _processImport;
+    private _processUseParams;
     private _applyDecorators;
     private _getParams;
     private _getPattern;

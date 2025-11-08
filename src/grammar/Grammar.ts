@@ -50,6 +50,10 @@ function defaultImportResolver(_path: string, _basePath: string | null): Promise
     throw new Error("No import resolver supplied.");
 }
 
+function defaultImportResolverSync(_path: string, _basePath: string | null): GrammarFile {
+    throw new Error("No import resolver supplied.");
+}
+
 export interface GrammarFile {
     resource: string;
     expression: string;
@@ -57,6 +61,7 @@ export interface GrammarFile {
 
 export interface GrammarOptions {
     resolveImport?: (resource: string, originResource: string | null) => Promise<GrammarFile>;
+    resolveImportSync?: (resource: string, originResource: string | null) => GrammarFile;
     originResource?: string | null;
     params?: Pattern[];
     decorators?: Record<string, Decorator>;
@@ -66,12 +71,14 @@ export class Grammar {
     private _params: Pattern[];
     private _originResource?: string | null;
     private _resolveImport: (resource: string, originResource: string | null) => Promise<GrammarFile>;
+    private _resolveImportSync: (resource: string, originResource: string | null) => GrammarFile;
     private _parseContext: ParseContext;
 
     constructor(options: GrammarOptions = {}) {
         this._params = options?.params == null ? [] : options.params;
         this._originResource = options?.originResource == null ? null : options.originResource;
         this._resolveImport = options.resolveImport == null ? defaultImportResolver : options.resolveImport;
+        this._resolveImportSync = options.resolveImportSync == null ? defaultImportResolverSync : options.resolveImportSync;
         this._parseContext = new ParseContext(this._params, options.decorators || {});
     }
 
@@ -101,10 +108,7 @@ export class Grammar {
         this._parseContext = new ParseContext(this._params, this._parseContext.decorators);
         const ast = this._tryToParse(expression);
 
-        if (this._hasImports(ast)) {
-            throw new Error("Cannot use imports on parseString, use parse instead.");
-        }
-
+        this._resolveImportsSync(ast);
         this._buildPatterns(ast);
 
         return this._buildPatternRecord();
@@ -476,14 +480,89 @@ export class Grammar {
 
         for (const statement of importStatements) {
             if (statement.name === "import-from") {
-                await this.processImport(statement);
+                await this._processImport(statement);
             } else {
-                this.processUseParams(statement);
+                this._processUseParams(statement);
             }
         }
     }
 
-    private async processImport(importStatement: Node) {
+    private _resolveImportsSync(ast: Node) {
+        const importStatements = ast.findAll(n => {
+            return n.name === "import-from" || n.name === "param-name-with-default-value";
+        });
+
+        for (const statement of importStatements) {
+            if (statement.name === "import-from") {
+                this._processImportSync(statement);
+            } else {
+                this._processUseParams(statement);
+            }
+        }
+    }
+
+    private _processImportSync(importStatement: Node) {
+        const parseContext = this._parseContext;
+        const resourceNode = importStatement.find(n => n.name === "resource") as Node;
+        const params = this._getParams(importStatement);
+        const resource = resourceNode.value.slice(1, -1);
+        const grammarFile = this._resolveImportSync(resource, this._originResource || null);
+        const grammar = new Grammar({
+            resolveImport: this._resolveImport,
+            resolveImportSync: this._resolveImportSync,
+            originResource: grammarFile.resource,
+            params,
+            decorators: this._parseContext.decorators
+        });
+
+        try {
+            const patterns = grammar.parseString(grammarFile.expression);
+            const importStatements = importStatement.findAll(n => n.name === "import-name" || n.name === "import-alias");
+
+            importStatements.forEach((node) => {
+                if (node.name === "import-name" && node.parent?.name === "import-alias") {
+                    return;
+                }
+
+                if (node.name === "import-name" && node.parent?.name !== "import-alias") {
+                    const importName = node.value;
+
+                    if (parseContext.importedPatternsByName.has(importName)) {
+                        throw new Error(`'${importName}' was already used within another import.`);
+                    }
+
+                    const pattern = patterns[importName];
+                    if (pattern == null) {
+                        throw new Error(`Couldn't find pattern with name: ${importName}, from import: ${resource}.`);
+                    }
+
+                    parseContext.importedPatternsByName.set(importName, pattern);
+                } else {
+                    const importNameNode = node.find(n => n.name === "import-name") as Node;
+                    const importName = importNameNode.value;
+                    const aliasNode = node.find(n => n.name === "import-name-alias") as Node;
+                    const alias = aliasNode.value;
+
+                    if (parseContext.importedPatternsByName.has(alias)) {
+                        throw new Error(`'${alias}' was already used within another import.`);
+                    }
+
+                    const pattern = patterns[importName];
+                    if (pattern == null) {
+                        throw new Error(`Couldn't find pattern with name: ${importName}, from import: ${resource}.`);
+                    }
+
+                    parseContext.importedPatternsByName.set(alias, pattern.clone(alias));
+                }
+            });
+
+        } catch (e: any) {
+            throw new Error(`Failed loading expression from: "${resource}". Error details: "${e.message}"`);
+        }
+
+    }
+
+    private async _processImport(importStatement: Node) {
         const parseContext = this._parseContext;
         const resourceNode = importStatement.find(n => n.name === "resource") as Node;
         const params = this._getParams(importStatement);
@@ -543,7 +622,7 @@ export class Grammar {
 
     }
 
-    private processUseParams(paramName: Node) {
+    private _processUseParams(paramName: Node) {
         const defaultValueNode = paramName.find(n => n.name === "param-default");
         if (defaultValueNode === null) {
             return;

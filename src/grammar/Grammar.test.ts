@@ -779,4 +779,42 @@ describe("Grammar", () => {
         expect(result?.value).toBe("function(){}");
     });
 
+    test("Import Sync", () => {
+        function resolveImportSync(path: string, importer: string | null) {
+            return {
+                expression: pathMap[path],
+                resource: path,
+            }
+        }
+        
+        const rootExpression = `
+        import { name } from "first-name.cpat"
+        full-name = name
+        `;
+
+        const firstNameExpression = `
+        import { last-name } from "last-name.cpat"
+        first-name = "John"
+        name = first-name + " " +  last-name
+        `;
+
+        const lastNameExpression = `
+        last-name = "Doe"
+        `;
+
+        const pathMap: Record<string, string> = {
+            "first-name.cpat": firstNameExpression,
+            "last-name.cpat": lastNameExpression,
+        };
+
+        const patterns = Grammar.parseString(rootExpression, {
+            resolveImportSync: resolveImportSync,
+            originResource: "/root.cpat",
+        });
+
+        expect(patterns["full-name"]).not.toBeNull();
+        const result = patterns["full-name"].exec("John Doe");
+        expect(result?.ast?.value).toBe("John Doe");
+    });
+
 });

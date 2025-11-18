@@ -1,0 +1,91 @@
+# syntax
+syntax = "syntax"
+import = "import"
+useParams = "use params"
+withParams = "with params"
+from = "from"
+right = "right"
+ws = /\s+/
+ls = /[ \t]+/
+assign = "="
+bar = "|"
+concat = "+"
+colon = ":"
+openParen = "("
+closeParen = ")"
+openSquareBracket = "["
+closeSquareBracket = "]"
+openBracket = "{"
+closeBracket = "}"
+comma = /\s*[,]\s*/
+trim = "trim"
+not = "!"
+optional = "?"
+newLine = /\s*(\r\n|\r|\n)\s*/
+syntaxVersion = /\S*/
+at = "@"
+
+literal = /"(?:\\.|[^"\\])*"/
+regexLiteral = /\/(\\/|[^\n\r])*\//
+
+integer = /[1-9][0-9]*|[0]/ 
+name = /[a-zA-Z_-]+[a-zA-Z0-9_-]*/
+patternName = name
+patternIdentifier = name
+resource = literal
+
+comment = /#[^\n\r]*/
+
+# JSON
+jsonString = literal
+jsonNumber = /-?\d+(\.\d+)?/
+jsonBoolean = "true" | "false"
+jsonNull = "null"
+jsonValue = jsonString | jsonNumber | jsonBoolean | jsonNull | jsonArray | jsonObject
+jsonArrayItems = (jsonValue, comma trim)+
+jsonArray = openSquareBracket +ws? + jsonArrayItems? + ws? + closeSquareBracket
+jsonObjectPropertyName = literal
+jsonObjectProperty = jsonObjectPropertyName + ws? + colon + ws? + jsonValue
+jsonObjectProperties = (jsonObjectProperty, comma trim)+
+jsonObject = openBracket + ws? + jsonObjectProperties? + ws? + closeBracket
+
+syntaxStatement = syntax + ws? + syntaxVersion
+
+decorationName = name
+decorationStatement = at + ws? + decorationName + ws? + openParen + ws? + jsonValue? + ws? + closeParen
+
+useParamPatterns = (patternName, comma trim)+
+useParamsStatement = useParams + ls? + openBracket + ws? + useParamPatterns + ws? + closeBracket
+
+withParamStatements = (patternAssignment, newLine trim)+
+withParamsExpr = withParams + ls? + openBracket + ws? + withParamStatements + ws? + closeBracket
+
+patternNames = (patternName, comma trim)+
+importedPatterns = openBracket + ws? + patternNames + ws? + closeBracket 
+importStatement = import + ls? + importedPatterns + ls? + from + ls? + resource + ls? + withParamsExpr?
+
+notExpr = not + ls? + unaryPatternExpr
+optionalExpr = unaryPatternExpr + ls? + optional
+rightAssociationExpr = unaryPatternExpr + ls? + right
+
+unaryPatternExpr = notExpr | optionalExpr | rightAssociationExpr | patternIdentifier
+
+repeatBounds = openBracket + integer? + comma? + integer? + closeBracket
+oneOrMore = "+"
+zeroOrMore = "*"
+repeatOptions = oneOrMore | zeroOrMore | repeatBounds
+delimiter = comma + patternExpr + ws? + trim?
+repeatExpr = openParen + ws? + patternExpr + ws? + delimiter? + ws? + closeParen + repeatOptions
+
+sequenceExpr = patternExpr + ws? + "+" + ws? + patternExpr 
+optionsExpr = patternExpr + ws? + "|" + ws? + patternExpr
+greedyOptionsExpr = patternExpr + ws? + "<|>" + ws? + patternExpr
+patternGroupExpr = openParen + ws? + patternExpr + ws? + closeParen
+
+exportPattern = patternName
+patternExpr =  sequenceExpr | optionsExpr | greedyOptionsExpr |  repeatExpr | patternGroupExpr | literal | regexLiteral | unaryPatternExpr 
+patternAssignment = patternName + ws? + assign + ws? + patternExpr
+statement = useParamsStatement | importStatement  | patternAssignment | decorationStatement | exportPattern | comment 
+statements = (statement, newLine)+
+cpat = ws? + syntaxStatement? + ws? + statements?
+

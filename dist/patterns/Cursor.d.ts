@@ -3,7 +3,7 @@ import { Match } from "./CursorHistory";
 import { ParseError } from "./ParseError";
 import { Pattern } from "./Pattern";
 export declare class Cursor {
-    private _text;
+    private _chars;
     private _index;
     private _length;
     private _history;

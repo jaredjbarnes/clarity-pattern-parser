@@ -435,7 +435,7 @@
 
     class Cursor {
         get text() {
-            return this._text;
+            return this._chars.join("");
         }
         get isOnFirst() {
             return this._index === 0;
@@ -483,12 +483,12 @@
             return this._history.error != null;
         }
         get currentChar() {
-            return this._text[this._index];
+            return this._chars[this._index];
         }
         constructor(text) {
-            this._text = text;
+            this._chars = [...text];
             this._index = 0;
-            this._length = [...text].length;
+            this._length = this._chars.length;
             this._history = new CursorHistory();
         }
         hasNext() {
@@ -522,7 +522,7 @@
             return this._length - 1;
         }
         getChars(first, last) {
-            return this._text.slice(first, last + 1);
+            return this._chars.slice(first, last + 1).join("");
         }
         recordMatch(pattern, node) {
             this._history.recordMatch(pattern, node);
@@ -771,7 +771,9 @@
         }
         processResult(cursor, result) {
             const currentIndex = cursor.index;
-            const newIndex = currentIndex + result[0].length - 1;
+            const match = result[0];
+            const matchLength = [...match].length;
+            const newIndex = currentIndex + matchLength - 1;
             this._node = new Node("regex", this._name, currentIndex, newIndex, undefined, result[0]);
             cursor.moveTo(newIndex);
             cursor.recordMatch(this, this._node);

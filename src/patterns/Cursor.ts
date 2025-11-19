@@ -4,13 +4,13 @@ import { ParseError } from "./ParseError";
 import { Pattern } from "./Pattern";
 
 export class Cursor {
-  private _text: string;
+  private _chars: string[];
   private _index: number;
   private _length: number;
   private _history: CursorHistory;
 
   get text(): string {
-    return this._text;
+    return this._chars.join("");
   }
 
   get isOnFirst(): boolean {
@@ -74,13 +74,13 @@ export class Cursor {
   }
 
   get currentChar(): string {
-    return this._text[this._index];
+    return this._chars[this._index];
   }
 
   constructor(text: string) {
-    this._text = text;
+    this._chars = [...text];
     this._index = 0;
-    this._length = [...text].length;
+    this._length = this._chars.length;
     this._history = new CursorHistory();
   }
 
@@ -123,7 +123,7 @@ export class Cursor {
   }
 
   getChars(first: number, last: number): string {
-    return this._text.slice(first, last + 1);
+    return this._chars.slice(first, last + 1).join("");
   }
 
   recordMatch(pattern: Pattern, node: Node): void {

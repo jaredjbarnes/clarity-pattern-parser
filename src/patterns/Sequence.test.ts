@@ -4,6 +4,7 @@ import { Literal } from "./Literal";
 import { Node } from "../ast/Node";
 import { Optional } from "./Optional";
 import { Pattern } from "./Pattern";
+import { Regex } from "./Regex";
 
 describe("Sequence", () => {
     test("No Patterns", () => {
@@ -333,5 +334,15 @@ describe("Sequence", () => {
         expect(result.ast).toBe(null);
         expect(result.cursor.hasError).toBeFalsy();
     });
+
+    test("Unicode Characters", ()=>{
+        const quote = new Literal("'", "'");
+        const content = new Regex("content", "[^']*");
+        const sequence = new Sequence("sequence", [quote, content, quote]);
+        const result = sequence.exec("'🔴'");
+
+        expect(result.ast).not.toBe(null);
+        expect(result.cursor.hasError).toBeFalsy();
+    })
 
 });

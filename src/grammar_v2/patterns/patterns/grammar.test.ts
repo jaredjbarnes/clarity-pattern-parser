@@ -4,7 +4,6 @@ import path from "path";
 import { Node } from "../../../ast/Node";
 
 const dir = path.join(__dirname, "./cpat.cpat");
-const text = fs.readFileSync(dir, "utf8");
 
 describe("grammar", () => {
     test("syntax version", () => {

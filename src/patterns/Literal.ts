@@ -13,10 +13,8 @@ export class Literal implements Pattern {
   private _name: string;
   private _parent: Pattern | null;
   private _token: string;
-  private _runes: string[];
   private _firstIndex: number;
   private _lastIndex: number;
-  private _endIndex: number;
 
   get id(): string {
     return this._id;
@@ -59,11 +57,9 @@ export class Literal implements Pattern {
     this._type = "literal";
     this._name = name;
     this._token = value;
-    this._runes = Array.from(value);
     this._parent = null;
     this._firstIndex = 0;
     this._lastIndex = 0;
-    this._endIndex = 0;
   }
 
   test(text: string, record = false): boolean {
@@ -76,6 +72,7 @@ export class Literal implements Pattern {
 
   parse(cursor: Cursor): Node | null {
     this._firstIndex = cursor.index;
+    this._lastIndex = cursor.index;
     const passed = this._tryToParse(cursor);
 
     if (passed) {
@@ -86,38 +83,33 @@ export class Literal implements Pattern {
       return node;
     }
 
-    cursor.recordErrorAt(this._firstIndex, this._endIndex, this);
+    cursor.recordErrorAt(this._firstIndex, this._lastIndex, this);
     return null;
   }
 
   private _tryToParse(cursor: Cursor): boolean {
-    let passed = false;
-    const literalRuneLength = this._runes.length;
+    const token = this._token;
+    const compareToToken = cursor.text.slice(this._firstIndex, this._firstIndex + this._token.length);
+    const length = Math.min(token.length, compareToToken.length);
 
-    for (let i = 0; i < literalRuneLength; i++) {
-      const literalRune = this._runes[i];
-      const cursorRune = cursor.currentChar;
-
-      if (literalRune !== cursorRune) {
-        this._endIndex = cursor.index;
-        break;
+    for (let i = 0 ; i < length; i++){
+      if (token[i] !== compareToToken[i]) {
+        this._lastIndex = this._firstIndex + i;
+        cursor.moveTo(this._lastIndex);
+        return false;
       }
-
-      if (i + 1 === literalRuneLength) {
-        this._lastIndex = this._firstIndex + this._token.length - 1;
-        passed = true;
-        break;
-      }
-
-      if (!cursor.hasNext()) {
-        this._endIndex = cursor.index + 1;
-        break;
-      }
-
-      cursor.next();
     }
 
-    return passed;
+    if (token != compareToToken){
+      this._lastIndex = this._firstIndex + compareToToken.length - 1;
+      cursor.moveTo(this._lastIndex);
+      return false;
+    }
+
+    this._lastIndex = this._firstIndex + this._token.length - 1;
+    cursor.moveTo(this._lastIndex);
+    return true;
+
   }
 
   private _createNode(): Node {

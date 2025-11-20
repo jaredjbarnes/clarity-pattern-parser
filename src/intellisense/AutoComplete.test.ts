@@ -194,7 +194,7 @@ describe("AutoComplete", () => {
 
         expect(result.ast).toBeNull();
         optionsMatchExpected(result.options, expectedOptions);
-        expect(result.errorAtIndex).toBe(text.length);
+        expect(result.errorAtIndex).toBe(text.length - 1);
         expect(result.isComplete).toBeFalsy();
         expect(result.cursor).not.toBeNull();
     });
@@ -313,7 +313,7 @@ describe("AutoComplete", () => {
 
         expect(result.ast).toBeNull();
         optionsMatchExpected(result.options, expectedOptions);
-        expect(result.errorAtIndex).toBe(2);
+        expect(result.errorAtIndex).toBe(1);
         expect(result.isComplete).toBeFalsy();
         expect(result.cursor).not.toBeNull();
     });
@@ -944,7 +944,7 @@ describe("AutoComplete", () => {
 
         optionsMatchExpected(suggestion.options, expected);
 
-        expect(suggestion.error?.lastIndex).toBe(2);
+        expect(suggestion.error?.lastIndex).toBe(1);
     });
 
     test("Recursion With And", () => {

@@ -58,7 +58,7 @@ export class Regex implements Pattern {
     this._name = name;
     this._parent = null;
     this._originalRegexString = regex;
-    this._regex = new RegExp(`^${regex}`, "g");
+    this._regex = new RegExp(`^${regex}`, "gu");
     this.assertArguments();
   }
 
@@ -101,7 +101,7 @@ export class Regex implements Pattern {
   private resetState(cursor: Cursor) {
     this._cursor = cursor;
     this._regex.lastIndex = 0;
-    this._substring = this._cursor.text.substr(this._cursor.index);
+    this._substring = this._cursor.text.slice(this._cursor.index);
     this._node = null;
   }
 
@@ -118,19 +118,19 @@ export class Regex implements Pattern {
   private processResult(cursor: Cursor, result: RegExpExecArray) {
     const currentIndex = cursor.index;
     const match = result[0];
-    const matchLength = [...match].length;
-    const newIndex = currentIndex + matchLength - 1;
+    const lastIndex = cursor.getCharLastIndex(currentIndex + match.length - 1);
+
 
     this._node = new Node(
       "regex",
       this._name,
       currentIndex,
-      newIndex,
+      lastIndex,
       undefined,
       result[0]
     );
 
-    cursor.moveTo(newIndex);
+    cursor.moveTo(lastIndex);
     cursor.recordMatch(this, this._node);
   }
 

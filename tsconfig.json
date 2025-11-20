@@ -3,7 +3,7 @@
     "moduleResolution": "node",
     "target": "es6",
     "module": "esnext",
-    "lib": ["es2021"],
+    "lib": ["esnext"],
     "strict": true,
     "sourceMap": true,
     "declaration": true,

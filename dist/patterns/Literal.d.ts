@@ -8,10 +8,8 @@ export declare class Literal implements Pattern {
     private _name;
     private _parent;
     private _token;
-    private _runes;
     private _firstIndex;
     private _lastIndex;
-    private _endIndex;
     get id(): string;
     get type(): string;
     get name(): string;

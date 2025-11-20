@@ -431,9 +431,10 @@ class CursorHistory {
     }
 }
 
+const segmenter = new Intl.Segmenter("und", { granularity: "grapheme" });
 class Cursor {
     get text() {
-        return this._chars.join("");
+        return this._text;
     }
     get isOnFirst() {
         return this._index === 0;
@@ -481,33 +482,55 @@ class Cursor {
         return this._history.error != null;
     }
     get currentChar() {
-        return this._chars[this._index];
+        const index = this.getCharStartIndex(this._index);
+        return this.text.slice(index, index + this._charSize[index]);
     }
     constructor(text) {
-        this._chars = [...text];
+        this._text = text;
+        this._length = text.length;
+        this._charSize = [];
+        this._charMap = [];
         this._index = 0;
-        this._length = this._chars.length;
         this._history = new CursorHistory();
+        let index = 0;
+        for (const segment of segmenter.segment(text)) {
+            const size = segment.segment.length;
+            for (let i = 0; i < size; i++) {
+                this._charMap.push(index);
+                this._charSize.push(size);
+            }
+            index += size;
+        }
     }
     hasNext() {
-        return this._index + 1 < this._length;
+        const index = this._charMap[this._index];
+        const charSize = this._charSize[index];
+        return index + charSize < this._length;
     }
     next() {
         if (this.hasNext()) {
-            this._index++;
+            const index = this._charMap[this._index];
+            const size = this._charSize[index];
+            this.moveTo(index + size);
         }
     }
     hasPrevious() {
-        return this._index - 1 >= 0;
+        var _a;
+        const index = this._charMap[this._index];
+        const previousIndex = (_a = this._charMap[index - 1]) !== null && _a !== void 0 ? _a : -1;
+        return previousIndex >= 0;
     }
     previous() {
+        var _a;
         if (this.hasPrevious()) {
-            this._index--;
+            const index = this._charMap[this._index];
+            const previousIndex = (_a = this._charMap[index - 1]) !== null && _a !== void 0 ? _a : -1;
+            this.moveTo(previousIndex);
         }
     }
     moveTo(position) {
         if (position >= 0 && position < this._length) {
-            this._index = position;
+            this._index = this._charMap[position];
         }
     }
     moveToFirstChar() {
@@ -519,8 +542,8 @@ class Cursor {
     getLastIndex() {
         return this._length - 1;
     }
-    getChars(first, last) {
-        return this._chars.slice(first, last + 1).join("");
+    substring(first, last) {
+        return this._text.slice(first, last + 1);
     }
     recordMatch(pattern, node) {
         this._history.recordMatch(pattern, node);
@@ -536,6 +559,18 @@ class Cursor {
     }
     stopRecording() {
         this._history.stopRecording();
+    }
+    getCharStartIndex(index) {
+        return this._charMap[index];
+    }
+    getCharEndIndex(index) {
+        var _a;
+        let startIndex = this.getCharStartIndex(index);
+        return (_a = startIndex + this._charSize[startIndex]) !== null && _a !== void 0 ? _a : 1;
+    }
+    getCharLastIndex(index) {
+        var _a;
+        return (_a = this.getCharEndIndex(index) - 1) !== null && _a !== void 0 ? _a : 0;
     }
 }
 
@@ -602,11 +637,9 @@ class Literal {
         this._type = "literal";
         this._name = name;
         this._token = value;
-        this._runes = Array.from(value);
         this._parent = null;
         this._firstIndex = 0;
         this._lastIndex = 0;
-        this._endIndex = 0;
     }
     test(text, record = false) {
         return testPattern(this, text, record);
@@ -616,6 +649,7 @@ class Literal {
     }
     parse(cursor) {
         this._firstIndex = cursor.index;
+        this._lastIndex = cursor.index;
         const passed = this._tryToParse(cursor);
         if (passed) {
             cursor.resolveError();
@@ -623,31 +657,28 @@ class Literal {
             cursor.recordMatch(this, node);
             return node;
         }
-        cursor.recordErrorAt(this._firstIndex, this._endIndex, this);
+        cursor.recordErrorAt(this._firstIndex, this._lastIndex, this);
         return null;
     }
     _tryToParse(cursor) {
-        let passed = false;
-        const literalRuneLength = this._runes.length;
-        for (let i = 0; i < literalRuneLength; i++) {
-            const literalRune = this._runes[i];
-            const cursorRune = cursor.currentChar;
-            if (literalRune !== cursorRune) {
-                this._endIndex = cursor.index;
-                break;
+        const token = this._token;
+        const compareToToken = cursor.text.slice(this._firstIndex, this._firstIndex + this._token.length);
+        const length = Math.min(token.length, compareToToken.length);
+        for (let i = 0; i < length; i++) {
+            if (token[i] !== compareToToken[i]) {
+                this._lastIndex = this._firstIndex + i;
+                cursor.moveTo(this._lastIndex);
+                return false;
             }
-            if (i + 1 === literalRuneLength) {
-                this._lastIndex = this._firstIndex + this._token.length - 1;
-                passed = true;
-                break;
-            }
-            if (!cursor.hasNext()) {
-                this._endIndex = cursor.index + 1;
-                break;
-            }
-            cursor.next();
         }
-        return passed;
+        if (token != compareToToken) {
+            this._lastIndex = this._firstIndex + compareToToken.length - 1;
+            cursor.moveTo(this._lastIndex);
+            return false;
+        }
+        this._lastIndex = this._firstIndex + this._token.length - 1;
+        cursor.moveTo(this._lastIndex);
+        return true;
     }
     _createNode() {
         return new Node("literal", this._name, this._firstIndex, this._lastIndex, undefined, this._token);
@@ -726,7 +757,7 @@ class Regex {
         this._name = name;
         this._parent = null;
         this._originalRegexString = regex;
-        this._regex = new RegExp(`^${regex}`, "g");
+        this._regex = new RegExp(`^${regex}`, "gu");
         this.assertArguments();
     }
     assertArguments() {
@@ -755,7 +786,7 @@ class Regex {
     resetState(cursor) {
         this._cursor = cursor;
         this._regex.lastIndex = 0;
-        this._substring = this._cursor.text.substr(this._cursor.index);
+        this._substring = this._cursor.text.slice(this._cursor.index);
         this._node = null;
     }
     tryToParse(cursor) {
@@ -770,10 +801,9 @@ class Regex {
     processResult(cursor, result) {
         const currentIndex = cursor.index;
         const match = result[0];
-        const matchLength = [...match].length;
-        const newIndex = currentIndex + matchLength - 1;
-        this._node = new Node("regex", this._name, currentIndex, newIndex, undefined, result[0]);
-        cursor.moveTo(newIndex);
+        const lastIndex = cursor.getCharLastIndex(currentIndex + match.length - 1);
+        this._node = new Node("regex", this._name, currentIndex, lastIndex, undefined, result[0]);
+        cursor.moveTo(lastIndex);
         cursor.recordMatch(this, this._node);
     }
     processError(cursor) {
@@ -3301,7 +3331,7 @@ class TakeUntil {
         }
         if (foundMatch) {
             cursor.moveTo(cursorIndex - 1);
-            const value = cursor.getChars(this.startedOnIndex, cursorIndex - 1);
+            const value = cursor.substring(this.startedOnIndex, cursorIndex - 1);
             const node = Node.createValueNode(this._type, this._name, value);
             cursor.recordMatch(this, node);
             return node;
@@ -3453,7 +3483,7 @@ function generateErrorMessage(pattern, cursor) {
     }
     const lastPattern = furthestMatch.pattern;
     const suggestions = cleanSuggestions(lastPattern.getNextTokens());
-    const strUpToError = cursor.getChars(0, endIndex);
+    const strUpToError = cursor.substring(0, endIndex);
     const lines = strUpToError.split("\n");
     const lastLine = lines[lines.length - 1];
     const line = lines.length;
@@ -4191,9 +4221,9 @@ class AutoComplete {
     }
     _createSuggestionOptionsFromErrors() {
         // These errored because the length of the string.
-        const errors = this._cursor.errors.filter(e => e.lastIndex === this._cursor.length);
+        const errors = this._cursor.errors.filter(e => e.lastIndex === this._cursor.length - 1);
         const errorSuggestionOptions = errors.map(parseError => {
-            const currentText = this._cursor.getChars(parseError.startIndex, parseError.lastIndex);
+            const currentText = this._cursor.substring(parseError.startIndex, parseError.lastIndex);
             const compositeSuggestions = this._getCompositeSuggestionsForPattern(parseError.pattern);
             const trimmedErrorCompositeSuggestions = this._trimSuggestionsByExistingText(currentText, compositeSuggestions);
             return this._createSuggestions(parseError.lastIndex, trimmedErrorCompositeSuggestions);
@@ -4249,7 +4279,7 @@ class AutoComplete {
    * ie. sequence pattern segments ≈ [{look}, {an example}, {phrase}]
    * fullText = "look an"
    * remove {look} segment as its already been completed by the existing text.
- */
+  */
     _filterCompletedSubSegments(currentText, compositeSuggestion) {
         let elementsToRemove = [];
         let workingText = currentText;
@@ -4352,7 +4382,7 @@ class AutoComplete {
         return unique;
     }
     _createSuggestions(lastIndex, compositeSuggestionList) {
-        let textToIndex = lastIndex === -1 ? "" : this._cursor.getChars(0, lastIndex);
+        let textToIndex = lastIndex === -1 ? "" : this._cursor.substring(0, lastIndex);
         const options = [];
         for (const compositeSuggestion of compositeSuggestionList) {
             // concatenated for start index identification inside createSuggestion

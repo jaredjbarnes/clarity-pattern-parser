@@ -10,7 +10,7 @@ const doubleQuoteStringLiteral = new Sequence("double-string-literal", [
     new Literal("double-quote", "\""),
     new Optional("optional-characters", new Repeat("characters",
         new Options("characters", [
-            new Regex("normal-characters", "[^\\\"]+"),
+            new Regex("normal-characters", '[^"]+'),
             escapedCharacter
         ])
     )),
@@ -21,7 +21,7 @@ const singleQuoteStringLiteral = new Sequence("single-string-literal", [
     new Literal("single-quote", "'"),
     new Optional("optional-characters", new Repeat("characters",
         new Options("characters", [
-            new Regex("normal-characters", "[^\\']+"),
+            new Regex("normal-characters", "[^']+"),
             escapedCharacter
         ]),
     )),

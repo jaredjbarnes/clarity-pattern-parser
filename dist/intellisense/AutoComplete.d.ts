@@ -42,7 +42,7 @@ export declare class AutoComplete {
    * ie. sequence pattern segments ≈ [{look}, {an example}, {phrase}]
    * fullText = "look an"
    * remove {look} segment as its already been completed by the existing text.
- */
+  */
     private _filterCompletedSubSegments;
     private _getCompositeSuggestionsForPattern;
     private _getCustomTokens;

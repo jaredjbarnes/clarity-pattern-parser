@@ -3,7 +3,9 @@ import { Match } from "./CursorHistory";
 import { ParseError } from "./ParseError";
 import { Pattern } from "./Pattern";
 export declare class Cursor {
-    private _chars;
+    private _text;
+    private _charSize;
+    private _charMap;
     private _index;
     private _length;
     private _history;
@@ -33,10 +35,13 @@ export declare class Cursor {
     moveToFirstChar(): void;
     moveToLastChar(): void;
     getLastIndex(): number;
-    getChars(first: number, last: number): string;
+    substring(first: number, last: number): string;
     recordMatch(pattern: Pattern, node: Node): void;
     recordErrorAt(startIndex: number, lastIndex: number, onPattern: Pattern): void;
     resolveError(): void;
     startRecording(): void;
     stopRecording(): void;
+    getCharStartIndex(index: number): number;
+    getCharEndIndex(index: number): number;
+    getCharLastIndex(index: number): number;
 }

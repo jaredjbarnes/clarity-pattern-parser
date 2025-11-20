@@ -27,7 +27,7 @@ describe("Cursor", () => {
         cursor.previous();
         expect(cursor.index).toBe(0);
 
-        const text = cursor.getChars(0, 1);
+        const text = cursor.substring(0, 1);
         expect(text).toBe("");
     });
 
@@ -107,7 +107,7 @@ describe("Cursor", () => {
 
     test("Text Information", () => {
         const cursor = new Cursor("Hello World!");
-        const hello = cursor.getChars(0, 4);
+        const hello = cursor.substring(0, 4);
 
         expect(hello).toBe("Hello");
         expect(cursor.length).toBe(12);
@@ -151,6 +151,14 @@ describe("Cursor", () => {
         expect(records[1].pattern.name).toBe("jane");
         expect(records[2].error).not.toBeNull();
         expect(records[2].pattern.name).toBe("first-names");
+    });
+
+    test("Text with Emojis", () => {
+        const cursor = new Cursor("🔴 World!");
+        expect(cursor.currentChar).toBe("🔴");
+        cursor.next();
+        expect(cursor.currentChar).toBe(" ");
+        expect(cursor.length).toBe(9);
     });
 
 });

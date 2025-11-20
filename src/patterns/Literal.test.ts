@@ -48,7 +48,7 @@ describe("Literal", () => {
         expect(result).toEqual(null);
         expect(cursor.index).toBe(10);
         expect(cursor.error?.startIndex).toBe(0);
-        expect(cursor.error?.lastIndex).toBe(11);
+        expect(cursor.error?.lastIndex).toBe(10);
         expect(cursor.error?.pattern).toBe(literal);
     });
 
@@ -162,5 +162,45 @@ describe("Literal", () => {
         const pattern = a.find(p => p.name === "nada");
 
         expect(pattern).toBeNull();
+    });
+
+    test("Unicode", () => {
+        const literal = new Literal("a", "🔴");
+        const cursor = new Cursor("🔴");
+        const result = literal.parse(cursor);
+        expect(result).not.toBeNull();
+        expect(cursor.index).toBe(0);
+        expect(result?.toString()).toBe("🔴");
+        expect(cursor.error).toBeNull();
+    });
+
+    test("Unicode In Middle", () => {
+        const literal = new Literal("a", "|🔴|");
+        const cursor = new Cursor("|🔴|");
+        const result = literal.parse(cursor);
+        expect(result).not.toBeNull();
+        expect(cursor.index).toBe(3);
+        expect(result?.toString()).toBe("|🔴|");
+        expect(cursor.error).toBeNull();
+    });
+
+    test("Unicode At the End", () => {
+        const literal = new Literal("a", "|🔴");
+        const cursor = new Cursor("|🔴");
+        const result = literal.parse(cursor);
+        expect(result).not.toBeNull();
+        expect(cursor.index).toBe(1);
+        expect(result?.toString()).toBe("|🔴");
+        expect(cursor.error).toBeNull();
+    });
+
+    test("Unicode At the Beginning", () => {
+        const literal = new Literal("a", "🔴|");
+        const cursor = new Cursor("🔴|");
+        const result = literal.parse(cursor);
+        expect(result).not.toBeNull();
+        expect(cursor.index).toBe(2);
+        expect(result?.toString()).toBe("🔴|");
+        expect(cursor.error).toBeNull();
     });
 });

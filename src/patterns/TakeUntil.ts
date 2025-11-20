@@ -92,7 +92,7 @@ export class TakeUntil implements Pattern {
 
         if (foundMatch) {
             cursor.moveTo(cursorIndex - 1);
-            const value = cursor.getChars(this.startedOnIndex, cursorIndex - 1);
+            const value = cursor.substring(this.startedOnIndex, cursorIndex - 1);
             const node = Node.createValueNode(this._type, this._name, value);
 
             cursor.recordMatch(this, node);

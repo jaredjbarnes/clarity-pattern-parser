@@ -128,16 +128,42 @@ class Node {
         }
         return null;
     }
-    find(predicate) {
-        return this.findAll(predicate)[0] || null;
+    find(predicate, breadthFirst = false) {
+        let match = null;
+        if (breadthFirst) {
+            this.walkBreadthFirst(n => {
+                if (predicate(n)) {
+                    match = n;
+                    return false;
+                }
+            });
+        }
+        else {
+            this.walkUp(n => {
+                if (predicate(n)) {
+                    match = n;
+                    return false;
+                }
+            });
+        }
+        return match;
     }
-    findAll(predicate) {
+    findAll(predicate, breadthFirst = false) {
         const matches = [];
-        this.walkUp(n => {
-            if (predicate(n)) {
-                matches.push(n);
-            }
-        });
+        if (breadthFirst) {
+            this.walkBreadthFirst(n => {
+                if (predicate(n)) {
+                    matches.push(n);
+                }
+            });
+        }
+        else {
+            this.walkUp(n => {
+                if (predicate(n)) {
+                    matches.push(n);
+                }
+            });
+        }
         return matches;
     }
     findRoot() {
@@ -160,22 +186,26 @@ class Node {
         return null;
     }
     walkUp(callback) {
+        var _a;
         const childrenCopy = this._children.slice();
-        childrenCopy.forEach(c => c.walkUp(callback));
-        callback(this);
+        const result = childrenCopy.every(c => c.walkUp(callback));
+        return ((_a = callback(this)) !== null && _a !== void 0 ? _a : true) && result;
     }
     walkDown(callback) {
+        var _a;
         const childrenCopy = this._children.slice();
-        callback(this);
-        childrenCopy.forEach(c => c.walkDown(callback));
+        return ((_a = callback(this)) !== null && _a !== void 0 ? _a : true) && childrenCopy.every(c => c.walkDown(callback));
     }
     walkBreadthFirst(callback) {
         const queue = [this];
         while (queue.length > 0) {
             const current = queue.shift();
-            callback(current);
+            if (callback(current) === false) {
+                return false;
+            }
             queue.push(...current.children);
         }
+        return true;
     }
     transform(visitors) {
         const childrenCopy = this._children.slice();

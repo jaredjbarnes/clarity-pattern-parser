@@ -477,4 +477,42 @@ describe("Node", () => {
         expect(result.isEqual(expected)).toBeTruthy();
     });
 
+    test("Find All", () => {
+        const a = new Node("a", "a", 0, 0, [], "A");
+        const b = new Node("b", "b", 0, 0, [], "B");
+        const a2 = a.clone();
+        const parent = new Node("parent", "parent", 0, 0, [a, b, a2]);
+
+        const result = parent.findAll(n => n.name === "a");
+        expect(result).toEqual([a, a2]);
+    });
+
+    test("Breadth First Early Exit", () => {
+        const a = new Node("a", "a", 0, 0, [], "A");
+        const b = new Node("b", "b", 0, 0, [], "B");
+        const a2 = a.clone();
+        const parent = new Node("parent", "parent", 0, 0, [a, b, a2]);
+
+        let count = 0;
+        parent.walkBreadthFirst(n => {
+            count++;
+            if (n.name === "a") {
+                return false;
+            }
+            return true;
+        });
+
+        expect(count).toBe(2);
+    });
+
+    test("Find All (Breadth First)", () => {
+        const a = new Node("a", "a", 0, 0, [], "A");
+        const b = new Node("b", "b", 0, 0, [], "B");
+        const a2 = a.clone();
+        const parent = new Node("parent", "parent", 0, 0, [a, b, a2]);
+
+        const result = parent.findAll(n => n.name === "a", true);
+        expect(result).toEqual([a, a2]);
+    });
+
 });

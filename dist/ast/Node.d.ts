@@ -40,13 +40,13 @@ export declare class Node {
     append(...nodes: Node[]): void;
     nextSibling(): Node | null;
     previousSibling(): Node | null;
-    find(predicate: (node: Node) => boolean): Node | null;
-    findAll(predicate: (node: Node) => boolean): Node[];
+    find(predicate: (node: Node) => boolean, breadthFirst?: boolean): Node | null;
+    findAll(predicate: (node: Node) => boolean, breadthFirst?: boolean): Node[];
     findRoot(): Node;
     findAncestor(predicate: (node: Node) => boolean): Node | null;
-    walkUp(callback: (node: Node) => void): void;
-    walkDown(callback: (node: Node) => void): void;
-    walkBreadthFirst(callback: (node: Node) => void): void;
+    walkUp(callback: (node: Node) => boolean | void): boolean;
+    walkDown(callback: (node: Node) => boolean | void): boolean;
+    walkBreadthFirst(callback: (node: Node) => boolean | void): boolean;
     transform(visitors: Record<string, (node: Node) => Node>): Node;
     flatten(): Node[];
     compact(): void;

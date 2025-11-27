@@ -190,16 +190,40 @@ export class Node {
     return null;
   }
 
-  find(predicate: (node: Node) => boolean): Node | null {
-    return this.findAll(predicate)[0] || null;
+  find(predicate: (node: Node) => boolean, breadthFirst = false): Node | null {
+    let match: Node | null = null;
+
+    if (breadthFirst) {
+      this.walkBreadthFirst(n => {
+        if (predicate(n)) {
+          match = n;
+          return false;
+        }
+      });
+    } else {
+      this.walkUp(n => {
+        if (predicate(n)) {
+          match = n;
+          return false;
+        }
+      });
+    }
+
+    return match;
   }
 
-  findAll(predicate: (node: Node) => boolean): Node[] {
+  findAll(predicate: (node: Node) => boolean, breadthFirst = false): Node[] {
     const matches: Node[] = [];
 
-    this.walkUp(n => {
-      if (predicate(n)) { matches.push(n); }
-    });
+    if (breadthFirst) {
+      this.walkBreadthFirst(n => {
+        if (predicate(n)) { matches.push(n); }
+      });
+    } else {
+      this.walkUp(n => {
+        if (predicate(n)) { matches.push(n);}
+      });
+    }
 
     return matches;
   }
@@ -229,28 +253,31 @@ export class Node {
     return null;
   }
 
-  walkUp(callback: (node: Node) => void) {
+  walkUp(callback: (node: Node) => boolean | void): boolean {
     const childrenCopy = this._children.slice();
 
-    childrenCopy.forEach(c => c.walkUp(callback));
-    callback(this);
+    const result = childrenCopy.every(c => c.walkUp(callback));
+    return (callback(this) ?? true) && result;
   }
 
-  walkDown(callback: (node: Node) => void) {
+  walkDown(callback: (node: Node) => boolean | void): boolean {
     const childrenCopy = this._children.slice();
 
-    callback(this);
-    childrenCopy.forEach(c => c.walkDown(callback));
+    return (callback(this) ?? true) && childrenCopy.every(c => c.walkDown(callback));
   }
 
-  walkBreadthFirst(callback: (node: Node) => void): void {
+  walkBreadthFirst(callback: (node: Node) => boolean | void): boolean {
     const queue: Node[] = [this];
 
     while (queue.length > 0) {
       const current = queue.shift() as Node;
-      callback(current);
+      if (callback(current) === false) {
+        return false;
+      }
       queue.push(...current.children);
     }
+
+    return true;
   }
 
   transform(visitors: Record<string, (node: Node) => Node>) {

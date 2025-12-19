@@ -511,7 +511,7 @@ export class Expression implements Pattern {
         }
 
         if (this._atomPatterns.includes(childReference)) {
-            const postfixTokens = this.prefixPatterns.map(p => p.getTokens()).flat();
+            const postfixTokens = this.postfixPatterns.map(p => p.getTokens()).flat();
 
             if (postfixTokens.length === 0) {
                 return this._binaryPatterns.map(p => p.getTokens()).flat();
@@ -556,7 +556,7 @@ export class Expression implements Pattern {
         }
 
         if (this._atomPatterns.includes(childReference)) {
-            const postfixPatterns = this.prefixPatterns.map(p => p.getPatterns()).flat();
+            const postfixPatterns = this.postfixPatterns.map(p => p.getPatterns()).flat();
 
             if (postfixPatterns.length === 0) {
                 return this._binaryPatterns.map(p => p.getPatterns()).flat();
@@ -566,10 +566,10 @@ export class Expression implements Pattern {
         }
 
         if (this._postfixPatterns.includes(childReference)) {
-            const postfixPaterns = this.postfixPatterns.map(p => p.getPatterns()).flat();
+            const postfixPatterns = this.postfixPatterns.map(p => p.getPatterns()).flat();
             const binaryPatterns = this._binaryPatterns.map(p => p.getPatterns()).flat();
 
-            return [...postfixPaterns, ...binaryPatterns];
+            return [...postfixPatterns, ...binaryPatterns];
         }
 
         return [];

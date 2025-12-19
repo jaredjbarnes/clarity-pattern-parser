@@ -2883,6 +2883,10 @@ class Expression {
     get postfixPatterns() {
         return this._postfixPatterns;
     }
+    get infixPatterns() {
+        return this._infixPatterns;
+    }
+    // @deprecated use infixPatterns instead
     get binaryPatterns() {
         return this._infixPatterns;
     }
@@ -2909,7 +2913,7 @@ class Expression {
         this._postfixPatterns = [];
         this._postfixNames = [];
         this._infixPatterns = [];
-        this._binaryNames = [];
+        this._infixNames = [];
         this._associationMap = {};
         this._precedenceMap = {};
         this._originalPatterns = patterns;
@@ -2948,18 +2952,18 @@ class Expression {
             }
             else if (this._isBinary(pattern)) {
                 const name = this._extractName(pattern);
-                const binary = this._extractBinary(pattern);
-                binary.parent = this;
+                const infix = this._extractInfix(pattern);
+                infix.parent = this;
                 this._precedenceMap[name] = index;
-                this._infixPatterns.push(binary);
-                this._binaryNames.push(name);
+                this._infixPatterns.push(infix);
+                this._infixNames.push(name);
                 if (pattern.type === "right-associated") {
                     this._associationMap[name] = Association.right;
                 }
                 else {
                     this._associationMap[name] = Association.left;
                 }
-                finalPatterns.push(binary);
+                finalPatterns.push(infix);
             }
         });
         this._patterns = finalPatterns;
@@ -3025,11 +3029,11 @@ class Expression {
         const lastChildIsReference = this._isRecursiveReference(lastChild);
         return firstChildIsReference && lastChildIsReference && pattern.children.length > 2;
     }
-    _extractBinary(pattern) {
+    _extractInfix(pattern) {
         pattern = this._unwrapAssociationIfNecessary(pattern);
         const children = pattern.children.slice(1, -1);
-        const binarySequence = new Sequence(`${pattern.name}-delimiter`, children);
-        return binarySequence;
+        const infixSequence = new Sequence(`${pattern.name}-delimiter`, children);
+        return infixSequence;
     }
     _unwrapAssociationIfNecessary(pattern) {
         if (pattern.type === "right-associated") {
@@ -3189,13 +3193,13 @@ class Expression {
     _tryToMatchBinary(cursor) {
         let onIndex = cursor.index;
         let foundMatch = false;
-        if (this.binaryPatterns.length === 0) {
+        if (this.infixPatterns.length === 0) {
             this._shouldStopParsing = true;
         }
         for (let i = 0; i < this._infixPatterns.length; i++) {
             cursor.moveTo(onIndex);
             const pattern = this._infixPatterns[i];
-            const name = this._binaryNames[i];
+            const name = this._infixNames[i];
             const node = pattern.parse(cursor);
             if (node != null) {
                 foundMatch = true;
@@ -3244,6 +3248,10 @@ class Expression {
             }
             return [...postfixTokens, ...infixTokens];
         }
+        if (this._infixPatterns.includes(childReference)) {
+            const atomTokens = this._atomPatterns.map(p => p.getTokens()).flat();
+            return atomTokens;
+        }
         if (this._postfixPatterns.includes(childReference)) {
             const postfixTokens = this.postfixPatterns.map(p => p.getTokens()).flat();
             const infixTokens = this._infixPatterns.map(p => p.getTokens()).flat();
@@ -3280,6 +3288,10 @@ class Expression {
                 return [...postfixPatterns, ...infixPatterns, ...this._parent.getNextPatterns()];
             }
             return [...postfixPatterns, ...infixPatterns];
+        }
+        if (this._infixPatterns.includes(childReference)) {
+            const atomPatterns = this._atomPatterns.map(p => p.getPatterns()).flat();
+            return atomPatterns;
         }
         if (this._postfixPatterns.includes(childReference)) {
             const postfixPatterns = this.postfixPatterns.map(p => p.getPatterns()).flat();

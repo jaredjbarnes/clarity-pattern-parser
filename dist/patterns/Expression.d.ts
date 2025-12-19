@@ -18,7 +18,7 @@ export declare class Expression implements Pattern {
     private _postfixPatterns;
     private _postfixNames;
     private _infixPatterns;
-    private _binaryNames;
+    private _infixNames;
     private _associationMap;
     private _precedenceMap;
     private _shouldStopParsing;
@@ -34,6 +34,7 @@ export declare class Expression implements Pattern {
     get prefixPatterns(): readonly Pattern[];
     get atomPatterns(): readonly Pattern[];
     get postfixPatterns(): readonly Pattern[];
+    get infixPatterns(): readonly Pattern[];
     get binaryPatterns(): readonly Pattern[];
     get originalPatterns(): readonly Pattern[];
     get startedOnIndex(): number;
@@ -47,7 +48,7 @@ export declare class Expression implements Pattern {
     private _isPostfix;
     private _extractPostfix;
     private _isBinary;
-    private _extractBinary;
+    private _extractInfix;
     private _unwrapAssociationIfNecessary;
     private _referenceCount;
     private _isRecursiveReference;

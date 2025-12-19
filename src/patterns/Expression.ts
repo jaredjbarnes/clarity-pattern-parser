@@ -27,7 +27,7 @@ export class Expression implements Pattern {
     private _postfixPatterns: Pattern[];
     private _postfixNames: string[];
     private _infixPatterns: Pattern[];
-    private _binaryNames: string[];
+    private _infixNames: string[];
     private _associationMap: Record<string, Association>;
     private _precedenceMap: Record<string, number>;
     private _shouldStopParsing: boolean;
@@ -71,6 +71,11 @@ export class Expression implements Pattern {
         return this._postfixPatterns;
     }
 
+    get infixPatterns(): readonly Pattern[] {
+        return this._infixPatterns;
+    }
+
+    // @deprecated use infixPatterns instead
     get binaryPatterns(): readonly Pattern[] {
         return this._infixPatterns;
     }
@@ -101,7 +106,7 @@ export class Expression implements Pattern {
         this._postfixPatterns = [];
         this._postfixNames = [];
         this._infixPatterns = [];
-        this._binaryNames = [];
+        this._infixNames = [];
         this._associationMap = {};
         this._precedenceMap = {};
         this._originalPatterns = patterns;
@@ -146,12 +151,12 @@ export class Expression implements Pattern {
                 finalPatterns.push(postfix);
             } else if (this._isBinary(pattern)) {
                 const name = this._extractName(pattern);
-                const binary = this._extractBinary(pattern);
-                binary.parent = this;
+                const infix = this._extractInfix(pattern);
+                infix.parent = this;
 
                 this._precedenceMap[name] = index;
-                this._infixPatterns.push(binary);
-                this._binaryNames.push(name);
+                this._infixPatterns.push(infix);
+                this._infixNames.push(name);
 
                 if (pattern.type === "right-associated") {
                     this._associationMap[name] = Association.right;
@@ -159,7 +164,7 @@ export class Expression implements Pattern {
                     this._associationMap[name] = Association.left;
                 }
 
-                finalPatterns.push(binary);
+                finalPatterns.push(infix);
             }
         });
 
@@ -246,12 +251,12 @@ export class Expression implements Pattern {
         return firstChildIsReference && lastChildIsReference && pattern.children.length > 2;
     }
 
-    private _extractBinary(pattern: Pattern) {
+    private _extractInfix(pattern: Pattern) {
         pattern = this._unwrapAssociationIfNecessary(pattern);
         const children = pattern.children.slice(1, -1);
-        const binarySequence = new Sequence(`${pattern.name}-delimiter`, children);
+        const infixSequence = new Sequence(`${pattern.name}-delimiter`, children);
 
-        return binarySequence;
+        return infixSequence;
     }
 
     private _unwrapAssociationIfNecessary(pattern: Pattern) {
@@ -452,7 +457,7 @@ export class Expression implements Pattern {
         let onIndex = cursor.index;
         let foundMatch = false;
 
-        if (this.binaryPatterns.length === 0) {
+        if (this.infixPatterns.length === 0) {
             this._shouldStopParsing = true;
         }
 
@@ -460,7 +465,7 @@ export class Expression implements Pattern {
             cursor.moveTo(onIndex);
 
             const pattern = this._infixPatterns[i];
-            const name = this._binaryNames[i];
+            const name = this._infixNames[i];
             const node = pattern.parse(cursor);
 
             if (node != null) {
@@ -521,6 +526,11 @@ export class Expression implements Pattern {
             return [...postfixTokens, ...infixTokens];
         }
 
+        if (this._infixPatterns.includes(childReference)) {
+            const atomTokens = this._atomPatterns.map(p => p.getTokens()).flat();
+            return atomTokens;
+        }
+
         if (this._postfixPatterns.includes(childReference)) {
             const postfixTokens = this.postfixPatterns.map(p => p.getTokens()).flat();
             const infixTokens = this._infixPatterns.map(p => p.getTokens()).flat();
@@ -565,10 +575,15 @@ export class Expression implements Pattern {
             const infixPatterns = this._infixPatterns.map(p => p.getPatterns()).flat();
 
             if (this._parent != null) {
-                return  [...postfixPatterns, ...infixPatterns, ...this._parent.getNextPatterns()];
+                return [...postfixPatterns, ...infixPatterns, ...this._parent.getNextPatterns()];
             }
 
             return [...postfixPatterns, ...infixPatterns];
+        }
+
+        if (this._infixPatterns.includes(childReference)) {
+            const atomPatterns = this._atomPatterns.map(p => p.getPatterns()).flat();
+            return atomPatterns;
         }
 
         if (this._postfixPatterns.includes(childReference)) {

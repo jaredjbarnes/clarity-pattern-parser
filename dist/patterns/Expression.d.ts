@@ -17,7 +17,7 @@ export declare class Expression implements Pattern {
     private _prefixNames;
     private _postfixPatterns;
     private _postfixNames;
-    private _binaryPatterns;
+    private _infixPatterns;
     private _binaryNames;
     private _associationMap;
     private _precedenceMap;

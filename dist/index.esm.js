@@ -2880,7 +2880,7 @@ class Expression {
         return this._postfixPatterns;
     }
     get binaryPatterns() {
-        return this._binaryPatterns;
+        return this._infixPatterns;
     }
     get originalPatterns() {
         return this._originalPatterns;
@@ -2904,7 +2904,7 @@ class Expression {
         this._prefixNames = [];
         this._postfixPatterns = [];
         this._postfixNames = [];
-        this._binaryPatterns = [];
+        this._infixPatterns = [];
         this._binaryNames = [];
         this._associationMap = {};
         this._precedenceMap = {};
@@ -2947,7 +2947,7 @@ class Expression {
                 const binary = this._extractBinary(pattern);
                 binary.parent = this;
                 this._precedenceMap[name] = index;
-                this._binaryPatterns.push(binary);
+                this._infixPatterns.push(binary);
                 this._binaryNames.push(name);
                 if (pattern.type === "right-associated") {
                     this._associationMap[name] = Association.right;
@@ -3188,9 +3188,9 @@ class Expression {
         if (this.binaryPatterns.length === 0) {
             this._shouldStopParsing = true;
         }
-        for (let i = 0; i < this._binaryPatterns.length; i++) {
+        for (let i = 0; i < this._infixPatterns.length; i++) {
             cursor.moveTo(onIndex);
-            const pattern = this._binaryPatterns[i];
+            const pattern = this._infixPatterns[i];
             const name = this._binaryNames[i];
             const node = pattern.parse(cursor);
             if (node != null) {
@@ -3227,22 +3227,26 @@ class Expression {
     }
     getTokensAfter(childReference) {
         this.build();
-        if (this._prefixPatterns.includes(childReference) || this._binaryPatterns.includes(childReference)) {
+        if (this._prefixPatterns.includes(childReference) || this._infixPatterns.includes(childReference)) {
             const atomTokens = this._atomPatterns.map(p => p.getTokens()).flat();
             const prefixTokens = this.prefixPatterns.map(p => p.getTokens()).flat();
             return [...prefixTokens, ...atomTokens];
         }
         if (this._atomPatterns.includes(childReference)) {
             const postfixTokens = this.postfixPatterns.map(p => p.getTokens()).flat();
-            if (postfixTokens.length === 0) {
-                return this._binaryPatterns.map(p => p.getTokens()).flat();
+            const infixTokens = this._infixPatterns.map(p => p.getTokens()).flat();
+            if (this._parent != null) {
+                return [...postfixTokens, ...infixTokens, ...this._parent.getNextTokens()];
             }
-            return postfixTokens;
+            return [...postfixTokens, ...infixTokens];
         }
         if (this._postfixPatterns.includes(childReference)) {
             const postfixTokens = this.postfixPatterns.map(p => p.getTokens()).flat();
-            const binaryTokens = this._binaryPatterns.map(p => p.getTokens()).flat();
-            return [...postfixTokens, ...binaryTokens];
+            const infixTokens = this._infixPatterns.map(p => p.getTokens()).flat();
+            if (this._parent != null) {
+                return [...postfixTokens, ...infixTokens, ...this._parent.getNextTokens()];
+            }
+            return [...postfixTokens, ...infixTokens];
         }
         return [];
     }
@@ -3260,22 +3264,26 @@ class Expression {
     }
     getPatternsAfter(childReference) {
         this.build();
-        if (this._prefixPatterns.includes(childReference) || this._binaryPatterns.includes(childReference)) {
+        if (this._prefixPatterns.includes(childReference) || this._infixPatterns.includes(childReference)) {
             const atomPatterns = this._atomPatterns.map(p => p.getPatterns()).flat();
             const prefixPatterns = this.prefixPatterns.map(p => p.getPatterns()).flat();
             return [...prefixPatterns, ...atomPatterns];
         }
         if (this._atomPatterns.includes(childReference)) {
             const postfixPatterns = this.postfixPatterns.map(p => p.getPatterns()).flat();
-            if (postfixPatterns.length === 0) {
-                return this._binaryPatterns.map(p => p.getPatterns()).flat();
+            const infixPatterns = this._infixPatterns.map(p => p.getPatterns()).flat();
+            if (this._parent != null) {
+                return [...postfixPatterns, ...infixPatterns, ...this._parent.getNextPatterns()];
             }
-            return postfixPatterns;
+            return [...postfixPatterns, ...infixPatterns];
         }
         if (this._postfixPatterns.includes(childReference)) {
             const postfixPatterns = this.postfixPatterns.map(p => p.getPatterns()).flat();
-            const binaryPatterns = this._binaryPatterns.map(p => p.getPatterns()).flat();
-            return [...postfixPatterns, ...binaryPatterns];
+            const infixPatterns = this._infixPatterns.map(p => p.getPatterns()).flat();
+            if (this._parent != null) {
+                return [...postfixPatterns, ...infixPatterns, ...this._parent.getNextPatterns()];
+            }
+            return [...postfixPatterns, ...infixPatterns];
         }
         return [];
     }

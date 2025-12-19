@@ -8,6 +8,7 @@ export declare class Expression implements Pattern {
     private _name;
     private _originalName;
     private _parent;
+    private _cachedParent;
     private _firstIndex;
     private _originalPatterns;
     private _patterns;

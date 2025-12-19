@@ -17,6 +17,7 @@ export class Expression implements Pattern {
     private _name: string;
     private _originalName: string;
     private _parent: Pattern | null;
+    private _cachedParent: Pattern | null;
     private _firstIndex: number;
     private _originalPatterns: Pattern[];
     private _patterns: Pattern[];
@@ -92,6 +93,7 @@ export class Expression implements Pattern {
         this._name = name;
         this._originalName = name;
         this._parent = null;
+        this._cachedParent = null;
         this._firstIndex = 0;
         this._atomPatterns = [];
         this._prefixPatterns = [];
@@ -278,7 +280,8 @@ export class Expression implements Pattern {
     }
 
     build() {
-        if (!this._hasOrganized) {
+        if (!this._hasOrganized || this._cachedParent !== this.parent) {
+            this._cachedParent = this.parent;
             this._hasOrganized = true;
             this._organizePatterns(this._originalPatterns);
             this._cacheAncestors();
@@ -491,6 +494,7 @@ export class Expression implements Pattern {
     }
 
     getTokens(): string[] {
+        this.build();
         const atomTokens = this._atomPatterns.map(p => p.getTokens()).flat();
         const prefixTokens = this.prefixPatterns.map(p => p.getTokens()).flat();
 
@@ -498,6 +502,7 @@ export class Expression implements Pattern {
     }
 
     getTokensAfter(childReference: Pattern): string[] {
+        this.build();
         if (this._prefixPatterns.includes(childReference) || this._binaryPatterns.includes(childReference)) {
             const atomTokens = this._atomPatterns.map(p => p.getTokens()).flat();
             const prefixTokens = this.prefixPatterns.map(p => p.getTokens()).flat();
@@ -534,6 +539,7 @@ export class Expression implements Pattern {
     }
 
     getPatterns(): Pattern[] {
+        this.build();
         const atomPatterns = this._atomPatterns.map(p => p.getPatterns()).flat();
         const prefixPatterns = this.prefixPatterns.map(p => p.getPatterns()).flat();
 
@@ -541,6 +547,7 @@ export class Expression implements Pattern {
     }
 
     getPatternsAfter(childReference: Pattern): Pattern[] {
+        this.build();
         if (this._prefixPatterns.includes(childReference) || this._binaryPatterns.includes(childReference)) {
             const atomPatterns = this._atomPatterns.map(p => p.getPatterns()).flat();
             const prefixPatterns = this.prefixPatterns.map(p => p.getPatterns()).flat();

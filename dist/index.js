@@ -2901,6 +2901,7 @@ class Expression {
         this._name = name;
         this._originalName = name;
         this._parent = null;
+        this._cachedParent = null;
         this._firstIndex = 0;
         this._atomPatterns = [];
         this._prefixPatterns = [];
@@ -3051,7 +3052,8 @@ class Expression {
         return pattern.name === this._originalName;
     }
     build() {
-        if (!this._hasOrganized) {
+        if (!this._hasOrganized || this._cachedParent !== this.parent) {
+            this._cachedParent = this.parent;
             this._hasOrganized = true;
             this._organizePatterns(this._originalPatterns);
             this._cacheAncestors();
@@ -3222,11 +3224,13 @@ class Expression {
         return execPattern(this, text, record);
     }
     getTokens() {
+        this.build();
         const atomTokens = this._atomPatterns.map(p => p.getTokens()).flat();
         const prefixTokens = this.prefixPatterns.map(p => p.getTokens()).flat();
         return [...prefixTokens, ...atomTokens];
     }
     getTokensAfter(childReference) {
+        this.build();
         if (this._prefixPatterns.includes(childReference) || this._binaryPatterns.includes(childReference)) {
             const atomTokens = this._atomPatterns.map(p => p.getTokens()).flat();
             const prefixTokens = this.prefixPatterns.map(p => p.getTokens()).flat();
@@ -3253,11 +3257,13 @@ class Expression {
         return this._parent.getTokensAfter(this);
     }
     getPatterns() {
+        this.build();
         const atomPatterns = this._atomPatterns.map(p => p.getPatterns()).flat();
         const prefixPatterns = this.prefixPatterns.map(p => p.getPatterns()).flat();
         return [...prefixPatterns, ...atomPatterns];
     }
     getPatternsAfter(childReference) {
+        this.build();
         if (this._prefixPatterns.includes(childReference) || this._binaryPatterns.includes(childReference)) {
             const atomPatterns = this._atomPatterns.map(p => p.getPatterns()).flat();
             const prefixPatterns = this.prefixPatterns.map(p => p.getPatterns()).flat();

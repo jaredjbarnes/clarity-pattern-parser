@@ -201,12 +201,30 @@ identifier = word    # alias: same regex, new name "identifier"
 Inline unnamed patterns in sequences and repeats:
 
 ```
-# Anonymous literal in a sequence:
+# Inline literals and regex — fine, they get their value as the AST node name:
 greeting = "Hello" + " " + /\w+/
 
-# Anonymous patterns in parentheses:
+# Complex inline patterns — avoid this:
 items = ("item-a" <|> "item-b" <|> (thing)+)
 ```
+
+**Recommendation: Only use literals and regex inline.** Inline sequences, options, and repeats produce anonymous AST nodes that are hard to query or work with. If you need to find or walk specific parts of the result, give them names.
+
+```
+# Avoid — anonymous nodes you can only navigate by index:
+pairs = ("(" + /\w+/ + ")")+
+
+# Prefer — every piece is addressable by name:
+open = "("
+close = ")"
+word = /\w+/
+pair = open + word + close
+pairs = (pair)+
+```
+
+With named patterns, you can use `ast.find(n => n.name === "word")` or `ast.findAll(n => n.name === "pair")` to pull out exactly what you need. With anonymous inline patterns, you're stuck counting children by position.
+
+Inline literals (`"text"`) and regex (`/pattern/`) are the exception — they use their content as the node name (`"Hello"` becomes a node named `Hello`, `/\d+/` becomes a node named `\d+`), so they remain useful inline.
 
 ### Export Names
 

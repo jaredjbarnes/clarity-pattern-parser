@@ -1,9 +1,9 @@
-import { Pattern } from "../patterns/Pattern";
-export type Decorator = (pattern: Pattern, arg?: string | boolean | number | null | Record<string, any> | any[]) => void;
 export interface GrammarFile {
     resource: string;
     expression: string;
 }
+import { Pattern } from "../patterns/Pattern";
+export type Decorator = (pattern: Pattern, arg?: string | boolean | number | null | Record<string, any> | any[]) => void;
 export interface GrammarOptions {
     resolveImport?: (resource: string, originResource: string | null) => Promise<GrammarFile>;
     resolveImportSync?: (resource: string, originResource: string | null) => GrammarFile;
@@ -12,47 +12,46 @@ export interface GrammarOptions {
     decorators?: Record<string, Decorator>;
 }
 export declare class Grammar {
+    private _options;
+    private _parseContext;
     private _params;
     private _originResource?;
     private _resolveImport;
     private _resolveImportSync;
-    private _parseContext;
     constructor(options?: GrammarOptions);
     import(path: string): Promise<Record<string, Pattern>>;
     parse(expression: string): Promise<Record<string, Pattern>>;
     parseString(expression: string): Record<string, Pattern>;
-    private _buildPatternRecord;
+    static parse(expression: string, options?: GrammarOptions): Promise<Record<string, Pattern>>;
+    static import(path: string, options?: GrammarOptions): Promise<Record<string, Pattern>>;
+    static parseString(expression: string, options?: GrammarOptions): Record<string, Pattern>;
     private _tryToParse;
-    private _hasImports;
+    private _flattenExpressionsRecursive;
+    private _unwrapNode;
+    private _buildPatternRecord;
     private _buildPatterns;
-    private _saveLiteral;
+    private _buildPattern;
     private _buildLiteral;
-    private _resolveStringValue;
-    private _saveRegex;
     private _buildRegex;
-    private _saveOptions;
+    private _buildSequence;
     private _buildOptions;
+    private _buildGreedyOptions;
+    private _buildRepeat;
+    private _buildPatternGroup;
+    private _buildNot;
+    private _buildOptional;
+    private _buildRightAssociation;
+    private _buildTakeUntil;
+    private _resolveStringValue;
+    private _getPattern;
     private _isRecursive;
     private _isRecursivePattern;
-    private _buildPattern;
-    private _saveSequence;
-    private _buildSequence;
-    private _saveRepeat;
-    private _buildRepeat;
-    private _saveTakeUntil;
-    private _buildTakeUntil;
-    private _saveConfigurableAnonymous;
-    private _buildComplexAnonymousPattern;
+    private _applyDecorators;
     private _resolveImports;
     private _resolveImportsSync;
     private _processImportSync;
     private _processImport;
+    private _processImportNames;
+    private _getWithParams;
     private _processUseParams;
-    private _applyDecorators;
-    private _getParams;
-    private _getPattern;
-    private _saveAlias;
-    static parse(expression: string, options?: GrammarOptions): Promise<Record<string, Pattern>>;
-    static import(path: string, options?: GrammarOptions): Promise<Record<string, Pattern>>;
-    static parseString(expression: string, options?: GrammarOptions): Record<string, Pattern>;
 }

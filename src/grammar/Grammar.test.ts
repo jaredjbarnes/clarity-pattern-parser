@@ -786,7 +786,7 @@ describe("Grammar", () => {
                 resource: path,
             }
         }
-        
+
         const rootExpression = `
         import { name } from "first-name.cpat"
         full-name = name

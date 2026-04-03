@@ -113,6 +113,6 @@ export const patternExpr = new Expression("patternExpr", [notExpr, optionalExpr,
 export const patternAssignment = new Sequence("patternAssignment", [patternName, optionalWS, assign, optionalWS, patternExpr]);
 export const statement = new Options("statement", [useParamsStatement, importStatement, patternAssignment, decorationStatement, exportPattern, comment]);
 export const statements = new Repeat("statements", statement, { divider: newLine });
-export const cpat = new Sequence("cpat", [optionalWS, new Optional("optionalSyntaxStatement", syntaxStatement), optionalWS, new Optional("optionalStatements", statements)]);
+export const cpat = new Sequence("cpat", [optionalWS, new Optional("optionalSyntaxStatement", syntaxStatement), optionalWS, new Optional("optionalStatements", statements), optionalWS]);
 
 export const grammar = cpat;

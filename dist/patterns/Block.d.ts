@@ -10,7 +10,7 @@ export declare class Block implements Pattern {
     private _parent;
     private _children;
     private _openPattern;
-    private _contentPatterns;
+    private _contentPattern;
     private _closePattern;
     private _firstIndex;
     private _literalOpen;
@@ -22,14 +22,12 @@ export declare class Block implements Pattern {
     set parent(pattern: Pattern | null);
     get children(): Pattern[];
     get startedOnIndex(): number;
-    constructor(name: string, openPattern: Literal, contentPatterns: Pattern[], closePattern: Literal);
+    constructor(name: string, openPattern: Literal, contentPattern: Pattern | null, closePattern: Literal);
     test(text: string, record?: boolean): boolean;
     exec(text: string, record?: boolean): ParseResult;
     parse(cursor: Cursor): Node | null;
     private _scanForMatchingClose;
     private _parseContent;
-    private _areAllPatternsOptional;
-    private _areRemainingPatternsOptional;
     getTokens(): string[];
     getTokensAfter(childReference: Pattern): string[];
     getNextTokens(): string[];

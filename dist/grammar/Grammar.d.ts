@@ -34,6 +34,7 @@ export declare class Grammar {
     private _buildLiteral;
     private _buildRegex;
     private _buildSequence;
+    private _buildBlock;
     private _extractBlockDelimiterValue;
     private _buildOptions;
     private _buildGreedyOptions;

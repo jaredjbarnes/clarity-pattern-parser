@@ -1237,19 +1237,25 @@ describe("Grammar", () => {
 
     // --- Block Pattern ---
 
-    test("Block with empty content", () => {
+    test("Block with wildcard content", () => {
         const p = Grammar.parseString(`
-            braces = ["{"] + ["}"]
+            braces = ["{"] ... ["}"]
         `);
         const result = p["braces"].exec("{}");
         expect(result.ast).not.toBeNull();
         expect(result.ast!.type).toBe("block");
     });
 
+    test("Block without content requires ...", () => {
+        expect(() => Grammar.parseString(`
+            braces = ["{"] ["}"]
+        `)).toThrow();
+    });
+
     test("Block with content pattern", () => {
         const p = Grammar.parseString(`
             content = /[^{}]+/
-            braces = ["{"] + content + ["}"]
+            braces = ["{"] content ["}"]
         `);
         const result = p["braces"].exec("{hello}");
         expect(result.ast).not.toBeNull();
@@ -1260,7 +1266,7 @@ describe("Grammar", () => {
         const p = Grammar.parseString(`
             key = /[a-z]+/
             value = /[a-z]+/
-            pair = ["{"] + key + ":" + value + ["}"]
+            pair = ["{"] key + ":" + value ["}"]
         `);
         const result = p["pair"].exec("{foo:bar}");
         expect(result.ast).not.toBeNull();
@@ -1269,7 +1275,7 @@ describe("Grammar", () => {
 
     test("Block handles nesting", () => {
         const p = Grammar.parseString(`
-            braces = ["{"] + ["}"]
+            braces = ["{"] ... ["}"]
         `);
         const cursor = new Cursor("{ { } }");
         const ctx = p["braces"] as Context;
@@ -1281,11 +1287,97 @@ describe("Grammar", () => {
 
     test("Block with inline literal content", () => {
         const p = Grammar.parseString(`
-            parens = ["("] + /[^()]+/ + [")"]
+            parens = ["("] /[^()]+/ [")"]
         `);
         const result = p["parens"].exec("(hello)");
         expect(result.ast).not.toBeNull();
         expect(result.ast!.value).toBe("(hello)");
+    });
+
+    test("Block wildcard matches any content", () => {
+        const p = Grammar.parseString(`
+            braces = ["{"] ... ["}"]
+        `);
+        const result = p["braces"].exec("{anything goes here}");
+        expect(result.ast).not.toBeNull();
+        expect(result.ast!.value).toBe("{anything goes here}");
+    });
+
+    test("Block with inline regex content", () => {
+        const p = Grammar.parseString(`
+            braces = ["{"] /[^{}]*/ ["}"]
+        `);
+        const result = p["braces"].exec("{hello world}");
+        expect(result.ast).not.toBeNull();
+        expect(result.ast!.value).toBe("{hello world}");
+    });
+
+    test("Block with inline literal content", () => {
+        const p = Grammar.parseString(`
+            parens = ["("] "hello" [")"]
+        `);
+        const result = p["parens"].exec("(hello)");
+        expect(result.ast).not.toBeNull();
+        expect(result.ast!.value).toBe("(hello)");
+    });
+
+    test("Block with pattern reference content", () => {
+        const p = Grammar.parseString(`
+            word = /[a-z]+/
+            braces = ["{"] word ["}"]
+        `);
+        const result = p["braces"].exec("{hello}");
+        expect(result.ast).not.toBeNull();
+        expect(result.ast!.value).toBe("{hello}");
+    });
+
+    test("Block with repeat content", () => {
+        const p = Grammar.parseString(`
+            item = /[a-z]+/
+            braces = ["{"] (item, ",")+ ["}"]
+        `);
+        const result = p["braces"].exec("{a,b,c}");
+        expect(result.ast).not.toBeNull();
+        expect(result.ast!.value).toBe("{a,b,c}");
+    });
+
+    test("Block with grouped options content", () => {
+        const p = Grammar.parseString(`
+            braces = ["{"] ("yes" | "no") ["}"]
+        `);
+        expect(p["braces"].exec("{yes}").ast?.value).toBe("{yes}");
+        expect(p["braces"].exec("{no}").ast?.value).toBe("{no}");
+    });
+
+    test("Block with inline sequence content", () => {
+        const p = Grammar.parseString(`
+            key = /[a-z]+/
+            value = /[0-9]+/
+            braces = ["{"] key + "=" + value ["}"]
+        `);
+        const result = p["braces"].exec("{x=42}");
+        expect(result.ast).not.toBeNull();
+        expect(result.ast!.value).toBe("{x=42}");
+    });
+
+    test("Block with three-part inline sequence content", () => {
+        const p = Grammar.parseString(`
+            a = "a"
+            b = "b"
+            c = "c"
+            braces = ["{"] a + b + c ["}"]
+        `);
+        const result = p["braces"].exec("{abc}");
+        expect(result.ast).not.toBeNull();
+        expect(result.ast!.value).toBe("{abc}");
+    });
+
+    test("Block with ungrouped options content", () => {
+        const p = Grammar.parseString(`
+            braces = ["{"] "yes" | "no" ["}"]
+        `);
+        expect(p["braces"].exec("{yes}").ast?.value).toBe("{yes}");
+        expect(p["braces"].exec("{no}").ast?.value).toBe("{no}");
     });
 
 });

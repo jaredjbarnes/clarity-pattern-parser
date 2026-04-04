@@ -88,6 +88,57 @@ Match all characters until a specific pattern is found:
 script-text = ?->| "</script"
 ```
 
+### Block Delimiters
+Match delimited structures like braces, parentheses, or tags. Block patterns automatically handle nesting by tracking delimiter depth.
+
+#### Wildcard Block
+Use `...` to match any content between delimiters:
+```
+braces = ["{"] ... ["}"]
+```
+This matches `{}`, `{anything}`, `{ { nested } }`, etc. The inner content is captured as a `{name}-content` node.
+
+#### Block with Content Pattern
+Specify a pattern to match the content between delimiters:
+```
+content = /[^{}]+/
+braces = ["{"] content ["}"]
+```
+
+Any pattern expression works as content — inline regex, literals, references, repeats, options, or groups:
+```
+# Inline regex
+braces = ["{"] /[^{}]*/ ["}"]
+
+# Inline literal
+parens = ["("] "hello" [")"]
+
+# Options
+braces = ["{"] "yes" | "no" ["}"]
+
+# Repeat
+braces = ["{"] (item, ",")+ ["}"]
+
+# Grouped options
+braces = ["{"] ("yes" | "no") ["}"]
+```
+
+#### Block with Inline Sequence
+Use `+` to define a sequence of content patterns:
+```
+key = /[a-z]+/
+value = /[0-9]+/
+pair = ["{"] key + "=" + value ["}"]
+```
+
+#### Nesting
+Block patterns automatically track delimiter depth. Given `["{"] ... ["}"]`, the input `{ { } }` correctly pairs the outer braces:
+```
+braces = ["{"] ... ["}"]
+# Matches: { { inner } outer }
+#          ^                 ^ paired correctly
+```
+
 ## Repetition
 
 ### Basic Repeat

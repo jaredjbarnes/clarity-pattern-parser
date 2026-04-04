@@ -2,8 +2,6 @@ import { Cursor } from "./Cursor";
 import { Pattern } from "./Pattern";
 import { Literal } from "./Literal";
 import { Node } from "../ast/Node";
-import { clonePatterns } from "./clonePatterns";
-import { filterOutNull } from "./filterOutNull";
 import { findPattern } from "./findPattern";
 import { testPattern } from "./testPattern";
 import { execPattern } from "./execPattern";
@@ -18,7 +16,7 @@ export class Block implements Pattern {
   private _parent: Pattern | null;
   private _children: Pattern[];
   private _openPattern: Pattern;
-  private _contentPatterns: Pattern[];
+  private _contentPattern: Pattern | null;
   private _closePattern: Pattern;
   private _firstIndex: number;
   private _literalOpen: string;
@@ -55,11 +53,11 @@ export class Block implements Pattern {
   constructor(
     name: string,
     openPattern: Literal,
-    contentPatterns: Pattern[],
+    contentPattern: Pattern | null,
     closePattern: Literal
   ) {
     const clonedOpen = openPattern.clone() as Literal;
-    const clonedContent = clonePatterns(contentPatterns);
+    const clonedContent = contentPattern != null ? contentPattern.clone() : null;
     const clonedClose = closePattern.clone() as Literal;
 
     this._id = `block-${idIndex++}`;
@@ -67,9 +65,11 @@ export class Block implements Pattern {
     this._name = name;
     this._parent = null;
     this._openPattern = clonedOpen;
-    this._contentPatterns = clonedContent;
+    this._contentPattern = clonedContent;
     this._closePattern = clonedClose;
-    this._children = [clonedOpen, ...clonedContent, clonedClose];
+    this._children = clonedContent != null
+      ? [clonedOpen, clonedContent, clonedClose]
+      : [clonedOpen, clonedClose];
     this._firstIndex = -1;
     this._literalOpen = clonedOpen.token;
     this._literalClose = clonedClose.token;
@@ -109,8 +109,17 @@ export class Block implements Pattern {
     const { closeStartIndex, closeLastIndex } = scanResult;
 
     // Phase 3: Parse content within boundaries
-    const contentNodes = this._parseContent(cursor, closeStartIndex);
-    if (contentNodes === null) {
+    const contentResult = this._parseContent(cursor, openNode.endIndex, closeStartIndex);
+
+    if (contentResult.failed) {
+      cursor.moveTo(this._firstIndex);
+      cursor.recordErrorAt(this._firstIndex, cursor.index, this);
+      return null;
+    }
+
+    const contentNode = contentResult.node;
+
+    if (contentNode != null && contentNode.endIndex !== closeStartIndex) {
       cursor.moveTo(this._firstIndex);
       cursor.recordErrorAt(this._firstIndex, cursor.index, this);
       return null;
@@ -125,8 +134,18 @@ export class Block implements Pattern {
       return null;
     }
 
-    // Build AST
-    const allChildren = [openNode, ...contentNodes, closeNode];
+    // Build AST — for wildcard blocks, capture inner text as a value node
+    let allChildren: Node[];
+    if (contentNode != null) {
+      allChildren = [openNode, contentNode, closeNode];
+    } else if (this._contentPattern == null && openNode.endIndex < closeStartIndex) {
+      const innerText = cursor.text.substring(openNode.endIndex, closeStartIndex);
+      const innerNode = new Node("block-content", `${this._name}-content`, openNode.endIndex, closeStartIndex - 1, [], innerText);
+      allChildren = [openNode, innerNode, closeNode];
+    } else {
+      allChildren = [openNode, closeNode];
+    }
+
     const node = new Node(
       "block",
       this._name,
@@ -156,8 +175,6 @@ export class Block implements Pattern {
     while (true) {
       const closeIdx = text.indexOf(closeToken, from);
       if (closeIdx === -1) {
-        // No more close delimiters. If we saw at least one,
-        // fall back to the last one found (graceful close for unmatched opens).
         if (lastCloseIdx !== -1) {
           return {
             closeStartIndex: lastCloseIdx,
@@ -194,94 +211,34 @@ export class Block implements Pattern {
 
   private _parseContent(
     cursor: Cursor,
+    openEndIndex: number,
     closeStartIndex: number
-  ): Node[] | null {
-    // Move cursor to start of content (after open delimiter)
-    // We need to find where content starts: right after the open pattern match
-    const openLastIndex =
-      this._firstIndex +
-      (cursor.substring(this._firstIndex, closeStartIndex - 1).indexOf(
-        cursor.substring(this._firstIndex, this._firstIndex)
-      ) >= 0
-        ? 0
-        : 0);
-
-    // Re-parse open to find its end
-    cursor.moveTo(this._firstIndex);
-    const openAgain = this._openPattern.parse(cursor);
-    cursor.resolveError();
-    if (openAgain === null) {
-      return null;
+  ): { node: Node | null; failed: boolean } {
+    if (this._contentPattern == null) {
+      return { node: null, failed: false };
     }
 
-    const contentStartIndex = openAgain.lastIndex;
-    const nodes: (Node | null)[] = [];
+    cursor.moveTo(openEndIndex);
 
-    // If no content patterns, just verify we're at the close
-    if (this._contentPatterns.length === 0) {
-      return [];
+    if (openEndIndex >= closeStartIndex) {
+      // Empty block — no room for content. Only fail if content is required.
+      const isOptional = this._contentPattern.type === "optional";
+      return { node: null, failed: !isOptional };
     }
 
-    // Move to content start and advance past open delimiter
-    if (contentStartIndex >= closeStartIndex) {
-      // Empty block — no room for content
-      // Check if all content patterns are optional
-      if (this._areAllPatternsOptional()) {
-        return [];
-      }
-      return null;
+    const node = this._contentPattern.parse(cursor);
+
+    if (cursor.hasError) {
+      return { node: null, failed: true };
     }
 
-    cursor.moveTo(contentStartIndex);
-    if (cursor.index < closeStartIndex) {
-      cursor.next();
+    if (node === null) {
+      // Content pattern didn't match — only fail if it's required
+      const isOptional = this._contentPattern.type === "optional";
+      return { node: null, failed: !isOptional };
     }
 
-    // Parse content patterns in sequence
-    for (let i = 0; i < this._contentPatterns.length; i++) {
-      if (cursor.index >= closeStartIndex) {
-        // Reached the close boundary — remaining patterns must be optional
-        if (this._areRemainingPatternsOptional(i - 1)) {
-          break;
-        }
-        return null;
-      }
-
-      const runningIndex = cursor.index;
-      const node = this._contentPatterns[i].parse(cursor);
-      const hasError = cursor.hasError;
-
-      if (hasError) {
-        return null;
-      }
-
-      nodes.push(node);
-
-      const hasMorePatterns = i + 1 < this._contentPatterns.length;
-      if (hasMorePatterns && node !== null) {
-        if (cursor.hasNext() && cursor.index < closeStartIndex - 1) {
-          cursor.next();
-        }
-      } else if (node === null) {
-        // Optional pattern didn't match, try next from same position
-        cursor.moveTo(runningIndex);
-      }
-    }
-
-    return filterOutNull(nodes);
-  }
-
-  private _areAllPatternsOptional(): boolean {
-    return this._areRemainingPatternsOptional(-1);
-  }
-
-  private _areRemainingPatternsOptional(fromIndex: number): boolean {
-    for (let i = fromIndex + 1; i < this._contentPatterns.length; i++) {
-      if (this._contentPatterns[i].type !== "optional") {
-        return false;
-      }
-    }
-    return true;
+    return { node, failed: false };
   }
 
   getTokens(): string[] {
@@ -346,7 +303,7 @@ export class Block implements Pattern {
     const clone = new Block(
       name,
       this._openPattern as Literal,
-      this._contentPatterns,
+      this._contentPattern,
       this._closePattern as Literal
     );
     clone._id = this._id;

@@ -3116,18 +3116,20 @@ class Block {
     get startedOnIndex() {
         return this._firstIndex;
     }
-    constructor(name, openPattern, contentPatterns, closePattern) {
+    constructor(name, openPattern, contentPattern, closePattern) {
         const clonedOpen = openPattern.clone();
-        const clonedContent = clonePatterns(contentPatterns);
+        const clonedContent = contentPattern != null ? contentPattern.clone() : null;
         const clonedClose = closePattern.clone();
         this._id = `block-${idIndex$1++}`;
         this._type = "block";
         this._name = name;
         this._parent = null;
         this._openPattern = clonedOpen;
-        this._contentPatterns = clonedContent;
+        this._contentPattern = clonedContent;
         this._closePattern = clonedClose;
-        this._children = [clonedOpen, ...clonedContent, clonedClose];
+        this._children = clonedContent != null
+            ? [clonedOpen, clonedContent, clonedClose]
+            : [clonedOpen, clonedClose];
         this._firstIndex = -1;
         this._literalOpen = clonedOpen.token;
         this._literalClose = clonedClose.token;
@@ -3159,8 +3161,14 @@ class Block {
         }
         const { closeStartIndex, closeLastIndex } = scanResult;
         // Phase 3: Parse content within boundaries
-        const contentNodes = this._parseContent(cursor, closeStartIndex);
-        if (contentNodes === null) {
+        const contentResult = this._parseContent(cursor, openNode.endIndex, closeStartIndex);
+        if (contentResult.failed) {
+            cursor.moveTo(this._firstIndex);
+            cursor.recordErrorAt(this._firstIndex, cursor.index, this);
+            return null;
+        }
+        const contentNode = contentResult.node;
+        if (contentNode != null && contentNode.endIndex !== closeStartIndex) {
             cursor.moveTo(this._firstIndex);
             cursor.recordErrorAt(this._firstIndex, cursor.index, this);
             return null;
@@ -3173,8 +3181,19 @@ class Block {
             cursor.recordErrorAt(this._firstIndex, cursor.index, this);
             return null;
         }
-        // Build AST
-        const allChildren = [openNode, ...contentNodes, closeNode];
+        // Build AST — for wildcard blocks, capture inner text as a value node
+        let allChildren;
+        if (contentNode != null) {
+            allChildren = [openNode, contentNode, closeNode];
+        }
+        else if (this._contentPattern == null && openNode.endIndex < closeStartIndex) {
+            const innerText = cursor.text.substring(openNode.endIndex, closeStartIndex);
+            const innerNode = new Node("block-content", `${this._name}-content`, openNode.endIndex, closeStartIndex - 1, [], innerText);
+            allChildren = [openNode, innerNode, closeNode];
+        }
+        else {
+            allChildren = [openNode, closeNode];
+        }
         const node = new Node("block", this._name, this._firstIndex, closeLastIndex, allChildren);
         cursor.moveTo(closeLastIndex);
         cursor.recordMatch(this, node);
@@ -3192,8 +3211,6 @@ class Block {
         while (true) {
             const closeIdx = text.indexOf(closeToken, from);
             if (closeIdx === -1) {
-                // No more close delimiters. If we saw at least one,
-                // fall back to the last one found (graceful close for unmatched opens).
                 if (lastCloseIdx !== -1) {
                     return {
                         closeStartIndex: lastCloseIdx,
@@ -3223,78 +3240,26 @@ class Block {
             from = closeIdx + closeLen;
         }
     }
-    _parseContent(cursor, closeStartIndex) {
-        // Move cursor to start of content (after open delimiter)
-        // We need to find where content starts: right after the open pattern match
-        this._firstIndex +
-            (cursor.substring(this._firstIndex, closeStartIndex - 1).indexOf(cursor.substring(this._firstIndex, this._firstIndex)) >= 0
-                ? 0
-                : 0);
-        // Re-parse open to find its end
-        cursor.moveTo(this._firstIndex);
-        const openAgain = this._openPattern.parse(cursor);
-        cursor.resolveError();
-        if (openAgain === null) {
-            return null;
+    _parseContent(cursor, openEndIndex, closeStartIndex) {
+        if (this._contentPattern == null) {
+            return { node: null, failed: false };
         }
-        const contentStartIndex = openAgain.lastIndex;
-        const nodes = [];
-        // If no content patterns, just verify we're at the close
-        if (this._contentPatterns.length === 0) {
-            return [];
+        cursor.moveTo(openEndIndex);
+        if (openEndIndex >= closeStartIndex) {
+            // Empty block — no room for content. Only fail if content is required.
+            const isOptional = this._contentPattern.type === "optional";
+            return { node: null, failed: !isOptional };
         }
-        // Move to content start and advance past open delimiter
-        if (contentStartIndex >= closeStartIndex) {
-            // Empty block — no room for content
-            // Check if all content patterns are optional
-            if (this._areAllPatternsOptional()) {
-                return [];
-            }
-            return null;
+        const node = this._contentPattern.parse(cursor);
+        if (cursor.hasError) {
+            return { node: null, failed: true };
         }
-        cursor.moveTo(contentStartIndex);
-        if (cursor.index < closeStartIndex) {
-            cursor.next();
+        if (node === null) {
+            // Content pattern didn't match — only fail if it's required
+            const isOptional = this._contentPattern.type === "optional";
+            return { node: null, failed: !isOptional };
         }
-        // Parse content patterns in sequence
-        for (let i = 0; i < this._contentPatterns.length; i++) {
-            if (cursor.index >= closeStartIndex) {
-                // Reached the close boundary — remaining patterns must be optional
-                if (this._areRemainingPatternsOptional(i - 1)) {
-                    break;
-                }
-                return null;
-            }
-            const runningIndex = cursor.index;
-            const node = this._contentPatterns[i].parse(cursor);
-            const hasError = cursor.hasError;
-            if (hasError) {
-                return null;
-            }
-            nodes.push(node);
-            const hasMorePatterns = i + 1 < this._contentPatterns.length;
-            if (hasMorePatterns && node !== null) {
-                if (cursor.hasNext() && cursor.index < closeStartIndex - 1) {
-                    cursor.next();
-                }
-            }
-            else if (node === null) {
-                // Optional pattern didn't match, try next from same position
-                cursor.moveTo(runningIndex);
-            }
-        }
-        return filterOutNull(nodes);
-    }
-    _areAllPatternsOptional() {
-        return this._areRemainingPatternsOptional(-1);
-    }
-    _areRemainingPatternsOptional(fromIndex) {
-        for (let i = fromIndex + 1; i < this._contentPatterns.length; i++) {
-            if (this._contentPatterns[i].type !== "optional") {
-                return false;
-            }
-        }
-        return true;
+        return { node, failed: false };
     }
     getTokens() {
         return this._openPattern.getTokens();
@@ -3345,7 +3310,7 @@ class Block {
         return findPattern(this, predicate);
     }
     clone(name = this._name) {
-        const clone = new Block(name, this._openPattern, this._contentPatterns, this._closePattern);
+        const clone = new Block(name, this._openPattern, this._contentPattern, this._closePattern);
         clone._id = this._id;
         return clone;
     }
@@ -3556,6 +3521,9 @@ const repeatOptions = new Options("repeatOptions", [oneOrMore, zeroOrMore, repea
 const delimiter = new Sequence("delimiter", [comma, new Reference("patternExpr"), optionalWS, new Optional("optionalTrim", trim)]);
 const repeatExpr = new Sequence("repeatExpr", [openParen, optionalWS, new Reference("patternExpr"), optionalWS, new Optional("optionalDelimiter", delimiter), optionalWS, closeParen, repeatOptions]);
 const blockDelimiter = new Sequence("blockDelimiter", [openSquareBracket, optionalWS, literal, optionalWS, closeSquareBracket]);
+const wildcard = new Literal("wildcard", "...");
+const blockContent = new Options("blockContent", [wildcard, new Reference("patternExpr")]);
+const blockExpr = new Sequence("blockExpr", [blockDelimiter, optionalWS, blockContent, optionalWS, blockDelimiter]);
 const takeUntilExpr = new Sequence("takeUntilExpr", [anyChar, optionalLS, upTo, optionalLS, wall, optionalLS, new Reference("patternExpr")]);
 const sequenceExpr = new Sequence("sequenceExpr", [new Reference("patternExpr"), optionalWS, concat, optionalWS, new Reference("patternExpr")]);
 const optionsExpr = new Sequence("optionsExpr", [new Reference("patternExpr"), optionalWS, bar, optionalWS, new Reference("patternExpr")]);
@@ -3565,7 +3533,7 @@ const notExpr = new Sequence("notExpr", [not, optionalLS, new Reference("pattern
 const optionalExpr = new Sequence("optionalExpr", [new Reference("patternExpr"), optionalLS, optional]);
 const rightAssociationExpr = new Sequence("rightAssociationExpr", [new Reference("patternExpr"), optionalLS, right]);
 const exportPattern = patternName.clone("exportPattern");
-const patternExpr = new Expression("patternExpr", [notExpr, optionalExpr, rightAssociationExpr, sequenceExpr, optionsExpr, greedyOptionsExpr, repeatExpr, patternGroupExpr, takeUntilExpr, blockDelimiter, literal, regex, patternIdentifier]);
+const patternExpr = new Expression("patternExpr", [notExpr, optionalExpr, rightAssociationExpr, sequenceExpr, optionsExpr, greedyOptionsExpr, repeatExpr, patternGroupExpr, takeUntilExpr, blockExpr, literal, regex, patternIdentifier]);
 const patternAssignment = new Sequence("patternAssignment", [patternName, optionalWS, assign, optionalWS, patternExpr]);
 const statement = new Options("statement", [useParamsStatement, importStatement, patternAssignment, decorationStatement, exportPattern, comment]);
 const statements = new Repeat("statements", statement, { divider: newLine });
@@ -3768,8 +3736,10 @@ class Grammar {
             }
             case "takeUntilExpr":
                 return this._buildTakeUntil(name, node);
+            case "blockExpr":
+                return this._buildBlock(name, node);
             case "blockDelimiter":
-                throw new Error(`Block delimiter [${this._extractBlockDelimiterValue(node)}] must be used at both the start and end of a sequence. Example: ["{"] + content + ["}"]`);
+                throw new Error(`Block delimiter [${this._extractBlockDelimiterValue(node)}] must be used at both the start and end of a sequence. Example: ["{"] content ["}"]`);
         }
         throw new Error(`Couldn't build node: ${node.name}.`);
     }
@@ -3782,17 +3752,22 @@ class Grammar {
     }
     _buildSequence(name, node) {
         const patternChildren = node.children.filter(n => !skipNodes[n.name]);
-        const first = patternChildren[0];
-        const last = patternChildren[patternChildren.length - 1];
-        if (first.name === "blockDelimiter" && last.name === "blockDelimiter" && patternChildren.length >= 2) {
-            const openLiteral = new Literal("open", this._extractBlockDelimiterValue(first));
-            const closeLiteral = new Literal("close", this._extractBlockDelimiterValue(last));
-            const contentNodes = patternChildren.slice(1, -1);
-            const contentPatterns = contentNodes.map(n => this._buildPattern(`anonymous-pattern-${anonymousIndexId++}`, n));
-            return new Block(name, openLiteral, contentPatterns, closeLiteral);
-        }
         const patterns = patternChildren.map(n => this._buildPattern(`anonymous-pattern-${anonymousIndexId++}`, n));
         return new Sequence(name, patterns);
+    }
+    _buildBlock(name, node) {
+        const delimiters = node.children.filter(n => n.name === "blockDelimiter");
+        const openLiteral = new Literal("open", this._extractBlockDelimiterValue(delimiters[0]));
+        const closeLiteral = new Literal("close", this._extractBlockDelimiterValue(delimiters[1]));
+        // Find the content node — everything that isn't a delimiter or whitespace
+        const contentChildren = node.children.filter(n => n.name !== "blockDelimiter" && !skipNodes[n.name]);
+        // Wildcard: ["{"] ... ["}"]
+        if (contentChildren.length === 1 && contentChildren[0].name === "wildcard") {
+            return new Block(name, openLiteral, null, closeLiteral);
+        }
+        // Content pattern: ["{"] patternExpr ["}"]
+        const contentPattern = this._buildPattern(`anonymous-pattern-${anonymousIndexId++}`, contentChildren[0]);
+        return new Block(name, openLiteral, contentPattern, closeLiteral);
     }
     _extractBlockDelimiterValue(node) {
         const literalNode = node.children.find(n => n.name === "literal");

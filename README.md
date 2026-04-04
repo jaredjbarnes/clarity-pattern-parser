@@ -74,6 +74,7 @@ The playground allows you to:
 1. [Grammar Documentation](#grammar-documentation)
    - [Basic Patterns](#basic-patterns)
    - [Pattern Operators](#pattern-operators)
+   - [Block Delimiters](#block-delimiters)
    - [Repetition](#repetition)
    - [Imports and Parameters](#imports-and-parameters)
    - [Decorators](#decorators)
@@ -85,6 +86,7 @@ The playground allows you to:
 2. [Direct Pattern Usage](#direct-pattern-usage)
    - [Basic Patterns](#basic-patterns-1)
    - [Composite Patterns](#composite-patterns)
+   - [Block Pattern](#block-pattern)
    - [Pattern Context](#pattern-context)
    - [Pattern Reference](#pattern-reference)
    - [Pattern Execution](#pattern-execution)
@@ -150,6 +152,29 @@ mul-div-operators = "*" | "/"
 mul-div-expression = expression + mul-div-operators + expression
 expression = prefix-expression | mul-div-expression | add-sub-expression | postfix-expression
 ```
+
+### Block Delimiters
+
+Match delimited structures like braces, parentheses, or tags. Block patterns automatically handle nesting by tracking delimiter depth.
+
+#### Wildcard Block
+Use `...` to match any content between delimiters:
+```
+braces = ["{"] ... ["}"]
+```
+
+#### Block with Content
+Specify a pattern for the content, or use `+` for an inline sequence:
+```
+content = /[^{}]+/
+braces = ["{"] content ["}"]
+
+key = /[a-z]+/
+value = /[0-9]+/
+pair = ["{"] key + "=" + value ["}"]
+```
+
+Any pattern expression works as content — inline regex, literals, references, options, repeats, or groups.
 
 ### Repetition
 
@@ -343,6 +368,22 @@ const names = new Options("names", [john, jane]);
 
 const result = names.exec("Jane");
 // result.ast.value will be "Jane"
+```
+
+#### Block
+```typescript
+import { Block, Literal, Regex } from "clarity-pattern-parser";
+
+// Wildcard block — matches any content between delimiters
+const braces = new Block("braces", new Literal("open", "{"), null, new Literal("close", "}"));
+const result = braces.exec("{anything here}");
+// result.ast.value will be "{anything here}"
+
+// Block with content pattern
+const content = new Regex("content", "[^{}]+");
+const bracesWithContent = new Block("braces", new Literal("open", "{"), content, new Literal("close", "}"));
+const result2 = bracesWithContent.exec("{hello}");
+// result2.ast.value will be "{hello}"
 ```
 
 #### Expression

@@ -2,10 +2,9 @@ import { Block } from "./Block";
 import { Literal } from "./Literal";
 import { Regex } from "./Regex";
 import { Optional } from "./Optional";
-import { Options } from "./Options";
 import { Sequence } from "./Sequence";
-import { Repeat } from "./Repeat";
 import { Cursor } from "./Cursor";
+import { Reference } from "./Reference";
 
 describe("Block", () => {
   describe("simple blocks", () => {
@@ -13,7 +12,7 @@ describe("Block", () => {
       const block = new Block(
         "braces",
         new Literal("open", "{"),
-        [],
+        null,
         new Literal("close", "}")
       );
       const result = block.exec("{}");
@@ -28,7 +27,7 @@ describe("Block", () => {
       const block = new Block(
         "braces",
         new Literal("open", "{"),
-        [new Regex("content", "[^{}]+")],
+        new Regex("content", "[^{}]+"),
         new Literal("close", "}")
       );
       const result = block.exec("{hello}");
@@ -40,11 +39,11 @@ describe("Block", () => {
       expect(result.ast!.children[2].value).toBe("}");
     });
 
-    test("empty content array skips inner text", () => {
+    test("null content skips inner text", () => {
       const block = new Block(
         "braces",
         new Literal("open", "{"),
-        [],
+        null,
         new Literal("close", "}")
       );
       const cursor = new Cursor("{stuff inside}");
@@ -52,16 +51,18 @@ describe("Block", () => {
       expect(node).not.toBeNull();
       expect(node!.firstIndex).toBe(0);
       expect(node!.lastIndex).toBe(13);
-      expect(node!.children.length).toBe(2);
+      expect(node!.children.length).toBe(3);
       expect(node!.children[0].value).toBe("{");
-      expect(node!.children[1].value).toBe("}");
+      expect(node!.children[1].value).toBe("stuff inside");
+      expect(node!.children[1].name).toBe("braces-content");
+      expect(node!.children[2].value).toBe("}");
     });
 
-    test("empty content array with empty block", () => {
+    test("null content with empty block", () => {
       const block = new Block(
         "braces",
         new Literal("open", "{"),
-        [],
+        null,
         new Literal("close", "}")
       );
       const result = block.exec("{}");
@@ -69,11 +70,11 @@ describe("Block", () => {
       expect(result.ast!.children.length).toBe(2);
     });
 
-    test("empty content array with nested delimiters", () => {
+    test("null content with nested delimiters", () => {
       const block = new Block(
         "braces",
         new Literal("open", "{"),
-        [],
+        null,
         new Literal("close", "}")
       );
       const cursor = new Cursor("{ { } }");
@@ -81,14 +82,15 @@ describe("Block", () => {
       expect(node).not.toBeNull();
       expect(node!.firstIndex).toBe(0);
       expect(node!.lastIndex).toBe(6);
-      expect(node!.children.length).toBe(2);
+      expect(node!.children.length).toBe(3);
+      expect(node!.children[1].value).toBe(" { } ");
     });
 
     test("matches block with whitespace content", () => {
       const block = new Block(
         "braces",
         new Literal("open", "{"),
-        [new Regex("content", "\\s+")],
+        new Regex("content", "\\s+"),
         new Literal("close", "}")
       );
       const result = block.exec("{ }");
@@ -100,7 +102,7 @@ describe("Block", () => {
       const block = new Block(
         "parens",
         new Literal("open", "("),
-        [new Regex("content", "[^()]+")],
+        new Regex("content", "[^()]+"),
         new Literal("close", ")")
       );
       const result = block.exec("(hello)");
@@ -112,7 +114,7 @@ describe("Block", () => {
       const block = new Block(
         "begin-end",
         new Literal("open", "BEGIN"),
-        [new Regex("content", "[^BE]+")],
+        new Regex("content", "[^BE]+"),
         new Literal("close", "END")
       );
       const result = block.exec("BEGIN stuff END");
@@ -123,73 +125,68 @@ describe("Block", () => {
 
   describe("nested blocks", () => {
     test("scan finds matching close past nested braces", () => {
-      // Empty content patterns — just testing that the scan finds the right close
       const block = new Block(
         "braces",
         new Literal("open", "{"),
-        [],
+        null,
         new Literal("close", "}")
       );
       const cursor = new Cursor("{ { } }");
       const node = block.parse(cursor);
       expect(node).not.toBeNull();
       expect(node!.firstIndex).toBe(0);
-      expect(node!.lastIndex).toBe(6); // last } at index 6
+      expect(node!.lastIndex).toBe(6);
     });
 
     test("counts nesting depth correctly", () => {
       const block = new Block(
         "braces",
         new Literal("open", "{"),
-        [],
+        null,
         new Literal("close", "}")
       );
       const cursor = new Cursor("{ { { } } }");
       const node = block.parse(cursor);
       expect(node).not.toBeNull();
       expect(node!.firstIndex).toBe(0);
-      expect(node!.lastIndex).toBe(10); // last } at index 10
+      expect(node!.lastIndex).toBe(10);
     });
 
     test("nested blocks with recursive content", () => {
-      // Inner block as content pattern — demonstrates real nested parsing
       const innerBlock = new Block(
         "inner",
         new Literal("open", "{"),
-        [],
+        null,
         new Literal("close", "}")
       );
       const ws = new Optional("ws", new Regex("whitespace", "\\s+"));
       const block = new Block(
         "outer",
         new Literal("open", "{"),
-        [ws, innerBlock, ws],
+        new Sequence("content", [ws, innerBlock, ws]),
         new Literal("close", "}")
       );
       const result = block.exec("{ {} }");
       expect(result.ast).not.toBeNull();
       expect(result.ast!.value).toBe("{ {} }");
-      // open + ws + innerBlock + ws + close
       const children = result.ast!.children;
       expect(children[0].value).toBe("{");
       expect(children[children.length - 1].value).toBe("}");
     });
 
     test("graceful close when opens outnumber closes", () => {
-      // Content has an unmatched inner open — scanner falls back to the last close found
+      // With null content, the scanner finds the matching close
+      // and the block captures open + close only
       const block = new Block(
         "tag",
         new Literal("open", "<task>"),
-        [new Regex("content", "[\\s\\S]+")],
+        null,
         new Literal("close", "</task>")
       );
-      // The inner <task> has no matching </task>, but the outer block
-      // should gracefully close at the last </task> it finds
       const cursor = new Cursor("<task>stuff <task> more stuff</task>");
       const node = block.parse(cursor);
       expect(node).not.toBeNull();
       expect(node!.firstIndex).toBe(0);
-      expect(node!.lastIndex).toBe(35);
       expect(node!.children[0].value).toBe("<task>");
       expect(node!.children[node!.children.length - 1].value).toBe("</task>");
     });
@@ -198,10 +195,9 @@ describe("Block", () => {
       const block = new Block(
         "braces",
         new Literal("open", "{"),
-        [],
+        null,
         new Literal("close", "}")
       );
-      // Two opens, one close — falls back to the last close found
       const cursor = new Cursor("{ { { }");
       const node = block.parse(cursor);
       expect(node).not.toBeNull();
@@ -213,7 +209,7 @@ describe("Block", () => {
       const block = new Block(
         "braces",
         new Literal("open", "{"),
-        [],
+        null,
         new Literal("close", "}")
       );
       const cursor = new Cursor("{ no close here");
@@ -225,7 +221,7 @@ describe("Block", () => {
       const block = new Block(
         "braces",
         new Literal("open", "{"),
-        [new Regex("content", "[^{}]+")],
+        new Regex("content", "[^{}]+"),
         new Literal("close", "}")
       );
       const cursor = new Cursor("{a}{b}");
@@ -246,7 +242,7 @@ describe("Block", () => {
       const block = new Block(
         "braces",
         new Literal("open", "{"),
-        [],
+        null,
         new Literal("close", "}")
       );
       const result = block.exec("{");
@@ -257,7 +253,7 @@ describe("Block", () => {
       const block = new Block(
         "braces",
         new Literal("open", "{"),
-        [],
+        null,
         new Literal("close", "}")
       );
       const result = block.exec("x{}");
@@ -268,7 +264,7 @@ describe("Block", () => {
       const block = new Block(
         "braces",
         new Literal("open", "{"),
-        [],
+        null,
         new Literal("close", "}")
       );
       const result = block.exec("");
@@ -277,34 +273,36 @@ describe("Block", () => {
   });
 
   describe("content patterns", () => {
-    test("matches multiple content patterns in sequence", () => {
+    test("matches sequence content pattern", () => {
       const block = new Block(
         "braces",
         new Literal("open", "{"),
-        [
+        new Sequence("content", [
           new Regex("name", "[a-z]+"),
           new Literal("colon", ":"),
           new Regex("value", "[a-z]+"),
-        ],
+        ]),
         new Literal("close", "}")
       );
       const result = block.exec("{foo:bar}");
       expect(result.ast).not.toBeNull();
       expect(result.ast!.value).toBe("{foo:bar}");
-      expect(result.ast!.children.length).toBe(5); // open + 3 content + close
-      expect(result.ast!.children[1].value).toBe("foo");
-      expect(result.ast!.children[2].value).toBe(":");
-      expect(result.ast!.children[3].value).toBe("bar");
+      // open + sequence content + close
+      expect(result.ast!.children.length).toBe(3);
+      // The sequence node contains the individual parts
+      const contentNode = result.ast!.children[1];
+      expect(contentNode.children[0].value).toBe("foo");
+      expect(contentNode.children[1].value).toBe(":");
+      expect(contentNode.children[2].value).toBe("bar");
     });
 
-    test("handles optional content patterns", () => {
+    test("handles optional content pattern", () => {
       const block = new Block(
         "braces",
         new Literal("open", "{"),
-        [new Optional("maybe", new Regex("content", "[a-z]+"))],
+        new Optional("maybe", new Regex("content", "[a-z]+")),
         new Literal("close", "}")
       );
-      // Empty block with optional content
       const result = block.exec("{}");
       expect(result.ast).not.toBeNull();
       expect(result.ast!.value).toBe("{}");
@@ -316,14 +314,13 @@ describe("Block", () => {
       const block = new Block(
         "braces",
         new Literal("open", "{"),
-        [],
+        null,
         new Literal("close", "}")
       );
       const cursor = new Cursor("{} rest");
       const node = block.parse(cursor);
       expect(node).not.toBeNull();
       expect(node!.value).toBe("{}");
-      // Cursor should be positioned on the last char of close delimiter
       expect(cursor.index).toBe(1);
     });
 
@@ -331,7 +328,7 @@ describe("Block", () => {
       const block = new Block(
         "braces",
         new Literal("open", "{"),
-        [],
+        null,
         new Literal("close", "}")
       );
       const cursor = new Cursor("hello");
@@ -346,7 +343,7 @@ describe("Block", () => {
       const block = new Block(
         "braces",
         new Literal("open", "{"),
-        [new Regex("content", "[^{}]+")],
+        new Regex("content", "[^{}]+"),
         new Literal("close", "}")
       );
       const cloned = block.clone("braces-copy") as Block;
@@ -361,7 +358,7 @@ describe("Block", () => {
       const block = new Block(
         "braces",
         new Literal("open", "{"),
-        [],
+        null,
         new Literal("close", "}")
       );
       expect(block.type).toBe("block");
@@ -371,7 +368,7 @@ describe("Block", () => {
       const block = new Block(
         "my-block",
         new Literal("open", "{"),
-        [],
+        null,
         new Literal("close", "}")
       );
       expect(block.name).toBe("my-block");
@@ -382,20 +379,136 @@ describe("Block", () => {
       const block = new Block(
         "braces",
         new Literal("open", "{"),
-        [content],
+        content,
         new Literal("close", "}")
       );
       expect(block.children.length).toBe(3);
+    });
+
+    test("children without content has open and close only", () => {
+      const block = new Block(
+        "braces",
+        new Literal("open", "{"),
+        null,
+        new Literal("close", "}")
+      );
+      expect(block.children.length).toBe(2);
     });
 
     test("getTokens returns open pattern tokens", () => {
       const block = new Block(
         "braces",
         new Literal("open", "{"),
-        [],
+        null,
         new Literal("close", "}")
       );
       expect(block.getTokens()).toEqual(["{"]);
+    });
+
+    test("test with other pattern", () => {
+      const anyChar = new Regex("content", "[^{}]*");
+      const block = new Block(
+        "braces",
+        new Literal("open", "{"),
+        anyChar,
+        new Literal("close", "}")
+      );
+      const {ast} = block.exec("{text}");
+      expect(ast?.value).toBe("{text}");
+    });
+
+    test("test with sequence content", () => {
+      const anyChar = new Regex("content", "[^{}}]+");
+      const refBlock = new Reference("braces");
+
+      const block = new Block(
+        "braces",
+        new Literal("open", "{"),
+        new Sequence("content", [anyChar, new Optional("ref", refBlock)]),
+        new Literal("close", "}")
+      );
+      const {ast} = block.exec("{text{inner}}");
+
+      expect(ast?.value).toBe("{text{inner}}");
+    });
+  });
+
+  describe("unicode and emoji", () => {
+    test("wildcard block with emoji content", () => {
+      const block = new Block(
+        "braces",
+        new Literal("open", "{"),
+        null,
+        new Literal("close", "}")
+      );
+      const result = block.exec("{🔴🟢🔵}");
+      expect(result.ast).not.toBeNull();
+      expect(result.ast!.value).toBe("{🔴🟢🔵}");
+    });
+
+    test("block with emoji delimiters", () => {
+      const block = new Block(
+        "stars",
+        new Literal("open", "🌟"),
+        new Regex("content", "[^🌟]+"),
+        new Literal("close", "🌟")
+      );
+      const result = block.exec("🌟hello🌟");
+      expect(result.ast).not.toBeNull();
+      expect(result.ast!.value).toBe("🌟hello🌟");
+    });
+
+    test("block with multi-char emoji delimiters", () => {
+      const block = new Block(
+        "arrows",
+        new Literal("open", "➡️"),
+        null,
+        new Literal("close", "⬅️")
+      );
+      const result = block.exec("➡️content here⬅️");
+      expect(result.ast).not.toBeNull();
+      expect(result.ast!.value).toBe("➡️content here⬅️");
+    });
+
+    test("nested blocks with emoji content between", () => {
+      const block = new Block(
+        "braces",
+        new Literal("open", "{"),
+        null,
+        new Literal("close", "}")
+      );
+      const cursor = new Cursor("{🔴{🟢}🔵}");
+      const node = block.parse(cursor);
+      expect(node).not.toBeNull();
+      expect(node!.value).toBe("{🔴{🟢}🔵}");
+    });
+
+    test("block with combining characters in content", () => {
+      const block = new Block(
+        "braces",
+        new Literal("open", "{"),
+        null,
+        new Literal("close", "}")
+      );
+      // e + combining acute = é
+      const result = block.exec("{cafe\u0301}");
+      expect(result.ast).not.toBeNull();
+      expect(result.ast!.value).toBe("{cafe\u0301}");
+    });
+
+    test("cursor position correct after emoji block", () => {
+      const block = new Block(
+        "braces",
+        new Literal("open", "{"),
+        null,
+        new Literal("close", "}")
+      );
+      const cursor = new Cursor("{🔴} rest");
+      const node = block.parse(cursor);
+      expect(node).not.toBeNull();
+      expect(node!.value).toBe("{🔴}");
+      // Cursor should be on the close delimiter
+      expect(cursor.currentChar).toBe("}");
     });
   });
 });

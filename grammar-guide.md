@@ -180,11 +180,11 @@ full-name = !jack + first-name + space + last-name
 
 ### Block (Matched Delimiters)
 
-Square brackets around a literal define a **block delimiter**. When a sequence starts and ends with block delimiters, it creates a `Block` pattern that solves the **sentinel problem** — correctly matching nested delimiters before parsing content.
+Square brackets around a literal define a **block delimiter**. A block expression is a self-contained construct: `[open] content [close]`. It creates a `Block` pattern that solves the **sentinel problem** — correctly matching nested delimiters before parsing content.
 
 ```
-body = ["{"] + statements + ["}"]
-parens = ["("] + expr + [")"]
+body = ["{"] statements ["}"]
+parens = ["("] expr [")"]
 ```
 
 **How it works**: Instead of parsing content greedily and hoping to find the right closing delimiter, Block first scans the raw string using `indexOf` to find the **matching** close delimiter — counting nesting depth along the way. Only after the boundaries are known does it parse the content patterns inside.
@@ -194,15 +194,34 @@ This means nested structures are handled correctly without backtracking:
 ```
 # This correctly parses "{ { } }" — the inner "}" doesn't
 # prematurely close the outer block.
-block = ["{"] + inner + ["}"]
+block = ["{"] inner ["}"]
 ```
 
 **Why this matters**: In a traditional PEG parser, a content pattern like `/[^}]*/` would stop at the first `}`, even if that `}` belongs to a nested inner block. The Block pattern eliminates this ambiguity by finding the matching close delimiter first (a simple counting problem), then parsing content within known boundaries. The content patterns can be as complex as needed — recursive, greedy, anything — because the bookends are already locked in.
 
-**Empty content**: Block delimiters with no content patterns between them are valid. The block still finds the matching close and consumes the full span:
+**Wildcard content**: Use `...` to match any content between delimiters without specifying a content pattern. The inner text is captured as a `{name}-content` node:
 
 ```
-braces = ["{"] + ["}"]
+braces = ["{"] ... ["}"]
+```
+
+**Content patterns**: Any pattern expression works as content — inline regex, literals, references, options, repeats, or groups:
+
+```
+# Single pattern
+braces = ["{"] /[^{}]+/ ["}"]
+
+# Pattern reference
+braces = ["{"] content ["}"]
+
+# Options (no grouping needed)
+braces = ["{"] "yes" | "no" ["}"]
+
+# Inline sequence (use + between content patterns)
+pair = ["{"] key + ":" + value ["}"]
+
+# Repeat
+braces = ["{"] (item, ",")+ ["}"]
 ```
 
 **Constraints**: Block delimiters must be literals (quoted strings). This enables the fast `indexOf`-based scan that makes Block efficient — no parsing overhead during the delimiter-matching phase.
@@ -281,7 +300,7 @@ Each pattern type creates nodes with a specific `type` field:
 | `(a)+` | `Repeat` | `"infinite-repeat"` or `"finite-repeat"` |
 | `a?` | `Optional` | `"optional"` |
 | `!a` | `Not` | `"not"` |
-| `["{"] + a + ["}"]` | `Block` | `"block"` |
+| `["{"] a ["}"]` | `Block` | `"block"` |
 | `?->\| a` | `TakeUntil` | `"take-until"` |
 | `alias = other` | Cloned pattern | Same as original |
 
@@ -566,7 +585,7 @@ Node {
 
 ```
 content = /[^{}]+/
-body = ["{"] + content + ["}"]
+body = ["{"] content ["}"]
 ```
 
 Parsing `"{hello}"`:
@@ -587,6 +606,29 @@ Node {
 ```
 
 **Key**: The open and close delimiters are always included as the first and last children. Content nodes appear between them. The block finds the matching close delimiter before parsing content, so nested delimiters are handled correctly.
+
+#### Block (Wildcard)
+
+```
+braces = ["{"] ... ["}"]
+```
+
+Parsing `"{hello world}"`:
+
+```
+Node {
+  type: "block"
+  name: "braces"
+  value: "{hello world}"
+  children: [
+    Node { type: "literal",       name: "open",           value: "{" }
+    Node { type: "block-content", name: "braces-content", value: "hello world" }
+    Node { type: "literal",       name: "close",          value: "}" }
+  ]
+}
+```
+
+**Key**: Wildcard blocks capture inner text as a `{name}-content` node. Empty wildcard blocks (`"{}"`) have only open and close children with no content node.
 
 ### Traversal and Manipulation
 
@@ -885,7 +927,7 @@ spaces = /\s+/
 
 items = digit | array
 array-items = (items, divider trim)*
-array = ["["] + spaces? + array-items + spaces? + ["]"]
+array = ["["] spaces? + array-items + spaces? ["]"]
 ```
 
 Parsing `"[1, [2, 3], []]"` produces a nested AST matching the recursive structure. Using Block delimiters (`["["]` and `["]"]`) ensures the parser correctly finds the matching `]` even with nested arrays inside.
@@ -897,7 +939,7 @@ Block delimiters shine when parsing nested structures where the sentinel problem
 ```
 ws = /\s*/
 statement = /[^{}]+/
-body = ["{"] + ws + statements + ws + ["}"]
+body = ["{"] ws + statements + ws ["}"]
 statements = (statement | body)*
 ```
 

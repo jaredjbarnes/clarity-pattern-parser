@@ -3159,7 +3159,7 @@
                 return null;
             }
             // Phase 2: Scan ahead for matching close
-            const scanResult = this._scanForMatchingClose(cursor);
+            const scanResult = this._scanForMatchingClose(cursor, openNode);
             if (scanResult === null) {
                 cursor.moveTo(this._firstIndex);
                 cursor.recordErrorAt(this._firstIndex, cursor.index, this);
@@ -3205,13 +3205,13 @@
             cursor.recordMatch(this, node);
             return node;
         }
-        _scanForMatchingClose(cursor) {
+        _scanForMatchingClose(cursor, openNode) {
             const text = cursor.text;
             const openToken = this._literalOpen;
             const closeToken = this._literalClose;
             const openLen = openToken.length;
             const closeLen = closeToken.length;
-            let from = cursor.index + openLen;
+            let from = openNode.endIndex;
             let depth = 0;
             let lastCloseIdx = -1;
             while (true) {
@@ -3264,6 +3264,9 @@
                 // Content pattern didn't match — only fail if it's required
                 const isOptional = this._contentPattern.type === "optional";
                 return { node: null, failed: !isOptional };
+            }
+            if (node.endIndex !== closeStartIndex) {
+                return { node: null, failed: true };
             }
             return { node, failed: false };
         }

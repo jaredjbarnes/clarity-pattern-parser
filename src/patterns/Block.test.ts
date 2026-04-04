@@ -510,5 +510,19 @@ describe("Block", () => {
       // Cursor should be on the close delimiter
       expect(cursor.currentChar).toBe("}");
     });
+
+    test("check text with more than one as open and close pattern", () => {
+      const block = new Block(
+        "braces",
+        new Literal("open", "<script"),
+        null,
+        new Literal("close", "</script>")
+      );
+      const {ast, cursor} = block.exec("<script>Hello</script>");
+      expect(ast).not.toBeNull();
+      expect(ast!.value).toBe("<script>Hello</script>");
+      // Cursor should be on the close delimiter
+      expect(cursor.currentChar).toBe(">");
+    });
   });
 });

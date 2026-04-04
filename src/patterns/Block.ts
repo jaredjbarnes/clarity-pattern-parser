@@ -99,7 +99,7 @@ export class Block implements Pattern {
     }
 
     // Phase 2: Scan ahead for matching close
-    const scanResult = this._scanForMatchingClose(cursor);
+    const scanResult = this._scanForMatchingClose(cursor, openNode);
     if (scanResult === null) {
       cursor.moveTo(this._firstIndex);
       cursor.recordErrorAt(this._firstIndex, cursor.index, this);
@@ -160,7 +160,8 @@ export class Block implements Pattern {
   }
 
   private _scanForMatchingClose(
-    cursor: Cursor
+    cursor: Cursor,
+    openNode: Node
   ): { closeStartIndex: number; closeLastIndex: number } | null {
     const text = cursor.text;
     const openToken = this._literalOpen;
@@ -168,7 +169,7 @@ export class Block implements Pattern {
     const openLen = openToken.length;
     const closeLen = closeToken.length;
 
-    let from = cursor.index + openLen;
+    let from = openNode.endIndex;
     let depth = 0;
     let lastCloseIdx = -1;
 
@@ -236,6 +237,10 @@ export class Block implements Pattern {
       // Content pattern didn't match — only fail if it's required
       const isOptional = this._contentPattern.type === "optional";
       return { node: null, failed: !isOptional };
+    }
+
+    if (node.endIndex !== closeStartIndex){
+      return { node: null, failed: true };
     }
 
     return { node, failed: false };

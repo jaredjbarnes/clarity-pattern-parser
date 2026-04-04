@@ -84,6 +84,7 @@ export declare const zeroOrMore: Literal;
 export declare const repeatOptions: Options;
 export declare const delimiter: Sequence;
 export declare const repeatExpr: Sequence;
+export declare const blockDelimiter: Sequence;
 export declare const takeUntilExpr: Sequence;
 export declare const sequenceExpr: Sequence;
 export declare const optionsExpr: Sequence;

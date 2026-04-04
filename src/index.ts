@@ -6,6 +6,7 @@ import { Suggestion } from "./intellisense/Suggestion";
 import { SuggestionOption } from "./intellisense/SuggestionOption";
 import { AutoComplete, AutoCompleteOptions } from './intellisense/AutoComplete';
 import { Cursor } from "./patterns/Cursor";
+import { Block } from "./patterns/Block";
 import { Regex } from "./patterns/Regex";
 import { Sequence } from "./patterns/Sequence";
 import { Literal } from "./patterns/Literal";
@@ -29,6 +30,7 @@ import { generateErrorMessage } from "./patterns/generate_error_message";
 import { HistoryRecord } from "./patterns/HistoryRecord";
 
 export {
+  Block,
   Node,
   Grammar,
   AutoComplete,

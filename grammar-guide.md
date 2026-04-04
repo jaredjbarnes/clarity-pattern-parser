@@ -7,9 +7,10 @@
 3. [Pattern Types](#pattern-types)
 4. [AST Output Reference](#ast-output-reference)
 5. [Expression Patterns (Operator Precedence)](#expression-patterns)
-6. [Imports and Parameters](#imports-and-parameters)
-7. [Decorators](#decorators)
-8. [Complete Examples](#complete-examples)
+6. [Block Patterns (Matched Delimiters)](#block-matched-delimiters)
+7. [Imports and Parameters](#imports-and-parameters)
+8. [Decorators](#decorators)
+9. [Complete Examples](#complete-examples)
 
 ---
 
@@ -177,6 +178,35 @@ full-name = !jack + first-name + space + last-name
 
 `!` does not consume input. It only asserts that the pattern doesn't match at the current position.
 
+### Block (Matched Delimiters)
+
+Square brackets around a literal define a **block delimiter**. When a sequence starts and ends with block delimiters, it creates a `Block` pattern that solves the **sentinel problem** — correctly matching nested delimiters before parsing content.
+
+```
+body = ["{"] + statements + ["}"]
+parens = ["("] + expr + [")"]
+```
+
+**How it works**: Instead of parsing content greedily and hoping to find the right closing delimiter, Block first scans the raw string using `indexOf` to find the **matching** close delimiter — counting nesting depth along the way. Only after the boundaries are known does it parse the content patterns inside.
+
+This means nested structures are handled correctly without backtracking:
+
+```
+# This correctly parses "{ { } }" — the inner "}" doesn't
+# prematurely close the outer block.
+block = ["{"] + inner + ["}"]
+```
+
+**Why this matters**: In a traditional PEG parser, a content pattern like `/[^}]*/` would stop at the first `}`, even if that `}` belongs to a nested inner block. The Block pattern eliminates this ambiguity by finding the matching close delimiter first (a simple counting problem), then parsing content within known boundaries. The content patterns can be as complex as needed — recursive, greedy, anything — because the bookends are already locked in.
+
+**Empty content**: Block delimiters with no content patterns between them are valid. The block still finds the matching close and consumes the full span:
+
+```
+braces = ["{"] + ["}"]
+```
+
+**Constraints**: Block delimiters must be literals (quoted strings). This enables the fast `indexOf`-based scan that makes Block efficient — no parsing overhead during the delimiter-matching phase.
+
 ### Take Until
 
 Consume all characters until a terminating pattern:
@@ -251,6 +281,7 @@ Each pattern type creates nodes with a specific `type` field:
 | `(a)+` | `Repeat` | `"infinite-repeat"` or `"finite-repeat"` |
 | `a?` | `Optional` | `"optional"` |
 | `!a` | `Not` | `"not"` |
+| `["{"] + a + ["}"]` | `Block` | `"block"` |
 | `?->\| a` | `TakeUntil` | `"take-until"` |
 | `alias = other` | Cloned pattern | Same as original |
 
@@ -530,6 +561,32 @@ Node {
 ```
 
 **Key**: Consumes everything BEFORE the terminator. The terminator itself is NOT included.
+
+#### Block
+
+```
+content = /[^{}]+/
+body = ["{"] + content + ["}"]
+```
+
+Parsing `"{hello}"`:
+
+```
+Node {
+  type: "block"
+  name: "body"
+  value: "{hello}"
+  startIndex: 0
+  endIndex: 7
+  children: [
+    Node { type: "literal", name: "open",    value: "{",     startIndex: 0, endIndex: 1 }
+    Node { type: "regex",   name: "content", value: "hello", startIndex: 1, endIndex: 6 }
+    Node { type: "literal", name: "close",   value: "}",     startIndex: 6, endIndex: 7 }
+  ]
+}
+```
+
+**Key**: The open and close delimiters are always included as the first and last children. Content nodes appear between them. The block finds the matching close delimiter before parsing content, so nested delimiters are handled correctly.
 
 ### Traversal and Manipulation
 
@@ -824,13 +881,24 @@ expr = postfix-expr | unary-expr | binary-expr | integer
 ```
 digit = /\d+/
 divider = /\s*,\s*/
-open-bracket = "["
-close-bracket = "]"
 spaces = /\s+/
 
 items = digit | array
 array-items = (items, divider trim)*
-array = open-bracket + spaces? + array-items + spaces? + close-bracket
+array = ["["] + spaces? + array-items + spaces? + ["]"]
 ```
 
-Parsing `"[1, [2, 3], []]"` produces a nested AST matching the recursive structure.
+Parsing `"[1, [2, 3], []]"` produces a nested AST matching the recursive structure. Using Block delimiters (`["["]` and `["]"]`) ensures the parser correctly finds the matching `]` even with nested arrays inside.
+
+### Nested Code Blocks
+
+Block delimiters shine when parsing nested structures where the sentinel problem would otherwise cause ambiguity:
+
+```
+ws = /\s*/
+statement = /[^{}]+/
+body = ["{"] + ws + statements + ws + ["}"]
+statements = (statement | body)*
+```
+
+The Block pattern finds the matching `}` for each `{` by counting nesting depth, then parses content within those known boundaries. Without Block, a greedy content pattern would stop at the first `}` it finds — even if that `}` belongs to an inner block.

@@ -97,6 +97,8 @@ export const repeatOptions = new Options("repeatOptions", [oneOrMore, zeroOrMore
 export const delimiter = new Sequence("delimiter", [comma, new Reference("patternExpr"), optionalWS, new Optional("optionalTrim", trim)]);
 export const repeatExpr = new Sequence("repeatExpr", [openParen, optionalWS, new Reference("patternExpr"), optionalWS, new Optional("optionalDelimiter", delimiter), optionalWS, closeParen, repeatOptions]);
 
+export const blockDelimiter = new Sequence("blockDelimiter", [openSquareBracket, optionalWS, literal, optionalWS, closeSquareBracket]);
+
 export const takeUntilExpr = new Sequence("takeUntilExpr", [anyChar, optionalLS, upTo, optionalLS, wall, optionalLS, new Reference("patternExpr")]);
 
 export const sequenceExpr = new Sequence("sequenceExpr", [new Reference("patternExpr"), optionalWS, concat, optionalWS, new Reference("patternExpr")]);
@@ -109,7 +111,7 @@ export const optionalExpr = new Sequence("optionalExpr", [new Reference("pattern
 export const rightAssociationExpr = new Sequence("rightAssociationExpr", [new Reference("patternExpr"), optionalLS, right]);
 
 export const exportPattern = patternName.clone("exportPattern");
-export const patternExpr = new Expression("patternExpr", [notExpr, optionalExpr, rightAssociationExpr, sequenceExpr, optionsExpr, greedyOptionsExpr, repeatExpr, patternGroupExpr, takeUntilExpr, literal, regex, patternIdentifier]);
+export const patternExpr = new Expression("patternExpr", [notExpr, optionalExpr, rightAssociationExpr, sequenceExpr, optionsExpr, greedyOptionsExpr, repeatExpr, patternGroupExpr, takeUntilExpr, blockDelimiter, literal, regex, patternIdentifier]);
 export const patternAssignment = new Sequence("patternAssignment", [patternName, optionalWS, assign, optionalWS, patternExpr]);
 export const statement = new Options("statement", [useParamsStatement, importStatement, patternAssignment, decorationStatement, exportPattern, comment]);
 export const statements = new Repeat("statements", statement, { divider: newLine });

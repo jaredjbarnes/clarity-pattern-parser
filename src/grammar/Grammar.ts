@@ -18,6 +18,7 @@ import { Regex } from "../patterns/Regex";
 import { Repeat, RepeatOptions } from "../patterns/Repeat";
 import { RightAssociated } from "../patterns/RightAssociated";
 import { Sequence } from "../patterns/Sequence";
+import { Block } from "../patterns/Block";
 import { TakeUntil } from "../patterns/TakeUntil";
 import { grammar } from "./patterns/grammar"
 
@@ -279,6 +280,8 @@ export class Grammar {
             }
             case "takeUntilExpr":
                 return this._buildTakeUntil(name, node);
+            case "blockDelimiter":
+                throw new Error(`Block delimiter [${this._extractBlockDelimiterValue(node)}] must be used at both the start and end of a sequence. Example: ["{"] + content + ["}"]`);
         }
 
         throw new Error(`Couldn't build node: ${node.name}.`);
@@ -295,8 +298,32 @@ export class Grammar {
 
     private _buildSequence(name: string, node: Node) {
         const patternChildren = node.children.filter(n => !skipNodes[n.name]);
+
+        const first = patternChildren[0];
+        const last = patternChildren[patternChildren.length - 1];
+
+        if (first.name === "blockDelimiter" && last.name === "blockDelimiter" && patternChildren.length >= 2) {
+            const openLiteral = new Literal("open", this._extractBlockDelimiterValue(first));
+            const closeLiteral = new Literal("close", this._extractBlockDelimiterValue(last));
+
+            const contentNodes = patternChildren.slice(1, -1);
+            const contentPatterns = contentNodes.map(n =>
+                this._buildPattern(`anonymous-pattern-${anonymousIndexId++}`, n)
+            );
+
+            return new Block(name, openLiteral, contentPatterns, closeLiteral);
+        }
+
         const patterns = patternChildren.map(n => this._buildPattern(`anonymous-pattern-${anonymousIndexId++}`, n));
         return new Sequence(name, patterns);
+    }
+
+    private _extractBlockDelimiterValue(node: Node): string {
+        const literalNode = node.children.find(n => n.name === "literal");
+        if (literalNode == null) {
+            throw new Error("Block delimiter missing literal value.");
+        }
+        return this._resolveStringValue(literalNode.value);
     }
 
     private _buildOptions(name: string, node: Node) {

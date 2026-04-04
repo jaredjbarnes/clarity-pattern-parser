@@ -1235,4 +1235,57 @@ describe("Grammar", () => {
         expect(() => Grammar.parseString(`empty = ""`)).toThrow("Value Cannot be empty");
     });
 
+    // --- Block Pattern ---
+
+    test("Block with empty content", () => {
+        const p = Grammar.parseString(`
+            braces = ["{"] + ["}"]
+        `);
+        const result = p["braces"].exec("{}");
+        expect(result.ast).not.toBeNull();
+        expect(result.ast!.type).toBe("block");
+    });
+
+    test("Block with content pattern", () => {
+        const p = Grammar.parseString(`
+            content = /[^{}]+/
+            braces = ["{"] + content + ["}"]
+        `);
+        const result = p["braces"].exec("{hello}");
+        expect(result.ast).not.toBeNull();
+        expect(result.ast!.value).toBe("{hello}");
+    });
+
+    test("Block with multiple content patterns", () => {
+        const p = Grammar.parseString(`
+            key = /[a-z]+/
+            value = /[a-z]+/
+            pair = ["{"] + key + ":" + value + ["}"]
+        `);
+        const result = p["pair"].exec("{foo:bar}");
+        expect(result.ast).not.toBeNull();
+        expect(result.ast!.value).toBe("{foo:bar}");
+    });
+
+    test("Block handles nesting", () => {
+        const p = Grammar.parseString(`
+            braces = ["{"] + ["}"]
+        `);
+        const cursor = new Cursor("{ { } }");
+        const ctx = p["braces"] as Context;
+        const result = ctx.find(p => p.type === "block")!.parse(cursor);
+        expect(result).not.toBeNull();
+        expect(result!.firstIndex).toBe(0);
+        expect(result!.lastIndex).toBe(6);
+    });
+
+    test("Block with inline literal content", () => {
+        const p = Grammar.parseString(`
+            parens = ["("] + /[^()]+/ + [")"]
+        `);
+        const result = p["parens"].exec("(hello)");
+        expect(result.ast).not.toBeNull();
+        expect(result.ast!.value).toBe("(hello)");
+    });
+
 });

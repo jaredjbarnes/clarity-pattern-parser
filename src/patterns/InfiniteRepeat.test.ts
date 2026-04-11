@@ -270,5 +270,30 @@ describe("InfiniteRepeat", () => {
         expect(result?.value).toBe("1, 2");
     });
 
+    test("Divider repeat where neither pattern nor divider matches on first try", () => {
+        const digit = new Regex("digit", "\\d");
+        const divider = new Literal("divider", ",");
+        const repeat = new InfiniteRepeat("numbers", digit, { divider });
+
+        const cursor = new Cursor("abc");
+        const result = repeat.parse(cursor);
+
+        expect(result).toBeNull();
+        expect(cursor.hasError).toBeTruthy();
+    });
+
+    test("Trim divider results in empty nodes returns null", () => {
+        const digit = new Regex("digit", "\\d");
+        const divider = new Literal("divider", ",");
+        const repeat = new InfiniteRepeat("numbers", digit, { divider, trimDivider: true });
+
+        // Parse "1," - the digit matches, comma matches, then no more digits.
+        // With trimDivider, the trailing comma node gets popped, leaving only the digit.
+        const cursor = new Cursor("1,x");
+        const result = repeat.parse(cursor);
+
+        expect(result).not.toBeNull();
+        expect(result?.value).toBe("1");
+    });
 
 });

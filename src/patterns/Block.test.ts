@@ -307,6 +307,28 @@ describe("Block", () => {
       expect(result.ast).not.toBeNull();
       expect(result.ast!.value).toBe("{}");
     });
+
+    test("fails when required content doesn't match the text", () => {
+      const block = new Block(
+        "typed",
+        new Literal("open", "{"),
+        new Regex("digits", "[0-9]+"),
+        new Literal("close", "}")
+      );
+      const result = block.exec("{abc}");
+      expect(result.ast).toBeNull();
+    });
+
+    test("fails when content only partially fills the block", () => {
+      const block = new Block(
+        "typed",
+        new Literal("open", "{"),
+        new Regex("alpha", "[a-z]+"),
+        new Literal("close", "}")
+      );
+      const result = block.exec("{abc 123}");
+      expect(result.ast).toBeNull();
+    });
   });
 
   describe("used with cursor directly", () => {
@@ -430,6 +452,210 @@ describe("Block", () => {
       const {ast} = block.exec("{text{inner}}");
 
       expect(ast?.value).toBe("{text{inner}}");
+    });
+  });
+
+  describe("recursive self-referencing block", () => {
+    test("empty block as base case", () => {
+      const ref = new Reference("block");
+      const block = new Block(
+        "block",
+        new Literal("open", "{"),
+        ref,
+        new Literal("close", "}")
+      );
+      const result = block.exec("{}");
+      expect(result.ast).not.toBeNull();
+      expect(result.ast!.value).toBe("{}");
+      expect(result.ast!.children.length).toBe(2);
+    });
+
+    test("one level of nesting", () => {
+      const ref = new Reference("block");
+      const block = new Block(
+        "block",
+        new Literal("open", "{"),
+        ref,
+        new Literal("close", "}")
+      );
+      const result = block.exec("{{}}");
+      expect(result.ast).not.toBeNull();
+      expect(result.ast!.value).toBe("{{}}");
+      expect(result.ast!.children.length).toBe(3);
+      expect(result.ast!.children[0].value).toBe("{");
+      expect(result.ast!.children[1].value).toBe("{}");
+      expect(result.ast!.children[2].value).toBe("}");
+    });
+
+    test("two levels of nesting", () => {
+      const ref = new Reference("block");
+      const block = new Block(
+        "block",
+        new Literal("open", "{"),
+        ref,
+        new Literal("close", "}")
+      );
+      const result = block.exec("{{{}}}");
+      expect(result.ast).not.toBeNull();
+      expect(result.ast!.value).toBe("{{{}}}");
+      const inner = result.ast!.children[1];
+      expect(inner.value).toBe("{{}}");
+      expect(inner.children[1].value).toBe("{}");
+    });
+  });
+
+  describe("boolean test()", () => {
+    test("returns true for matching block", () => {
+      const block = new Block(
+        "braces",
+        new Literal("open", "{"),
+        new Regex("content", "[^{}]+"),
+        new Literal("close", "}")
+      );
+      expect(block.test("{hello}")).toBe(true);
+    });
+
+    test("returns false for non-matching text", () => {
+      const block = new Block(
+        "braces",
+        new Literal("open", "{"),
+        new Regex("content", "[^{}]+"),
+        new Literal("close", "}")
+      );
+      expect(block.test("no braces here")).toBe(false);
+    });
+  });
+
+  describe("autocomplete introspection", () => {
+    test("suggests content tokens after open delimiter", () => {
+      const block = new Block(
+        "config",
+        new Literal("open", "{"),
+        new Literal("keyword", "key"),
+        new Literal("close", "}")
+      );
+      const open = block.children[0];
+      const tokens = block.getTokensAfter(open);
+      expect(tokens).toEqual(["key"]);
+    });
+
+    test("suggests close token after content", () => {
+      const block = new Block(
+        "config",
+        new Literal("open", "{"),
+        new Literal("keyword", "key"),
+        new Literal("close", "}")
+      );
+      const content = block.children[1];
+      const tokens = block.getTokensAfter(content);
+      expect(tokens).toEqual(["}"]);
+    });
+
+    test("suggests both optional content and close after open", () => {
+      const block = new Block(
+        "maybe",
+        new Literal("open", "{"),
+        new Optional("maybe-digits", new Regex("digits", "[0-9]+")),
+        new Literal("close", "}")
+      );
+      const open = block.children[0];
+      const patterns = block.getPatternsAfter(open);
+      expect(patterns.length).toBe(2);
+      expect(patterns[0].type).toBe("optional");
+      expect(patterns[1].name).toBe("close");
+    });
+
+    test("after close delimiter delegates to parent sequence", () => {
+      const block = new Block(
+        "braces",
+        new Literal("open", "{"),
+        new Regex("content", "[^{}]+"),
+        new Literal("close", "}")
+      );
+      const semi = new Literal("semi", ";");
+      const seq = new Sequence("statement", [block, semi]);
+
+      const blockInSeq = seq.children[0];
+      const close = blockInSeq.children[blockInSeq.children.length - 1];
+      const patterns = blockInSeq.getPatternsAfter(close);
+      expect(patterns.length).toBe(1);
+      expect(patterns[0].name).toBe("semi");
+    });
+
+    test("block in sequence knows what comes next", () => {
+      const block = new Block(
+        "braces",
+        new Literal("open", "{"),
+        null,
+        new Literal("close", "}")
+      );
+      const semi = new Literal("semi", ";");
+      const seq = new Sequence("statement", [block, semi]);
+
+      const blockInSeq = seq.children[0];
+      expect(blockInSeq.getNextTokens()).toEqual([";"]);
+      expect(blockInSeq.getNextPatterns().length).toBe(1);
+      expect(blockInSeq.getNextPatterns()[0].name).toBe("semi");
+    });
+
+    test("standalone block has no next tokens or patterns", () => {
+      const block = new Block(
+        "braces",
+        new Literal("open", "{"),
+        null,
+        new Literal("close", "}")
+      );
+      expect(block.getNextTokens()).toEqual([]);
+      expect(block.getNextPatterns()).toEqual([]);
+    });
+
+    test("getPatterns returns the open delimiter patterns", () => {
+      const block = new Block(
+        "braces",
+        new Literal("open", "{"),
+        null,
+        new Literal("close", "}")
+      );
+      const patterns = block.getPatterns();
+      expect(patterns.length).toBe(1);
+      expect(patterns[0].name).toBe("open");
+    });
+
+    test("returns empty for unknown child reference", () => {
+      const block = new Block(
+        "braces",
+        new Literal("open", "{"),
+        null,
+        new Literal("close", "}")
+      );
+      const stranger = new Literal("stranger", "x");
+      expect(block.getPatternsAfter(stranger)).toEqual([]);
+    });
+
+    test("find locates a child pattern within the block", () => {
+      const block = new Block(
+        "braces",
+        new Literal("open", "{"),
+        new Regex("content", "[^{}]+"),
+        new Literal("close", "}")
+      );
+      const found = block.find(p => p.name === "close");
+      expect(found).not.toBeNull();
+      expect(found!.type).toBe("literal");
+    });
+  });
+
+  describe("equality", () => {
+    test("blocks with identical structure are equal", () => {
+      const a = new Block("braces", new Literal("open", "{"), new Regex("content", "[^{}]+"), new Literal("close", "}"));
+      const b = new Block("braces", new Literal("open", "{"), new Regex("content", "[^{}]+"), new Literal("close", "}"));
+      expect(a.isEqual(b)).toBe(true);
+    });
+
+    test("blocks with different delimiters are not equal", () => {
+      const braces = new Block("braces", new Literal("open", "{"), null, new Literal("close", "}"));
+      const parens = new Block("parens", new Literal("open", "("), null, new Literal("close", ")"));
+      expect(braces.isEqual(parens)).toBe(false);
     });
   });
 

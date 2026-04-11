@@ -343,6 +343,35 @@ describe("Sequence", () => {
 
         expect(result.ast).not.toBe(null);
         expect(result.cursor.hasError).toBeFalsy();
-    })
+    });
+
+    test("Required match followed by trailing optionals that do not match (end of text)", () => {
+        const sequence = new Sequence("sequence", [
+            new Literal("a", "A"),
+            new Literal("b", "B"),
+            new Optional("c", new Literal("c", "C")),
+            new Optional("d", new Literal("d", "D")),
+        ]);
+        const cursor = new Cursor("AB");
+        const result = sequence.parse(cursor);
+
+        expect(result).not.toBeNull();
+        expect(result?.value).toBe("AB");
+        expect(cursor.hasError).toBeFalsy();
+    });
+
+    test("Last pattern is only optionals that all return null", () => {
+        const sequence = new Sequence("sequence", [
+            new Optional("a", new Literal("a", "A")),
+        ]);
+        const cursor = new Cursor("XYZ");
+        const result = sequence.parse(cursor);
+
+        // Single optional returns null, lastNode is null, and all patterns optional -> passed = true
+        // createNode returns null since no children matched
+        expect(result).toBeNull();
+        expect(cursor.hasError).toBeFalsy();
+    });
 
 });
+

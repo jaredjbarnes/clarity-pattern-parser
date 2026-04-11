@@ -161,4 +161,10 @@ describe("Cursor", () => {
         expect(cursor.length).toBe(9);
     });
 
+    test("allMatchedPatterns tracks patterns after recording", () => {
+        const { cursor } = name.exec("John Doe", true);
+
+        expect(cursor.allMatchedPatterns.length).toBeGreaterThan(0);
+    });
+
 });

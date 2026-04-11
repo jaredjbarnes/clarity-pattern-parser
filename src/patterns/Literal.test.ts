@@ -203,4 +203,12 @@ describe("Literal", () => {
         expect(result?.toString()).toBe("🔴|");
         expect(cursor.error).toBeNull();
     });
+
+    test("startedOnIndex reflects last parse position", () => {
+        const literal = new Literal("hello", "Hello");
+        const cursor = new Cursor("Hello World");
+        literal.parse(cursor);
+
+        expect(literal.startedOnIndex).toBe(0);
+    });
 });

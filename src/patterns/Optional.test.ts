@@ -1,3 +1,4 @@
+import { Cursor } from "./Cursor";
 import { Literal } from "./Literal";
 import { Not } from "./Not";
 import { Optional } from "./Optional";
@@ -159,6 +160,15 @@ describe("Optional", () => {
         const patterns = optionalAboutUs.getPatternsAfter(aboutUsClone) || [];
 
         expect(patterns.length).toBe(0);
+    });
+
+    test("startedOnIndex delegates to child pattern", () => {
+        const text = new Literal("text", "Text");
+        const optional = new Optional("optional-text", text);
+        const cursor = new Cursor("Text");
+        optional.parse(cursor);
+
+        expect(typeof optional.startedOnIndex).toBe("number");
     });
 
 });

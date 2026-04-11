@@ -1380,4 +1380,88 @@ describe("Grammar", () => {
         expect(p["braces"].exec("{no}").ast?.value).toBe("{no}");
     });
 
+    // --- Import Without Resolver ---
+
+    test("import without resolver (sync) throws", () => {
+        expect(() => Grammar.parseString(`
+            import { value } from "file.cpat"
+            name = value
+        `)).toThrow("No import resolver supplied.");
+    });
+
+    test("import without resolver (async) throws", async () => {
+        await expect(Grammar.parse(`
+            import { value } from "file.cpat"
+            name = value
+        `)).rejects.toThrow("No import resolver supplied.");
+    });
+
+    // --- Sync Import Error Wrapping ---
+
+    test("sync import wraps error from bad imported grammar", () => {
+        expect(() => Grammar.parseString(`
+            import { value } from "bad.cpat"
+            name = value
+        `, {
+            resolveImportSync: () => ({
+                expression: "///bad grammar///",
+                resource: "bad.cpat"
+            })
+        })).toThrow(/Failed loading expression from: "bad\.cpat"/);
+    });
+
+    // --- Async Import Error Wrapping ---
+
+    test("async import wraps error from bad imported grammar", async () => {
+        await expect(Grammar.parse(`
+            import { value } from "bad.cpat"
+            name = value
+        `, {
+            resolveImport: () => Promise.resolve({
+                expression: "///bad grammar///",
+                resource: "bad.cpat"
+            })
+        })).rejects.toThrow(/Failed loading expression from: "bad\.cpat"/);
+    });
+
+    // --- Import Alias Errors ---
+
+    test("duplicate import alias throws", async () => {
+        await expect(Grammar.parse(`
+            import { a as alias } from "r1"
+            import { b as alias } from "r2"
+        `, {
+            resolveImport: (r) => Promise.resolve({
+                expression: r === "r1" ? `a = "A"` : `b = "B"`,
+                resource: r
+            })
+        })).rejects.toThrow("already used");
+    });
+
+    test("importing nonexistent pattern via alias throws", async () => {
+        await expect(Grammar.parse(`
+            import { nonexistent as alias } from "r1"
+        `, {
+            resolveImport: () => Promise.resolve({
+                expression: `value = "A"`,
+                resource: "r1"
+            })
+        })).rejects.toThrow("Couldn't find pattern");
+    });
+
+    // --- Export Pattern (sync path) ---
+
+    test("export pattern promotes previously defined pattern", () => {
+        const p = Grammar.parseString(`
+            import { value } from "r1"
+            value
+        `, {
+            resolveImportSync: () => ({
+                expression: `value = "Hello"`,
+                resource: "r1"
+            })
+        });
+        expect(p["value"].exec("Hello").ast?.value).toBe("Hello");
+    });
+
 });

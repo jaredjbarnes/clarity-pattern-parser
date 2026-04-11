@@ -271,4 +271,23 @@ describe("Precedence Tree", () => {
         expect(result?.toString()).toBe("a+b");
         expect(result?.isEqual(expected));
     });
+
+    test("addBinary without an atom throws", () => {
+        const tree = new PrecedenceTree();
+
+        expect(() => {
+            tree.addBinary("add", Node.createValueNode("literal", "+", "+"));
+        }).toThrow("Cannot add a binary without an atom node.");
+    });
+
+    test("Single binary without trailing atom reverts to atom", () => {
+        const tree = new PrecedenceTree();
+
+        tree.addAtom(Node.createValueNode("literal", "a", "a"));
+        tree.addBinary("add", Node.createValueNode("literal", "+", "+"));
+        // No trailing atom -- commit should revert the binary
+        const result = tree.commit();
+
+        expect(result?.toString()).toBe("a");
+    });
 });

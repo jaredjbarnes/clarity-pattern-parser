@@ -222,9 +222,10 @@ export class Block implements Pattern {
     cursor.moveTo(openEndIndex);
 
     if (openEndIndex >= closeStartIndex) {
-      // Empty block — no room for content. Only fail if content is required.
-      const isOptional = this._contentPattern.type === "optional";
-      return { node: null, failed: !isOptional };
+      // Empty block — delimiters are adjacent, so there's no content space.
+      // This is always valid: it's the natural base case for recursive blocks
+      // and structurally complete for any block with matched delimiters.
+      return { node: null, failed: false };
     }
 
     const node = this._contentPattern.parse(cursor);

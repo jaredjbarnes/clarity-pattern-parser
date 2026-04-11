@@ -484,4 +484,12 @@ describe("BoundedRepeat", () => {
         expect(result?.value).toBe("1, 2");
     });
 
+    test("startedOnIndex reflects last parse position", () => {
+        const numbers = new FiniteRepeat("numbers", new Regex("number", "\\d"), { max: 3 });
+        const cursor = new Cursor("123");
+        numbers.parse(cursor);
+
+        expect(numbers.startedOnIndex).toBe(0);
+    });
+
 });

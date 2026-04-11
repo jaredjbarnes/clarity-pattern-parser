@@ -139,4 +139,18 @@ describe("Regex", () => {
         expect(patterns).toEqual([]);
     });
 
+    test("regex accessor returns the original regex string", () => {
+        const number = new Regex("number", "\\d+");
+
+        expect(number.regex).toBe("\\d+");
+    });
+
+    test("startedOnIndex reflects last parse position", () => {
+        const number = new Regex("number", "\\d+");
+        const cursor = new Cursor("123abc");
+        number.parse(cursor);
+
+        expect(number.startedOnIndex).toBe(0);
+    });
+
 });

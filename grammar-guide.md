@@ -96,6 +96,7 @@ word = /[a-zA-Z_]\w*/
 - Do NOT include `^` or `$` anchors (they are added internally)
 - Uses `gu` flags (global, unicode)
 - Regex patterns match greedily from the current cursor position
+- Regex patterns **must match at least one character**. Zero-length matches (e.g., `/[ \t]*/`) are not supported. Use the `?` (optional) operator on a one-or-more pattern instead: `ows = ws?` where `ws = /[ \t]+/`
 
 ### Sequence (AND)
 
@@ -290,19 +291,19 @@ value   # re-exports "value" as a top-level pattern
 
 Each pattern type creates nodes with a specific `type` field:
 
-| Grammar Syntax | Pattern Class | Node `type` |
-|---|---|---|
-| `"text"` | `Literal` | `"literal"` |
-| `/regex/` | `Regex` | `"regex"` |
-| `a + b` | `Sequence` | `"sequence"` |
-| `a \| b` | `Options` | `"options"` |
-| `a \| b` (with recursion) | `Expression` | `"expression"` |
-| `(a)+` | `Repeat` | `"infinite-repeat"` or `"finite-repeat"` |
-| `a?` | `Optional` | `"optional"` |
-| `!a` | `Not` | `"not"` |
-| `["{"] a ["}"]` | `Block` | `"block"` |
-| `?->\| a` | `TakeUntil` | `"take-until"` |
-| `alias = other` | Cloned pattern | Same as original |
+| Grammar Syntax            | Pattern Class  | Node `type`                              |
+| ------------------------- | -------------- | ---------------------------------------- |
+| `"text"`                  | `Literal`      | `"literal"`                              |
+| `/regex/`                 | `Regex`        | `"regex"`                                |
+| `a + b`                   | `Sequence`     | `"sequence"`                             |
+| `a \| b`                  | `Options`      | `"options"`                              |
+| `a \| b` (with recursion) | `Expression`   | `"expression"`                           |
+| `(a)+`                    | `Repeat`       | `"infinite-repeat"` or `"finite-repeat"` |
+| `a?`                      | `Optional`     | `"optional"`                             |
+| `!a`                      | `Not`          | `"not"`                                  |
+| `["{"] a ["}"]`           | `Block`        | `"block"`                                |
+| `?->\| a`                 | `TakeUntil`    | `"take-until"`                           |
+| `alias = other`           | Cloned pattern | Same as original                         |
 
 ---
 

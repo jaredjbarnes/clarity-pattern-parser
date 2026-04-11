@@ -1,5 +1,6 @@
 import { Node } from "../ast/Node";
 import { Sequence } from "./Sequence";
+import { Context } from "./Context";
 import { Cursor } from "./Cursor";
 import { findPattern } from "./findPattern";
 import { Literal } from "./Literal";
@@ -190,6 +191,20 @@ describe("Reference", () => {
         const patterns = reference.getNextPatterns();
 
         expect(patterns).toEqual([]);
+    });
+
+    test("Reference resolves through Context that does not contain the target pattern", () => {
+        // Inner context does not have "greeting", so _findPattern continues up to find it at root level.
+        const greeting = new Literal("greeting", "Hi");
+        const ref = new Reference("greeting");
+        const innerContext = new Context("unrelated", new Sequence("seq", [ref]), []);
+        const outerContext = new Context("outer", innerContext, [greeting]);
+
+        const cursor = new Cursor("Hi");
+        const result = outerContext.parse(cursor);
+
+        expect(result).not.toBeNull();
+        expect(result?.value).toBe("Hi");
     });
 
 });

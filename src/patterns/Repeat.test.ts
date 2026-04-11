@@ -180,6 +180,24 @@ describe("Repeat", () => {
         expect(repeat.parent).toBeNull();
     });
 
+    test("Repeat accessors return configured values", () => {
+        const number = new Literal("number", "1");
+        const repeat = new Repeat("numbers", number, { min: 2, max: 5 });
+
+        expect(repeat.min).toBe(2);
+        expect(repeat.max).toBe(5);
+        expect(repeat.pattern.name).toBe("number");
+        expect(repeat.options).toEqual({ min: 2, max: 5 });
+    });
+
+    test("Repeat default min and max", () => {
+        const number = new Literal("number", "1");
+        const repeat = new Repeat("numbers", number);
+
+        expect(repeat.min).toBe(1);
+        expect(repeat.max).toBe(Infinity);
+    });
+
     test("test", () => {
         const number = new Literal("number", "1");
         const repeat = new Repeat("numbers", number);

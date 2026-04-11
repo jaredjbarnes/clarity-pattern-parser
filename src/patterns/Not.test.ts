@@ -175,4 +175,30 @@ describe("Not", () => {
         expect(patterns.length).toBe(0);
     });
 
+    test("id is a string", () => {
+        const a = new Literal("a", "A");
+        const notA = new Not("not-a", a);
+
+        expect(typeof notA.id).toBe("string");
+        expect(notA.id).toContain("not-");
+    });
+
+    test("startedOnIndex delegates to child pattern", () => {
+        const a = new Literal("a", "A");
+        const notA = new Not("not-a", a);
+        const cursor = new Cursor("B");
+        notA.parse(cursor);
+
+        expect(typeof notA.startedOnIndex).toBe("number");
+    });
+
+    test("test always returns false because Not never produces a node", () => {
+        const a = new Literal("a", "A");
+        const notA = new Not("not-a", a);
+
+        // Not.parse() always returns null, so test() is always false
+        expect(notA.test("B")).toBeFalsy();
+        expect(notA.test("A")).toBeFalsy();
+    });
+
 });

@@ -1149,6 +1149,17 @@
                     if (nodePrecedence > precedence) {
                         break;
                     }
+                    // A right-associated ancestor of EQUAL precedence must keep the
+                    // incoming operator nested to its right, so stop climbing here
+                    // (do NOT absorb it as a left operand). Without this, chained
+                    // right-associated operators with a tighter operator between
+                    // them (e.g. `a as b + c as d`, `add` tighter than a
+                    // right-associated `as`) would wrongly left-nest into
+                    // `(a as (b+c)) as d` instead of `a as ((b+c) as d)`.
+                    if (nodePrecedence === precedence &&
+                        this._associationMap[ancestor.name] === Association.right) {
+                        break;
+                    }
                     root = ancestor;
                     ancestor = ancestor.parent;
                 }

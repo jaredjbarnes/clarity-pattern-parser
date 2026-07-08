@@ -290,4 +290,44 @@ describe("Precedence Tree", () => {
 
         expect(result?.toString()).toBe("a");
     });
+
+    test("right-associated operator nests right even when a tighter operator sits between two of them", () => {
+        // Regression: `a as b + c as d` with `add` tighter than `as`, and `as`
+        // right-associated. `b + c` binds first (add is tighter), leaving two
+        // equal-precedence right-associated `as` operators around it:
+        //   a  as  (b + c)  as  d
+        // Right association MUST nest to the right — `a as ((b+c) as d)` — so
+        // the outer `as`'s left operand is the bare atom `a`. The bug produced
+        // the LEFT-nested `(a as (b+c)) as d`, because when the second `as`
+        // climbed ancestors it did not stop on an equal-precedence
+        // right-associated ancestor.
+        const tree = new PrecedenceTree(
+            { add: 0, as: 1 },
+            { as: Association.right }
+        );
+
+        tree.addAtom(Node.createValueNode("literal", "a", "a"));
+        tree.addBinary("as", Node.createValueNode("literal", "as", "as"));
+        tree.addAtom(Node.createValueNode("literal", "b", "b"));
+        tree.addBinary("add", Node.createValueNode("literal", "+", "+"));
+        tree.addAtom(Node.createValueNode("literal", "c", "c"));
+        tree.addBinary("as", Node.createValueNode("literal", "as", "as"));
+        tree.addAtom(Node.createValueNode("literal", "d", "d"));
+
+        const result = tree.commit();
+
+        // Flat text is identical for both nestings, so it can't catch the bug.
+        expect(result?.toString()).toBe("aasb+casd");
+
+        // Structure is what matters: the outer node is `as`, its LEFT operand
+        // is the bare atom `a`, and its body (last child) is the inner `as`.
+        expect(result?.name).toBe("as");
+        expect(result?.children[0].name).toBe("a");
+        expect(result?.children[result.children.length - 1].name).toBe("as");
+
+        // And the inner `as`'s left operand is the `(b + c)` sub-expression.
+        const inner = result?.children[result.children.length - 1];
+        expect(inner?.children[0].name).toBe("add");
+        expect(inner?.children[inner.children.length - 1].name).toBe("d");
+    });
 });

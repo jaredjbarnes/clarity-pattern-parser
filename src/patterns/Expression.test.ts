@@ -672,4 +672,44 @@ describe("Expression Pattern", () => {
 
         expect(expr1.isEqual(expr2 as Expression)).toBe(true);
     });
+
+    test("right-associated binary nests right with a tighter operator between operators", () => {
+        // Regression for a jq-style binder: `add` is tighter than a
+        // right-associated `as`. In `a as b + c as d` the `b + c` binds first,
+        // leaving `a as (b+c) as d`, which must nest right into
+        // `a as ((b + c) as d)` — NOT left into `(a as (b + c)) as d`.
+        const variables = new Options("variables", [
+            new Literal("a", "a"),
+            new Literal("b", "b"),
+            new Literal("c", "c"),
+            new Literal("d", "d"),
+        ]);
+        const addExpression = new Sequence("add-expression", [
+            new Reference("expression"),
+            new Literal("add", " + "),
+            new Reference("expression"),
+        ]);
+        const asExpression = new Sequence("as-expression", [
+            new Reference("expression"),
+            new Literal("as", " as "),
+            new Reference("expression"),
+        ]);
+        const expression = new Expression("expression", [
+            addExpression,
+            new RightAssociated(asExpression),
+            variables,
+        ]);
+
+        const { ast } = expression.exec("a as b + c as d");
+
+        expect(ast).not.toBeNull();
+        expect(ast?.name).toBe("as-expression");
+        // Left operand of the outer `as` is the bare atom `a` (right-nested).
+        expect(ast?.children[0].name).toBe("a");
+        const inner = ast?.children[ast.children.length - 1];
+        expect(inner?.name).toBe("as-expression");
+        // The inner `as`'s left operand is the `(b + c)` sub-expression.
+        expect(inner?.children[0].name).toBe("add-expression");
+        expect(inner?.children[inner.children.length - 1].name).toBe("d");
+    });
 });

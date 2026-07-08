@@ -24,7 +24,7 @@ describe("Regex", () => {
         const result = number.parse(cursor);
         const expected = new Node("regex", "number", 0, 0, [], "1");
 
-        expect(result?.isEqual(expected));
+        expect(result?.isEqual(expected)).toBe(true);
         expect(cursor.hasError).toBeFalsy();
     });
 

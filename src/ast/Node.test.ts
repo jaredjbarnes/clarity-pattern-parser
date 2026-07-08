@@ -515,4 +515,43 @@ describe("Node", () => {
         expect(result).toEqual([a, a2]);
     });
 
+    test("isEqual matches a composite node whose children were appended after construction", () => {
+        // A node built incrementally (empty children at construction, then
+        // `append`ed — as PrecedenceTree does) keeps a stale private `_value`
+        // of "", while `toString()`/`value` reflect the children. isEqual must
+        // compare the PUBLIC value, so it still matches an equivalent node that
+        // was constructed with its children up front.
+        const built = Node.createNode("expression", "sum", []);
+        built.append(
+            Node.createValueNode("literal", "a", "a"),
+            Node.createValueNode("literal", "+", "+"),
+            Node.createValueNode("literal", "b", "b")
+        );
+
+        const expected = Node.createNode("expression", "sum", [
+            Node.createValueNode("literal", "a", "a"),
+            Node.createValueNode("literal", "+", "+"),
+            Node.createValueNode("literal", "b", "b"),
+        ]);
+
+        expect(built.isEqual(expected)).toBe(true);
+        expect(expected.isEqual(built)).toBe(true);
+    });
+
+    test("isEqual is false when one node has extra trailing children", () => {
+        // The recursive check iterated only `this`'s children, so a node with
+        // MORE children than the other could compare equal. Guard with a
+        // child-count check.
+        const shorter = Node.createNode("expression", "list", [
+            Node.createValueNode("literal", "a", "a"),
+        ]);
+        const longer = Node.createNode("expression", "list", [
+            Node.createValueNode("literal", "a", "a"),
+            Node.createValueNode("literal", "b", "b"),
+        ]);
+
+        expect(shorter.isEqual(longer)).toBe(false);
+        expect(longer.isEqual(shorter)).toBe(false);
+    });
+
 });

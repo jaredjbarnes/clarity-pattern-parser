@@ -277,7 +277,15 @@ class Node {
             node._name === this._name &&
             node._firstIndex === this._firstIndex &&
             node._lastIndex === this._lastIndex &&
-            node._value === this._value &&
+            // Compare the PUBLIC value (`toString()`), not the private `_value`
+            // field. A composite node built incrementally (children appended after
+            // construction, e.g. by PrecedenceTree) keeps a stale `_value` of "",
+            // even though `toString()`/`value` reflect its children — so comparing
+            // `_value` gave false negatives. For a leaf `value === _value`; for a
+            // parent it's the child-join, which is already implied by the recursive
+            // children check below, so this can never mask a real difference.
+            node.value === this.value &&
+            this._children.length === node._children.length &&
             this._children.every((child, index) => child.isEqual(node._children[index]));
     }
     static createValueNode(type, name, value = "") {

@@ -43,7 +43,7 @@ describe("Reference", () => {
             new Node("literal", "close-bracket", 5, 5, [], "]"),
         ]);
 
-        expect(result?.isEqual(expected));
+        expect(result?.isEqual(expected)).toBe(true);
     });
 
     test("No Reference Pattern", () => {

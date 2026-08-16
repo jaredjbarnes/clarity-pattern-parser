@@ -188,6 +188,10 @@ export class Options implements Pattern {
   }
 
   isEqual(pattern: Options): boolean {
-    return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
+    return (
+      pattern.type === this.type &&
+      this.children.length === pattern.children.length &&
+      this.children.every((c, index) => c.isEqual(pattern.children[index]))
+    );
   }
 }

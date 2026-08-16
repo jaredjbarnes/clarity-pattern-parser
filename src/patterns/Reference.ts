@@ -74,9 +74,9 @@ export class Reference implements Pattern {
 
   parse(cursor: Cursor): Node | null {
     this._firstIndex = cursor.index;
-    
+
     const pattern = this.getReferencePatternSafely();
-    
+
     this._cacheAncestors(pattern.id);
     if (this._isBeyondRecursiveAllowance()) {
       cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
@@ -104,7 +104,7 @@ export class Reference implements Pattern {
   private _isBeyondRecursiveAllowance() {
     let depth = 0;
 
-    for (let pattern of this._recursiveAncestors) {
+    for (const pattern of this._recursiveAncestors) {
       if (pattern.startedOnIndex === this.startedOnIndex) {
         depth++;
 
@@ -128,7 +128,9 @@ export class Reference implements Pattern {
       }
 
       if (pattern === null) {
-        throw new Error(`Couldn't find '${this._referencePatternName}' pattern within tree.`);
+        throw new Error(
+          `Couldn't find '${this._referencePatternName}' pattern within tree.`
+        );
       }
 
       const clonedPattern = pattern.clone(this._name);
@@ -150,7 +152,9 @@ export class Reference implements Pattern {
         continue;
       }
 
-      const foundPattern = (pattern as Context).getPatternWithinContext(this._referencePatternName);
+      const foundPattern = (pattern as Context).getPatternWithinContext(
+        this._referencePatternName
+      );
 
       if (foundPattern != null && this._isValidPattern(foundPattern)) {
         return foundPattern;

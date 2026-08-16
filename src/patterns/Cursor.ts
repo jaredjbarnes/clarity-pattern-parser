@@ -126,7 +126,7 @@ export class Cursor {
   previous(): void {
     if (this.hasPrevious()) {
       const index = this._charMap[this._index];
-      const previousIndex = this._charMap[index - 1] ?? -1;;
+      const previousIndex = this._charMap[index - 1] ?? -1;
       this.moveTo(previousIndex);
     }
   }
@@ -178,12 +178,11 @@ export class Cursor {
   }
 
   getCharEndIndex(index: number): number {
-    let startIndex = this.getCharStartIndex(index);
+    const startIndex = this.getCharStartIndex(index);
     return startIndex + this._charSize[startIndex] ?? 1;
   }
 
   getCharLastIndex(index: number): number {
     return this.getCharEndIndex(index) - 1 ?? 0;
   }
-
 }

@@ -89,7 +89,7 @@ export class Node {
     this._children = children;
     this._value = value;
 
-    this._children.forEach(c => c._parent = this);
+    this._children.forEach(c => (c._parent = this));
   }
 
   removeChild(node: Node) {
@@ -108,8 +108,8 @@ export class Node {
   spliceChildren(index: number, deleteCount: number, ...items: Node[]) {
     const removedItems = this._children.splice(index, deleteCount, ...items);
 
-    removedItems.forEach(i => i._parent = null);
-    items.forEach(i => i._parent = this);
+    removedItems.forEach(i => (i._parent = null));
+    items.forEach(i => (i._parent = this));
 
     return removedItems;
   }
@@ -217,11 +217,15 @@ export class Node {
 
     if (breadthFirst) {
       this.walkBreadthFirst(n => {
-        if (predicate(n)) { matches.push(n); }
+        if (predicate(n)) {
+          matches.push(n);
+        }
       });
     } else {
       this.walkUp(n => {
-        if (predicate(n)) { matches.push(n);}
+        if (predicate(n)) {
+          matches.push(n);
+        }
       });
     }
 
@@ -321,7 +325,7 @@ export class Node {
       this._name,
       this._firstIndex,
       this._lastIndex,
-      this._children.map((c) => c.clone()),
+      this._children.map(c => c.clone()),
       this._value
     );
 
@@ -373,7 +377,8 @@ export class Node {
   }
 
   isEqual(node: Node): boolean {
-    return node._type === this._type &&
+    return (
+      node._type === this._type &&
       node._name === this._name &&
       node._firstIndex === this._firstIndex &&
       node._lastIndex === this._lastIndex &&
@@ -386,7 +391,8 @@ export class Node {
       // children check below, so this can never mask a real difference.
       node.value === this.value &&
       this._children.length === node._children.length &&
-      this._children.every((child, index) => child.isEqual(node._children[index]));
+      this._children.every((child, index) => child.isEqual(node._children[index]))
+    );
   }
 
   static createValueNode(type: string, name: string, value = "") {

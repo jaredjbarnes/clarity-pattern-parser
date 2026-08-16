@@ -1,174 +1,226 @@
 import { Cursor } from "./Cursor";
 import { Literal } from "./Literal";
-import { Not } from "./Not";
 import { Optional } from "./Optional";
 import { Pattern } from "./Pattern";
 import { Sequence } from "./Sequence";
 
 describe("Optional", () => {
-    test("Match", () => {
-        const text = new Literal("text", "Text");
-        const optional = new Optional("optional-text", text);
-        const result = optional.exec("Text");
+  test("Match", () => {
+    const text = new Literal("text", "Text");
+    const optional = new Optional("optional-text", text);
+    const result = optional.exec("Text");
 
-        expect(result?.ast?.value).toBe("Text");
-        expect(result.cursor.index).toBe(3);
-    });
+    expect(result?.ast?.value).toBe("Text");
+    expect(result.cursor.index).toBe(3);
+  });
 
-    test("No Match", () => {
-        const text = new Literal("text", "Text");
-        const optional = new Optional("optional-text", text);
-        const result = optional.exec("Bad Text");
+  test("No Match", () => {
+    const text = new Literal("text", "Text");
+    const optional = new Optional("optional-text", text);
+    const result = optional.exec("Bad Text");
 
-        expect(result.ast).toBe(null);
-        expect(result.cursor.index).toBe(0);
-    });
+    expect(result.ast).toBe(null);
+    expect(result.cursor.index).toBe(0);
+  });
 
-    test("Test Match", () => {
-        const text = new Literal("text", "Text");
-        const optional = new Optional("optional-text", text);
-        const result = optional.test("Text");
+  test("Test Match", () => {
+    const text = new Literal("text", "Text");
+    const optional = new Optional("optional-text", text);
+    const result = optional.test("Text");
 
-        expect(result).toBeTruthy();
-    });
+    expect(result).toBeTruthy();
+  });
 
-    test("Test No Match", () => {
-        const text = new Literal("text", "Text");
-        const optional = new Optional("optional-text", text);
-        const result = optional.test("Bad Text");
+  test("Test No Match", () => {
+    const text = new Literal("text", "Text");
+    const optional = new Optional("optional-text", text);
+    const result = optional.test("Bad Text");
 
-        expect(result).toBeFalsy();
-    });
+    expect(result).toBeFalsy();
+  });
 
-    test("Clone", () => {
-        const a = new Literal("a", "A");
-        const optionalA = new Optional("optional-a", a);
-        const clone = optionalA.clone();
+  test("Clone", () => {
+    const a = new Literal("a", "A");
+    const optionalA = new Optional("optional-a", a);
+    const clone = optionalA.clone();
 
-        expect(clone.name).toBe("optional-a");
-        expect(clone).not.toBe(optionalA);
-    });
+    expect(clone.name).toBe("optional-a");
+    expect(clone).not.toBe(optionalA);
+  });
 
-    test("Tokens", () => {
-        const a = new Literal("a", "A");
-        const optionalA = new Optional("optional-a", a);
-        const tokens = optionalA.getTokens();
-        const nextTokens = optionalA.getTokensAfter(new Literal("bogus", "bogus"));
-        const emptyArray: string[] = [];
+  test("Tokens", () => {
+    const a = new Literal("a", "A");
+    const optionalA = new Optional("optional-a", a);
+    const tokens = optionalA.getTokens();
+    const nextTokens = optionalA.getTokensAfter(new Literal("bogus", "bogus"));
+    const emptyArray: string[] = [];
 
-        expect(tokens).toEqual(["A"]);
-        expect(nextTokens).toEqual(emptyArray);
-    });
+    expect(tokens).toEqual(["A"]);
+    expect(nextTokens).toEqual(emptyArray);
+  });
 
-    test("Properties", () => {
-        const a = new Literal("a", "A");
-        const optionalA = new Optional("optional-a", a);
+  test("Properties", () => {
+    const a = new Literal("a", "A");
+    const optionalA = new Optional("optional-a", a);
 
-        expect(optionalA.type).toBe("optional");
-        expect(optionalA.name).toBe("optional-a");
-        expect(optionalA.parent).toBeNull();
-        expect(optionalA.children[0].name).toBe("a");
-    });
+    expect(optionalA.type).toBe("optional");
+    expect(optionalA.name).toBe("optional-a");
+    expect(optionalA.parent).toBeNull();
+    expect(optionalA.children[0].name).toBe("a");
+  });
 
-    test("Get Next Tokens", () => {
-        const optionalAboutUs = new Optional("optional-about-us", new Literal("about-us", "About Us"));
-        const sequence = new Sequence("sequence", [optionalAboutUs, new Literal("about-them", "About Them")]);
+  test("Get Next Tokens", () => {
+    const optionalAboutUs = new Optional(
+      "optional-about-us",
+      new Literal("about-us", "About Us")
+    );
+    const sequence = new Sequence("sequence", [
+      optionalAboutUs,
+      new Literal("about-them", "About Them"),
+    ]);
 
-        const cloneOptionalAboutUs = sequence.find(p => p.name === "optional-about-us") as Pattern;
-        const nextTokens = cloneOptionalAboutUs.getNextTokens() || [];
+    const cloneOptionalAboutUs = sequence.find(
+      p => p.name === "optional-about-us"
+    ) as Pattern;
+    const nextTokens = cloneOptionalAboutUs.getNextTokens() || [];
 
-        expect(nextTokens[0]).toBe("About Them");
-    });
+    expect(nextTokens[0]).toBe("About Them");
+  });
 
-    test("Get Next Tokens With No Parent", () => {
-        const optionalAboutUs = new Optional("optional-about-us", new Literal("about-us", "About Us"));
-        const nextTokens = optionalAboutUs.getNextTokens() || [];
+  test("Get Next Tokens With No Parent", () => {
+    const optionalAboutUs = new Optional(
+      "optional-about-us",
+      new Literal("about-us", "About Us")
+    );
+    const nextTokens = optionalAboutUs.getNextTokens() || [];
 
-        expect(nextTokens.length).toBe(0);
-    });
+    expect(nextTokens.length).toBe(0);
+  });
 
-    test("Get Tokens", () => {
-        const optionalAboutUs = new Optional("optional-about-us", new Literal("about-us", "About Us"));
-        const sequence = new Sequence("sequence", [optionalAboutUs, new Literal("about-them", "About Them")]);
+  test("Get Tokens", () => {
+    const optionalAboutUs = new Optional(
+      "optional-about-us",
+      new Literal("about-us", "About Us")
+    );
+    const sequence = new Sequence("sequence", [
+      optionalAboutUs,
+      new Literal("about-them", "About Them"),
+    ]);
 
-        const cloneAboutUs = sequence.find(p => p.name === "optional-about-us") as Pattern;
-        const nextTokens = cloneAboutUs.getTokens() || [];
+    const cloneAboutUs = sequence.find(p => p.name === "optional-about-us") as Pattern;
+    const nextTokens = cloneAboutUs.getTokens() || [];
 
-        expect(nextTokens[0]).toBe("About Us");
-    });
+    expect(nextTokens[0]).toBe("About Us");
+  });
 
-    test("Get Tokens After", () => {
-        const optionalAboutUs = new Optional("optional-about-us", new Literal("about-us", "About Us"));
-        const sequence = new Sequence("sequence", [optionalAboutUs, new Literal("about-them", "About Them")]);
-        const optionalAboutUsClone = sequence.find(p => p.name === "optional-about-us") as Pattern;
-        const aboutUsClone = sequence.find(p => p.name === "about-us") as Pattern;
-        const nextTokens = optionalAboutUsClone.getTokensAfter(aboutUsClone) || [];
+  test("Get Tokens After", () => {
+    const optionalAboutUs = new Optional(
+      "optional-about-us",
+      new Literal("about-us", "About Us")
+    );
+    const sequence = new Sequence("sequence", [
+      optionalAboutUs,
+      new Literal("about-them", "About Them"),
+    ]);
+    const optionalAboutUsClone = sequence.find(
+      p => p.name === "optional-about-us"
+    ) as Pattern;
+    const aboutUsClone = sequence.find(p => p.name === "about-us") as Pattern;
+    const nextTokens = optionalAboutUsClone.getTokensAfter(aboutUsClone) || [];
 
-        expect(nextTokens[0]).toBe("About Them");
-    });
+    expect(nextTokens[0]).toBe("About Them");
+  });
 
-    test("Find Pattern", () => {
-        const optionalAboutUs = new Optional("optional-about-us", new Literal("about-us", "About Us"));
-        const child = optionalAboutUs.find(p => p.name === "about-us");
+  test("Find Pattern", () => {
+    const optionalAboutUs = new Optional(
+      "optional-about-us",
+      new Literal("about-us", "About Us")
+    );
+    const child = optionalAboutUs.find(p => p.name === "about-us");
 
-        expect(child).not.toBeNull();
-    });
+    expect(child).not.toBeNull();
+  });
 
-    test("Get Patterns", () => {
-        const optionalAboutUs = new Optional("optional-about-us", new Literal("about-us", "About Us"));
-        const sequence = new Sequence("sequence", [optionalAboutUs, new Literal("about-them", "About Them")]);
+  test("Get Patterns", () => {
+    const optionalAboutUs = new Optional(
+      "optional-about-us",
+      new Literal("about-us", "About Us")
+    );
+    const sequence = new Sequence("sequence", [
+      optionalAboutUs,
+      new Literal("about-them", "About Them"),
+    ]);
 
-        const cloneNotAboutUs = sequence.find(p => p.name === "optional-about-us") as Pattern;
-        const nextPatterns = cloneNotAboutUs.getPatterns();
-        const expected = [sequence.find(p => p.name === "about-us")];
+    const cloneNotAboutUs = sequence.find(p => p.name === "optional-about-us") as Pattern;
+    const nextPatterns = cloneNotAboutUs.getPatterns();
+    const expected = [sequence.find(p => p.name === "about-us")];
 
-        expect(nextPatterns).toEqual(expected);
-    });
+    expect(nextPatterns).toEqual(expected);
+  });
 
-    test("Get Next Patterns", () => {
-        const optionalAboutUs = new Optional("optional-about-us", new Literal("about-us", "About Us"));
-        const sequence = new Sequence("sequence", [optionalAboutUs, new Literal("about-them", "About Them")]);
+  test("Get Next Patterns", () => {
+    const optionalAboutUs = new Optional(
+      "optional-about-us",
+      new Literal("about-us", "About Us")
+    );
+    const sequence = new Sequence("sequence", [
+      optionalAboutUs,
+      new Literal("about-them", "About Them"),
+    ]);
 
-        const cloneNotAboutUs = sequence.find(p => p.name === "optional-about-us") as Pattern;
-        const patterns = cloneNotAboutUs.getNextPatterns() || [];
+    const cloneNotAboutUs = sequence.find(p => p.name === "optional-about-us") as Pattern;
+    const patterns = cloneNotAboutUs.getNextPatterns() || [];
 
-        expect(patterns.length).toBe(1);
-        expect(patterns[0].name).toBe("about-them");
-    });
+    expect(patterns.length).toBe(1);
+    expect(patterns[0].name).toBe("about-them");
+  });
 
-    test("Get Next Patterns With No Parent", () => {
-        const optionalAboutUs = new Optional("optional-about-us", new Literal("about-us", "About Us"));
-        const patterns = optionalAboutUs.getNextPatterns() || [];
+  test("Get Next Patterns With No Parent", () => {
+    const optionalAboutUs = new Optional(
+      "optional-about-us",
+      new Literal("about-us", "About Us")
+    );
+    const patterns = optionalAboutUs.getNextPatterns() || [];
 
-        expect(patterns.length).toBe(0);
-    });
+    expect(patterns.length).toBe(0);
+  });
 
-    test("Get Patterns After", () => {
-        const optionalAboutUs = new Optional("optional-about-us", new Literal("about-us", "About Us"));
-        const sequence = new Sequence("sequence", [optionalAboutUs, new Literal("about-them", "About Them")]);
-        const optionalAboutUsClone = sequence.find(p => p.name === "optional-about-us") as Pattern;
-        const aboutUsClone = sequence.find(p => p.name === "about-us") as Pattern;
-        const patterns = optionalAboutUsClone.getPatternsAfter(aboutUsClone) || [];
+  test("Get Patterns After", () => {
+    const optionalAboutUs = new Optional(
+      "optional-about-us",
+      new Literal("about-us", "About Us")
+    );
+    const sequence = new Sequence("sequence", [
+      optionalAboutUs,
+      new Literal("about-them", "About Them"),
+    ]);
+    const optionalAboutUsClone = sequence.find(
+      p => p.name === "optional-about-us"
+    ) as Pattern;
+    const aboutUsClone = sequence.find(p => p.name === "about-us") as Pattern;
+    const patterns = optionalAboutUsClone.getPatternsAfter(aboutUsClone) || [];
 
-        expect(patterns.length).toBe(1);
-        expect(patterns[0].name).toBe("about-them");
-    });
+    expect(patterns.length).toBe(1);
+    expect(patterns[0].name).toBe("about-them");
+  });
 
-    test("Get Patterns After With Null Parent", () => {
-        const optionalAboutUs = new Optional("optional-about-us", new Literal("about-us", "About Us"));
-        const aboutUsClone = optionalAboutUs.find(p => p.name === "about-us") as Pattern;
-        const patterns = optionalAboutUs.getPatternsAfter(aboutUsClone) || [];
+  test("Get Patterns After With Null Parent", () => {
+    const optionalAboutUs = new Optional(
+      "optional-about-us",
+      new Literal("about-us", "About Us")
+    );
+    const aboutUsClone = optionalAboutUs.find(p => p.name === "about-us") as Pattern;
+    const patterns = optionalAboutUs.getPatternsAfter(aboutUsClone) || [];
 
-        expect(patterns.length).toBe(0);
-    });
+    expect(patterns.length).toBe(0);
+  });
 
-    test("startedOnIndex delegates to child pattern", () => {
-        const text = new Literal("text", "Text");
-        const optional = new Optional("optional-text", text);
-        const cursor = new Cursor("Text");
-        optional.parse(cursor);
+  test("startedOnIndex delegates to child pattern", () => {
+    const text = new Literal("text", "Text");
+    const optional = new Optional("optional-text", text);
+    const cursor = new Cursor("Text");
+    optional.parse(cursor);
 
-        expect(typeof optional.startedOnIndex).toBe("number");
-    });
-
+    expect(typeof optional.startedOnIndex).toBe("number");
+  });
 });

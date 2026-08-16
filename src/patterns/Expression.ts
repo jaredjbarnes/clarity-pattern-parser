@@ -4,7 +4,7 @@ import { ParseResult } from "./ParseResult";
 import { Pattern } from "./Pattern";
 import { findPattern } from "./findPattern";
 import { Sequence } from "./Sequence";
-import { Association, PrecedenceTree } from './PrecedenceTree';
+import { Association, PrecedenceTree } from "./PrecedenceTree";
 import { testPattern } from "./testPattern";
 import { execPattern } from "./execPattern";
 import { Reference } from "./Reference";
@@ -12,614 +12,614 @@ import { Reference } from "./Reference";
 let indexId = 0;
 
 export class Expression implements Pattern {
-    private _id: string;
-    private _type: string;
-    private _name: string;
-    private _originalName: string;
-    private _parent: Pattern | null;
-    private _cachedParent: Pattern | null;
-    private _firstIndex: number;
-    private _originalPatterns: Pattern[];
-    private _patterns: Pattern[];
-    private _atomPatterns: Pattern[];
-    private _prefixPatterns: Pattern[];
-    private _prefixNames: string[];
-    private _postfixPatterns: Pattern[];
-    private _postfixNames: string[];
-    private _infixPatterns: Pattern[];
-    private _infixNames: string[];
-    private _associationMap: Record<string, Association>;
-    private _precedenceMap: Record<string, number>;
-    private _shouldStopParsing: boolean;
-    private _precedenceTree: PrecedenceTree;
-    private _hasOrganized: boolean;
-    private _atomsIdToAncestorsMap: Record<string, Pattern[]>
+  private _id: string;
+  private _type: string;
+  private _name: string;
+  private _originalName: string;
+  private _parent: Pattern | null;
+  private _cachedParent: Pattern | null;
+  private _firstIndex: number;
+  private _originalPatterns: Pattern[];
+  private _patterns: Pattern[];
+  private _atomPatterns: Pattern[];
+  private _prefixPatterns: Pattern[];
+  private _prefixNames: string[];
+  private _postfixPatterns: Pattern[];
+  private _postfixNames: string[];
+  private _infixPatterns: Pattern[];
+  private _infixNames: string[];
+  private _associationMap: Record<string, Association>;
+  private _precedenceMap: Record<string, number>;
+  private _shouldStopParsing: boolean;
+  private _precedenceTree: PrecedenceTree;
+  private _hasOrganized: boolean;
+  private _atomsIdToAncestorsMap: Record<string, Pattern[]>;
 
-    get id(): string {
-        return this._id;
+  get id(): string {
+    return this._id;
+  }
+
+  get type(): string {
+    return this._type;
+  }
+
+  get name(): string {
+    return this._name;
+  }
+
+  get parent(): Pattern | null {
+    return this._parent;
+  }
+
+  set parent(pattern: Pattern | null) {
+    this._parent = pattern;
+  }
+
+  get children(): Pattern[] {
+    return this._patterns;
+  }
+
+  get prefixPatterns(): readonly Pattern[] {
+    return this._prefixPatterns;
+  }
+
+  get atomPatterns(): readonly Pattern[] {
+    return this._atomPatterns;
+  }
+
+  get postfixPatterns(): readonly Pattern[] {
+    return this._postfixPatterns;
+  }
+
+  get infixPatterns(): readonly Pattern[] {
+    return this._infixPatterns;
+  }
+
+  // @deprecated use infixPatterns instead
+  get binaryPatterns(): readonly Pattern[] {
+    return this._infixPatterns;
+  }
+
+  get originalPatterns(): readonly Pattern[] {
+    return this._originalPatterns;
+  }
+
+  get startedOnIndex() {
+    return this._firstIndex;
+  }
+
+  constructor(name: string, patterns: Pattern[]) {
+    if (patterns.length === 0) {
+      throw new Error("Need at least one pattern with an 'expression' pattern.");
     }
 
-    get type(): string {
-        return this._type;
-    }
+    this._id = `expression-${indexId++}`;
+    this._type = "expression";
+    this._name = name;
+    this._originalName = name;
+    this._parent = null;
+    this._cachedParent = null;
+    this._firstIndex = 0;
+    this._atomPatterns = [];
+    this._prefixPatterns = [];
+    this._prefixNames = [];
+    this._postfixPatterns = [];
+    this._postfixNames = [];
+    this._infixPatterns = [];
+    this._infixNames = [];
+    this._associationMap = {};
+    this._precedenceMap = {};
+    this._originalPatterns = patterns;
+    this._shouldStopParsing = false;
+    this._hasOrganized = false;
+    this._patterns = [];
+    this._precedenceTree = new PrecedenceTree({}, {});
+    this._atomsIdToAncestorsMap = {};
+  }
 
-    get name(): string {
-        return this._name;
-    }
+  private _organizePatterns(patterns: Pattern[]) {
+    const finalPatterns: Pattern[] = [];
+    patterns.forEach((pattern, index) => {
+      if (this._isAtom(pattern)) {
+        const atom = pattern.clone();
+        atom.parent = this;
 
-    get parent(): Pattern | null {
-        return this._parent;
-    }
+        this._atomPatterns.push(atom);
 
-    set parent(pattern: Pattern | null) {
-        this._parent = pattern;
-    }
+        finalPatterns.push(atom);
+      } else if (this._isPrefix(pattern)) {
+        const name = this._extractName(pattern);
+        const prefix = this._extractPrefix(pattern);
 
-    get children(): Pattern[] {
-        return this._patterns;
-    }
+        prefix.parent = this;
 
-    get prefixPatterns(): readonly Pattern[] {
-        return this._prefixPatterns;
-    }
+        this._precedenceMap[name] = index;
+        this._prefixPatterns.push(prefix);
+        this._prefixNames.push(name);
 
-    get atomPatterns(): readonly Pattern[] {
-        return this._atomPatterns;
-    }
+        finalPatterns.push(prefix);
+      } else if (this._isPostfix(pattern)) {
+        const name = this._extractName(pattern);
+        const postfix = this._extractPostfix(pattern);
+        postfix.parent = this;
 
-    get postfixPatterns(): readonly Pattern[] {
-        return this._postfixPatterns;
-    }
+        this._precedenceMap[name] = index;
+        this._postfixPatterns.push(postfix);
+        this._postfixNames.push(name);
 
-    get infixPatterns(): readonly Pattern[] {
-        return this._infixPatterns;
-    }
+        finalPatterns.push(postfix);
+      } else if (this._isBinary(pattern)) {
+        const name = this._extractName(pattern);
+        const infix = this._extractInfix(pattern);
+        infix.parent = this;
 
-    // @deprecated use infixPatterns instead
-    get binaryPatterns(): readonly Pattern[] {
-        return this._infixPatterns;
-    }
+        this._precedenceMap[name] = index;
+        this._infixPatterns.push(infix);
+        this._infixNames.push(name);
 
-    get originalPatterns(): readonly Pattern[] {
-        return this._originalPatterns;
-    }
-
-    get startedOnIndex() {
-        return this._firstIndex;
-    }
-
-    constructor(name: string, patterns: Pattern[]) {
-        if (patterns.length === 0) {
-            throw new Error("Need at least one pattern with an 'expression' pattern.");
-        }
-
-        this._id = `expression-${indexId++}`;
-        this._type = "expression";
-        this._name = name;
-        this._originalName = name;
-        this._parent = null;
-        this._cachedParent = null;
-        this._firstIndex = 0;
-        this._atomPatterns = [];
-        this._prefixPatterns = [];
-        this._prefixNames = [];
-        this._postfixPatterns = [];
-        this._postfixNames = [];
-        this._infixPatterns = [];
-        this._infixNames = [];
-        this._associationMap = {};
-        this._precedenceMap = {};
-        this._originalPatterns = patterns;
-        this._shouldStopParsing = false;
-        this._hasOrganized = false;
-        this._patterns = [];
-        this._precedenceTree = new PrecedenceTree({}, {});
-        this._atomsIdToAncestorsMap = {};
-    }
-
-    private _organizePatterns(patterns: Pattern[]) {
-        const finalPatterns: Pattern[] = [];
-        patterns.forEach((pattern, index) => {
-
-            if (this._isAtom(pattern)) {
-                const atom = pattern.clone();
-                atom.parent = this;
-
-                this._atomPatterns.push(atom);
-
-                finalPatterns.push(atom);
-            } else if (this._isPrefix(pattern)) {
-                const name = this._extractName(pattern);
-                const prefix = this._extractPrefix(pattern);
-
-                prefix.parent = this;
-
-                this._precedenceMap[name] = index;
-                this._prefixPatterns.push(prefix);
-                this._prefixNames.push(name);
-
-                finalPatterns.push(prefix);
-            } else if (this._isPostfix(pattern)) {
-                const name = this._extractName(pattern);
-                const postfix = this._extractPostfix(pattern);
-                postfix.parent = this;
-
-                this._precedenceMap[name] = index;
-                this._postfixPatterns.push(postfix);
-                this._postfixNames.push(name);
-
-                finalPatterns.push(postfix);
-            } else if (this._isBinary(pattern)) {
-                const name = this._extractName(pattern);
-                const infix = this._extractInfix(pattern);
-                infix.parent = this;
-
-                this._precedenceMap[name] = index;
-                this._infixPatterns.push(infix);
-                this._infixNames.push(name);
-
-                if (pattern.type === "right-associated") {
-                    this._associationMap[name] = Association.right;
-                } else {
-                    this._associationMap[name] = Association.left;
-                }
-
-                finalPatterns.push(infix);
-            }
-        });
-
-        this._patterns = finalPatterns;
-        this._precedenceTree = new PrecedenceTree(this._precedenceMap, this._associationMap);
-
-        return finalPatterns;
-    }
-
-    private _cacheAncestors() {
-        for (let atom of this._atomPatterns) {
-            const id = atom.id;
-            const ancestors: Pattern[] = this._atomsIdToAncestorsMap[id] = [];
-
-            let pattern: Pattern | null = this.parent;
-            while (pattern != null) {
-                if (pattern.id === id) {
-                    ancestors.push(pattern);
-                }
-                pattern = pattern.parent;
-            }
-        }
-    }
-
-    private _extractName(pattern: Pattern) {
         if (pattern.type === "right-associated") {
-            return pattern.children[0].name;
+          this._associationMap[name] = Association.right;
+        } else {
+          this._associationMap[name] = Association.left;
         }
 
-        return pattern.name;
+        finalPatterns.push(infix);
+      }
+    });
+
+    this._patterns = finalPatterns;
+    this._precedenceTree = new PrecedenceTree(this._precedenceMap, this._associationMap);
+
+    return finalPatterns;
+  }
+
+  private _cacheAncestors() {
+    for (const atom of this._atomPatterns) {
+      const id = atom.id;
+      const ancestors: Pattern[] = (this._atomsIdToAncestorsMap[id] = []);
+
+      let pattern: Pattern | null = this.parent;
+      while (pattern != null) {
+        if (pattern.id === id) {
+          ancestors.push(pattern);
+        }
+        pattern = pattern.parent;
+      }
+    }
+  }
+
+  private _extractName(pattern: Pattern) {
+    if (pattern.type === "right-associated") {
+      return pattern.children[0].name;
     }
 
-    private _isPrefix(pattern: Pattern) {
-        pattern = this._unwrapAssociationIfNecessary(pattern);
+    return pattern.name;
+  }
 
-        const lastChild = pattern.children[pattern.children.length - 1];
-        const referenceCount = this._referenceCount(pattern);
-        const lastChildIsReference = this._isRecursiveReference(lastChild);
+  private _isPrefix(pattern: Pattern) {
+    pattern = this._unwrapAssociationIfNecessary(pattern);
 
-        return lastChildIsReference &&
-            referenceCount === 1;
+    const lastChild = pattern.children[pattern.children.length - 1];
+    const referenceCount = this._referenceCount(pattern);
+    const lastChildIsReference = this._isRecursiveReference(lastChild);
+
+    return lastChildIsReference && referenceCount === 1;
+  }
+
+  private _extractPrefix(pattern: Pattern) {
+    pattern = this._unwrapAssociationIfNecessary(pattern);
+    return new Sequence(`${pattern.name}-prefix`, pattern.children.slice(0, -1));
+  }
+
+  private _isAtom(pattern: Pattern) {
+    pattern = this._unwrapAssociationIfNecessary(pattern);
+
+    const firstChild = pattern.children[0];
+    const lastChild = pattern.children[pattern.children.length - 1];
+    const firstChildIsReference = this._isRecursiveReference(firstChild);
+    const lastChildIsReference = this._isRecursiveReference(lastChild);
+
+    return !firstChildIsReference && !lastChildIsReference;
+  }
+
+  private _isPostfix(pattern: Pattern) {
+    pattern = this._unwrapAssociationIfNecessary(pattern);
+
+    const firstChild = pattern.children[0];
+    const referenceCount = this._referenceCount(pattern);
+    const firstChildIsReference = this._isRecursiveReference(firstChild);
+
+    return firstChildIsReference && referenceCount === 1;
+  }
+
+  private _extractPostfix(pattern: Pattern) {
+    pattern = this._unwrapAssociationIfNecessary(pattern);
+    return new Sequence(`${pattern.name}-postfix`, pattern.children.slice(1));
+  }
+
+  private _isBinary(pattern: Pattern) {
+    pattern = this._unwrapAssociationIfNecessary(pattern);
+
+    const firstChild = pattern.children[0];
+    const lastChild = pattern.children[pattern.children.length - 1];
+    const firstChildIsReference = this._isRecursiveReference(firstChild);
+    const lastChildIsReference = this._isRecursiveReference(lastChild);
+
+    return firstChildIsReference && lastChildIsReference && pattern.children.length > 2;
+  }
+
+  private _extractInfix(pattern: Pattern) {
+    pattern = this._unwrapAssociationIfNecessary(pattern);
+    const children = pattern.children.slice(1, -1);
+    const infixSequence = new Sequence(`${pattern.name}-delimiter`, children);
+
+    return infixSequence;
+  }
+
+  private _unwrapAssociationIfNecessary(pattern: Pattern) {
+    if (pattern.type === "right-associated") {
+      pattern = pattern.children[0];
     }
 
-    private _extractPrefix(pattern: Pattern) {
-        pattern = this._unwrapAssociationIfNecessary(pattern);
-        return new Sequence(`${pattern.name}-prefix`, pattern.children.slice(0, -1));
+    if (pattern.type === "reference") {
+      pattern.parent = this;
+      pattern = (pattern as Reference).getReferencePatternSafely();
+      pattern.parent = null;
     }
 
-    private _isAtom(pattern: Pattern) {
-        pattern = this._unwrapAssociationIfNecessary(pattern);
+    return pattern;
+  }
 
-        const firstChild = pattern.children[0];
-        const lastChild = pattern.children[pattern.children.length - 1];
-        const firstChildIsReference = this._isRecursiveReference(firstChild);
-        const lastChildIsReference = this._isRecursiveReference(lastChild);
+  private _referenceCount(pattern: Pattern) {
+    return pattern.children.filter(p => this._isRecursiveReference(p)).length;
+  }
 
-        return !firstChildIsReference && !lastChildIsReference;
+  private _isRecursiveReference(pattern: Pattern) {
+    if (pattern == null) {
+      return false;
+    }
+    return pattern.name === this._originalName;
+  }
+
+  build() {
+    if (!this._hasOrganized || this._cachedParent !== this.parent) {
+      this._cachedParent = this.parent;
+      this._hasOrganized = true;
+      this._organizePatterns(this._originalPatterns);
+      this._cacheAncestors();
+    }
+  }
+
+  parse(cursor: Cursor): Node | null {
+    this._firstIndex = cursor.index;
+
+    this.build();
+
+    // If there are not any atom nodes then nothing can be found.
+    if (this._atomPatterns.length < 1) {
+      cursor.moveTo(this._firstIndex);
+      cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
+      return null;
     }
 
-    private _isPostfix(pattern: Pattern) {
-        pattern = this._unwrapAssociationIfNecessary(pattern);
+    const node = this._tryToParse(cursor);
 
-        const firstChild = pattern.children[0];
-        const referenceCount = this._referenceCount(pattern);
-        const firstChildIsReference = this._isRecursiveReference(firstChild);
+    if (node != null) {
+      node.normalize(this._firstIndex);
 
-        return firstChildIsReference &&
-            referenceCount === 1;
+      cursor.moveTo(node.lastIndex);
+      cursor.resolveError();
+      return node;
     }
 
-    private _extractPostfix(pattern: Pattern) {
-        pattern = this._unwrapAssociationIfNecessary(pattern);
-        return new Sequence(`${pattern.name}-postfix`, pattern.children.slice(1));
+    cursor.moveTo(this._firstIndex);
+    cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
+    return null;
+  }
+
+  private _tryToParse(cursor: Cursor): Node | null {
+    this._shouldStopParsing = false;
+
+    while (true) {
+      cursor.resolveError();
+
+      this._tryToMatchPrefix(cursor);
+
+      if (this._shouldStopParsing) {
+        break;
+      }
+
+      this._tryToMatchAtom(cursor);
+
+      if (this._shouldStopParsing) {
+        break;
+      }
+
+      this._tryToMatchPostfix(cursor);
+
+      if (this._shouldStopParsing) {
+        break;
+      }
+
+      if (this._precedenceTree.hasAtom()) {
+        this._tryToMatchBinary(cursor);
+
+        if (this._shouldStopParsing) {
+          break;
+        }
+      } else {
+        break;
+      }
     }
 
-    private _isBinary(pattern: Pattern) {
-        pattern = this._unwrapAssociationIfNecessary(pattern);
+    return this._precedenceTree.commit();
+  }
 
-        const firstChild = pattern.children[0];
-        const lastChild = pattern.children[pattern.children.length - 1];
-        const firstChildIsReference = this._isRecursiveReference(firstChild);
-        const lastChildIsReference = this._isRecursiveReference(lastChild);
+  private _tryToMatchPrefix(cursor: Cursor) {
+    let onIndex = cursor.index;
 
-        return firstChildIsReference && lastChildIsReference && pattern.children.length > 2;
+    for (let i = 0; i < this._prefixPatterns.length; i++) {
+      const pattern = this._prefixPatterns[i];
+      const name = this._prefixNames[i];
+      const node = pattern.parse(cursor);
+
+      if (node != null) {
+        this._precedenceTree.addPrefix(name, ...node.children);
+
+        if (cursor.hasNext()) {
+          cursor.next();
+          onIndex = cursor.index;
+          i = -1;
+        } else {
+          this._shouldStopParsing = true;
+          break;
+        }
+      } else {
+        cursor.moveTo(onIndex);
+        cursor.resolveError();
+      }
     }
+  }
 
-    private _extractInfix(pattern: Pattern) {
-        pattern = this._unwrapAssociationIfNecessary(pattern);
-        const children = pattern.children.slice(1, -1);
-        const infixSequence = new Sequence(`${pattern.name}-delimiter`, children);
+  private _tryToMatchAtom(cursor: Cursor) {
+    const onIndex = cursor.index;
 
-        return infixSequence;
-    }
+    for (let i = 0; i < this._atomPatterns.length; i++) {
+      cursor.moveTo(onIndex);
 
-    private _unwrapAssociationIfNecessary(pattern: Pattern) {
-        if (pattern.type === "right-associated") {
-            pattern = pattern.children[0];
+      const pattern = this._atomPatterns[i];
+
+      if (this._isBeyondRecursiveAllowance(pattern, onIndex)) {
+        continue;
+      }
+
+      const node = pattern.parse(cursor);
+
+      if (node != null) {
+        this._precedenceTree.addAtom(node);
+
+        if (cursor.hasNext()) {
+          cursor.next();
+        } else {
+          this._shouldStopParsing = true;
         }
 
-        if (pattern.type === "reference") {
-            pattern.parent = this;
-            pattern = (pattern as Reference).getReferencePatternSafely();
-            pattern.parent = null;
-        }
+        break;
+      } else {
+        cursor.resolveError();
+        cursor.moveTo(onIndex);
+      }
+    }
+  }
 
-        return pattern;
+  private _isBeyondRecursiveAllowance(atom: Pattern, onIndex: number) {
+    const ancestors = this._atomsIdToAncestorsMap[atom.id];
+    return ancestors.some(a => a.startedOnIndex === onIndex);
+  }
+
+  private _tryToMatchPostfix(cursor: Cursor) {
+    let onIndex = cursor.index;
+
+    for (let i = 0; i < this._postfixPatterns.length; i++) {
+      const pattern = this._postfixPatterns[i];
+      const name = this._postfixNames[i];
+      const node = pattern.parse(cursor);
+
+      if (node != null) {
+        this._precedenceTree.addPostfix(name, ...node.children);
+
+        if (cursor.hasNext()) {
+          cursor.next();
+          onIndex = cursor.index;
+          i = -1;
+        } else {
+          this._shouldStopParsing = true;
+          break;
+        }
+      } else {
+        cursor.moveTo(onIndex);
+        cursor.resolveError();
+      }
+    }
+  }
+
+  private _tryToMatchBinary(cursor: Cursor) {
+    const onIndex = cursor.index;
+    let foundMatch = false;
+
+    if (this.infixPatterns.length === 0) {
+      this._shouldStopParsing = true;
     }
 
-    private _referenceCount(pattern: Pattern) {
-        return pattern.children.filter(p => this._isRecursiveReference(p)).length;
-    }
+    for (let i = 0; i < this._infixPatterns.length; i++) {
+      cursor.moveTo(onIndex);
 
-    private _isRecursiveReference(pattern: Pattern) {
-        if (pattern == null) {
-            return false;
-        }
-        return pattern.name === this._originalName;
-    }
+      const pattern = this._infixPatterns[i];
+      const name = this._infixNames[i];
+      const node = pattern.parse(cursor);
 
-    build() {
-        if (!this._hasOrganized || this._cachedParent !== this.parent) {
-            this._cachedParent = this.parent;
-            this._hasOrganized = true;
-            this._organizePatterns(this._originalPatterns);
-            this._cacheAncestors();
-        }
-    }
+      if (node != null) {
+        foundMatch = true;
+        this._precedenceTree.addBinary(name, ...node.children);
 
-    parse(cursor: Cursor): Node | null {
-        this._firstIndex = cursor.index;
-
-        this.build();
-
-        // If there are not any atom nodes then nothing can be found.
-        if (this._atomPatterns.length < 1) {
-            cursor.moveTo(this._firstIndex);
-            cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
-            return null;
+        if (cursor.hasNext()) {
+          cursor.next();
+        } else {
+          this._shouldStopParsing = true;
         }
 
-        const node = this._tryToParse(cursor);
-
-        if (node != null) {
-            node.normalize(this._firstIndex);
-
-            cursor.moveTo(node.lastIndex);
-            cursor.resolveError();
-            return node;
-        }
-
-        cursor.moveTo(this._firstIndex);
-        cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
-        return null;
+        break;
+      } else {
+        cursor.moveTo(onIndex);
+        cursor.resolveError();
+      }
     }
 
+    if (!foundMatch) {
+      this._shouldStopParsing = true;
+    }
+  }
 
-    private _tryToParse(cursor: Cursor): Node | null {
-        this._shouldStopParsing = false;
+  test(text: string, record = false): boolean {
+    return testPattern(this, text, record);
+  }
 
-        while (true) {
-            cursor.resolveError();
+  exec(text: string, record = false): ParseResult {
+    return execPattern(this, text, record);
+  }
 
-            this._tryToMatchPrefix(cursor);
+  getTokens(): string[] {
+    this.build();
+    const atomTokens = this._atomPatterns.flatMap(p => p.getTokens());
+    const prefixTokens = this.prefixPatterns.flatMap(p => p.getTokens());
 
-            if (this._shouldStopParsing) {
-                break;
-            }
+    return [...prefixTokens, ...atomTokens];
+  }
 
-            this._tryToMatchAtom(cursor);
+  getTokensAfter(childReference: Pattern): string[] {
+    this.build();
+    if (
+      this._prefixPatterns.includes(childReference) ||
+      this._infixPatterns.includes(childReference)
+    ) {
+      const atomTokens = this._atomPatterns.flatMap(p => p.getTokens());
+      const prefixTokens = this.prefixPatterns.flatMap(p => p.getTokens());
 
-            if (this._shouldStopParsing) {
-                break;
-            }
-
-            this._tryToMatchPostfix(cursor);
-
-            if (this._shouldStopParsing) {
-                break;
-            }
-
-            if (this._precedenceTree.hasAtom()) {
-                this._tryToMatchBinary(cursor);
-
-                if (this._shouldStopParsing) {
-                    break;
-                }
-            } else {
-                break;
-            }
-        }
-
-        return this._precedenceTree.commit();
+      return [...prefixTokens, ...atomTokens];
     }
 
-    private _tryToMatchPrefix(cursor: Cursor) {
-        let onIndex = cursor.index;
+    if (this._atomPatterns.includes(childReference)) {
+      const postfixTokens = this.postfixPatterns.flatMap(p => p.getTokens());
+      const infixTokens = this._infixPatterns.flatMap(p => p.getTokens());
 
-        for (let i = 0; i < this._prefixPatterns.length; i++) {
-            const pattern = this._prefixPatterns[i];
-            const name = this._prefixNames[i];
-            const node = pattern.parse(cursor);
+      if (this._parent != null) {
+        return [...postfixTokens, ...infixTokens, ...this._parent.getNextTokens()];
+      }
 
-            if (node != null) {
-                this._precedenceTree.addPrefix(name, ...node.children);
-
-                if (cursor.hasNext()) {
-                    cursor.next();
-                    onIndex = cursor.index;
-                    i = -1;
-
-                    continue;
-                } else {
-                    this._shouldStopParsing = true;
-                    break;
-                }
-
-            } else {
-                cursor.moveTo(onIndex);
-                cursor.resolveError();
-            }
-        }
+      return [...postfixTokens, ...infixTokens];
     }
 
-    private _tryToMatchAtom(cursor: Cursor) {
-        let onIndex = cursor.index;
-
-        for (let i = 0; i < this._atomPatterns.length; i++) {
-            cursor.moveTo(onIndex);
-
-            const pattern = this._atomPatterns[i];
-
-            if (this._isBeyondRecursiveAllowance(pattern, onIndex)) {
-                continue;
-            }
-
-            const node = pattern.parse(cursor);
-
-            if (node != null) {
-                this._precedenceTree.addAtom(node);
-
-                if (cursor.hasNext()) {
-                    cursor.next();
-                } else {
-                    this._shouldStopParsing = true;
-                }
-
-                break;
-            } else {
-                cursor.resolveError();
-                cursor.moveTo(onIndex);
-            }
-        }
+    if (this._infixPatterns.includes(childReference)) {
+      const atomTokens = this._atomPatterns.flatMap(p => p.getTokens());
+      return atomTokens;
     }
 
-    private _isBeyondRecursiveAllowance(atom: Pattern, onIndex: number) {
-        const ancestors = this._atomsIdToAncestorsMap[atom.id];
-        return ancestors.some(a => a.startedOnIndex === onIndex);
+    if (this._postfixPatterns.includes(childReference)) {
+      const postfixTokens = this.postfixPatterns.flatMap(p => p.getTokens());
+      const infixTokens = this._infixPatterns.flatMap(p => p.getTokens());
+
+      if (this._parent != null) {
+        return [...postfixTokens, ...infixTokens, ...this._parent.getNextTokens()];
+      }
+
+      return [...postfixTokens, ...infixTokens];
     }
 
-    private _tryToMatchPostfix(cursor: Cursor) {
-        let onIndex = cursor.index;
+    return [];
+  }
 
-        for (let i = 0; i < this._postfixPatterns.length; i++) {
-            const pattern = this._postfixPatterns[i];
-            const name = this._postfixNames[i];
-            const node = pattern.parse(cursor);
-
-            if (node != null) {
-                this._precedenceTree.addPostfix(name, ...node.children);
-
-                if (cursor.hasNext()) {
-                    cursor.next();
-                    onIndex = cursor.index;
-                    i = -1;
-
-                    continue;
-                } else {
-                    this._shouldStopParsing = true;
-                    break;
-                }
-
-            } else {
-                cursor.moveTo(onIndex);
-                cursor.resolveError();
-            }
-        }
+  getNextTokens(): string[] {
+    if (this._parent == null) {
+      return [];
     }
 
-    private _tryToMatchBinary(cursor: Cursor) {
-        let onIndex = cursor.index;
-        let foundMatch = false;
+    return this._parent.getTokensAfter(this);
+  }
 
-        if (this.infixPatterns.length === 0) {
-            this._shouldStopParsing = true;
-        }
+  getPatterns(): Pattern[] {
+    this.build();
+    const atomPatterns = this._atomPatterns.flatMap(p => p.getPatterns());
+    const prefixPatterns = this.prefixPatterns.flatMap(p => p.getPatterns());
 
-        for (let i = 0; i < this._infixPatterns.length; i++) {
-            cursor.moveTo(onIndex);
+    return [...prefixPatterns, ...atomPatterns];
+  }
 
-            const pattern = this._infixPatterns[i];
-            const name = this._infixNames[i];
-            const node = pattern.parse(cursor);
+  getPatternsAfter(childReference: Pattern): Pattern[] {
+    this.build();
+    if (
+      this._prefixPatterns.includes(childReference) ||
+      this._infixPatterns.includes(childReference)
+    ) {
+      const atomPatterns = this._atomPatterns.flatMap(p => p.getPatterns());
+      const prefixPatterns = this.prefixPatterns.flatMap(p => p.getPatterns());
 
-            if (node != null) {
-                foundMatch = true;
-                this._precedenceTree.addBinary(name, ...node.children);
-
-                if (cursor.hasNext()) {
-                    cursor.next();
-                } else {
-                    this._shouldStopParsing = true;
-                }
-
-                break;
-            } else {
-                cursor.moveTo(onIndex);
-                cursor.resolveError();
-            }
-        }
-
-        if (!foundMatch) {
-            this._shouldStopParsing = true;
-        }
+      return [...prefixPatterns, ...atomPatterns];
     }
 
-    test(text: string, record = false): boolean {
-        return testPattern(this, text, record);
+    if (this._atomPatterns.includes(childReference)) {
+      const postfixPatterns = this.postfixPatterns.flatMap(p => p.getPatterns());
+      const infixPatterns = this._infixPatterns.flatMap(p => p.getPatterns());
+
+      if (this._parent != null) {
+        return [...postfixPatterns, ...infixPatterns, ...this._parent.getNextPatterns()];
+      }
+
+      return [...postfixPatterns, ...infixPatterns];
     }
 
-    exec(text: string, record = false): ParseResult {
-        return execPattern(this, text, record);
+    if (this._infixPatterns.includes(childReference)) {
+      const atomPatterns = this._atomPatterns.flatMap(p => p.getPatterns());
+      return atomPatterns;
     }
 
-    getTokens(): string[] {
-        this.build();
-        const atomTokens = this._atomPatterns.map(p => p.getTokens()).flat();
-        const prefixTokens = this.prefixPatterns.map(p => p.getTokens()).flat();
+    if (this._postfixPatterns.includes(childReference)) {
+      const postfixPatterns = this.postfixPatterns.flatMap(p => p.getPatterns());
+      const infixPatterns = this._infixPatterns.flatMap(p => p.getPatterns());
 
-        return [...prefixTokens, ...atomTokens];
+      if (this._parent != null) {
+        return [...postfixPatterns, ...infixPatterns, ...this._parent.getNextPatterns()];
+      }
+
+      return [...postfixPatterns, ...infixPatterns];
     }
 
-    getTokensAfter(childReference: Pattern): string[] {
-        this.build();
-        if (this._prefixPatterns.includes(childReference) || this._infixPatterns.includes(childReference)) {
-            const atomTokens = this._atomPatterns.map(p => p.getTokens()).flat();
-            const prefixTokens = this.prefixPatterns.map(p => p.getTokens()).flat();
+    return [];
+  }
 
-            return [...prefixTokens, ...atomTokens];
-        }
-
-        if (this._atomPatterns.includes(childReference)) {
-            const postfixTokens = this.postfixPatterns.map(p => p.getTokens()).flat();
-            const infixTokens = this._infixPatterns.map(p => p.getTokens()).flat();
-
-            if (this._parent != null) {
-                return [...postfixTokens, ...infixTokens, ...this._parent.getNextTokens()];
-            }
-
-            return [...postfixTokens, ...infixTokens];
-        }
-
-        if (this._infixPatterns.includes(childReference)) {
-            const atomTokens = this._atomPatterns.map(p => p.getTokens()).flat();
-            return atomTokens;
-        }
-
-        if (this._postfixPatterns.includes(childReference)) {
-            const postfixTokens = this.postfixPatterns.map(p => p.getTokens()).flat();
-            const infixTokens = this._infixPatterns.map(p => p.getTokens()).flat();
-
-            if (this._parent != null) {
-                return [...postfixTokens, ...infixTokens, ...this._parent.getNextTokens()];
-            }
-
-            return [...postfixTokens, ...infixTokens];
-        }
-
-        return [];
+  getNextPatterns(): Pattern[] {
+    if (this._parent == null) {
+      return [];
     }
 
-    getNextTokens(): string[] {
-        if (this._parent == null) {
-            return [];
-        }
+    return this._parent.getPatternsAfter(this);
+  }
 
-        return this._parent.getTokensAfter(this);
-    }
+  find(predicate: (p: Pattern) => boolean): Pattern | null {
+    return findPattern(this, predicate);
+  }
 
-    getPatterns(): Pattern[] {
-        this.build();
-        const atomPatterns = this._atomPatterns.map(p => p.getPatterns()).flat();
-        const prefixPatterns = this.prefixPatterns.map(p => p.getPatterns()).flat();
+  clone(name = this._name): Pattern {
+    const clone = new Expression(name, this._originalPatterns);
+    clone._originalName = this._originalName;
+    clone._id = this._id;
+    return clone;
+  }
 
-        return [...prefixPatterns, ...atomPatterns];
-    }
-
-    getPatternsAfter(childReference: Pattern): Pattern[] {
-        this.build();
-        if (this._prefixPatterns.includes(childReference) || this._infixPatterns.includes(childReference)) {
-            const atomPatterns = this._atomPatterns.map(p => p.getPatterns()).flat();
-            const prefixPatterns = this.prefixPatterns.map(p => p.getPatterns()).flat();
-
-            return [...prefixPatterns, ...atomPatterns];
-        }
-
-        if (this._atomPatterns.includes(childReference)) {
-            const postfixPatterns = this.postfixPatterns.map(p => p.getPatterns()).flat();
-            const infixPatterns = this._infixPatterns.map(p => p.getPatterns()).flat();
-
-            if (this._parent != null) {
-                return [...postfixPatterns, ...infixPatterns, ...this._parent.getNextPatterns()];
-            }
-
-            return [...postfixPatterns, ...infixPatterns];
-        }
-
-        if (this._infixPatterns.includes(childReference)) {
-            const atomPatterns = this._atomPatterns.map(p => p.getPatterns()).flat();
-            return atomPatterns;
-        }
-
-        if (this._postfixPatterns.includes(childReference)) {
-            const postfixPatterns = this.postfixPatterns.map(p => p.getPatterns()).flat();
-            const infixPatterns = this._infixPatterns.map(p => p.getPatterns()).flat();
-
-            if (this._parent != null) {
-                return [...postfixPatterns, ...infixPatterns, ...this._parent.getNextPatterns()];
-            }
-
-            return [...postfixPatterns, ...infixPatterns];
-        }
-
-        return [];
-    }
-
-    getNextPatterns(): Pattern[] {
-        if (this._parent == null) {
-            return [];
-        }
-
-        return this._parent.getPatternsAfter(this);
-    }
-
-    find(predicate: (p: Pattern) => boolean): Pattern | null {
-        return findPattern(this, predicate);
-    }
-
-    clone(name = this._name): Pattern {
-        const clone = new Expression(name, this._originalPatterns);
-        clone._originalName = this._originalName;
-        clone._id = this._id;
-        return clone;
-    }
-
-    isEqual(pattern: Expression): boolean {
-        return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
-    }
+  isEqual(pattern: Expression): boolean {
+    return (
+      pattern.type === this.type &&
+      this.children.length === pattern.children.length &&
+      this.children.every((c, index) => c.isEqual(pattern.children[index]))
+    );
+  }
 }

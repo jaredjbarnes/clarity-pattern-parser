@@ -84,7 +84,6 @@ export class Sequence implements Pattern {
     this._nodes = [];
     const passed = this.tryToParse(cursor);
     if (passed) {
-
       const node = this.createNode(cursor);
 
       if (node !== null) {
@@ -117,7 +116,6 @@ export class Sequence implements Pattern {
             if (cursor.hasNext()) {
               // We had a match. Increment the cursor and use the next pattern.
               cursor.next();
-              continue;
             } else {
               // We are at the end of the text, it may still be valid, if all the
               // following patterns are optional.
@@ -134,7 +132,6 @@ export class Sequence implements Pattern {
             // An optional pattern did not matched, try from the same spot on the next
             // pattern.
             cursor.moveTo(runningCursorIndex);
-            continue;
           }
         } else {
           // If we don't have any results from what we parsed then record error.
@@ -198,13 +195,7 @@ export class Sequence implements Pattern {
 
     cursor.moveTo(lastIndex);
 
-    return new Node(
-      "sequence",
-      this._name,
-      this._firstIndex,
-      lastIndex,
-      children
-    );
+    return new Node("sequence", this._name, this._firstIndex, lastIndex, children);
   }
 
   getTokens(): string[] {
@@ -266,7 +257,6 @@ export class Sequence implements Pattern {
 
     for (let i = 0; i < this._children.length; i++) {
       if (this._children[i] === childReference) {
-
         nextSiblingIndex = i + 1;
         index = i;
         break;
@@ -321,6 +311,10 @@ export class Sequence implements Pattern {
   }
 
   isEqual(pattern: Sequence): boolean {
-    return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
+    return (
+      pattern.type === this.type &&
+      this.children.length === pattern.children.length &&
+      this.children.every((c, index) => c.isEqual(pattern.children[index]))
+    );
   }
 }

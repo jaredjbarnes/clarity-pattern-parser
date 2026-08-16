@@ -6,100 +6,104 @@ import { Pattern } from "./Pattern";
 let indexId = 0;
 
 export class RightAssociated implements Pattern {
-    private _id: string;
-    private _type: string;
-    private _name: string;
-    private _parent: Pattern | null;
-    private _children: Pattern[];
+  private _id: string;
+  private _type: string;
+  private _name: string;
+  private _parent: Pattern | null;
+  private _children: Pattern[];
 
-    get id(): string {
-        return this._id;
-    }
+  get id(): string {
+    return this._id;
+  }
 
-    get type(): string {
-        return this._type;
-    }
+  get type(): string {
+    return this._type;
+  }
 
-    get name(): string {
-        return this._name;
-    }
+  get name(): string {
+    return this._name;
+  }
 
-    get parent(): Pattern | null {
-        return this._parent;
-    }
+  get parent(): Pattern | null {
+    return this._parent;
+  }
 
-    set parent(pattern: Pattern | null) {
-        this._parent = pattern;
-    }
+  set parent(pattern: Pattern | null) {
+    this._parent = pattern;
+  }
 
-    get children(): Pattern[] {
-        return this._children;
-    }
+  get children(): Pattern[] {
+    return this._children;
+  }
 
-    get startedOnIndex() {
-        return this._children[0].startedOnIndex;
-    }
+  get startedOnIndex() {
+    return this._children[0].startedOnIndex;
+  }
 
-    constructor(pattern: Pattern) {
-        this._id = `right-associated-${indexId++}`;
-        this._type = "right-associated";
-        this._name = "";
-        this._parent = null;
-        this._children = [pattern.clone()];
-    }
+  constructor(pattern: Pattern) {
+    this._id = `right-associated-${indexId++}`;
+    this._type = "right-associated";
+    this._name = "";
+    this._parent = null;
+    this._children = [pattern.clone()];
+  }
 
-    parse(cursor: Cursor): Node | null {
-        return this.children[0].parse(cursor);
-    }
+  parse(cursor: Cursor): Node | null {
+    return this.children[0].parse(cursor);
+  }
 
-    exec(text: string, record?: boolean | undefined): ParseResult {
-        return this.children[0].exec(text, record);
-    }
+  exec(text: string, record?: boolean | undefined): ParseResult {
+    return this.children[0].exec(text, record);
+  }
 
-    test(text: string, record?: boolean | undefined): boolean {
-        return this.children[0].test(text, record);
-    }
+  test(text: string, record?: boolean | undefined): boolean {
+    return this.children[0].test(text, record);
+  }
 
-    clone(_name?: string | undefined): Pattern {
-        const clone = new RightAssociated(this.children[0]);
-        clone._id = this._id;
-        return clone;
-    }
+  clone(_name?: string | undefined): Pattern {
+    const clone = new RightAssociated(this.children[0]);
+    clone._id = this._id;
+    return clone;
+  }
 
-    getTokens(): string[] {
-        return this.children[0].getTokens();
+  getTokens(): string[] {
+    return this.children[0].getTokens();
+  }
+  getTokensAfter(_childReference: Pattern): string[] {
+    if (this._parent == null) {
+      return [];
     }
-    getTokensAfter(_childReference: Pattern): string[] {
-        if (this._parent == null) {
-            return [];
-        }
-        return this._parent.getTokensAfter(this);
+    return this._parent.getTokensAfter(this);
+  }
+  getNextTokens(): string[] {
+    if (this._parent == null) {
+      return [];
     }
-    getNextTokens(): string[] {
-        if (this._parent == null) {
-            return [];
-        }
-        return this._parent.getTokensAfter(this);
+    return this._parent.getTokensAfter(this);
+  }
+  getPatterns(): Pattern[] {
+    return this.children[0].getPatterns();
+  }
+  getPatternsAfter(_childReference: Pattern): Pattern[] {
+    if (this._parent == null) {
+      return [];
     }
-    getPatterns(): Pattern[] {
-        return this.children[0].getPatterns();
+    return this._parent.getPatternsAfter(this);
+  }
+  getNextPatterns(): Pattern[] {
+    if (this._parent == null) {
+      return [];
     }
-    getPatternsAfter(_childReference: Pattern): Pattern[] {
-        if (this._parent == null) {
-            return [];
-        }
-        return this._parent.getPatternsAfter(this);
-    }
-    getNextPatterns(): Pattern[] {
-        if (this._parent == null) {
-            return [];
-        }
-        return this._parent.getPatternsAfter(this);
-    }
-    find(predicate: (pattern: Pattern) => boolean): Pattern | null {
-        return this.children[0].find(predicate);
-    }
-    isEqual(pattern: Pattern): boolean {
-        return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
-    }
+    return this._parent.getPatternsAfter(this);
+  }
+  find(predicate: (pattern: Pattern) => boolean): Pattern | null {
+    return this.children[0].find(predicate);
+  }
+  isEqual(pattern: Pattern): boolean {
+    return (
+      pattern.type === this.type &&
+      this.children.length === pattern.children.length &&
+      this.children.every((c, index) => c.isEqual(pattern.children[index]))
+    );
+  }
 }

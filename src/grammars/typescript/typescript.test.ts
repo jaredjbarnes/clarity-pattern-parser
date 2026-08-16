@@ -166,12 +166,14 @@ describe("Function Types", () => {
   test("simple", () => expectParse("type-expr", "() => void"));
   test("with params", () => expectParse("type-expr", "(x: string) => number"));
   test("generic function type", () => expectParse("type-expr", "<T>(x: T) => T"));
-  test("return type is union", () => expectParse("type-expr", "() => string | undefined"));
+  test("return type is union", () =>
+    expectParse("type-expr", "() => string | undefined"));
 });
 
 describe("Conditional Types", () => {
   test("simple", () => expectParse("type-expr", "T extends string ? true : false"));
-  test("with union checked type", () => expectParse("type-expr", "A | B extends C ? D : E"));
+  test("with union checked type", () =>
+    expectParse("type-expr", "A | B extends C ? D : E"));
 });
 
 describe("Keyof & Typeof Types", () => {
@@ -183,9 +185,12 @@ describe("Keyof & Typeof Types", () => {
 
 describe("Mapped Types", () => {
   test("simple mapped", () => expectParse("type-expr", "{ [K in keyof T]: T[K] }"));
-  test("with optional modifier", () => expectParse("type-expr", "{ [K in keyof T]?: T[K] }"));
-  test("with readonly modifier", () => expectParse("type-expr", "{ readonly [K in keyof T]: T[K] }"));
-  test("with as clause", () => expectParse("type-expr", "{ [K in keyof T as string]: T[K] }"));
+  test("with optional modifier", () =>
+    expectParse("type-expr", "{ [K in keyof T]?: T[K] }"));
+  test("with readonly modifier", () =>
+    expectParse("type-expr", "{ readonly [K in keyof T]: T[K] }"));
+  test("with as clause", () =>
+    expectParse("type-expr", "{ [K in keyof T as string]: T[K] }"));
 });
 
 describe("Indexed Access Types", () => {
@@ -414,7 +419,8 @@ describe("For Statements", () => {
   test("classic for", () => expectParse("statement", "for (let i = 0; i < 10; i++) { }"));
   test("for-in", () => expectParse("statement", "for (const key in obj) { }"));
   test("for-of", () => expectParse("statement", "for (const item of arr) { }"));
-  test("for-await-of", () => expectParse("statement", "for await (const item of stream) { }"));
+  test("for-await-of", () =>
+    expectParse("statement", "for await (const item of stream) { }"));
   test("for with empty clauses", () => expectParse("statement", "for (;;) { }"));
 });
 
@@ -436,8 +442,7 @@ describe("Try-Catch-Finally", () => {
   test("try-catch-finally", () =>
     expectParse("statement", "try { } catch (e) { } finally { }"));
   test("catch without binding", () => expectParse("statement", "try { } catch { }"));
-  test("typed catch", () =>
-    expectParse("statement", "try { } catch (e: unknown) { }"));
+  test("typed catch", () => expectParse("statement", "try { } catch (e: unknown) { }"));
 });
 
 describe("Jump Statements", () => {
@@ -465,35 +470,34 @@ describe("Other Statements", () => {
 describe("Function Declarations", () => {
   test("simple", () => expectParse("statement", "function foo() { }"));
   test("with params", () =>
-    expectParse("statement", "function add(a: number, b: number): number { return a + b }"));
+    expectParse(
+      "statement",
+      "function add(a: number, b: number): number { return a + b }"
+    ));
   test("async", () => expectParse("statement", "async function fetch() { }"));
   test("generator", () => expectParse("statement", "function* gen() { }"));
   test("generic", () =>
     expectParse("statement", "function identity<T>(x: T): T { return x }"));
   test("rest param", () =>
     expectParse("statement", "function foo(...args: string[]) { }"));
-  test("default param", () =>
-    expectParse("statement", "function foo(x = 10) { }"));
-  test("optional param", () =>
-    expectParse("statement", "function foo(x?: number) { }"));
+  test("default param", () => expectParse("statement", "function foo(x = 10) { }"));
+  test("optional param", () => expectParse("statement", "function foo(x?: number) { }"));
 });
 
 describe("Class Declarations", () => {
   test("empty class", () => expectParse("statement", "class Foo { }"));
-  test("with property", () =>
-    expectParse("statement", "class Foo { x: number }"));
-  test("with method", () =>
-    expectParse("statement", "class Foo { bar() { } }"));
+  test("with property", () => expectParse("statement", "class Foo { x: number }"));
+  test("with method", () => expectParse("statement", "class Foo { bar() { } }"));
   test("with constructor", () =>
     expectParse("statement", "class Foo { constructor(x: number) { } }"));
-  test("extends", () =>
-    expectParse("statement", "class Bar extends Foo { }"));
-  test("implements", () =>
-    expectParse("statement", "class Bar implements IFoo { }"));
-  test("generic class", () =>
-    expectParse("statement", "class Box<T> { value: T }"));
+  test("extends", () => expectParse("statement", "class Bar extends Foo { }"));
+  test("implements", () => expectParse("statement", "class Bar implements IFoo { }"));
+  test("generic class", () => expectParse("statement", "class Box<T> { value: T }"));
   test("access modifiers", () =>
-    expectParse("statement", "class Foo { public x: number; private y: string; protected z: boolean }"));
+    expectParse(
+      "statement",
+      "class Foo { public x: number; private y: string; protected z: boolean }"
+    ));
   test("static members", () =>
     expectParse("statement", "class Foo { static count: number; static create() { } }"));
   test("abstract class", () =>
@@ -503,13 +507,13 @@ describe("Class Declarations", () => {
   test("readonly property", () =>
     expectParse("statement", "class Foo { readonly x: number }"));
   test("parameter property", () =>
-    expectParse("statement", "class Foo { constructor(public readonly name: string) { } }"));
-  test("static block", () =>
-    expectParse("statement", "class Foo { static { init() } }"));
-  test("optional property", () =>
-    expectParse("statement", "class Foo { x?: number }"));
-  test("definite assignment", () =>
-    expectParse("statement", "class Foo { x!: number }"));
+    expectParse(
+      "statement",
+      "class Foo { constructor(public readonly name: string) { } }"
+    ));
+  test("static block", () => expectParse("statement", "class Foo { static { init() } }"));
+  test("optional property", () => expectParse("statement", "class Foo { x?: number }"));
+  test("definite assignment", () => expectParse("statement", "class Foo { x!: number }"));
 });
 
 describe("Interface Declarations", () => {
@@ -522,12 +526,10 @@ describe("Interface Declarations", () => {
     expectParse("statement", "interface Foo { readonly x: number }"));
   test("methods", () =>
     expectParse("statement", "interface Foo { bar(x: number): string }"));
-  test("extends", () =>
-    expectParse("statement", "interface Bar extends Foo { }"));
+  test("extends", () => expectParse("statement", "interface Bar extends Foo { }"));
   test("extends multiple", () =>
     expectParse("statement", "interface Bar extends Foo, Baz { }"));
-  test("generic", () =>
-    expectParse("statement", "interface Box<T> { value: T }"));
+  test("generic", () => expectParse("statement", "interface Box<T> { value: T }"));
   test("index signature", () =>
     expectParse("statement", "interface Dict { [key: string]: number }"));
   test("call signature", () =>
@@ -552,15 +554,12 @@ describe("Enum Declarations", () => {
     expectParse("statement", 'enum Direction { Up = "UP", Down = "DOWN" }'));
   test("const enum", () =>
     expectParse("statement", "const enum Flags { A = 1, B = 2, C = 4 }"));
-  test("computed value", () =>
-    expectParse("statement", "enum Foo { A = 1 + 2 }"));
+  test("computed value", () => expectParse("statement", "enum Foo { A = 1 + 2 }"));
 });
 
 describe("Namespace Declarations", () => {
-  test("namespace", () =>
-    expectParse("statement", "namespace MyLib { }"));
-  test("module", () =>
-    expectParse("statement", 'module "my-module" { }'));
+  test("namespace", () => expectParse("statement", "namespace MyLib { }"));
+  test("module", () => expectParse("statement", 'module "my-module" { }'));
   test("nested namespace", () =>
     expectParse("statement", "namespace Outer { namespace Inner { } }"));
 });
@@ -569,8 +568,7 @@ describe("Declare Statements", () => {
   test("declare var", () => expectParse("statement", "declare var x: number"));
   test("declare function", () =>
     expectParse("statement", "declare function foo(): void { }"));
-  test("declare class", () =>
-    expectParse("statement", "declare class Foo { }"));
+  test("declare class", () => expectParse("statement", "declare class Foo { }"));
   test("declare namespace", () =>
     expectParse("statement", "declare namespace MyLib { }"));
   test("declare enum", () =>
@@ -578,12 +576,10 @@ describe("Declare Statements", () => {
 });
 
 describe("Decorators", () => {
-  test("class decorator", () =>
-    expectParse("statement", "@Component class Foo { }"));
+  test("class decorator", () => expectParse("statement", "@Component class Foo { }"));
   test("decorator with args", () =>
     expectParse("statement", '@Component({ selector: "app" }) class Foo { }'));
-  test("multiple decorators", () =>
-    expectParse("statement", "@A @B class Foo { }"));
+  test("multiple decorators", () => expectParse("statement", "@A @B class Foo { }"));
   test("member decorator", () =>
     expectParse("statement", "class Foo { @Log method() { } }"));
 });
@@ -593,10 +589,8 @@ describe("Decorators", () => {
 // =====================================================
 
 describe("Import Declarations", () => {
-  test("default import", () =>
-    expectParse("statement", 'import foo from "module"'));
-  test("named import", () =>
-    expectParse("statement", 'import { foo } from "module"'));
+  test("default import", () => expectParse("statement", 'import foo from "module"'));
+  test("named import", () => expectParse("statement", 'import { foo } from "module"'));
   test("multiple named", () =>
     expectParse("statement", 'import { foo, bar } from "module"'));
   test("aliased import", () =>
@@ -605,39 +599,27 @@ describe("Import Declarations", () => {
     expectParse("statement", 'import * as mod from "module"'));
   test("default and named", () =>
     expectParse("statement", 'import React, { useState } from "react"'));
-  test("side-effect import", () =>
-    expectParse("statement", 'import "polyfill"'));
+  test("side-effect import", () => expectParse("statement", 'import "polyfill"'));
   test("type import", () =>
     expectParse("statement", 'import type { Foo } from "module"'));
-  test("with semicolon", () =>
-    expectParse("statement", 'import { x } from "y";'));
+  test("with semicolon", () => expectParse("statement", 'import { x } from "y";'));
 });
 
 describe("Export Declarations", () => {
-  test("export variable", () =>
-    expectParse("statement", "export const x = 1"));
-  test("export function", () =>
-    expectParse("statement", "export function foo() { }"));
-  test("export class", () =>
-    expectParse("statement", "export class Foo { }"));
-  test("export interface", () =>
-    expectParse("statement", "export interface Foo { }"));
-  test("export type", () =>
-    expectParse("statement", "export type Foo = string"));
-  test("export enum", () =>
-    expectParse("statement", "export enum Color { Red }"));
-  test("export default expression", () =>
-    expectParse("statement", "export default 42"));
+  test("export variable", () => expectParse("statement", "export const x = 1"));
+  test("export function", () => expectParse("statement", "export function foo() { }"));
+  test("export class", () => expectParse("statement", "export class Foo { }"));
+  test("export interface", () => expectParse("statement", "export interface Foo { }"));
+  test("export type", () => expectParse("statement", "export type Foo = string"));
+  test("export enum", () => expectParse("statement", "export enum Color { Red }"));
+  test("export default expression", () => expectParse("statement", "export default 42"));
   test("export default function", () =>
     expectParse("statement", "export default function foo() { }"));
   test("export default class", () =>
     expectParse("statement", "export default class Foo { }"));
-  test("named exports", () =>
-    expectParse("statement", "export { foo, bar }"));
-  test("re-export", () =>
-    expectParse("statement", 'export { foo } from "module"'));
-  test("export all", () =>
-    expectParse("statement", 'export * from "module"'));
+  test("named exports", () => expectParse("statement", "export { foo, bar }"));
+  test("re-export", () => expectParse("statement", 'export { foo } from "module"'));
+  test("export all", () => expectParse("statement", 'export * from "module"'));
   test("export all as", () =>
     expectParse("statement", 'export * as utils from "module"'));
   test("export type", () =>
@@ -660,11 +642,16 @@ describe("Program", () => {
   test("single statement", () => expectParse("program", "const x = 1"));
 
   test("multiple statements", () =>
-    expectParse("program", `let x = 1
-let y = 2`));
+    expectParse(
+      "program",
+      `let x = 1
+let y = 2`
+    ));
 
   test("realistic program", () =>
-    expectParse("program", `import { Component } from "react"
+    expectParse(
+      "program",
+      `import { Component } from "react"
 
 interface Props {
   name: string;
@@ -673,35 +660,51 @@ interface Props {
 
 class App extends Component {
   render() { return null }
-}`));
+}`
+    ));
 
   test("function with generics", () =>
-    expectParse("program", `function identity<T>(arg: T): T {
+    expectParse(
+      "program",
+      `function identity<T>(arg: T): T {
   return arg
 }
 
-const result = identity<string>("hello")`));
+const result = identity<string>("hello")`
+    ));
 
   test("async/await", () =>
-    expectParse("program", `async function fetchData() {
+    expectParse(
+      "program",
+      `async function fetchData() {
   const response = await fetch("url")
   return response
-}`));
+}`
+    ));
 
   test("destructuring and spread", () =>
-    expectParse("program", `const { a, b, ...rest } = obj
-const [first, ...remaining] = arr`));
+    expectParse(
+      "program",
+      `const { a, b, ...rest } = obj
+const [first, ...remaining] = arr`
+    ));
 
   test("enum and type alias", () =>
-    expectParse("program", `enum Status {
+    expectParse(
+      "program",
+      `enum Status {
   Active,
   Inactive
 }
 
-type UserStatus = Status.Active | Status.Inactive`));
+type UserStatus = Status.Active | Status.Inactive`
+    ));
 
   test("complex type operations", () =>
-    expectParse("program", `type DeepPartial<T> = T extends object ? { [K in keyof T]?: DeepPartial<T[K]> } : T`));
+    expectParse(
+      "program",
+      `type DeepPartial<T> = T extends object ? { [K in keyof T]?: DeepPartial<T[K]> } : T`
+    ));
 });
 
 // =====================================================
@@ -709,27 +712,19 @@ type UserStatus = Status.Active | Status.Inactive`));
 // =====================================================
 
 describe("Edge Cases", () => {
-  test("chained member access and calls", () =>
-    expectParse("expr", "a.b().c[0].d"));
+  test("chained member access and calls", () => expectParse("expr", "a.b().c[0].d"));
 
-  test("nested ternary", () =>
-    expectParse("expr", "a ? b ? c : d : e"));
+  test("nested ternary", () => expectParse("expr", "a ? b ? c : d : e"));
 
-  test("arrow in assignment", () =>
-    expectParse("expr", "x = () => y"));
+  test("arrow in assignment", () => expectParse("expr", "x = () => y"));
 
-  test("complex expression", () =>
-    expectParse("expr", "a + b * c > d && e || f"));
+  test("complex expression", () => expectParse("expr", "a + b * c > d && e || f"));
 
-  test("type assertion chain", () =>
-    expectParse("expr", "x as any as string"));
+  test("type assertion chain", () => expectParse("expr", "x as any as string"));
 
-  test("optional chaining mixed", () =>
-    expectParse("expr", "a?.b.c?.d"));
+  test("optional chaining mixed", () => expectParse("expr", "a?.b.c?.d"));
 
-  test("tagged template", () =>
-    expectParse("expr", "html`<div>${x}</div>`"));
+  test("tagged template", () => expectParse("expr", "html`<div>${x}</div>`"));
 
-  test("new with member access", () =>
-    expectParse("expr", "new a.B()"));
+  test("new with member access", () => expectParse("expr", "new a.B()"));
 });

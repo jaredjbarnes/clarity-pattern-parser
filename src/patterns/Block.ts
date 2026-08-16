@@ -67,9 +67,10 @@ export class Block implements Pattern {
     this._openPattern = clonedOpen;
     this._contentPattern = clonedContent;
     this._closePattern = clonedClose;
-    this._children = clonedContent != null
-      ? [clonedOpen, clonedContent, clonedClose]
-      : [clonedOpen, clonedClose];
+    this._children =
+      clonedContent != null
+        ? [clonedOpen, clonedContent, clonedClose]
+        : [clonedOpen, clonedClose];
     this._firstIndex = -1;
     this._literalOpen = clonedOpen.token;
     this._literalClose = clonedClose.token;
@@ -140,7 +141,14 @@ export class Block implements Pattern {
       allChildren = [openNode, contentNode, closeNode];
     } else if (this._contentPattern == null && openNode.endIndex < closeStartIndex) {
       const innerText = cursor.text.substring(openNode.endIndex, closeStartIndex);
-      const innerNode = new Node("block-content", `${this._name}-content`, openNode.endIndex, closeStartIndex - 1, [], innerText);
+      const innerNode = new Node(
+        "block-content",
+        `${this._name}-content`,
+        openNode.endIndex,
+        closeStartIndex - 1,
+        [],
+        innerText
+      );
       allChildren = [openNode, innerNode, closeNode];
     } else {
       allChildren = [openNode, closeNode];
@@ -240,7 +248,7 @@ export class Block implements Pattern {
       return { node: null, failed: !isOptional };
     }
 
-    if (node.endIndex !== closeStartIndex){
+    if (node.endIndex !== closeStartIndex) {
       return { node: null, failed: true };
     }
 
@@ -254,7 +262,7 @@ export class Block implements Pattern {
   getTokensAfter(childReference: Pattern): string[] {
     const patterns = this.getPatternsAfter(childReference);
     const tokens: string[] = [];
-    patterns.forEach((p) => tokens.push(...p.getTokens()));
+    patterns.forEach(p => tokens.push(...p.getTokens()));
     return tokens;
   }
 
@@ -319,6 +327,7 @@ export class Block implements Pattern {
   isEqual(pattern: Block): boolean {
     return (
       pattern.type === this.type &&
+      this.children.length === pattern.children.length &&
       this.children.every((c, index) => c.isEqual(pattern.children[index]))
     );
   }

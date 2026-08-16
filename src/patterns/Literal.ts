@@ -89,10 +89,13 @@ export class Literal implements Pattern {
 
   private _tryToParse(cursor: Cursor): boolean {
     const token = this._token;
-    const compareToToken = cursor.text.slice(this._firstIndex, this._firstIndex + this._token.length);
+    const compareToToken = cursor.text.slice(
+      this._firstIndex,
+      this._firstIndex + this._token.length
+    );
     const length = Math.min(token.length, compareToToken.length);
 
-    for (let i = 0 ; i < length; i++){
+    for (let i = 0; i < length; i++) {
       if (token[i] !== compareToToken[i]) {
         this._lastIndex = this._firstIndex + i;
         cursor.moveTo(this._lastIndex);
@@ -100,7 +103,7 @@ export class Literal implements Pattern {
       }
     }
 
-    if (token != compareToToken){
+    if (token !== compareToToken) {
       this._lastIndex = this._firstIndex + compareToToken.length - 1;
       cursor.moveTo(this._lastIndex);
       return false;
@@ -109,7 +112,6 @@ export class Literal implements Pattern {
     this._lastIndex = this._firstIndex + this._token.length - 1;
     cursor.moveTo(this._lastIndex);
     return true;
-
   }
 
   private _createNode(): Node {

@@ -8,7 +8,7 @@ export function execPattern(pattern: Pattern, text: string, record = false): Par
   if (cursor.length === 0) {
     return { ast: null, cursor };
   }
-  
+
   record && cursor.startRecording();
 
   let ast = pattern.parse(cursor);
@@ -27,6 +27,6 @@ export function execPattern(pattern: Pattern, text: string, record = false): Par
 
   return {
     ast: ast,
-    cursor
+    cursor,
   };
 }

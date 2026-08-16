@@ -110,7 +110,7 @@ export class Not implements Pattern {
   }
 
   getPatterns(): Pattern[] {
-    return [...this.getNextPatterns().map(p => p.getPatterns()).flat()];
+    return [...this.getNextPatterns().flatMap(p => p.getPatterns())];
   }
 
   getPatternsAfter(_childReference: Pattern): Pattern[] {
@@ -136,6 +136,10 @@ export class Not implements Pattern {
   }
 
   isEqual(pattern: Not): boolean {
-    return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
+    return (
+      pattern.type === this.type &&
+      this.children.length === pattern.children.length &&
+      this.children.every((c, index) => c.isEqual(pattern.children[index]))
+    );
   }
 }

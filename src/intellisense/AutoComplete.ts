@@ -3,13 +3,16 @@ import { Match } from "../patterns/CursorHistory";
 import { ParseError } from "../patterns/ParseError";
 import { Pattern } from "../patterns/Pattern";
 import { Suggestion } from "./Suggestion";
-import { SuggestionSegment, SuggestionOption, CompositeSuggestion } from "./SuggestionOption";
-
+import {
+  SuggestionSegment,
+  SuggestionOption,
+  CompositeSuggestion,
+} from "./SuggestionOption";
 
 export interface AutoCompleteOptions {
   /**
-   * Allows for certain patterns to combine their tokens with the next tokens. 
-   * Be very careful, this can explode to infinity pretty quick. Usually useful 
+   * Allows for certain patterns to combine their tokens with the next tokens.
+   * Be very careful, this can explode to infinity pretty quick. Usually useful
    * for dividers and spaces.
    */
   greedyPatternNames?: string[];
@@ -19,8 +22,8 @@ export interface AutoCompleteOptions {
    */
   customTokens?: Record<string, string[]>;
   /**
-   * Suggestions may share the same text but differ in their suggestionSequence. 
-   * By default, duplicates are removed and only the first instance is kept. 
+   * Suggestions may share the same text but differ in their suggestionSequence.
+   * By default, duplicates are removed and only the first instance is kept.
    * Disabling deduplication allows all distinct instances to be returned together.
    */
   disableDedupe?: boolean;
@@ -52,15 +55,14 @@ export class AutoComplete {
     this._cursor.startRecording();
 
     if (cursor.length === 0) {
-
       const suggestion: Suggestion = {
         isComplete: false,
         options: this._createSuggestionOptionsFromMatch(),
         error: new ParseError(0, 0, this._pattern),
         errorAtIndex: 0,
         cursor,
-        ast: null
-      }
+        ast: null,
+      };
 
       return suggestion;
     }
@@ -86,7 +88,11 @@ export class AutoComplete {
 
       error = new ParseError(startIndex, lastIndex, this._pattern);
       errorAtIndex = startIndex;
-    } else if (!isComplete && this._cursor.hasError && this._cursor.furthestError != null) {
+    } else if (
+      !isComplete &&
+      this._cursor.hasError &&
+      this._cursor.furthestError != null
+    ) {
       errorAtIndex = this.getFurthestPosition(cursor);
       error = new ParseError(errorAtIndex, errorAtIndex, this._pattern);
     }
@@ -99,7 +105,6 @@ export class AutoComplete {
       cursor: cursor,
       ast,
     };
-
   }
 
   private getFurthestPosition(cursor: Cursor): number {
@@ -125,12 +130,11 @@ export class AutoComplete {
     return 0;
   }
 
-
-
   private _getAllSuggestionsOptions() {
-
     const errorMatchOptions = this._createSuggestionOptionsFromErrors();
-    const leafMatchOptions = this._cursor.leafMatches.map((m) => this._createSuggestionOptionsFromMatch(m)).flat();
+    const leafMatchOptions = this._cursor.leafMatches.flatMap(m =>
+      this._createSuggestionOptionsFromMatch(m)
+    );
 
     const finalResults: SuggestionOption[] = [];
     [...leafMatchOptions, ...errorMatchOptions].forEach(m => {
@@ -145,50 +149,69 @@ export class AutoComplete {
 
   private _createSuggestionOptionsFromErrors() {
     // These errored because the length of the string.
-    const errors = this._cursor.errors.filter(e => e.lastIndex === this._cursor.length - 1);
+    const errors = this._cursor.errors.filter(
+      e => e.lastIndex === this._cursor.length - 1
+    );
 
-    const errorSuggestionOptions = errors.map(parseError => {
+    const errorSuggestionOptions = errors.flatMap(parseError => {
+      const currentText = this._cursor.substring(
+        parseError.startIndex,
+        parseError.lastIndex
+      );
 
-      const currentText = this._cursor.substring(parseError.startIndex, parseError.lastIndex);
+      const compositeSuggestions = this._getCompositeSuggestionsForPattern(
+        parseError.pattern
+      );
+      const trimmedErrorCompositeSuggestions = this._trimSuggestionsByExistingText(
+        currentText,
+        compositeSuggestions
+      );
 
-      const compositeSuggestions = this._getCompositeSuggestionsForPattern(parseError.pattern);
-      const trimmedErrorCompositeSuggestions = this._trimSuggestionsByExistingText(currentText, compositeSuggestions);
+      return this._createSuggestions(
+        parseError.lastIndex,
+        trimmedErrorCompositeSuggestions
+      );
+    });
 
-      return this._createSuggestions(parseError.lastIndex, trimmedErrorCompositeSuggestions);
-    }).flat();
+    const dedupedErrorSuggestionOptions =
+      this._deDupeCompositeSuggestions(errorSuggestionOptions);
 
-    const dedupedErrorSuggestionOptions = this._deDupeCompositeSuggestions(errorSuggestionOptions);
-
-    return dedupedErrorSuggestionOptions
+    return dedupedErrorSuggestionOptions;
   }
 
-
   private _createSuggestionOptionsFromMatch(match?: Match): SuggestionOption[] {
-
     if (match?.pattern == null) {
       const compositeSuggestions = this._getCompositeSuggestionsForPattern(this._pattern);
       return this._createSuggestions(-1, compositeSuggestions);
     }
 
     if (match?.node != null) {
-      const currentText = this._text.slice(match.node.startIndex, match.node.endIndex)
-
+      const currentText = this._text.slice(match.node.startIndex, match.node.endIndex);
 
       /**Captures suggestions for a "completed" match pattern that still has existing possible suggestions.
        * particularly relevant when working with set/custom tokens.
-      */
-      const matchCompositeSuggestions = this._getCompositeSuggestionsForPattern(match.pattern)
-      const trimmedMatchCompositeSuggestions = this._trimSuggestionsByExistingText(currentText, matchCompositeSuggestions)
-
+       */
+      const matchCompositeSuggestions = this._getCompositeSuggestionsForPattern(
+        match.pattern
+      );
+      const trimmedMatchCompositeSuggestions = this._trimSuggestionsByExistingText(
+        currentText,
+        matchCompositeSuggestions
+      );
 
       const leafPatterns = match.pattern.getNextPatterns();
       const leafCompositeSuggestions = leafPatterns.flatMap(leafPattern =>
         this._getCompositeSuggestionsForPattern(leafPattern)
       );
 
-      const allCompositeSuggestions = [...leafCompositeSuggestions, ...trimmedMatchCompositeSuggestions,]
+      const allCompositeSuggestions = [
+        ...leafCompositeSuggestions,
+        ...trimmedMatchCompositeSuggestions,
+      ];
 
-      const dedupedCompositeSuggestions = this._deDupeCompositeSuggestions(allCompositeSuggestions);
+      const dedupedCompositeSuggestions = this._deDupeCompositeSuggestions(
+        allCompositeSuggestions
+      );
 
       return this._createSuggestions(match.node.lastIndex, dedupedCompositeSuggestions);
     } else {
@@ -201,37 +224,46 @@ export class AutoComplete {
    * - IE. **currentText:** *abc*, **sequence:** *[{ab}{cd}{ef}*
    *   - refines to {d}{ef}
    */
-  private _trimSuggestionsByExistingText(currentText: string, compositeSuggestions: CompositeSuggestion[]): CompositeSuggestion[] {
+  private _trimSuggestionsByExistingText(
+    currentText: string,
+    compositeSuggestions: CompositeSuggestion[]
+  ): CompositeSuggestion[] {
+    const trimmedSuggestions = compositeSuggestions.reduce<CompositeSuggestion[]>(
+      (acc, compositeSuggestion) => {
+        if (compositeSuggestion.text.startsWith(currentText)) {
+          const filteredSegments = this._filterCompletedSubSegments(
+            currentText,
+            compositeSuggestion
+          );
+          const slicedSuggestionText = compositeSuggestion.text.slice(currentText.length);
 
-    const trimmedSuggestions = compositeSuggestions.reduce<CompositeSuggestion[]>((acc, compositeSuggestion) => {
-      if (compositeSuggestion.text.startsWith(currentText)) {
+          if (slicedSuggestionText !== "") {
+            const refinedCompositeSuggestion: CompositeSuggestion = {
+              text: slicedSuggestionText,
+              suggestionSequence: filteredSegments,
+            };
 
-        const filteredSegments = this._filterCompletedSubSegments(currentText, compositeSuggestion);
-        const slicedSuggestionText = compositeSuggestion.text.slice(currentText.length);
-
-        if (slicedSuggestionText !== '') {
-          const refinedCompositeSuggestion: CompositeSuggestion = {
-            text: slicedSuggestionText,
-            suggestionSequence: filteredSegments,
+            acc.push(refinedCompositeSuggestion);
           }
-
-          acc.push(refinedCompositeSuggestion);
         }
-      }
-      return acc;
-    }, []);
+        return acc;
+      },
+      []
+    );
 
-    return trimmedSuggestions
+    return trimmedSuggestions;
   }
 
   /** Removed segments already accounted for in the existing text.
- * ie. sequence pattern segments ≈ [{look}, {an example}, {phrase}]
- * fullText = "look an"
- * remove {look} segment as its already been completed by the existing text.
-*/
-  private _filterCompletedSubSegments(currentText: string, compositeSuggestion: CompositeSuggestion) {
-
-    let elementsToRemove: SuggestionSegment[] = [];
+   * ie. sequence pattern segments ≈ [{look}, {an example}, {phrase}]
+   * fullText = "look an"
+   * remove {look} segment as its already been completed by the existing text.
+   */
+  private _filterCompletedSubSegments(
+    currentText: string,
+    compositeSuggestion: CompositeSuggestion
+  ) {
+    const elementsToRemove: SuggestionSegment[] = [];
     let workingText = currentText;
 
     compositeSuggestion.suggestionSequence.forEach(segment => {
@@ -240,98 +272,101 @@ export class AutoComplete {
         workingText = workingText.slice(segment.text.length);
         elementsToRemove.push(segment);
       }
-    })
+    });
 
-    const filteredSegments = compositeSuggestion.suggestionSequence.filter(segment => !elementsToRemove.includes(segment));
+    const filteredSegments = compositeSuggestion.suggestionSequence.filter(
+      segment => !elementsToRemove.includes(segment)
+    );
 
-    return filteredSegments
+    return filteredSegments;
   }
 
   private _getCompositeSuggestionsForPattern(pattern: Pattern): CompositeSuggestion[] {
-
     const suggestionsToReturn: CompositeSuggestion[] = [];
 
     const leafPatterns = pattern.getPatterns();
     // for when pattern has no leafPatterns and only returns itself
     if (leafPatterns.length === 1 && leafPatterns[0].id === pattern.id) {
-
       const currentCustomTokens = this._getCustomTokens(pattern);
       const currentTokens = pattern.getTokens();
       const allTokens = [...currentCustomTokens, ...currentTokens];
 
       const leafCompositeSuggestions: CompositeSuggestion[] = allTokens.map(token => {
-
         const segment: SuggestionSegment = {
           text: token,
           pattern: pattern,
-        }
+        };
 
         const compositeSuggestion: CompositeSuggestion = {
           text: token,
           suggestionSequence: [segment],
-        }
+        };
         return compositeSuggestion;
-      })
+      });
       suggestionsToReturn.push(...leafCompositeSuggestions);
-
     } else {
-
       const currentCustomTokens = this._getCustomTokens(pattern);
 
       const patternsSuggestionList = currentCustomTokens.map(token => {
         const segment: SuggestionSegment = {
           text: token,
           pattern: pattern,
-        }
+        };
 
         const patternSuggestion: CompositeSuggestion = {
           text: token,
           suggestionSequence: [segment],
-        }
+        };
         return patternSuggestion;
-      })
+      });
 
-      const leafCompositeSuggestions = leafPatterns.map(lp => this._getCompositeSuggestionsForPattern(lp)).flat();
+      const leafCompositeSuggestions = leafPatterns.flatMap(lp =>
+        this._getCompositeSuggestionsForPattern(lp)
+      );
 
       suggestionsToReturn.push(...patternsSuggestionList, ...leafCompositeSuggestions);
     }
 
-    if (this._options.greedyPatternNames != null && this._options.greedyPatternNames.includes(pattern.name)) {
-
+    if (
+      this._options.greedyPatternNames != null &&
+      this._options.greedyPatternNames.includes(pattern.name)
+    ) {
       const nextPatterns = pattern.getNextPatterns();
 
-      const nextPatternedTokensList = nextPatterns.reduce<CompositeSuggestion[]>((acc, pattern) => {
-        const patternedTokensList = this._getCompositeSuggestionsForPattern(pattern);
-        acc.push(...patternedTokensList);
+      const nextPatternedTokensList = nextPatterns.reduce<CompositeSuggestion[]>(
+        (acc, pattern) => {
+          const patternedTokensList = this._getCompositeSuggestionsForPattern(pattern);
+          acc.push(...patternedTokensList);
 
-        return acc;
-      }, []);
+          return acc;
+        },
+        []
+      );
 
       const compositeSuggestionList: CompositeSuggestion[] = [];
 
       for (const currentSuggestion of suggestionsToReturn) {
         for (const nextSuggestionWithSubElements of nextPatternedTokensList) {
-
           const augmentedTokenWithPattern: CompositeSuggestion = {
             text: currentSuggestion.text + nextSuggestionWithSubElements.text,
-            suggestionSequence: [...currentSuggestion.suggestionSequence, ...nextSuggestionWithSubElements.suggestionSequence],
-          }
+            suggestionSequence: [
+              ...currentSuggestion.suggestionSequence,
+              ...nextSuggestionWithSubElements.suggestionSequence,
+            ],
+          };
 
           compositeSuggestionList.push(augmentedTokenWithPattern);
         }
       }
 
       return compositeSuggestionList;
-
     } else {
-
       const dedupedSuggestions = this._deDupeCompositeSuggestions(suggestionsToReturn);
       return dedupedSuggestions;
     }
   }
 
   private _getCustomTokens(pattern: Pattern) {
-
     const customTokensMap: Record<string, string[]> = this._options.customTokens || {};
     const customTokens = customTokensMap[pattern.name] ?? [];
 
@@ -340,10 +375,9 @@ export class AutoComplete {
     return allTokens;
   }
 
-
-
-  private _deDupeCompositeSuggestions<T extends CompositeSuggestion>(suggestions: T[]): T[] {
-
+  private _deDupeCompositeSuggestions<T extends CompositeSuggestion>(
+    suggestions: T[]
+  ): T[] {
     if (this._options.disableDedupe) {
       return suggestions;
     }
@@ -356,8 +390,7 @@ export class AutoComplete {
       const subElementsKey = suggestion.suggestionSequence
         .map(sub => ` ${sub.pattern.name} - ${sub.text}  `)
         .sort()
-        .join('|');
-
+        .join("|");
 
       const key = `${suggestion.text}|${subElementsKey}`;
 
@@ -370,24 +403,23 @@ export class AutoComplete {
     return unique;
   }
 
-  private _createSuggestions(lastIndex: number, compositeSuggestionList: CompositeSuggestion[]): SuggestionOption[] {
-
-    let textToIndex = lastIndex === -1 ? "" : this._cursor.substring(0, lastIndex);
-    const suggestionStrings: string[] = [];
+  private _createSuggestions(
+    lastIndex: number,
+    compositeSuggestionList: CompositeSuggestion[]
+  ): SuggestionOption[] {
+    const textToIndex = lastIndex === -1 ? "" : this._cursor.substring(0, lastIndex);
     const options: SuggestionOption[] = [];
 
     for (const compositeSuggestion of compositeSuggestionList) {
       // concatenated for start index identification inside createSuggestion
       const existingTextWithSuggestion = textToIndex + compositeSuggestion.text;
 
-      const alreadyExist = suggestionStrings.includes(existingTextWithSuggestion);
-      const isSameAsText = existingTextWithSuggestion === this._text;
-
-      // if ( !alreadyExist && !isSameAsText) {
-      suggestionStrings.push(existingTextWithSuggestion);
-      const suggestionOption = this._createSuggestionOption(this._cursor.text, existingTextWithSuggestion, compositeSuggestion.suggestionSequence);
+      const suggestionOption = this._createSuggestionOption(
+        this._cursor.text,
+        existingTextWithSuggestion,
+        compositeSuggestion.suggestionSequence
+      );
       options.push(suggestionOption);
-      // }
     }
 
     const reducedOptions = getFurthestOptions(options);
@@ -396,7 +428,11 @@ export class AutoComplete {
     return reducedOptions;
   }
 
-  private _createSuggestionOption(fullText: string, suggestion: string, segments: SuggestionSegment[]): SuggestionOption {
+  private _createSuggestionOption(
+    fullText: string,
+    suggestion: string,
+    segments: SuggestionSegment[]
+  ): SuggestionOption {
     const furthestMatch = findMatchIndex(suggestion, fullText);
     const text = suggestion.slice(furthestMatch);
 
@@ -405,15 +441,18 @@ export class AutoComplete {
       startIndex: furthestMatch,
       suggestionSequence: segments,
     };
-    return option
+    return option;
   }
-
 
   static suggestFor(text: string, pattern: Pattern, options?: AutoCompleteOptions) {
     return new AutoComplete(pattern, options).suggestFor(text);
   }
 
-  static suggestForWithCursor(cursor: Cursor, pattern: Pattern, options?: AutoCompleteOptions) {
+  static suggestForWithCursor(
+    cursor: Cursor,
+    pattern: Pattern,
+    options?: AutoCompleteOptions
+  ) {
     return new AutoComplete(pattern, options).suggestForWithCursor(cursor);
   }
 }
@@ -454,4 +493,3 @@ function getFurthestOptions(options: SuggestionOption[]): SuggestionOption[] {
 
   return furthestOptions;
 }
-

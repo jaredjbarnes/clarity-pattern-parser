@@ -190,7 +190,7 @@ export class InfiniteRepeat implements Pattern {
               cursor.moveTo(dividerStartIndex);
 
               if (repeatNode == null) {
-                // If neither the repeat pattern or divider pattern matched get out. 
+                // If neither the repeat pattern or divider pattern matched get out.
                 passed = true;
                 break;
               }
@@ -227,11 +227,7 @@ export class InfiniteRepeat implements Pattern {
     const hasDivider = this._divider != null;
     const lastPattern = this._patterns[this._patterns.length - 1];
 
-    if (
-      hasDivider &&
-      this._trimDivider &&
-      lastPattern === this._divider
-    ) {
+    if (hasDivider && this._trimDivider && lastPattern === this._divider) {
       const dividerNode = this._nodes.pop() as Node;
       cursor.moveTo(dividerNode.firstIndex);
     }
@@ -244,17 +240,11 @@ export class InfiniteRepeat implements Pattern {
     const lastIndex = this._nodes[this._nodes.length - 1].lastIndex;
     cursor.moveTo(lastIndex);
 
-    return new Node(
-      this._type,
-      this._name,
-      this._firstIndex,
-      lastIndex,
-      this._nodes
-    );
+    return new Node(this._type, this._name, this._firstIndex, lastIndex, this._nodes);
   }
 
   private _getLastValidNode(): Node | null {
-    const nodes = this._nodes.filter((node) => node !== null);
+    const nodes = this._nodes.filter(node => node !== null);
 
     if (nodes.length === 0) {
       return null;
@@ -339,24 +329,23 @@ export class InfiniteRepeat implements Pattern {
   }
 
   clone(name = this._name): Pattern {
-    let min = this._min;
+    const min = this._min;
 
-    const clone = new InfiniteRepeat(
-      name,
-      this._pattern,
-      {
-        divider: this._divider == null ? undefined : this._divider,
-        min: min,
-        trimDivider: this._trimDivider
-      }
-    );
+    const clone = new InfiniteRepeat(name, this._pattern, {
+      divider: this._divider == null ? undefined : this._divider,
+      min: min,
+      trimDivider: this._trimDivider,
+    });
 
     clone._id = this._id;
     return clone;
   }
 
   isEqual(pattern: InfiniteRepeat): boolean {
-    return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
+    return (
+      pattern.type === this.type &&
+      this.children.length === pattern.children.length &&
+      this.children.every((c, index) => c.isEqual(pattern.children[index]))
+    );
   }
 }
-

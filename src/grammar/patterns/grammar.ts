@@ -57,67 +57,301 @@ export const trueLiteral = new Literal("trueLiteral", "true");
 export const falseLiteral = new Literal("falseLiteral", "false");
 export const jsonBoolean = new Options("jsonBoolean", [trueLiteral, falseLiteral]);
 export const jsonNull = new Literal("jsonNull", "null");
-export const jsonArrayItems = new Repeat("jsonArrayItems", new Reference("jsonValue"), { divider: comma, trimDivider: true });
-export const jsonArray = new Sequence("jsonArray", [openSquareBracket, optionalWS, jsonArrayItems, optionalWS, closeSquareBracket]);
+export const jsonArrayItems = new Repeat("jsonArrayItems", new Reference("jsonValue"), {
+  divider: comma,
+  trimDivider: true,
+});
+export const jsonArray = new Sequence("jsonArray", [
+  openSquareBracket,
+  optionalWS,
+  jsonArrayItems,
+  optionalWS,
+  closeSquareBracket,
+]);
 export const jsonObjectPropertyName = literal.clone("jsonObjectPropertyName");
-export const jsonObjectProperty = new Sequence("jsonObjectProperty", [jsonObjectPropertyName, optionalWS, colon, optionalWS, new Reference("jsonValue")]);
-export const jsonObjectProperties = new Repeat("jsonObjectProperties", jsonObjectProperty, { divider: comma, trimDivider: true });
-export const jsonObject = new Sequence("jsonObject", [openBracket, optionalWS, new Optional("optionalJsonObjectProperties", jsonObjectProperties), optionalWS, closeBracket]);
-export const jsonValue = new Options("jsonValue", [jsonString, jsonNumber, jsonBoolean, jsonNull, jsonArray, jsonObject]);
+export const jsonObjectProperty = new Sequence("jsonObjectProperty", [
+  jsonObjectPropertyName,
+  optionalWS,
+  colon,
+  optionalWS,
+  new Reference("jsonValue"),
+]);
+export const jsonObjectProperties = new Repeat(
+  "jsonObjectProperties",
+  jsonObjectProperty,
+  { divider: comma, trimDivider: true }
+);
+export const jsonObject = new Sequence("jsonObject", [
+  openBracket,
+  optionalWS,
+  new Optional("optionalJsonObjectProperties", jsonObjectProperties),
+  optionalWS,
+  closeBracket,
+]);
+export const jsonValue = new Options("jsonValue", [
+  jsonString,
+  jsonNumber,
+  jsonBoolean,
+  jsonNull,
+  jsonArray,
+  jsonObject,
+]);
 
-export const syntaxStatement = new Sequence("syntaxStatement", [syntax, optionalWS, syntaxVersion]);
+export const syntaxStatement = new Sequence("syntaxStatement", [
+  syntax,
+  optionalWS,
+  syntaxVersion,
+]);
 
 export const decorationName = name.clone("decorationName");
-export const methodDecorationStatement = new Sequence("methodDecorationStatement", [at, optionalWS, decorationName, optionalWS, openParen, optionalWS, new Optional("optionalJsonValue", jsonValue), optionalWS, closeParen]);
-export const nameDecorationStatement = new Sequence("nameDecorationStatement", [at, optionalWS, decorationName]);
-export const decorationStatement = new Options("decorationStatement", [methodDecorationStatement, nameDecorationStatement]);
+export const methodDecorationStatement = new Sequence("methodDecorationStatement", [
+  at,
+  optionalWS,
+  decorationName,
+  optionalWS,
+  openParen,
+  optionalWS,
+  new Optional("optionalJsonValue", jsonValue),
+  optionalWS,
+  closeParen,
+]);
+export const nameDecorationStatement = new Sequence("nameDecorationStatement", [
+  at,
+  optionalWS,
+  decorationName,
+]);
+export const decorationStatement = new Options("decorationStatement", [
+  methodDecorationStatement,
+  nameDecorationStatement,
+]);
 
 export const defaultParamName = name.clone("defaultParamName");
-export const paramDefault = new Sequence("paramDefault", [optionalLS, assign, optionalLS, defaultParamName]);
-export const paramNameWithDefault = new Sequence("paramNameWithDefault", [patternName, new Optional("optionalParamDefault", paramDefault)]);
-export const useParamPatterns = new Repeat("useParamPatterns", paramNameWithDefault, { divider: comma, trimDivider: true });
-export const useParamsStatement = new Sequence("useParamsStatement", [useParams, optionalLS, openBracket, optionalWS, useParamPatterns, optionalWS, closeBracket]);
+export const paramDefault = new Sequence("paramDefault", [
+  optionalLS,
+  assign,
+  optionalLS,
+  defaultParamName,
+]);
+export const paramNameWithDefault = new Sequence("paramNameWithDefault", [
+  patternName,
+  new Optional("optionalParamDefault", paramDefault),
+]);
+export const useParamPatterns = new Repeat("useParamPatterns", paramNameWithDefault, {
+  divider: comma,
+  trimDivider: true,
+});
+export const useParamsStatement = new Sequence("useParamsStatement", [
+  useParams,
+  optionalLS,
+  openBracket,
+  optionalWS,
+  useParamPatterns,
+  optionalWS,
+  closeBracket,
+]);
 
 export const withParamExportPattern = patternName.clone("withParamExportPattern");
-export const withParamStatement = new Options("withParamStatement", [new Reference("patternAssignment"), withParamExportPattern]);
-export const withParamStatements = new Repeat("withParamStatements", withParamStatement, { divider: newLine, trimDivider: true });
-export const withParamsExpr = new Sequence("withParamsExpr", [withParams, optionalLS, openBracket, optionalWS, withParamStatements, optionalWS, closeBracket]);
+export const withParamStatement = new Options("withParamStatement", [
+  new Reference("patternAssignment"),
+  withParamExportPattern,
+]);
+export const withParamStatements = new Repeat("withParamStatements", withParamStatement, {
+  divider: newLine,
+  trimDivider: true,
+});
+export const withParamsExpr = new Sequence("withParamsExpr", [
+  withParams,
+  optionalLS,
+  openBracket,
+  optionalWS,
+  withParamStatements,
+  optionalWS,
+  closeBracket,
+]);
 
 export const importNameAlias = name.clone("importNameAlias");
-export const importAlias = new Sequence("importAlias", [patternName, ls, asKeyword, ls, importNameAlias]);
-export const importNameOrAlias = new Options("importNameOrAlias", [importAlias, patternName]);
-export const patternNames = new Repeat("patternNames", importNameOrAlias, { divider: comma, trimDivider: true });
-export const importedPatterns = new Sequence("importedPatterns", [openBracket, optionalWS, patternNames, optionalWS, closeBracket]);
-export const importStatement = new Sequence("importStatement", [imprt, optionalLS, importedPatterns, optionalLS, from, optionalLS, resource, optionalLS, new Optional("optionalWithParamsExpr", withParamsExpr)]);
+export const importAlias = new Sequence("importAlias", [
+  patternName,
+  ls,
+  asKeyword,
+  ls,
+  importNameAlias,
+]);
+export const importNameOrAlias = new Options("importNameOrAlias", [
+  importAlias,
+  patternName,
+]);
+export const patternNames = new Repeat("patternNames", importNameOrAlias, {
+  divider: comma,
+  trimDivider: true,
+});
+export const importedPatterns = new Sequence("importedPatterns", [
+  openBracket,
+  optionalWS,
+  patternNames,
+  optionalWS,
+  closeBracket,
+]);
+export const importStatement = new Sequence("importStatement", [
+  imprt,
+  optionalLS,
+  importedPatterns,
+  optionalLS,
+  from,
+  optionalLS,
+  resource,
+  optionalLS,
+  new Optional("optionalWithParamsExpr", withParamsExpr),
+]);
 
-export const repeatBounds = new Sequence("repeatBounds", [openBracket, optionalWS, new Optional("optionalInteger", integer), optionalWS, new Optional("optionalComma", comma), optionalWS, new Optional("optionalInteger", integer), optionalWS, closeBracket]);
+export const repeatBounds = new Sequence("repeatBounds", [
+  openBracket,
+  optionalWS,
+  new Optional("optionalInteger", integer),
+  optionalWS,
+  new Optional("optionalComma", comma),
+  optionalWS,
+  new Optional("optionalInteger", integer),
+  optionalWS,
+  closeBracket,
+]);
 export const oneOrMore = new Literal("oneOrMore", "+");
 export const zeroOrMore = new Literal("zeroOrMore", "*");
-export const repeatOptions = new Options("repeatOptions", [oneOrMore, zeroOrMore, repeatBounds]);
-export const delimiter = new Sequence("delimiter", [comma, new Reference("patternExpr"), optionalWS, new Optional("optionalTrim", trim)]);
-export const repeatExpr = new Sequence("repeatExpr", [openParen, optionalWS, new Reference("patternExpr"), optionalWS, new Optional("optionalDelimiter", delimiter), optionalWS, closeParen, repeatOptions]);
+export const repeatOptions = new Options("repeatOptions", [
+  oneOrMore,
+  zeroOrMore,
+  repeatBounds,
+]);
+export const delimiter = new Sequence("delimiter", [
+  comma,
+  new Reference("patternExpr"),
+  optionalWS,
+  new Optional("optionalTrim", trim),
+]);
+export const repeatExpr = new Sequence("repeatExpr", [
+  openParen,
+  optionalWS,
+  new Reference("patternExpr"),
+  optionalWS,
+  new Optional("optionalDelimiter", delimiter),
+  optionalWS,
+  closeParen,
+  repeatOptions,
+]);
 
-export const blockDelimiter = new Sequence("blockDelimiter", [openSquareBracket, optionalWS, literal, optionalWS, closeSquareBracket]);
+export const blockDelimiter = new Sequence("blockDelimiter", [
+  openSquareBracket,
+  optionalWS,
+  literal,
+  optionalWS,
+  closeSquareBracket,
+]);
 export const wildcard = new Literal("wildcard", "...");
-export const blockContent = new Options("blockContent", [wildcard, new Reference("patternExpr")]);
-export const blockExpr = new Sequence("blockExpr", [blockDelimiter, optionalWS, blockContent, optionalWS, blockDelimiter]);
+export const blockContent = new Options("blockContent", [
+  wildcard,
+  new Reference("patternExpr"),
+]);
+export const blockExpr = new Sequence("blockExpr", [
+  blockDelimiter,
+  optionalWS,
+  blockContent,
+  optionalWS,
+  blockDelimiter,
+]);
 
-export const takeUntilExpr = new Sequence("takeUntilExpr", [anyChar, optionalLS, upTo, optionalLS, wall, optionalLS, new Reference("patternExpr")]);
+export const takeUntilExpr = new Sequence("takeUntilExpr", [
+  anyChar,
+  optionalLS,
+  upTo,
+  optionalLS,
+  wall,
+  optionalLS,
+  new Reference("patternExpr"),
+]);
 
-export const sequenceExpr = new Sequence("sequenceExpr", [new Reference("patternExpr"), optionalWS, concat, optionalWS, new Reference("patternExpr")]);
-export const optionsExpr = new Sequence("optionsExpr", [new Reference("patternExpr"), optionalWS, bar, optionalWS, new Reference("patternExpr")]);
-export const greedyOptionsExpr = new Sequence("greedyOptionsExpr", [new Reference("patternExpr"), optionalWS, greedyBar, optionalWS, new Reference("patternExpr")]);
-export const patternGroupExpr = new Sequence("patternGroupExpr", [openParen, optionalWS, new Reference("patternExpr"), optionalWS, closeParen]);
+export const sequenceExpr = new Sequence("sequenceExpr", [
+  new Reference("patternExpr"),
+  optionalWS,
+  concat,
+  optionalWS,
+  new Reference("patternExpr"),
+]);
+export const optionsExpr = new Sequence("optionsExpr", [
+  new Reference("patternExpr"),
+  optionalWS,
+  bar,
+  optionalWS,
+  new Reference("patternExpr"),
+]);
+export const greedyOptionsExpr = new Sequence("greedyOptionsExpr", [
+  new Reference("patternExpr"),
+  optionalWS,
+  greedyBar,
+  optionalWS,
+  new Reference("patternExpr"),
+]);
+export const patternGroupExpr = new Sequence("patternGroupExpr", [
+  openParen,
+  optionalWS,
+  new Reference("patternExpr"),
+  optionalWS,
+  closeParen,
+]);
 
-export const notExpr = new Sequence("notExpr", [not, optionalLS, new Reference("patternExpr")]);
-export const optionalExpr = new Sequence("optionalExpr", [new Reference("patternExpr"), optionalLS, optional]);
-export const rightAssociationExpr = new Sequence("rightAssociationExpr", [new Reference("patternExpr"), optionalLS, right]);
+export const notExpr = new Sequence("notExpr", [
+  not,
+  optionalLS,
+  new Reference("patternExpr"),
+]);
+export const optionalExpr = new Sequence("optionalExpr", [
+  new Reference("patternExpr"),
+  optionalLS,
+  optional,
+]);
+export const rightAssociationExpr = new Sequence("rightAssociationExpr", [
+  new Reference("patternExpr"),
+  optionalLS,
+  right,
+]);
 
 export const exportPattern = patternName.clone("exportPattern");
-export const patternExpr = new Expression("patternExpr", [notExpr, optionalExpr, rightAssociationExpr, sequenceExpr, optionsExpr, greedyOptionsExpr, repeatExpr, patternGroupExpr, takeUntilExpr, blockExpr, literal, regex, patternIdentifier]);
-export const patternAssignment = new Sequence("patternAssignment", [patternName, optionalWS, assign, optionalWS, patternExpr]);
-export const statement = new Options("statement", [useParamsStatement, importStatement, patternAssignment, decorationStatement, exportPattern, comment]);
+export const patternExpr = new Expression("patternExpr", [
+  notExpr,
+  optionalExpr,
+  rightAssociationExpr,
+  sequenceExpr,
+  optionsExpr,
+  greedyOptionsExpr,
+  repeatExpr,
+  patternGroupExpr,
+  takeUntilExpr,
+  blockExpr,
+  literal,
+  regex,
+  patternIdentifier,
+]);
+export const patternAssignment = new Sequence("patternAssignment", [
+  patternName,
+  optionalWS,
+  assign,
+  optionalWS,
+  patternExpr,
+]);
+export const statement = new Options("statement", [
+  useParamsStatement,
+  importStatement,
+  patternAssignment,
+  decorationStatement,
+  exportPattern,
+  comment,
+]);
 export const statements = new Repeat("statements", statement, { divider: newLine });
-export const cpat = new Sequence("cpat", [optionalWS, new Optional("optionalSyntaxStatement", syntaxStatement), optionalWS, new Optional("optionalStatements", statements), optionalWS]);
+export const cpat = new Sequence("cpat", [
+  optionalWS,
+  new Optional("optionalSyntaxStatement", syntaxStatement),
+  optionalWS,
+  new Optional("optionalStatements", statements),
+  optionalWS,
+]);
 
 export const grammar = cpat;

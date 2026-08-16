@@ -7,371 +7,421 @@ import { Pattern } from "./Pattern";
 import { Regex } from "./Regex";
 
 describe("Sequence", () => {
-    test("No Patterns", () => {
-        expect(() => {
-            new Sequence("empty", []);
-        }).toThrow();
+  test("No Patterns", () => {
+    expect(() => {
+      new Sequence("empty", []);
+    }).toThrow();
+  });
+
+  test("One Pattern Match Successful", () => {
+    const sequence = new Sequence("sequence", [new Literal("a", "A")]);
+    const cursor = new Cursor("A");
+    const result = sequence.parse(cursor);
+    const expected = new Node("sequence", "sequence", 0, 0, [
+      new Node("literal", "a", 0, 0, [], "A"),
+    ]);
+
+    expect(result?.isEqual(expected)).toBeTruthy();
+    expect(cursor.furthestError).toBe(null);
+    expect(cursor.index).toBe(0);
+  });
+
+  test("One Pattern Match Fails", () => {
+    const sequence = new Sequence("sequence", [new Literal("a", "A")]);
+    const cursor = new Cursor("V");
+    const result = sequence.parse(cursor);
+
+    expect(result).toEqual(null);
+    expect(cursor.error?.startIndex).toBe(0);
+    expect(cursor.error?.lastIndex).toBe(0);
+    expect(cursor.index).toBe(0);
+  });
+
+  test("Two Pattern Match Successful", () => {
+    const sequence = new Sequence("sequence", [
+      new Literal("a", "A"),
+      new Literal("b", "B"),
+    ]);
+    const cursor = new Cursor("AB");
+    const result = sequence.parse(cursor);
+    const expected = new Node("sequence", "sequence", 0, 1, [
+      new Node("literal", "a", 0, 0, [], "A"),
+      new Node("literal", "b", 1, 1, [], "B"),
+    ]);
+
+    expect(result?.isEqual(expected)).toBeTruthy();
+    expect(cursor.error).toBe(null);
+    expect(cursor.index).toBe(1);
+  });
+
+  test("Two Pattern Match Fails", () => {
+    const sequence = new Sequence("sequence", [
+      new Literal("a", "A"),
+      new Literal("b", "B"),
+    ]);
+    const cursor = new Cursor("AC");
+    const result = sequence.parse(cursor);
+
+    expect(result).toEqual(null);
+    expect(cursor.error?.startIndex).toBe(1);
+    expect(cursor.error?.lastIndex).toBe(1);
+    expect(cursor.index).toBe(0);
+  });
+
+  test("One Pattern Match Fails (Optional)", () => {
+    const sequence = new Optional(
+      "optional-sequence",
+      new Sequence("sequence", [new Literal("a", "A")])
+    );
+    const cursor = new Cursor("V");
+    const result = sequence.parse(cursor);
+
+    expect(result).toEqual(null);
+    expect(cursor.error).toBe(null);
+    expect(cursor.index).toBe(0);
+  });
+
+  test("Trailing Optional Child Patterns", () => {
+    const sequence = new Sequence("sequence", [
+      new Literal("a", "A"),
+      new Optional("b", new Literal("b", "B")),
+    ]);
+    const cursor = new Cursor("AD");
+    const result = sequence.parse(cursor);
+    const expected = new Node("sequence", "sequence", 0, 0, [
+      new Node("literal", "a", 0, 0, [], "A"),
+    ]);
+
+    expect(result?.isEqual(expected)).toBeTruthy();
+    expect(cursor.error).toBe(null);
+    expect(cursor.index).toBe(0);
+  });
+
+  test("Trailing Optional Child Patterns With No More Text", () => {
+    const sequence = new Sequence("sequence", [
+      new Literal("a", "A"),
+      new Optional("b", new Literal("b", "B")),
+    ]);
+    const cursor = new Cursor("A");
+    const result = sequence.parse(cursor);
+    const expected = new Node("sequence", "sequence", 0, 0, [
+      new Node("literal", "a", 0, 0, [], "A"),
+    ]);
+
+    expect(result?.isEqual(expected)).toBeTruthy();
+    expect(cursor.error).toBe(null);
+    expect(cursor.index).toBe(0);
+  });
+
+  test("Incomplete Parse (Optional)", () => {
+    const sequence = new Optional(
+      "optional-sequence",
+      new Sequence("sequence", [new Literal("a", "A"), new Literal("b", "B")])
+    );
+    const cursor = new Cursor("A");
+    const result = sequence.parse(cursor);
+
+    expect(result).toEqual(null);
+    expect(cursor.error).toBe(null);
+    expect(cursor.index).toBe(0);
+  });
+
+  test("Optional Child Pattern With More Patterns", () => {
+    const sequence = new Optional(
+      "optional-sequence",
+      new Sequence("sequence", [
+        new Optional("a", new Literal("a", "A")),
+        new Literal("b", "B"),
+        new Literal("c", "C"),
+      ])
+    );
+    const cursor = new Cursor("BC");
+    const result = sequence.parse(cursor);
+    const expected = new Node("sequence", "sequence", 0, 1, [
+      new Node("literal", "b", 0, 0, [], "B"),
+      new Node("literal", "c", 1, 1, [], "C"),
+    ]);
+
+    expect(result?.isEqual(expected)).toBeTruthy();
+    expect(cursor.error).toBe(null);
+    expect(cursor.index).toBe(1);
+  });
+
+  test("Nothing Matched", () => {
+    const sequence = new Optional(
+      "optional-sequence",
+      new Sequence("sequence", [new Literal("a", "A")])
+    );
+    const cursor = new Cursor("BC");
+    const result = sequence.parse(cursor);
+
+    expect(result).toEqual(null);
+    expect(cursor.error).toBe(null);
+    expect(cursor.index).toBe(0);
+  });
+
+  test("No Matches On Optional Child Patterns", () => {
+    const sequence = new Optional(
+      "optional-sequence",
+      new Sequence("sequence", [
+        new Optional("a", new Literal("a", "A")),
+        new Optional("b", new Literal("b", "B")),
+      ])
+    );
+    const cursor = new Cursor("XYZ");
+    const result = sequence.parse(cursor);
+
+    expect(result).toEqual(null);
+    expect(cursor.error).toBe(null);
+    expect(cursor.index).toBe(0);
+  });
+
+  test("Properties", () => {
+    const a = new Literal("a", "A");
+    const sequence = new Sequence("sequence", [a]);
+
+    expect(sequence.type).toBe("sequence");
+    expect(sequence.name).toBe("sequence");
+    expect(sequence.parent).toBe(null);
+    expect(sequence.children[0].type).toBe("literal");
+    expect(sequence.children[0].name).toBe("a");
+  });
+
+  test("Exec", () => {
+    const sequence = new Sequence("sequence", [new Literal("a", "A")]);
+
+    const { ast: result, cursor } = sequence.exec("A");
+    const expected = new Node("sequence", "sequence", 0, 0, [
+      new Node("literal", "a", 0, 0, undefined, "A"),
+    ]);
+
+    expect(result?.isEqual(expected)).toBeTruthy();
+    expect(cursor).not.toBeNull();
+  });
+
+  test("Test With Match", () => {
+    const sequence = new Sequence("sequence", [new Literal("a", "A")]);
+    const hasMatch = sequence.test("A");
+
+    expect(hasMatch).toBeTruthy();
+  });
+
+  test("Test With No Match", () => {
+    const sequence = new Sequence("sequence", [new Literal("a", "A")]);
+    const hasMatch = sequence.test("B");
+
+    expect(hasMatch).toBeFalsy();
+  });
+
+  test("Set Parent", () => {
+    const a = new Optional("a", new Literal("a", "A"));
+    const sequence = new Sequence("sequence", [a]);
+    const parent = new Sequence("parent", [sequence]);
+
+    expect(parent.type).toBe("sequence");
+    expect(parent.children[0].type).toBe("sequence");
+  });
+
+  test("Get Tokens", () => {
+    const sequence = new Sequence("sequence", [
+      new Optional("a", new Literal("a", "A")),
+      new Literal("b", "B"),
+    ]);
+    const tokens = sequence.getTokens();
+    const expected = ["A", "B"];
+
+    expect(tokens).toEqual(expected);
+  });
+
+  test("Get Tokens After", () => {
+    const sequence = new Sequence("sequence", [
+      new Literal("a", "A"),
+      new Optional("b", new Literal("b", "B")),
+      new Literal("c", "C"),
+    ]);
+
+    const tokens = sequence.getTokensAfter(sequence.children[0]);
+    const expected = ["B", "C"];
+
+    expect(tokens).toEqual(expected);
+  });
+
+  test("Get Tokens After With Invalid Pattern", () => {
+    const sequence = new Sequence("sequence", [
+      new Literal("a", "A"),
+      new Optional("b", new Literal("b", "B")),
+      new Literal("c", "C"),
+    ]);
+
+    const tokens = sequence.getTokensAfter(new Literal("not-child", "not-child"));
+
+    expect(tokens).toEqual([]);
+  });
+
+  test("Get Tokens After With Last Child", () => {
+    const sequence = new Sequence("sequence", [new Literal("a", "A")]);
+    const parent = new Sequence("parent", [sequence, new Literal("b", "B")]);
+
+    const tokens = parent.children[0].getTokensAfter(parent.children[0].children[0]);
+
+    expect(tokens).toEqual(["B"]);
+  });
+
+  test("Get Tokens After With Last Optional Child", () => {
+    const sequence = new Sequence("sequence", [
+      new Literal("a", "A"),
+      new Optional("b", new Literal("b", "B")),
+    ]);
+    const parent = new Sequence("parent", [sequence, new Literal("c", "C")]);
+
+    const tokens = parent.children[0].getTokensAfter(parent.children[0].children[0]);
+
+    expect(tokens).toEqual(["B", "C"]);
+  });
+
+  test("Get Next Tokens", () => {
+    const sequence = new Sequence("sequence", [new Literal("a", "A")]);
+    const parent = new Sequence("parent", [sequence, new Literal("b", "B")]);
+
+    const sequenceClone = parent.find(p => p.name === "sequence");
+    const tokens = sequenceClone?.getNextTokens() || [];
+
+    expect(tokens[0]).toBe("B");
+  });
+
+  test("Get Next Tokens With Null Parent", () => {
+    const sequence = new Sequence("sequence", [new Literal("a", "A")]);
+    const tokens = sequence.getNextTokens();
+
+    expect(tokens.length).toBe(0);
+  });
+
+  test("Get Patterns", () => {
+    const sequence = new Sequence("sequence", [
+      new Optional("a", new Literal("a", "A")),
+      new Literal("b", "B"),
+    ]);
+    const tokens = sequence.getPatterns();
+    const a = sequence.find(p => p.name === "a");
+    const b = sequence.find(p => p.name === "b");
+    const expected = [a, b];
+
+    expect(tokens).toEqual(expected);
+  });
+
+  test("Get Next Patterns", () => {
+    const sequence = new Sequence("sequence", [new Literal("a", "A")]);
+    const parent = new Sequence("parent", [sequence, new Literal("b", "B")]);
+
+    const sequenceClone = parent.find(p => p.name === "sequence");
+    const nextPatterns = sequenceClone?.getNextPatterns() || [];
+    const b = parent.find(p => p.name === "b") as Pattern;
+
+    expect(nextPatterns[0].isEqual(b)).toBeTruthy();
+  });
+
+  test("Get Next Patterns With Null Parent", () => {
+    const sequence = new Sequence("sequence", [new Literal("a", "A")]);
+    const nextPatterns = sequence.getNextPatterns();
+
+    expect(nextPatterns.length).toBe(0);
+  });
+
+  test("All Patterns are Optional", () => {
+    const sequence = new Sequence("sequence", [
+      new Optional("optional-a", new Literal("a", "A")),
+      new Optional("optional-b", new Literal("b", "B")),
+    ]);
+    const result = sequence.exec("");
+
+    expect(result.ast).toBe(null);
+    expect(result.cursor.hasError).toBeFalsy();
+  });
+
+  test("Unicode Characters", () => {
+    const quote = new Literal("'", "'");
+    const content = new Regex("content", "[^']*");
+    const sequence = new Sequence("sequence", [quote, content, quote]);
+    const result = sequence.exec("'🔴'");
+
+    expect(result.ast).not.toBe(null);
+    expect(result.cursor.hasError).toBeFalsy();
+  });
+
+  test("Required match followed by trailing optionals that do not match (end of text)", () => {
+    const sequence = new Sequence("sequence", [
+      new Literal("a", "A"),
+      new Literal("b", "B"),
+      new Optional("c", new Literal("c", "C")),
+      new Optional("d", new Literal("d", "D")),
+    ]);
+    const cursor = new Cursor("AB");
+    const result = sequence.parse(cursor);
+
+    expect(result).not.toBeNull();
+    expect(result?.value).toBe("AB");
+    expect(cursor.hasError).toBeFalsy();
+  });
+
+  test("Last pattern is only optionals that all return null", () => {
+    const sequence = new Sequence("sequence", [new Optional("a", new Literal("a", "A"))]);
+    const cursor = new Cursor("XYZ");
+    const result = sequence.parse(cursor);
+
+    // Single optional returns null, lastNode is null, and all patterns optional -> passed = true
+    // createNode returns null since no children matched
+    expect(result).toBeNull();
+    expect(cursor.hasError).toBeFalsy();
+  });
+
+  describe("isEqual", () => {
+    const threeChildren = () =>
+      new Sequence("sequence", [
+        new Literal("a", "A"),
+        new Literal("b", "B"),
+        new Literal("c", "C"),
+      ]);
+
+    test("matches an identical sequence", () => {
+      expect(threeChildren().isEqual(threeChildren())).toBe(true);
     });
 
-    test("One Pattern Match Successful", () => {
-        const sequence = new Sequence("sequence", [new Literal("a", "A")]);
-        const cursor = new Cursor("A");
-        const result = sequence.parse(cursor);
-        const expected = new Node("sequence", "sequence", 0, 0, [
-            new Node("literal", "a", 0, 0, [], "A")
-        ]);
+    test("does not match when a child differs", () => {
+      const other = new Sequence("sequence", [
+        new Literal("a", "A"),
+        new Literal("b", "B"),
+        new Literal("c", "DIFFERENT"),
+      ]);
 
-        expect(result?.isEqual(expected)).toBeTruthy();
-        expect(cursor.furthestError).toBe(null);
-        expect(cursor.index).toBe(0);
+      expect(threeChildren().isEqual(other)).toBe(false);
     });
 
-    test("One Pattern Match Fails", () => {
-        const sequence = new Sequence("sequence", [new Literal("a", "A")]);
-        const cursor = new Cursor("V");
-        const result = sequence.parse(cursor);
+    test("does not match when the other sequence has fewer children", () => {
+      const fewer = new Sequence("sequence", [
+        new Literal("a", "A"),
+        new Literal("b", "B"),
+      ]);
 
-        expect(result).toEqual(null);
-        expect(cursor.error?.startIndex).toBe(0);
-        expect(cursor.error?.lastIndex).toBe(0);
-        expect(cursor.index).toBe(0);
+      expect(threeChildren().isEqual(fewer)).toBe(false);
     });
 
-    test("Two Pattern Match Successful", () => {
-        const sequence = new Sequence("sequence", [
-            new Literal("a", "A"),
-            new Literal("b", "B")
-        ]);
-        const cursor = new Cursor("AB");
-        const result = sequence.parse(cursor);
-        const expected = new Node("sequence", "sequence", 0, 1, [
-            new Node("literal", "a", 0, 0, [], "A"),
-            new Node("literal", "b", 1, 1, [], "B")
-        ]);
+    test("does not match when the other sequence has more children", () => {
+      // Guards the inverse case: comparing a shorter sequence against a longer
+      // one must not pass just because every child it does have lines up.
+      const fewer = new Sequence("sequence", [
+        new Literal("a", "A"),
+        new Literal("b", "B"),
+      ]);
 
-        expect(result?.isEqual(expected)).toBeTruthy();
-        expect(cursor.error).toBe(null)
-        expect(cursor.index).toBe(1);
+      expect(fewer.isEqual(threeChildren())).toBe(false);
     });
 
-    test("Two Pattern Match Fails", () => {
-        const sequence = new Sequence("sequence", [
-            new Literal("a", "A"),
-            new Literal("b", "B")
-        ]);
-        const cursor = new Cursor("AC");
-        const result = sequence.parse(cursor);
+    test("does not match a different pattern type", () => {
+      // Typed through the interface: `isEqual` is declared to accept any
+      // Pattern, even though each implementation narrows its own parameter.
+      const sequence: Pattern = threeChildren();
 
-        expect(result).toEqual(null);
-        expect(cursor.error?.startIndex).toBe(1);
-        expect(cursor.error?.lastIndex).toBe(1);
-        expect(cursor.index).toBe(0);
+      expect(sequence.isEqual(new Literal("a", "A"))).toBe(false);
     });
-
-    test("One Pattern Match Fails (Optional)", () => {
-        const sequence = new Optional("optional-sequence", new Sequence("sequence", [new Literal("a", "A")]));
-        const cursor = new Cursor("V");
-        const result = sequence.parse(cursor);
-
-        expect(result).toEqual(null);
-        expect(cursor.error).toBe(null);
-        expect(cursor.index).toBe(0);
-    });
-
-    test("Trailing Optional Child Patterns", () => {
-        const sequence = new Sequence("sequence", [
-            new Literal("a", "A"),
-            new Optional("b", new Literal("b", "B"))
-        ]);
-        const cursor = new Cursor("AD");
-        const result = sequence.parse(cursor);
-        const expected = new Node("sequence", "sequence", 0, 0, [
-            new Node("literal", "a", 0, 0, [], "A")
-        ]);
-
-        expect(result?.isEqual(expected)).toBeTruthy();
-        expect(cursor.error).toBe(null);
-        expect(cursor.index).toBe(0);
-    });
-
-    test("Trailing Optional Child Patterns With No More Text", () => {
-        const sequence = new Sequence("sequence", [
-            new Literal("a", "A"),
-            new Optional("b", new Literal("b", "B"))
-        ]);
-        const cursor = new Cursor("A");
-        const result = sequence.parse(cursor);
-        const expected = new Node("sequence", "sequence", 0, 0, [
-            new Node("literal", "a", 0, 0, [], "A")
-        ]);
-
-        expect(result?.isEqual(expected)).toBeTruthy();
-        expect(cursor.error).toBe(null)
-        expect(cursor.index).toBe(0);
-    });
-
-    test("Incomplete Parse (Optional)", () => {
-        const sequence = new Optional("optional-sequence", new Sequence("sequence", [
-            new Literal("a", "A"),
-            new Literal("b", "B")
-        ]));
-        const cursor = new Cursor("A");
-        const result = sequence.parse(cursor);
-
-        expect(result).toEqual(null);
-        expect(cursor.error).toBe(null);
-        expect(cursor.index).toBe(0);
-    });
-
-    test("Optional Child Pattern With More Patterns", () => {
-        const sequence = new Optional("optional-sequence", new Sequence("sequence", [
-            new Optional("a", new Literal("a", "A")),
-            new Literal("b", "B"),
-            new Literal("c", "C")
-        ]));
-        const cursor = new Cursor("BC");
-        const result = sequence.parse(cursor);
-        const expected = new Node("sequence", "sequence", 0, 1, [
-            new Node("literal", "b", 0, 0, [], "B"),
-            new Node("literal", "c", 1, 1, [], "C"),
-        ]);
-
-        expect(result?.isEqual(expected)).toBeTruthy();
-        expect(cursor.error).toBe(null)
-        expect(cursor.index).toBe(1);
-    });
-
-    test("Nothing Matched", () => {
-        const sequence = new Optional("optional-sequence", new Sequence("sequence", [
-            new Literal("a", "A"),
-        ]));
-        const cursor = new Cursor("BC");
-        const result = sequence.parse(cursor);
-
-        expect(result).toEqual(null);
-        expect(cursor.error).toBe(null);
-        expect(cursor.index).toBe(0);
-    });
-
-    test("No Matches On Optional Child Patterns", () => {
-        const sequence = new Optional("optional-sequence", new Sequence("sequence", [
-            new Optional("a", new Literal("a", "A")),
-            new Optional("b", new Literal("b", "B")),
-        ]));
-        const cursor = new Cursor("XYZ");
-        const result = sequence.parse(cursor);
-
-        expect(result).toEqual(null);
-        expect(cursor.error).toBe(null);
-        expect(cursor.index).toBe(0);
-    });
-
-    test("Properties", () => {
-        const a = new Literal("a", "A");
-        const sequence = new Sequence("sequence", [
-            a,
-        ]);
-
-        expect(sequence.type).toBe("sequence");
-        expect(sequence.name).toBe("sequence");
-        expect(sequence.parent).toBe(null);
-        expect(sequence.children[0].type).toBe("literal");
-        expect(sequence.children[0].name).toBe("a");
-    });
-
-    test("Exec", () => {
-        const sequence = new Sequence("sequence", [new Literal("a", "A")]);
-
-        const { ast: result, cursor } = sequence.exec("A");
-        const expected = new Node("sequence", "sequence", 0, 0, [
-            new Node("literal", "a", 0, 0, undefined, "A")
-        ]);
-
-        expect(result?.isEqual(expected)).toBeTruthy();
-        expect(cursor).not.toBeNull();
-    });
-
-    test("Test With Match", () => {
-        const sequence = new Sequence("sequence", [new Literal("a", "A")]);
-        const hasMatch = sequence.test("A");
-
-        expect(hasMatch).toBeTruthy();
-    });
-
-    test("Test With No Match", () => {
-        const sequence = new Sequence("sequence", [new Literal("a", "A")]);
-        const hasMatch = sequence.test("B");
-
-        expect(hasMatch).toBeFalsy();
-    });
-
-    test("Set Parent", () => {
-        const a = new Optional("a", new Literal("a", "A"));
-        const sequence = new Sequence("sequence", [
-            a,
-        ]);
-        const parent = new Sequence("parent", [sequence]);
-
-        expect(parent.type).toBe("sequence");
-        expect(parent.children[0].type).toBe("sequence");
-    });
-
-    test("Get Tokens", () => {
-        const sequence = new Sequence("sequence", [
-            new Optional("a", new Literal("a", "A")),
-            new Literal("b", "B"),
-        ]);
-        const tokens = sequence.getTokens();
-        const expected = ["A", "B"];
-
-        expect(tokens).toEqual(expected);
-    });
-
-    test("Get Tokens After", () => {
-        const sequence = new Sequence("sequence", [
-            new Literal("a", "A"),
-            new Optional("b", new Literal("b", "B")),
-            new Literal("c", "C"),
-        ]);
-
-        const tokens = sequence.getTokensAfter(sequence.children[0]);
-        const expected = ["B", "C"];
-
-        expect(tokens).toEqual(expected);
-    });
-
-    test("Get Tokens After With Invalid Pattern", () => {
-        const sequence = new Sequence("sequence", [
-            new Literal("a", "A"),
-            new Optional("b", new Literal("b", "B")),
-            new Literal("c", "C"),
-        ]);
-
-        const tokens = sequence.getTokensAfter(new Literal("not-child", "not-child"));
-
-        expect(tokens).toEqual([]);
-    });
-
-    test("Get Tokens After With Last Child", () => {
-        const sequence = new Sequence("sequence", [
-            new Literal("a", "A"),
-        ]);
-        const parent = new Sequence("parent", [sequence, new Literal("b", "B")]);
-
-
-        const tokens = parent.children[0].getTokensAfter(parent.children[0].children[0])
-
-        expect(tokens).toEqual(["B"]);
-    });
-
-    test("Get Tokens After With Last Optional Child", () => {
-        const sequence = new Sequence("sequence", [
-            new Literal("a", "A"),
-            new Optional("b", new Literal("b", "B")),
-        ]);
-        const parent = new Sequence("parent", [sequence, new Literal("c", "C")]);
-
-        const tokens = parent.children[0].getTokensAfter(parent.children[0].children[0])
-
-        expect(tokens).toEqual(["B", "C"]);
-    });
-
-    test("Get Next Tokens", () => {
-        const sequence = new Sequence("sequence", [new Literal("a", "A")]);
-        const parent = new Sequence("parent", [sequence, new Literal("b", "B")]);
-
-        const sequenceClone = parent.find(p => p.name === "sequence");
-        const tokens = sequenceClone?.getNextTokens() || [];
-
-        expect(tokens[0]).toBe("B");
-    });
-
-    test("Get Next Tokens With Null Parent", () => {
-        const sequence = new Sequence("sequence", [new Literal("a", "A")]);
-        const tokens = sequence.getNextTokens();
-
-        expect(tokens.length).toBe(0);
-    });
-
-    test("Get Patterns", () => {
-        const sequence = new Sequence("sequence", [
-            new Optional("a", new Literal("a", "A")),
-            new Literal("b", "B"),
-        ]);
-        const tokens = sequence.getPatterns();
-        const a = sequence.find(p => p.name === "a");
-        const b = sequence.find(p => p.name === "b");
-        const expected = [a, b]
-
-        expect(tokens).toEqual(expected);
-    });
-
-    test("Get Next Patterns", () => {
-        const sequence = new Sequence("sequence", [new Literal("a", "A")]);
-        const parent = new Sequence("parent", [sequence, new Literal("b", "B")]);
-
-        const sequenceClone = parent.find(p => p.name === "sequence");
-        const nextPatterns = sequenceClone?.getNextPatterns() || [];
-        const b = parent.find(p => p.name === "b") as Pattern;
-
-        expect(nextPatterns[0].isEqual(b)).toBeTruthy();
-    });
-
-    test("Get Next Patterns With Null Parent", () => {
-        const sequence = new Sequence("sequence", [new Literal("a", "A")]);
-        const nextPatterns = sequence.getNextPatterns()
-
-        expect(nextPatterns.length).toBe(0);
-    });
-
-    test("All Patterns are Optional", () => {
-        const sequence = new Sequence("sequence", [
-            new Optional("optional-a", new Literal("a", "A")),
-            new Optional("optional-b", new Literal("b", "B"))
-        ]);
-        const result = sequence.exec("");
-
-        expect(result.ast).toBe(null);
-        expect(result.cursor.hasError).toBeFalsy();
-    });
-
-    test("Unicode Characters", ()=>{
-        const quote = new Literal("'", "'");
-        const content = new Regex("content", "[^']*");
-        const sequence = new Sequence("sequence", [quote, content, quote]);
-        const result = sequence.exec("'🔴'");
-
-        expect(result.ast).not.toBe(null);
-        expect(result.cursor.hasError).toBeFalsy();
-    });
-
-    test("Required match followed by trailing optionals that do not match (end of text)", () => {
-        const sequence = new Sequence("sequence", [
-            new Literal("a", "A"),
-            new Literal("b", "B"),
-            new Optional("c", new Literal("c", "C")),
-            new Optional("d", new Literal("d", "D")),
-        ]);
-        const cursor = new Cursor("AB");
-        const result = sequence.parse(cursor);
-
-        expect(result).not.toBeNull();
-        expect(result?.value).toBe("AB");
-        expect(cursor.hasError).toBeFalsy();
-    });
-
-    test("Last pattern is only optionals that all return null", () => {
-        const sequence = new Sequence("sequence", [
-            new Optional("a", new Literal("a", "A")),
-        ]);
-        const cursor = new Cursor("XYZ");
-        const result = sequence.parse(cursor);
-
-        // Single optional returns null, lastNode is null, and all patterns optional -> passed = true
-        // createNode returns null since no children matched
-        expect(result).toBeNull();
-        expect(cursor.hasError).toBeFalsy();
-    });
-
+  });
 });
-

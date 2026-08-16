@@ -435,7 +435,7 @@ describe("Block", () => {
         anyChar,
         new Literal("close", "}")
       );
-      const {ast} = block.exec("{text}");
+      const { ast } = block.exec("{text}");
       expect(ast?.value).toBe("{text}");
     });
 
@@ -449,7 +449,7 @@ describe("Block", () => {
         new Sequence("content", [anyChar, new Optional("ref", refBlock)]),
         new Literal("close", "}")
       );
-      const {ast} = block.exec("{text{inner}}");
+      const { ast } = block.exec("{text{inner}}");
 
       expect(ast?.value).toBe("{text{inner}}");
     });
@@ -647,14 +647,34 @@ describe("Block", () => {
 
   describe("equality", () => {
     test("blocks with identical structure are equal", () => {
-      const a = new Block("braces", new Literal("open", "{"), new Regex("content", "[^{}]+"), new Literal("close", "}"));
-      const b = new Block("braces", new Literal("open", "{"), new Regex("content", "[^{}]+"), new Literal("close", "}"));
+      const a = new Block(
+        "braces",
+        new Literal("open", "{"),
+        new Regex("content", "[^{}]+"),
+        new Literal("close", "}")
+      );
+      const b = new Block(
+        "braces",
+        new Literal("open", "{"),
+        new Regex("content", "[^{}]+"),
+        new Literal("close", "}")
+      );
       expect(a.isEqual(b)).toBe(true);
     });
 
     test("blocks with different delimiters are not equal", () => {
-      const braces = new Block("braces", new Literal("open", "{"), null, new Literal("close", "}"));
-      const parens = new Block("parens", new Literal("open", "("), null, new Literal("close", ")"));
+      const braces = new Block(
+        "braces",
+        new Literal("open", "{"),
+        null,
+        new Literal("close", "}")
+      );
+      const parens = new Block(
+        "parens",
+        new Literal("open", "("),
+        null,
+        new Literal("close", ")")
+      );
       expect(braces.isEqual(parens)).toBe(false);
     });
   });
@@ -744,7 +764,7 @@ describe("Block", () => {
         null,
         new Literal("close", "</script>")
       );
-      const {ast, cursor} = block.exec("<script>Hello</script>");
+      const { ast, cursor } = block.exec("<script>Hello</script>");
       expect(ast).not.toBeNull();
       expect(ast!.value).toBe("<script>Hello</script>");
       // Cursor should be on the close delimiter

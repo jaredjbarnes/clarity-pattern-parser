@@ -71,7 +71,6 @@ export class Optional implements Pattern {
     } else {
       return node;
     }
-
   }
 
   clone(name = this._name): Pattern {
@@ -129,6 +128,10 @@ export class Optional implements Pattern {
   }
 
   isEqual(pattern: Optional): boolean {
-    return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
+    return (
+      pattern.type === this.type &&
+      this.children.length === pattern.children.length &&
+      this.children.every((c, index) => c.isEqual(pattern.children[index]))
+    );
   }
 }

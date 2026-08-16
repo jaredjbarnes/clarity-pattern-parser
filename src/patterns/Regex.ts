@@ -107,7 +107,7 @@ export class Regex implements Pattern {
 
   private tryToParse(cursor: Cursor) {
     const result = this._regex.exec(this._substring);
-    
+
     if (result != null && result[0].length > 0 && result.index === 0) {
       this.processResult(cursor, result);
     } else {
@@ -119,7 +119,6 @@ export class Regex implements Pattern {
     const currentIndex = cursor.index;
     const match = result[0];
     const lastIndex = cursor.getCharLastIndex(currentIndex + match.length - 1);
-
 
     this._node = new Node(
       "regex",
@@ -188,7 +187,9 @@ export class Regex implements Pattern {
   }
 
   isEqual(pattern: Regex): boolean {
-    return pattern.type === this.type && pattern._originalRegexString === this._originalRegexString;
+    return (
+      pattern.type === this.type &&
+      pattern._originalRegexString === this._originalRegexString
+    );
   }
-
 }

@@ -1,156 +1,154 @@
 import { Cursor } from "./Cursor";
 import { Regex } from "./Regex";
-import { Node } from "../ast/Node"
+import { Node } from "../ast/Node";
 import { Sequence } from "./Sequence";
 import { Literal } from "./Literal";
 import { Pattern } from "./Pattern";
 
 describe("Regex", () => {
-    test("Empty String", () => {
-        expect(() => new Regex("empty", "")).toThrow();
-    });
+  test("Empty String", () => {
+    expect(() => new Regex("empty", "")).toThrow();
+  });
 
-    test("Starts With ^", () => {
-        expect(() => new Regex("carrot", "^")).toThrow();
-    });
+  test("Starts With ^", () => {
+    expect(() => new Regex("carrot", "^")).toThrow();
+  });
 
-    test("Ends With $", () => {
-        expect(() => new Regex("money", ".$")).toThrow();
-    });
+  test("Ends With $", () => {
+    expect(() => new Regex("money", ".$")).toThrow();
+  });
 
-    test("Successful Parse", () => {
-        const number = new Regex("number", "\\d");
-        const cursor = new Cursor("1");
-        const result = number.parse(cursor);
-        const expected = new Node("regex", "number", 0, 0, [], "1");
+  test("Successful Parse", () => {
+    const number = new Regex("number", "\\d");
+    const cursor = new Cursor("1");
+    const result = number.parse(cursor);
+    const expected = new Node("regex", "number", 0, 0, [], "1");
 
-        expect(result?.isEqual(expected)).toBe(true);
-        expect(cursor.hasError).toBeFalsy();
-    });
+    expect(result?.isEqual(expected)).toBe(true);
+    expect(cursor.hasError).toBeFalsy();
+  });
 
-    test("Failed Parse", () => {
-        const number = new Regex("number", "\\d");
-        const cursor = new Cursor("F");
-        const result = number.parse(cursor);
+  test("Failed Parse", () => {
+    const number = new Regex("number", "\\d");
+    const cursor = new Cursor("F");
+    const result = number.parse(cursor);
 
-        expect(result).toBeNull();
-        expect(cursor.hasError).toBeTruthy();
-    });
+    expect(result).toBeNull();
+    expect(cursor.hasError).toBeTruthy();
+  });
 
+  test("Get Tokens", () => {
+    const a = new Regex("a", "A");
 
-    test("Get Tokens", () => {
-        const a = new Regex("a", "A");
+    a.setTokens(["A"]);
 
-        a.setTokens(["A"]);
+    const tokens = a.getTokens();
+    const expectedTokens = ["A"];
 
-        const tokens = a.getTokens();
-        const expectedTokens = ["A"];
+    expect(tokens).toEqual(expectedTokens);
+  });
 
-        expect(tokens).toEqual(expectedTokens);
-    });
+  test("Get Tokens After", () => {
+    const regex = new Regex("a", "A");
+    const tokens = regex.getTokensAfter(new Literal("bogus", "bogus"));
+    const expected: string[] = [];
 
-    test("Get Tokens After", () => {
-        const regex = new Regex("a", "A");
-        const tokens = regex.getTokensAfter(new Literal("bogus", "bogus"));
-        const expected: string[] = [];
+    expect(tokens).toEqual(expected);
+  });
 
-        expect(tokens).toEqual(expected);
-    });
+  test("Properties", () => {
+    const regex = new Regex("a", "A");
 
-    test("Properties", () => {
-        const regex = new Regex("a", "A");
+    expect(regex.type).toBe("regex");
+    expect(regex.name).toBe("a");
+    expect(regex.parent).toBeNull();
+    expect(regex.children).toEqual([]);
+  });
 
-        expect(regex.type).toBe("regex");
-        expect(regex.name).toBe("a");
-        expect(regex.parent).toBeNull();
-        expect(regex.children).toEqual([]);
-    });
+  test("Exec", () => {
+    const regex = new Regex("a", "A");
+    const { ast: result } = regex.exec("B");
+    expect(result).toBeNull();
+  });
 
-    test("Exec", () => {
-        const regex = new Regex("a", "A");
-        const { ast: result } = regex.exec("B");
-        expect(result).toBeNull();
-    });
+  test("Test With Match", () => {
+    const regex = new Regex("a", "A");
+    const result = regex.test("A");
+    expect(result).toBeTruthy();
+  });
 
-    test("Test With Match", () => {
-        const regex = new Regex("a", "A");
-        const result = regex.test("A");
-        expect(result).toBeTruthy();
-    });
+  test("Test With No Match", () => {
+    const regex = new Regex("a", "A");
+    const result = regex.test("B");
+    expect(result).toBeFalsy();
+  });
 
-    test("Test With No Match", () => {
-        const regex = new Regex("a", "A");
-        const result = regex.test("B");
-        expect(result).toBeFalsy();
-    });
+  test("Get Next Tokens", () => {
+    const parent = new Sequence("parent", [new Regex("a", "A"), new Literal("b", "B")]);
+    const aClone = parent.find(p => p.name === "a") as Pattern;
+    const tokens = aClone.getNextTokens();
 
-    test("Get Next Tokens", () => {
-        const parent = new Sequence("parent", [new Regex("a", "A"), new Literal("b", "B")]);
-        const aClone = parent.find(p => p.name === "a") as Pattern;
-        const tokens = aClone.getNextTokens();
+    expect(tokens).toEqual(["B"]);
+  });
 
-        expect(tokens).toEqual(["B"]);
-    });
+  test("Get Next Tokens With Null Parent", () => {
+    const a = new Regex("a", "A");
+    const tokens = a.getNextTokens();
 
-    test("Get Next Tokens With Null Parent", () => {
-        const a = new Regex("a", "A");
-        const tokens = a.getNextTokens();
+    expect(tokens).toEqual([]);
+  });
 
-        expect(tokens).toEqual([]);
-    });
+  test("Get Patterns", () => {
+    const a = new Regex("a", "A");
 
-    test("Get Patterns", () => {
-        const a = new Regex("a", "A");
+    const tokens = a.getPatterns();
+    const expectedTokens = [a];
 
-        const tokens = a.getPatterns();
-        const expectedTokens = [a];
+    expect(tokens).toEqual(expectedTokens);
+  });
 
-        expect(tokens).toEqual(expectedTokens);
-    });
+  test("Get Patterns After", () => {
+    const a = new Regex("a", "A");
+    const patterns = a.getPatternsAfter(new Literal("bogus", "bogus"));
 
-    test("Get Patterns After", () => {
-        const a = new Regex("a", "A");
-        const patterns = a.getPatternsAfter(new Literal("bogus", "bogus"));
+    expect(patterns).toEqual([]);
+  });
 
-        expect(patterns).toEqual([]);
-    });
+  test("Find Pattern", () => {
+    const a = new Regex("a", "A");
+    const pattern = a.find(p => p.name === "other");
 
-    test("Find Pattern", () => {
-        const a = new Regex("a", "A");
-        const pattern = a.find(p => p.name === "other");
+    expect(pattern).toBeNull();
+  });
 
-        expect(pattern).toBeNull();
-    });
+  test("Get Next Patterns", () => {
+    const parent = new Sequence("parent", [new Regex("a", "A"), new Literal("b", "B")]);
+    const aClone = parent.find(p => p.name === "a") as Pattern;
+    const bClone = parent.find(p => p.name === "b") as Pattern;
+    const patterns = aClone.getNextPatterns();
 
-    test("Get Next Patterns", () => {
-        const parent = new Sequence("parent", [new Regex("a", "A"), new Literal("b", "B")]);
-        const aClone = parent.find(p => p.name === "a") as Pattern;
-        const bClone = parent.find(p => p.name === "b") as Pattern;
-        const patterns = aClone.getNextPatterns();
+    expect(patterns.length).toBe(1);
+    expect(patterns[0]).toBe(bClone);
+  });
 
-        expect(patterns.length).toBe(1);
-        expect(patterns[0]).toBe(bClone);
-    });
+  test("Get Next Patterns With Null Parent", () => {
+    const a = new Regex("a", "A");
+    const patterns = a.getNextPatterns();
 
-    test("Get Next Patterns With Null Parent", () => {
-        const a = new Regex("a", "A");
-        const patterns = a.getNextPatterns();
+    expect(patterns).toEqual([]);
+  });
 
-        expect(patterns).toEqual([]);
-    });
+  test("regex accessor returns the original regex string", () => {
+    const number = new Regex("number", "\\d+");
 
-    test("regex accessor returns the original regex string", () => {
-        const number = new Regex("number", "\\d+");
+    expect(number.regex).toBe("\\d+");
+  });
 
-        expect(number.regex).toBe("\\d+");
-    });
+  test("startedOnIndex reflects last parse position", () => {
+    const number = new Regex("number", "\\d+");
+    const cursor = new Cursor("123abc");
+    number.parse(cursor);
 
-    test("startedOnIndex reflects last parse position", () => {
-        const number = new Regex("number", "\\d+");
-        const cursor = new Cursor("123abc");
-        number.parse(cursor);
-
-        expect(number.startedOnIndex).toBe(0);
-    });
-
+    expect(number.startedOnIndex).toBe(0);
+  });
 });

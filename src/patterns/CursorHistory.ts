@@ -63,7 +63,7 @@ export class CursorHistory {
     const record: HistoryRecord = {
       pattern,
       ast: node,
-      error: null
+      error: null,
     };
 
     if (this._isRecording) {
@@ -91,7 +91,7 @@ export class CursorHistory {
       this._leafMatches.length = 0;
       this._leafMatches.push(match);
     } else if (isSameIndexMatch) {
-      const isAncestor = this._leafMatches.some((m) => {
+      const isAncestor = this._leafMatches.some(m => {
         let parent = m.pattern?.parent;
 
         while (parent != null) {
@@ -114,7 +114,7 @@ export class CursorHistory {
     const record: HistoryRecord = {
       pattern,
       ast: null,
-      error
+      error,
     };
 
     this._currentError = error;
@@ -140,5 +140,4 @@ export class CursorHistory {
   stopRecording(): void {
     this._isRecording = false;
   }
-
 }

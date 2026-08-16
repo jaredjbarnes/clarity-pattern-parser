@@ -1,7 +1,7 @@
-import { Node } from "../ast/Node";
-import { Cursor } from "./Cursor";
-import { ParseResult } from "./ParseResult";
-import { Pattern } from "./Pattern";
+import type { Node } from "../ast/Node";
+import type { Cursor } from "./Cursor";
+import type { ParseResult } from "./ParseResult";
+import type { Pattern } from "./Pattern";
 import { execPattern } from "./execPattern";
 import { findPattern } from "./findPattern";
 import { testPattern } from "./testPattern";

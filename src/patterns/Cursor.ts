@@ -1,7 +1,7 @@
-import { Node } from "../ast/Node";
-import { CursorHistory, Match } from "./CursorHistory";
-import { ParseError } from "./ParseError";
-import { Pattern } from "./Pattern";
+import type { Node } from "../ast/Node";
+import { CursorHistory, type Match } from "./CursorHistory";
+import type { ParseError } from "./ParseError";
+import type { Pattern } from "./Pattern";
 
 const segmenter = new Intl.Segmenter("und", { granularity: "grapheme" });
 

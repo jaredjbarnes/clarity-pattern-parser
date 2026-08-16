@@ -1,7 +1,7 @@
 import { Cursor } from "./Cursor";
 import { Literal } from "./Literal";
 import { Optional } from "./Optional";
-import { Pattern } from "./Pattern";
+import type { Pattern } from "./Pattern";
 import { Sequence } from "./Sequence";
 
 describe("Optional", () => {

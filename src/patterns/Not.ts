@@ -1,7 +1,7 @@
-import { Node } from "../ast/Node";
+import type { Node } from "../ast/Node";
 import { BasePattern } from "./BasePattern";
-import { Cursor } from "./Cursor";
-import { Pattern } from "./Pattern";
+import type { Cursor } from "./Cursor";
+import type { Pattern } from "./Pattern";
 
 export class Not extends BasePattern {
   get startedOnIndex() {

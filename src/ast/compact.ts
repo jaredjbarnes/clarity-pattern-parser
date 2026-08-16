@@ -1,4 +1,4 @@
-import { Node } from "./Node";
+import type { Node } from "./Node";
 
 export function compact(node: Node, nodeMap: Record<string, boolean>) {
   node.walkBreadthFirst(n => {

@@ -1,18 +1,18 @@
-import { Pattern } from "../../patterns/Pattern";
-import { Regex } from "../../patterns/Regex";
-import { Decorator } from "../Grammar";
+import type { Pattern } from "../../patterns/Pattern";
+import { isTokenizablePattern } from "../../patterns/TokenizablePattern";
+import type { Decorator } from "../Grammar";
 
+/**
+ * `@tokens([...])` supplies the tokens a pattern offers to autocomplete.
+ *
+ * The target is detected structurally rather than by `type`, so this works for
+ * any pattern that can accept tokens — `Regex`, `TakeUntil`, or a custom one —
+ * instead of only the built-in regex.
+ */
 export const tokens: Decorator = (pattern: Pattern, arg: any) => {
-  if (pattern.type === "regex" && Array.isArray(arg)) {
-    const regex = pattern as Regex;
-    const tokens: string[] = [];
-
-    arg.forEach(token => {
-      if (typeof token === "string") {
-        tokens.push(token);
-      }
-    });
-
-    regex.setTokens(tokens);
+  if (!Array.isArray(arg) || !isTokenizablePattern(pattern)) {
+    return;
   }
+
+  pattern.setTokens(arg.filter((token): token is string => typeof token === "string"));
 };

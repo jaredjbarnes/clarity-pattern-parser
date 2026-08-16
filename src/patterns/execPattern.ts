@@ -1,6 +1,6 @@
 import { Cursor } from "./Cursor";
-import { ParseResult } from "./ParseResult";
-import { Pattern } from "./Pattern";
+import type { ParseResult } from "./ParseResult";
+import type { Pattern } from "./Pattern";
 
 export function execPattern(pattern: Pattern, text: string, record = false): ParseResult {
   const cursor = new Cursor(text);

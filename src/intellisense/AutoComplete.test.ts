@@ -1,13 +1,13 @@
 import { Sequence } from "../patterns/Sequence";
 import { Literal } from "../patterns/Literal";
 import { Options } from "../patterns/Options";
-import { Pattern } from "../patterns/Pattern";
+import type { Pattern } from "../patterns/Pattern";
 import { Reference } from "../patterns/Reference";
 import { Regex } from "../patterns/Regex";
 import { Repeat } from "../patterns/Repeat";
-import { AutoComplete, AutoCompleteOptions } from "./AutoComplete";
+import { AutoComplete, type AutoCompleteOptions } from "./AutoComplete";
 import { Optional } from "../patterns/Optional";
-import { SuggestionOption } from "./SuggestionOption";
+import type { SuggestionOption } from "./SuggestionOption";
 
 interface ExpectedOption {
   text: string;

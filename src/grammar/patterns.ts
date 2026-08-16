@@ -1,5 +1,5 @@
-import { Pattern } from "../patterns/Pattern";
-import { Grammar, GrammarOptions } from "./Grammar";
+import type { Pattern } from "../patterns/Pattern";
+import { Grammar, type GrammarOptions } from "./Grammar";
 
 const kebabRegex = /-([a-z])/g;
 

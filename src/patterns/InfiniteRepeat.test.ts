@@ -3,7 +3,7 @@ import { Sequence } from "./Sequence";
 import { Cursor } from "./Cursor";
 import { findPattern } from "./findPattern";
 import { Literal } from "./Literal";
-import { Pattern } from "./Pattern";
+import type { Pattern } from "./Pattern";
 import { Regex } from "./Regex";
 import { InfiniteRepeat } from "./InfiniteRepeat";
 import { Optional } from "./Optional";

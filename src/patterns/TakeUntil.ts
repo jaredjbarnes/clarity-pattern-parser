@@ -1,7 +1,7 @@
 import { Node } from "../ast/Node";
 import { BasePattern } from "./BasePattern";
-import { Cursor } from "./Cursor";
-import { Pattern } from "./Pattern";
+import type { Cursor } from "./Cursor";
+import type { Pattern } from "./Pattern";
 
 export class TakeUntil extends BasePattern {
   private _tokens: string[];
@@ -65,6 +65,7 @@ export class TakeUntil extends BasePattern {
 
   clone(name = this.name): Pattern {
     const clone = new TakeUntil(name, this._terminatingPattern);
+    clone._tokens = this._tokens.slice();
     clone._cloneIdFrom(this);
 
     return clone;

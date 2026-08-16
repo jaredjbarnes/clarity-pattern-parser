@@ -3,7 +3,7 @@ import { Node } from "../ast/Node";
 import { Literal } from "./Literal";
 import { Options } from "./Options";
 import { Sequence } from "./Sequence";
-import { Pattern } from "./Pattern";
+import type { Pattern } from "./Pattern";
 import { Optional } from "./Optional";
 import { Regex } from "./Regex";
 import { Reference } from "./Reference";

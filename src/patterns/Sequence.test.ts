@@ -3,7 +3,7 @@ import { Sequence } from "./Sequence";
 import { Literal } from "./Literal";
 import { Node } from "../ast/Node";
 import { Optional } from "./Optional";
-import { Pattern } from "./Pattern";
+import type { Pattern } from "./Pattern";
 import { Regex } from "./Regex";
 
 describe("Sequence", () => {

@@ -2,7 +2,7 @@ import { Sequence } from "./Sequence";
 import { Cursor } from "./Cursor";
 import { Literal } from "./Literal";
 import { Not } from "./Not";
-import { Pattern } from "./Pattern";
+import type { Pattern } from "./Pattern";
 
 describe("Not", () => {
   test("Parse Successfully", () => {

@@ -1,5 +1,5 @@
 import { Grammar } from "../../grammar/Grammar";
-import { Pattern } from "../../patterns/Pattern";
+import type { Pattern } from "../../patterns/Pattern";
 import { typescriptGrammar } from "./typescript";
 
 let patterns: Record<string, Pattern>;

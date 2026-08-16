@@ -3,7 +3,7 @@ import { Regex } from "./Regex";
 import { Node } from "../ast/Node";
 import { Sequence } from "./Sequence";
 import { Literal } from "./Literal";
-import { Pattern } from "./Pattern";
+import type { Pattern } from "./Pattern";
 
 describe("Regex", () => {
   test("Empty String", () => {

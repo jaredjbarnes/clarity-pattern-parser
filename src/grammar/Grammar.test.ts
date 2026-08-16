@@ -2,7 +2,7 @@ import { Sequence } from "../patterns/Sequence";
 import { Literal } from "../patterns/Literal";
 import { Not } from "../patterns/Not";
 import { Options } from "../patterns/Options";
-import { Pattern } from "../patterns/Pattern";
+import type { Pattern } from "../patterns/Pattern";
 import { Reference } from "../patterns/Reference";
 import { Regex } from "../patterns/Regex";
 import { Repeat } from "../patterns/Repeat";
@@ -742,6 +742,27 @@ describe("Grammar", () => {
         `;
 
     expect(spaces.getTokens()).toEqual([" "]);
+  });
+
+  test("Decorators On Take Until", () => {
+    const { scriptText } = patterns`
+            @tokens(["</script"])
+            script-text = ?->| "</script"
+        `;
+
+    // The decorator finds its target structurally, so any pattern that accepts
+    // tokens can use it — not just regex.
+    expect(scriptText.getTokens()).toEqual(["</script"]);
+  });
+
+  test("Decorators Ignore Patterns That Cannot Take Tokens", () => {
+    const { name } = patterns`
+            @tokens(["ignored"])
+            name = "John"
+        `;
+
+    // A Literal derives its own token, so the decorator leaves it alone.
+    expect(name.getTokens()).toEqual(["John"]);
   });
 
   test("Decorators No Args", () => {

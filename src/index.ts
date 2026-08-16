@@ -7,6 +7,10 @@ import { SuggestionOption } from "./intellisense/SuggestionOption";
 import { AutoComplete, AutoCompleteOptions } from "./intellisense/AutoComplete";
 import { Cursor } from "./patterns/Cursor";
 import { BasePattern } from "./patterns/BasePattern";
+import {
+  isTokenizablePattern,
+  type TokenizablePattern,
+} from "./patterns/TokenizablePattern";
 import { Block } from "./patterns/Block";
 import { Regex } from "./patterns/Regex";
 import { Sequence } from "./patterns/Sequence";
@@ -32,6 +36,8 @@ import { HistoryRecord } from "./patterns/HistoryRecord";
 
 export {
   BasePattern,
+  TokenizablePattern,
+  isTokenizablePattern,
   Block,
   Node,
   Grammar,

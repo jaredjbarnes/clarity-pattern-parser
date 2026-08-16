@@ -1,6 +1,6 @@
 import { generateErrorMessage } from "../patterns/generate_error_message";
 import { selectorParser } from "./selector_parser";
-import { Node } from "../ast/Node";
+import type { Node } from "../ast/Node";
 
 const combinatorMap: Record<string, boolean> = {
   adjacent: true,

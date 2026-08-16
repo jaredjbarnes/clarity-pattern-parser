@@ -1,5 +1,5 @@
-import { Node } from "../ast/Node";
-import { Cursor } from "./Cursor";
+import type { Node } from "../ast/Node";
+import type { Cursor } from "./Cursor";
 
 export interface ParseResult {
   ast: Node | null;

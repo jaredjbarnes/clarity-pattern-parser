@@ -1,5 +1,5 @@
-import { Cursor } from "./Cursor";
-import { Pattern } from "./Pattern";
+import type { Cursor } from "./Cursor";
+import type { Pattern } from "./Pattern";
 
 export function generateErrorMessage(pattern: Pattern, cursor: Cursor) {
   const furthestMatch = cursor.leafMatch;

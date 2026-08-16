@@ -1,9 +1,9 @@
 import { Cursor } from "../patterns/Cursor";
-import { Match } from "../patterns/CursorHistory";
+import type { Match } from "../patterns/CursorHistory";
 import { ParseError } from "../patterns/ParseError";
-import { Pattern } from "../patterns/Pattern";
-import { Suggestion } from "./Suggestion";
-import {
+import type { Pattern } from "../patterns/Pattern";
+import type { Suggestion } from "./Suggestion";
+import type {
   SuggestionSegment,
   SuggestionOption,
   CompositeSuggestion,

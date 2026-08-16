@@ -1,8 +1,8 @@
-import { Node } from "../ast/Node";
+import type { Node } from "../ast/Node";
 import { BasePattern } from "./BasePattern";
-import { Context } from "./Context";
-import { Cursor } from "./Cursor";
-import { Pattern } from "./Pattern";
+import type { Context } from "./Context";
+import type { Cursor } from "./Cursor";
+import type { Pattern } from "./Pattern";
 import { findPattern } from "./findPattern";
 
 export class Reference extends BasePattern {

@@ -1,8 +1,8 @@
 import { Node } from "../ast/Node";
 import { BasePattern } from "./BasePattern";
-import { Cursor } from "./Cursor";
+import type { Cursor } from "./Cursor";
 import { Literal } from "./Literal";
-import { Pattern } from "./Pattern";
+import type { Pattern } from "./Pattern";
 import { Sequence } from "./Sequence";
 
 /**

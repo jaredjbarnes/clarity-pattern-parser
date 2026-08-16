@@ -2,7 +2,7 @@ import { Node } from "../ast/Node";
 import { Sequence } from "./Sequence";
 import { Cursor } from "./Cursor";
 import { Literal } from "./Literal";
-import { Pattern } from "./Pattern";
+import type { Pattern } from "./Pattern";
 import { Regex } from "./Regex";
 import { Repeat } from "./Repeat";
 

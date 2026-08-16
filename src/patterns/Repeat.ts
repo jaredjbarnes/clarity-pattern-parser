@@ -1,10 +1,10 @@
-import { Node } from "../ast/Node";
+import type { Node } from "../ast/Node";
 import { BasePattern } from "./BasePattern";
-import { Cursor } from "./Cursor";
+import type { Cursor } from "./Cursor";
 import { FiniteRepeat } from "./FiniteRepeat";
 import { InfiniteRepeat } from "./InfiniteRepeat";
-import { ParseResult } from "./ParseResult";
-import { Pattern } from "./Pattern";
+import type { ParseResult } from "./ParseResult";
+import type { Pattern } from "./Pattern";
 
 export interface RepeatOptions {
   min?: number;

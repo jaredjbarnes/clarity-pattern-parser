@@ -1,4 +1,4 @@
-import { Node } from "../ast/Node";
+import type { Node } from "../ast/Node";
 
 export function filterOutNull(nodes: (Node | null)[]): Node[] {
   const filteredNodes: Node[] = [];

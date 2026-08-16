@@ -1,5 +1,5 @@
 import { grammar } from "./grammar";
-import { Node } from "../../ast/Node";
+import type { Node } from "../../ast/Node";
 
 describe("grammar", () => {
   test("syntax version", () => {

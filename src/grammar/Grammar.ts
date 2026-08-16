@@ -1,4 +1,4 @@
-import { Node } from "../ast/Node";
+import type { Node } from "../ast/Node";
 import { tokens } from "./decorators/tokens";
 import { generateErrorMessage } from "../patterns/generate_error_message";
 
@@ -12,10 +12,10 @@ import { Literal } from "../patterns/Literal";
 import { Not } from "../patterns/Not";
 import { Optional } from "../patterns/Optional";
 import { Options } from "../patterns/Options";
-import { Pattern } from "../patterns/Pattern";
+import type { Pattern } from "../patterns/Pattern";
 import { Reference } from "../patterns/Reference";
 import { Regex } from "../patterns/Regex";
-import { Repeat, RepeatOptions } from "../patterns/Repeat";
+import { Repeat, type RepeatOptions } from "../patterns/Repeat";
 import { RightAssociated } from "../patterns/RightAssociated";
 import { Sequence } from "../patterns/Sequence";
 import { Block } from "../patterns/Block";

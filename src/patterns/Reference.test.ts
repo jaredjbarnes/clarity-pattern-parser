@@ -5,7 +5,7 @@ import { Cursor } from "./Cursor";
 import { findPattern } from "./findPattern";
 import { Literal } from "./Literal";
 import { Options } from "./Options";
-import { Pattern } from "./Pattern";
+import type { Pattern } from "./Pattern";
 import { Reference } from "./Reference";
 import { Regex } from "./Regex";
 import { Repeat } from "./Repeat";

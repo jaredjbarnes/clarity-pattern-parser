@@ -1,10 +1,9 @@
 import type { Node } from "../ast/Node";
 import { BasePattern } from "./BasePattern";
+import { classifyExpressionPatterns } from "./classifyExpressionPatterns";
 import type { Cursor } from "./Cursor";
 import type { Pattern } from "./Pattern";
-import { Association, PrecedenceTree } from "./PrecedenceTree";
-import type { Reference } from "./Reference";
-import { Sequence } from "./Sequence";
+import { type Association, PrecedenceTree } from "./PrecedenceTree";
 
 export class Expression extends BasePattern {
   private _originalName: string;
@@ -76,59 +75,22 @@ export class Expression extends BasePattern {
   }
 
   private _organizePatterns(patterns: Pattern[]) {
-    const finalPatterns: Pattern[] = [];
-    patterns.forEach((pattern, index) => {
-      if (this._isAtom(pattern)) {
-        const atom = pattern.clone();
-        atom.parent = this;
+    const classified = classifyExpressionPatterns(patterns, this._originalName, this);
 
-        this._atomPatterns.push(atom);
+    this._atomPatterns = classified.atomPatterns;
+    this._prefixPatterns = classified.prefixPatterns;
+    this._prefixNames = classified.prefixNames;
+    this._postfixPatterns = classified.postfixPatterns;
+    this._postfixNames = classified.postfixNames;
+    this._infixPatterns = classified.infixPatterns;
+    this._infixNames = classified.infixNames;
+    this._precedenceMap = classified.precedenceMap;
+    this._associationMap = classified.associationMap;
 
-        finalPatterns.push(atom);
-      } else if (this._isPrefix(pattern)) {
-        const name = this._extractName(pattern);
-        const prefix = this._extractPrefix(pattern);
-
-        prefix.parent = this;
-
-        this._precedenceMap[name] = index;
-        this._prefixPatterns.push(prefix);
-        this._prefixNames.push(name);
-
-        finalPatterns.push(prefix);
-      } else if (this._isPostfix(pattern)) {
-        const name = this._extractName(pattern);
-        const postfix = this._extractPostfix(pattern);
-        postfix.parent = this;
-
-        this._precedenceMap[name] = index;
-        this._postfixPatterns.push(postfix);
-        this._postfixNames.push(name);
-
-        finalPatterns.push(postfix);
-      } else if (this._isBinary(pattern)) {
-        const name = this._extractName(pattern);
-        const infix = this._extractInfix(pattern);
-        infix.parent = this;
-
-        this._precedenceMap[name] = index;
-        this._infixPatterns.push(infix);
-        this._infixNames.push(name);
-
-        if (pattern.type === "right-associated") {
-          this._associationMap[name] = Association.right;
-        } else {
-          this._associationMap[name] = Association.left;
-        }
-
-        finalPatterns.push(infix);
-      }
-    });
-
-    this._children = finalPatterns;
+    this._children = classified.patterns;
     this._precedenceTree = new PrecedenceTree(this._precedenceMap, this._associationMap);
 
-    return finalPatterns;
+    return classified.patterns;
   }
 
   private _cacheAncestors() {
@@ -144,99 +106,6 @@ export class Expression extends BasePattern {
         pattern = pattern.parent;
       }
     }
-  }
-
-  private _extractName(pattern: Pattern) {
-    if (pattern.type === "right-associated") {
-      return pattern.children[0].name;
-    }
-
-    return pattern.name;
-  }
-
-  private _isPrefix(pattern: Pattern) {
-    pattern = this._unwrapAssociationIfNecessary(pattern);
-
-    const lastChild = pattern.children[pattern.children.length - 1];
-    const referenceCount = this._referenceCount(pattern);
-    const lastChildIsReference = this._isRecursiveReference(lastChild);
-
-    return lastChildIsReference && referenceCount === 1;
-  }
-
-  private _extractPrefix(pattern: Pattern) {
-    pattern = this._unwrapAssociationIfNecessary(pattern);
-    return new Sequence(`${pattern.name}-prefix`, pattern.children.slice(0, -1));
-  }
-
-  private _isAtom(pattern: Pattern) {
-    pattern = this._unwrapAssociationIfNecessary(pattern);
-
-    const firstChild = pattern.children[0];
-    const lastChild = pattern.children[pattern.children.length - 1];
-    const firstChildIsReference = this._isRecursiveReference(firstChild);
-    const lastChildIsReference = this._isRecursiveReference(lastChild);
-
-    return !firstChildIsReference && !lastChildIsReference;
-  }
-
-  private _isPostfix(pattern: Pattern) {
-    pattern = this._unwrapAssociationIfNecessary(pattern);
-
-    const firstChild = pattern.children[0];
-    const referenceCount = this._referenceCount(pattern);
-    const firstChildIsReference = this._isRecursiveReference(firstChild);
-
-    return firstChildIsReference && referenceCount === 1;
-  }
-
-  private _extractPostfix(pattern: Pattern) {
-    pattern = this._unwrapAssociationIfNecessary(pattern);
-    return new Sequence(`${pattern.name}-postfix`, pattern.children.slice(1));
-  }
-
-  private _isBinary(pattern: Pattern) {
-    pattern = this._unwrapAssociationIfNecessary(pattern);
-
-    const firstChild = pattern.children[0];
-    const lastChild = pattern.children[pattern.children.length - 1];
-    const firstChildIsReference = this._isRecursiveReference(firstChild);
-    const lastChildIsReference = this._isRecursiveReference(lastChild);
-
-    return firstChildIsReference && lastChildIsReference && pattern.children.length > 2;
-  }
-
-  private _extractInfix(pattern: Pattern) {
-    pattern = this._unwrapAssociationIfNecessary(pattern);
-    const children = pattern.children.slice(1, -1);
-    const infixSequence = new Sequence(`${pattern.name}-delimiter`, children);
-
-    return infixSequence;
-  }
-
-  private _unwrapAssociationIfNecessary(pattern: Pattern) {
-    if (pattern.type === "right-associated") {
-      pattern = pattern.children[0];
-    }
-
-    if (pattern.type === "reference") {
-      pattern.parent = this;
-      pattern = (pattern as Reference).getReferencePatternSafely();
-      pattern.parent = null;
-    }
-
-    return pattern;
-  }
-
-  private _referenceCount(pattern: Pattern) {
-    return pattern.children.filter(p => this._isRecursiveReference(p)).length;
-  }
-
-  private _isRecursiveReference(pattern: Pattern) {
-    if (pattern == null) {
-      return false;
-    }
-    return pattern.name === this._originalName;
   }
 
   build() {
@@ -439,100 +308,71 @@ export class Expression extends BasePattern {
   }
 
   getTokens(): string[] {
-    this.build();
-    const atomTokens = this._atomPatterns.flatMap(p => p.getTokens());
-    const prefixTokens = this.prefixPatterns.flatMap(p => p.getTokens());
-
-    return [...prefixTokens, ...atomTokens];
+    return this._selectLeading(p => p.getTokens());
   }
 
   getTokensAfter(childReference: Pattern): string[] {
-    this.build();
-    if (
-      this._prefixPatterns.includes(childReference) ||
-      this._infixPatterns.includes(childReference)
-    ) {
-      const atomTokens = this._atomPatterns.flatMap(p => p.getTokens());
-      const prefixTokens = this.prefixPatterns.flatMap(p => p.getTokens());
-
-      return [...prefixTokens, ...atomTokens];
-    }
-
-    if (this._atomPatterns.includes(childReference)) {
-      const postfixTokens = this.postfixPatterns.flatMap(p => p.getTokens());
-      const infixTokens = this._infixPatterns.flatMap(p => p.getTokens());
-
-      if (this._parent != null) {
-        return [...postfixTokens, ...infixTokens, ...this._parent.getNextTokens()];
-      }
-
-      return [...postfixTokens, ...infixTokens];
-    }
-
-    if (this._infixPatterns.includes(childReference)) {
-      const atomTokens = this._atomPatterns.flatMap(p => p.getTokens());
-      return atomTokens;
-    }
-
-    if (this._postfixPatterns.includes(childReference)) {
-      const postfixTokens = this.postfixPatterns.flatMap(p => p.getTokens());
-      const infixTokens = this._infixPatterns.flatMap(p => p.getTokens());
-
-      if (this._parent != null) {
-        return [...postfixTokens, ...infixTokens, ...this._parent.getNextTokens()];
-      }
-
-      return [...postfixTokens, ...infixTokens];
-    }
-
-    return [];
+    return this._selectAfter(
+      childReference,
+      p => p.getTokens(),
+      parent => parent.getNextTokens()
+    );
   }
 
   getPatterns(): Pattern[] {
-    this.build();
-    const atomPatterns = this._atomPatterns.flatMap(p => p.getPatterns());
-    const prefixPatterns = this.prefixPatterns.flatMap(p => p.getPatterns());
-
-    return [...prefixPatterns, ...atomPatterns];
+    return this._selectLeading(p => p.getPatterns());
   }
 
   getPatternsAfter(childReference: Pattern): Pattern[] {
+    return this._selectAfter(
+      childReference,
+      p => p.getPatterns(),
+      parent => parent.getNextPatterns()
+    );
+  }
+
+  /** What may start an expression: a prefix operator, or an atom. */
+  private _selectLeading<T>(select: (pattern: Pattern) => T[]): T[] {
     this.build();
+
+    return [
+      ...this._prefixPatterns.flatMap(select),
+      ...this._atomPatterns.flatMap(select),
+    ];
+  }
+
+  /**
+   * `getTokensAfter` and `getPatternsAfter` ask the same question and differ
+   * only in what they project out of the answer, so they share this.
+   */
+  private _selectAfter<T>(
+    childReference: Pattern,
+    select: (pattern: Pattern) => T[],
+    fromParent: (parent: Pattern) => T[]
+  ): T[] {
+    this.build();
+
+    // An operator still owed a right operand: an operand may start here.
     if (
       this._prefixPatterns.includes(childReference) ||
       this._infixPatterns.includes(childReference)
     ) {
-      const atomPatterns = this._atomPatterns.flatMap(p => p.getPatterns());
-      const prefixPatterns = this.prefixPatterns.flatMap(p => p.getPatterns());
-
-      return [...prefixPatterns, ...atomPatterns];
+      return this._selectLeading(select);
     }
 
-    if (this._atomPatterns.includes(childReference)) {
-      const postfixPatterns = this.postfixPatterns.flatMap(p => p.getPatterns());
-      const infixPatterns = this._infixPatterns.flatMap(p => p.getPatterns());
+    // A completed operand: the expression may continue with a postfix or infix
+    // operator, or end here — in which case whatever follows the expression.
+    if (
+      this._atomPatterns.includes(childReference) ||
+      this._postfixPatterns.includes(childReference)
+    ) {
+      const continuation = [
+        ...this._postfixPatterns.flatMap(select),
+        ...this._infixPatterns.flatMap(select),
+      ];
+      const parent = this._parent;
 
-      if (this._parent != null) {
-        return [...postfixPatterns, ...infixPatterns, ...this._parent.getNextPatterns()];
-      }
-
-      return [...postfixPatterns, ...infixPatterns];
-    }
-
-    if (this._infixPatterns.includes(childReference)) {
-      const atomPatterns = this._atomPatterns.flatMap(p => p.getPatterns());
-      return atomPatterns;
-    }
-
-    if (this._postfixPatterns.includes(childReference)) {
-      const postfixPatterns = this.postfixPatterns.flatMap(p => p.getPatterns());
-      const infixPatterns = this._infixPatterns.flatMap(p => p.getPatterns());
-
-      if (this._parent != null) {
-        return [...postfixPatterns, ...infixPatterns, ...this._parent.getNextPatterns()];
-      }
-
-      return [...postfixPatterns, ...infixPatterns];
+      return parent != null ? [...continuation, ...fromParent(parent)] : continuation;
     }
 
     return [];

@@ -441,6 +441,45 @@ describe("Expression Pattern", () => {
     expect(tokens).toContain("+");
   });
 
+  /** Has a prefix, an infix, and an atom, so the three roles are distinguishable. */
+  function createPrefixAndInfixExpression() {
+    const negate = new Sequence("negate", [
+      new Literal("minus", "-"),
+      new Reference("expression"),
+    ]);
+    const add = new Sequence("add", [
+      new Reference("expression"),
+      new Literal("plus", "+"),
+      new Reference("expression"),
+    ]);
+    const variable = new Literal("variable", "x");
+
+    return new Expression("expression", [negate, add, variable]);
+  }
+
+  test("getTokensAfter for an infix child offers prefixes as well as atoms", () => {
+    const expression = createPrefixAndInfixExpression();
+    expression.build();
+
+    const tokens = expression.getTokensAfter(expression.infixPatterns[0]);
+
+    // An infix operator is still owed a right operand, so what may follow is
+    // anything that can START an expression. That includes the prefix operator,
+    // not just atoms — a right operand may itself be negated ("x + -x").
+    expect(tokens).toContain("-");
+    expect(tokens).toContain("x");
+    expect(tokens).not.toContain("+");
+  });
+
+  test("getPatternsAfter for an infix child matches what can start an expression", () => {
+    const expression = createPrefixAndInfixExpression();
+    expression.build();
+
+    const afterInfix = expression.getPatternsAfter(expression.infixPatterns[0]);
+
+    expect(afterInfix).toEqual(expression.getPatterns());
+  });
+
   test("getTokensAfter for unknown child returns empty", () => {
     const expression = createOptionsExpression();
     expression.build();

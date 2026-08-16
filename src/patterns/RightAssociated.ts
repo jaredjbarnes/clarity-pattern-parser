@@ -1,109 +1,55 @@
 import { Node } from "../ast/Node";
+import { BasePattern } from "./BasePattern";
 import { Cursor } from "./Cursor";
 import { ParseResult } from "./ParseResult";
 import { Pattern } from "./Pattern";
 
-let indexId = 0;
-
-export class RightAssociated implements Pattern {
-  private _id: string;
-  private _type: string;
-  private _name: string;
-  private _parent: Pattern | null;
-  private _children: Pattern[];
-
-  get id(): string {
-    return this._id;
-  }
-
-  get type(): string {
-    return this._type;
-  }
-
-  get name(): string {
-    return this._name;
-  }
-
-  get parent(): Pattern | null {
-    return this._parent;
-  }
-
-  set parent(pattern: Pattern | null) {
-    this._parent = pattern;
-  }
-
-  get children(): Pattern[] {
-    return this._children;
-  }
-
+export class RightAssociated extends BasePattern {
   get startedOnIndex() {
     return this._children[0].startedOnIndex;
   }
 
   constructor(pattern: Pattern) {
-    this._id = `right-associated-${indexId++}`;
-    this._type = "right-associated";
-    this._name = "";
-    this._parent = null;
-    this._children = [pattern.clone()];
+    // Deliberately does not reparent its child: this wrapper is a marker read
+    // by Expression during classification, not a link in the pattern tree.
+    super("right-associated", "", [pattern.clone()]);
   }
 
   parse(cursor: Cursor): Node | null {
-    return this.children[0].parse(cursor);
+    return this._children[0].parse(cursor);
   }
 
   exec(text: string, record?: boolean | undefined): ParseResult {
-    return this.children[0].exec(text, record);
+    return this._children[0].exec(text, record);
   }
 
   test(text: string, record?: boolean | undefined): boolean {
-    return this.children[0].test(text, record);
+    return this._children[0].test(text, record);
   }
 
   clone(_name?: string | undefined): Pattern {
-    const clone = new RightAssociated(this.children[0]);
-    clone._id = this._id;
+    const clone = new RightAssociated(this._children[0]);
+    clone._cloneIdFrom(this);
     return clone;
   }
 
   getTokens(): string[] {
-    return this.children[0].getTokens();
+    return this._children[0].getTokens();
   }
+
   getTokensAfter(_childReference: Pattern): string[] {
-    if (this._parent == null) {
-      return [];
-    }
-    return this._parent.getTokensAfter(this);
+    return this.getNextTokens();
   }
-  getNextTokens(): string[] {
-    if (this._parent == null) {
-      return [];
-    }
-    return this._parent.getTokensAfter(this);
-  }
+
   getPatterns(): Pattern[] {
-    return this.children[0].getPatterns();
+    return this._children[0].getPatterns();
   }
+
   getPatternsAfter(_childReference: Pattern): Pattern[] {
-    if (this._parent == null) {
-      return [];
-    }
-    return this._parent.getPatternsAfter(this);
+    return this.getNextPatterns();
   }
-  getNextPatterns(): Pattern[] {
-    if (this._parent == null) {
-      return [];
-    }
-    return this._parent.getPatternsAfter(this);
-  }
+
   find(predicate: (pattern: Pattern) => boolean): Pattern | null {
-    return this.children[0].find(predicate);
-  }
-  isEqual(pattern: Pattern): boolean {
-    return (
-      pattern.type === this.type &&
-      this.children.length === pattern.children.length &&
-      this.children.every((c, index) => c.isEqual(pattern.children[index]))
-    );
+    return this._children[0].find(predicate);
   }
 }

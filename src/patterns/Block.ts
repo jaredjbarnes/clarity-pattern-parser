@@ -1,54 +1,15 @@
-import { Cursor } from "./Cursor";
-import { Pattern } from "./Pattern";
-import { Literal } from "./Literal";
 import { Node } from "../ast/Node";
-import { findPattern } from "./findPattern";
-import { testPattern } from "./testPattern";
-import { execPattern } from "./execPattern";
-import { ParseResult } from "./ParseResult";
+import { BasePattern } from "./BasePattern";
+import { Cursor } from "./Cursor";
+import { Literal } from "./Literal";
+import { Pattern } from "./Pattern";
 
-let idIndex = 0;
-
-export class Block implements Pattern {
-  private _id: string;
-  private _type: string;
-  private _name: string;
-  private _parent: Pattern | null;
-  private _children: Pattern[];
+export class Block extends BasePattern {
   private _openPattern: Pattern;
   private _contentPattern: Pattern | null;
   private _closePattern: Pattern;
-  private _firstIndex: number;
   private _literalOpen: string;
   private _literalClose: string;
-
-  get id(): string {
-    return this._id;
-  }
-
-  get type(): string {
-    return this._type;
-  }
-
-  get name(): string {
-    return this._name;
-  }
-
-  get parent(): Pattern | null {
-    return this._parent;
-  }
-
-  set parent(pattern: Pattern | null) {
-    this._parent = pattern;
-  }
-
-  get children(): Pattern[] {
-    return this._children;
-  }
-
-  get startedOnIndex() {
-    return this._firstIndex;
-  }
 
   constructor(
     name: string,
@@ -60,32 +21,22 @@ export class Block implements Pattern {
     const clonedContent = contentPattern != null ? contentPattern.clone() : null;
     const clonedClose = closePattern.clone() as Literal;
 
-    this._id = `block-${idIndex++}`;
-    this._type = "block";
-    this._name = name;
-    this._parent = null;
+    super(
+      "block",
+      name,
+      clonedContent != null
+        ? [clonedOpen, clonedContent, clonedClose]
+        : [clonedOpen, clonedClose]
+    );
+
     this._openPattern = clonedOpen;
     this._contentPattern = clonedContent;
     this._closePattern = clonedClose;
-    this._children =
-      clonedContent != null
-        ? [clonedOpen, clonedContent, clonedClose]
-        : [clonedOpen, clonedClose];
     this._firstIndex = -1;
     this._literalOpen = clonedOpen.token;
     this._literalClose = clonedClose.token;
 
-    for (const child of this._children) {
-      child.parent = this;
-    }
-  }
-
-  test(text: string, record = false): boolean {
-    return testPattern(this, text, record);
-  }
-
-  exec(text: string, record = false): ParseResult {
-    return execPattern(this, text, record);
+    this._assignChildrenToParent(this._children);
   }
 
   parse(cursor: Cursor): Node | null {
@@ -260,17 +211,7 @@ export class Block implements Pattern {
   }
 
   getTokensAfter(childReference: Pattern): string[] {
-    const patterns = this.getPatternsAfter(childReference);
-    const tokens: string[] = [];
-    patterns.forEach(p => tokens.push(...p.getTokens()));
-    return tokens;
-  }
-
-  getNextTokens(): string[] {
-    if (this.parent == null) {
-      return [];
-    }
-    return this.parent.getTokensAfter(this);
+    return this.getPatternsAfter(childReference).flatMap(p => p.getTokens());
   }
 
   getPatterns(): Pattern[] {
@@ -302,17 +243,6 @@ export class Block implements Pattern {
     return patterns;
   }
 
-  getNextPatterns(): Pattern[] {
-    if (this.parent == null) {
-      return [];
-    }
-    return this.parent.getPatternsAfter(this);
-  }
-
-  find(predicate: (p: Pattern) => boolean): Pattern | null {
-    return findPattern(this, predicate);
-  }
-
   clone(name = this._name): Pattern {
     const clone = new Block(
       name,
@@ -320,15 +250,7 @@ export class Block implements Pattern {
       this._contentPattern,
       this._closePattern as Literal
     );
-    clone._id = this._id;
+    clone._cloneIdFrom(this);
     return clone;
-  }
-
-  isEqual(pattern: Block): boolean {
-    return (
-      pattern.type === this.type &&
-      this.children.length === pattern.children.length &&
-      this.children.every((c, index) => c.isEqual(pattern.children[index]))
-    );
   }
 }

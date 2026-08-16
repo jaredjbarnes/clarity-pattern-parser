@@ -1,12 +1,7 @@
 import { Node } from "../ast/Node";
+import { BasePattern } from "./BasePattern";
 import { Cursor } from "./Cursor";
 import { Pattern } from "./Pattern";
-import { findPattern } from "./findPattern";
-import { ParseResult } from "./ParseResult";
-import { execPattern } from "./execPattern";
-import { testPattern } from "./testPattern";
-
-let idIndex = 0;
 
 export interface InfiniteRepeatOptions {
   divider?: Pattern;
@@ -14,91 +9,35 @@ export interface InfiniteRepeatOptions {
   trimDivider?: boolean;
 }
 
-export class InfiniteRepeat implements Pattern {
-  private _id: string;
-  private _type: string;
-  private _name: string;
-  private _parent: Pattern | null;
-  private _children: Pattern[];
+export class InfiniteRepeat extends BasePattern {
   private _pattern: Pattern;
   private _divider: Pattern | null;
   private _nodes: Node[];
-  private _firstIndex: number;
   private _min: number;
   private _trimDivider: boolean;
   private _patterns: Pattern[];
-
-  get id(): string {
-    return this._id;
-  }
-
-  get type(): string {
-    return this._type;
-  }
-
-  get name(): string {
-    return this._name;
-  }
-
-  get parent(): Pattern | null {
-    return this._parent;
-  }
-
-  set parent(pattern: Pattern | null) {
-    this._parent = pattern;
-  }
-
-  get children(): Pattern[] {
-    return this._children;
-  }
 
   get min(): number {
     return this._min;
   }
 
-  get startedOnIndex() {
-    return this._firstIndex;
-  }
-
   constructor(name: string, pattern: Pattern, options: InfiniteRepeatOptions = {}) {
-    const min = options.min != null ? Math.max(options.min, 1) : 1;
     const divider = options.divider;
-    let children: Pattern[];
 
-    if (divider != null) {
-      children = [pattern.clone(), divider.clone()];
-    } else {
-      children = [pattern.clone()];
-    }
+    super(
+      "infinite-repeat",
+      name,
+      divider != null ? [pattern.clone(), divider.clone()] : [pattern.clone()]
+    );
 
-    this._assignChildrenToParent(children);
+    this._assignChildrenToParent(this._children);
 
-    this._id = `infinite-repeat-${idIndex++}`;
-    this._type = "infinite-repeat";
-    this._name = name;
-    this._min = min;
-    this._parent = null;
-    this._children = children;
-    this._pattern = children[0];
-    this._divider = children[1];
-    this._firstIndex = 0;
+    this._min = options.min != null ? Math.max(options.min, 1) : 1;
+    this._pattern = this._children[0];
+    this._divider = this._children[1];
     this._nodes = [];
     this._trimDivider = options.trimDivider == null ? false : options.trimDivider;
     this._patterns = [];
-  }
-
-  private _assignChildrenToParent(children: Pattern[]): void {
-    for (const child of children) {
-      child.parent = this;
-    }
-  }
-
-  test(text: string, record = false): boolean {
-    return testPattern(this, text, record);
-  }
-
-  exec(text: string, record = false): ParseResult {
-    return execPattern(this, text, record);
   }
 
   parse(cursor: Cursor): Node | null {
@@ -258,20 +197,7 @@ export class InfiniteRepeat implements Pattern {
   }
 
   getTokensAfter(childReference: Pattern): string[] {
-    const patterns = this.getPatternsAfter(childReference);
-    const tokens: string[] = [];
-
-    patterns.forEach(p => tokens.push(...p.getTokens()));
-
-    return tokens;
-  }
-
-  getNextTokens(): string[] {
-    if (this._parent == null) {
-      return [];
-    }
-
-    return this._parent.getTokensAfter(this);
+    return this.getPatternsAfter(childReference).flatMap(p => p.getTokens());
   }
 
   getPatterns(): Pattern[] {
@@ -316,36 +242,15 @@ export class InfiniteRepeat implements Pattern {
     return patterns;
   }
 
-  getNextPatterns(): Pattern[] {
-    if (this._parent == null) {
-      return [];
-    }
-
-    return this._parent.getPatternsAfter(this);
-  }
-
-  find(predicate: (p: Pattern) => boolean): Pattern | null {
-    return findPattern(this, predicate);
-  }
-
   clone(name = this._name): Pattern {
     const min = this._min;
-
     const clone = new InfiniteRepeat(name, this._pattern, {
       divider: this._divider == null ? undefined : this._divider,
-      min: min,
+      min,
       trimDivider: this._trimDivider,
     });
 
-    clone._id = this._id;
+    clone._cloneIdFrom(this);
     return clone;
-  }
-
-  isEqual(pattern: InfiniteRepeat): boolean {
-    return (
-      pattern.type === this.type &&
-      this.children.length === pattern.children.length &&
-      this.children.every((c, index) => c.isEqual(pattern.children[index]))
-    );
   }
 }

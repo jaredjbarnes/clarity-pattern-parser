@@ -459,21 +459,60 @@ if (result.ast) {
 
 ### Custom Patterns
 
-You can create custom patterns by extending the base `Pattern` class:
+`Pattern` is an *interface*, not a base class. Any object matching its shape is a
+valid pattern — there is no inheritance requirement, and nothing in the library
+uses `instanceof`. Patterns are identified by their `type` string, so your own
+patterns are first-class citizens alongside the built-ins.
+
+The easiest route is to extend `BasePattern`, which supplies the parts that are
+identical for every pattern (identity, parent/child wiring, `exec`/`test`, the
+parent-forwarding introspection methods, and `isEqual`):
+
+```typescript
+import { BasePattern, Cursor, Node, Pattern } from "clarity-pattern-parser";
+
+class CustomPattern extends BasePattern {
+    constructor(name: string) {
+        super("custom", name); // "custom" is the pattern's `type` and id prefix
+    }
+
+    parse(cursor: Cursor): Node | null {
+        // Advance the cursor and return a Node, or record an error and
+        // return null. Never throw from a parse path.
+        return null;
+    }
+
+    clone(name = this.name): Pattern {
+        const clone = new CustomPattern(name);
+        clone._cloneIdFrom(this); // required — see below
+        return clone;
+    }
+
+    getTokens(): string[] { return []; }
+    getTokensAfter(_child: Pattern): string[] { return []; }
+    getPatterns(): Pattern[] { return [this]; }
+    getPatternsAfter(_child: Pattern): Pattern[] { return []; }
+}
+```
+
+If you would rather not inherit, implement `Pattern` directly — everything in the
+library accepts it:
 
 ```typescript
 import { Pattern } from "clarity-pattern-parser";
 
-class CustomPattern extends Pattern {
-    constructor(name: string) {
-        super(name);
-    }
-
-    exec(text: string) {
-        // Custom pattern implementation
-    }
+class StandalonePattern implements Pattern {
+    /* ...implement the full Pattern interface... */
 }
 ```
+
+Two rules matter whichever route you take:
+
+1. **`clone()` must carry over the source's `id`.** Recursion detection compares
+   ids across clones, so minting a fresh id in `clone()` silently disables it.
+2. **Patterns hold per-parse state and are not reentrant.** That is why every
+   composite clones its children rather than sharing them. If you write a
+   composite pattern, clone what you are given.
 
 ### Performance Tips
 

@@ -1,12 +1,7 @@
 import { Node } from "../ast/Node";
+import { BasePattern } from "./BasePattern";
 import { Cursor } from "./Cursor";
-import { findPattern } from "./findPattern";
-import { ParseResult } from "./ParseResult";
 import { Pattern } from "./Pattern";
-import { testPattern } from "./testPattern";
-import { execPattern } from "./execPattern";
-
-let idIndex = 0;
 
 export interface FiniteRepeatOptions {
   divider?: Pattern;
@@ -15,41 +10,11 @@ export interface FiniteRepeatOptions {
   trimDivider?: boolean;
 }
 
-export class FiniteRepeat implements Pattern {
-  private _id: string;
-  private _type: string;
-  private _name: string;
-  private _parent: Pattern | null;
-  private _children: Pattern[];
+export class FiniteRepeat extends BasePattern {
   private _hasDivider: boolean;
   private _min: number;
   private _max: number;
   private _trimDivider: boolean;
-  private _firstIndex: number;
-
-  get id() {
-    return this._id;
-  }
-
-  get type() {
-    return this._type;
-  }
-
-  get name() {
-    return this._name;
-  }
-
-  get parent() {
-    return this._parent;
-  }
-
-  set parent(value: Pattern | null) {
-    this._parent = value;
-  }
-
-  get children() {
-    return this._children;
-  }
 
   get min() {
     return this._min;
@@ -59,21 +24,13 @@ export class FiniteRepeat implements Pattern {
     return this._max;
   }
 
-  get startedOnIndex() {
-    return this._firstIndex;
-  }
-
   constructor(name: string, pattern: Pattern, options: FiniteRepeatOptions = {}) {
-    this._id = `finite-repeat-${idIndex++}`;
-    this._type = "finite-repeat";
-    this._name = name;
-    this._parent = null;
-    this._children = [];
+    super("finite-repeat", name);
+
     this._hasDivider = options.divider != null;
     this._min = options.min != null ? Math.max(options.min, 1) : 1;
     this._max = Math.max(this.min, options.max || this.min);
     this._trimDivider = options.trimDivider == null ? false : options.trimDivider;
-    this._firstIndex = 0;
 
     for (let i = 0; i < this._max; i++) {
       const child = pattern.clone();
@@ -151,14 +108,6 @@ export class FiniteRepeat implements Pattern {
     return node;
   }
 
-  test(text: string, record = false): boolean {
-    return testPattern(this, text, record);
-  }
-
-  exec(text: string, record = false): ParseResult {
-    return execPattern(this, text, record);
-  }
-
   clone(name = this._name): Pattern {
     const min = this._min;
     const max = this._max;
@@ -170,7 +119,7 @@ export class FiniteRepeat implements Pattern {
       trimDivider: this._trimDivider,
     });
 
-    clone._id = this._id;
+    clone._cloneIdFrom(this);
     return clone;
   }
 
@@ -179,20 +128,7 @@ export class FiniteRepeat implements Pattern {
   }
 
   getTokensAfter(childReference: Pattern): string[] {
-    const patterns = this.getPatternsAfter(childReference);
-    const tokens: string[] = [];
-
-    patterns.forEach(p => tokens.push(...p.getTokens()));
-
-    return tokens;
-  }
-
-  getNextTokens(): string[] {
-    if (this._parent == null) {
-      return [];
-    }
-
-    return this._parent.getTokensAfter(this);
+    return this.getPatternsAfter(childReference).flatMap(p => p.getTokens());
   }
 
   getPatterns(): Pattern[] {
@@ -220,25 +156,5 @@ export class FiniteRepeat implements Pattern {
     const nextChild = this._children[childIndex + 1];
 
     return nextChild.getPatterns();
-  }
-
-  getNextPatterns(): Pattern[] {
-    if (this._parent == null) {
-      return [];
-    }
-
-    return this._parent.getPatternsAfter(this);
-  }
-
-  find(predicate: (p: Pattern) => boolean): Pattern | null {
-    return findPattern(this, predicate);
-  }
-
-  isEqual(pattern: FiniteRepeat): boolean {
-    return (
-      pattern.type === this.type &&
-      this.children.length === pattern.children.length &&
-      this.children.every((c, index) => c.isEqual(pattern.children[index]))
-    );
   }
 }

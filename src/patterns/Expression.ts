@@ -1,26 +1,15 @@
 import { Node } from "../ast/Node";
+import { BasePattern } from "./BasePattern";
 import { Cursor } from "./Cursor";
-import { ParseResult } from "./ParseResult";
 import { Pattern } from "./Pattern";
-import { findPattern } from "./findPattern";
-import { Sequence } from "./Sequence";
 import { Association, PrecedenceTree } from "./PrecedenceTree";
-import { testPattern } from "./testPattern";
-import { execPattern } from "./execPattern";
 import { Reference } from "./Reference";
+import { Sequence } from "./Sequence";
 
-let indexId = 0;
-
-export class Expression implements Pattern {
-  private _id: string;
-  private _type: string;
-  private _name: string;
+export class Expression extends BasePattern {
   private _originalName: string;
-  private _parent: Pattern | null;
   private _cachedParent: Pattern | null;
-  private _firstIndex: number;
   private _originalPatterns: Pattern[];
-  private _patterns: Pattern[];
   private _atomPatterns: Pattern[];
   private _prefixPatterns: Pattern[];
   private _prefixNames: string[];
@@ -34,30 +23,6 @@ export class Expression implements Pattern {
   private _precedenceTree: PrecedenceTree;
   private _hasOrganized: boolean;
   private _atomsIdToAncestorsMap: Record<string, Pattern[]>;
-
-  get id(): string {
-    return this._id;
-  }
-
-  get type(): string {
-    return this._type;
-  }
-
-  get name(): string {
-    return this._name;
-  }
-
-  get parent(): Pattern | null {
-    return this._parent;
-  }
-
-  set parent(pattern: Pattern | null) {
-    this._parent = pattern;
-  }
-
-  get children(): Pattern[] {
-    return this._patterns;
-  }
 
   get prefixPatterns(): readonly Pattern[] {
     return this._prefixPatterns;
@@ -84,22 +49,15 @@ export class Expression implements Pattern {
     return this._originalPatterns;
   }
 
-  get startedOnIndex() {
-    return this._firstIndex;
-  }
-
   constructor(name: string, patterns: Pattern[]) {
     if (patterns.length === 0) {
       throw new Error("Need at least one pattern with an 'expression' pattern.");
     }
 
-    this._id = `expression-${indexId++}`;
-    this._type = "expression";
-    this._name = name;
+    super("expression", name);
+
     this._originalName = name;
-    this._parent = null;
     this._cachedParent = null;
-    this._firstIndex = 0;
     this._atomPatterns = [];
     this._prefixPatterns = [];
     this._prefixNames = [];
@@ -112,7 +70,7 @@ export class Expression implements Pattern {
     this._originalPatterns = patterns;
     this._shouldStopParsing = false;
     this._hasOrganized = false;
-    this._patterns = [];
+    this._children = [];
     this._precedenceTree = new PrecedenceTree({}, {});
     this._atomsIdToAncestorsMap = {};
   }
@@ -167,7 +125,7 @@ export class Expression implements Pattern {
       }
     });
 
-    this._patterns = finalPatterns;
+    this._children = finalPatterns;
     this._precedenceTree = new PrecedenceTree(this._precedenceMap, this._associationMap);
 
     return finalPatterns;
@@ -480,14 +438,6 @@ export class Expression implements Pattern {
     }
   }
 
-  test(text: string, record = false): boolean {
-    return testPattern(this, text, record);
-  }
-
-  exec(text: string, record = false): ParseResult {
-    return execPattern(this, text, record);
-  }
-
   getTokens(): string[] {
     this.build();
     const atomTokens = this._atomPatterns.flatMap(p => p.getTokens());
@@ -536,14 +486,6 @@ export class Expression implements Pattern {
     }
 
     return [];
-  }
-
-  getNextTokens(): string[] {
-    if (this._parent == null) {
-      return [];
-    }
-
-    return this._parent.getTokensAfter(this);
   }
 
   getPatterns(): Pattern[] {
@@ -596,30 +538,10 @@ export class Expression implements Pattern {
     return [];
   }
 
-  getNextPatterns(): Pattern[] {
-    if (this._parent == null) {
-      return [];
-    }
-
-    return this._parent.getPatternsAfter(this);
-  }
-
-  find(predicate: (p: Pattern) => boolean): Pattern | null {
-    return findPattern(this, predicate);
-  }
-
   clone(name = this._name): Pattern {
     const clone = new Expression(name, this._originalPatterns);
     clone._originalName = this._originalName;
-    clone._id = this._id;
+    clone._cloneIdFrom(this);
     return clone;
-  }
-
-  isEqual(pattern: Expression): boolean {
-    return (
-      pattern.type === this.type &&
-      this.children.length === pattern.children.length &&
-      this.children.every((c, index) => c.isEqual(pattern.children[index]))
-    );
   }
 }

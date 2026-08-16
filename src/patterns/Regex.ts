@@ -1,68 +1,28 @@
 import { Node } from "../ast/Node";
-import { Pattern } from "./Pattern";
+import { BasePattern } from "./BasePattern";
 import { Cursor } from "./Cursor";
-import { ParseResult } from "./ParseResult";
-import { testPattern } from "./testPattern";
-import { execPattern } from "./execPattern";
+import { Pattern } from "./Pattern";
 
-let idIndex = 0;
-
-export class Regex implements Pattern {
-  private _id: string;
-  private _type: string;
-  private _name: string;
-  private _parent: Pattern | null;
+export class Regex extends BasePattern {
   private _originalRegexString: string;
   private _regex: RegExp;
   private _node: Node | null = null;
-  private _cursor: Cursor | null = null;
-  private _firstIndex = 0;
   private _substring = "";
   private _tokens: string[] = [];
-
-  get id(): string {
-    return this._id;
-  }
-
-  get type(): string {
-    return this._type;
-  }
-
-  get name(): string {
-    return this._name;
-  }
 
   get regex(): string {
     return this._originalRegexString;
   }
 
-  get parent(): Pattern | null {
-    return this._parent;
-  }
-
-  set parent(pattern: Pattern | null) {
-    this._parent = pattern;
-  }
-
-  get children(): Pattern[] {
-    return [];
-  }
-
-  get startedOnIndex() {
-    return this._firstIndex;
-  }
-
   constructor(name: string, regex: string) {
-    this._id = `regex-${idIndex++}`;
-    this._type = "regex";
-    this._name = name;
-    this._parent = null;
+    super("regex", name);
+
     this._originalRegexString = regex;
     this._regex = new RegExp(`^${regex}`, "gu");
-    this.assertArguments();
+    this._assertArguments();
   }
 
-  private assertArguments() {
+  private _assertArguments() {
     if (this._originalRegexString.length < 1) {
       throw new Error(
         "Invalid Arguments: The regex string argument needs to be at least one character long."
@@ -82,40 +42,31 @@ export class Regex implements Pattern {
     }
   }
 
-  test(text: string, record = false): boolean {
-    return testPattern(this, text, record);
-  }
-
-  exec(text: string, record = false): ParseResult {
-    return execPattern(this, text, record);
-  }
-
   parse(cursor: Cursor) {
     this._firstIndex = cursor.index;
-    this.resetState(cursor);
-    this.tryToParse(cursor);
+    this._resetState(cursor);
+    this._tryToParse(cursor);
 
     return this._node;
   }
 
-  private resetState(cursor: Cursor) {
-    this._cursor = cursor;
+  private _resetState(cursor: Cursor) {
     this._regex.lastIndex = 0;
-    this._substring = this._cursor.text.slice(this._cursor.index);
+    this._substring = cursor.text.slice(cursor.index);
     this._node = null;
   }
 
-  private tryToParse(cursor: Cursor) {
+  private _tryToParse(cursor: Cursor) {
     const result = this._regex.exec(this._substring);
 
     if (result != null && result[0].length > 0 && result.index === 0) {
-      this.processResult(cursor, result);
+      this._processResult(cursor, result);
     } else {
-      this.processError(cursor);
+      this._processError(cursor);
     }
   }
 
-  private processResult(cursor: Cursor, result: RegExpExecArray) {
+  private _processResult(cursor: Cursor, result: RegExpExecArray) {
     const currentIndex = cursor.index;
     const match = result[0];
     const lastIndex = cursor.getCharLastIndex(currentIndex + match.length - 1);
@@ -133,7 +84,7 @@ export class Regex implements Pattern {
     cursor.recordMatch(this, this._node);
   }
 
-  private processError(cursor: Cursor) {
+  private _processError(cursor: Cursor) {
     cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
     this._node = null;
   }
@@ -141,7 +92,7 @@ export class Regex implements Pattern {
   clone(name = this._name) {
     const clone = new Regex(name, this._originalRegexString);
     clone._tokens = this._tokens.slice();
-    clone._id = this._id;
+    clone._cloneIdFrom(this);
 
     return clone;
   }
@@ -154,28 +105,12 @@ export class Regex implements Pattern {
     return [];
   }
 
-  getNextTokens(): string[] {
-    if (this.parent == null) {
-      return [];
-    }
-
-    return this.parent.getTokensAfter(this);
-  }
-
   getPatterns(): Pattern[] {
     return [this];
   }
 
   getPatternsAfter(_childReference: Pattern): Pattern[] {
     return [];
-  }
-
-  getNextPatterns(): Pattern[] {
-    if (this.parent == null) {
-      return [];
-    }
-
-    return this.parent.getPatternsAfter(this);
   }
 
   find(_predicate: (p: Pattern) => boolean): Pattern | null {

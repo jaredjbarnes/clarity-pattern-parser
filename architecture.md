@@ -94,7 +94,8 @@ src/
     compact.ts           # Collapse subtrees into single value nodes
     remove.ts            # Remove nodes from tree
   patterns/
-    Pattern.ts           # Pattern interface (all patterns implement this)
+    Pattern.ts           # Pattern interface (the contract; structural, no inheritance required)
+    BasePattern.ts       # Abstract base with the behavior shared by the built-ins
     Literal.ts           # Exact string match
     Regex.ts             # Regular expression match
     Sequence.ts          # Ordered concatenation (AND)
@@ -158,6 +159,30 @@ Pattern (interface)
   clone(name?): Pattern                  # Deep copy
   getTokens(): string[]                  # Intellisense support
 ```
+
+`Pattern` is a structural interface, deliberately: nothing in the library uses
+`instanceof`, and dispatch is always on the `type` string. A custom pattern only
+has to match the shape, so third-party patterns are indistinguishable from the
+built-ins. `BasePattern` is a convenience for the built-ins — it supplies
+identity, parent/child wiring, `exec`/`test`, the parent-forwarding half of the
+introspection API, and the default `isEqual`. Extending it is optional.
+
+### Two Invariants That Are Easy To Break
+
+**1. `clone()` must copy the source's `id`.**
+Recursion detection compares ids *across clones* — `isRecursivePattern`,
+`Reference._cacheAncestors`, and `Expression._atomsIdToAncestorsMap` all rely on
+a clone reporting the same id as its original. A `clone()` that mints a fresh id
+compiles, passes casual inspection, and silently disables recursion guarding.
+`BasePattern._cloneIdFrom` exists to make this hard to forget.
+
+**2. Patterns keep per-parse state on the instance, so they are not reentrant.**
+`_firstIndex`, `_nodes`, and friends are instance fields reset at the top of
+`parse()`. This avoids per-parse allocation, but it means a single pattern
+instance cannot be shared by two parents — the two would trample each other's
+state. That is why every composite clones its children in its constructor
+(`clonePatterns`, `pattern.clone()`): clone-on-compose is a correctness
+requirement, not a stylistic choice. Patterns form trees, never DAGs.
 
 **Leaf Patterns** (match text directly):
 - `Literal` - exact string match, type = `"literal"`

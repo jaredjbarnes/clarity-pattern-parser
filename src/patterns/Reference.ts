@@ -1,75 +1,25 @@
 import { Node } from "../ast/Node";
+import { BasePattern } from "./BasePattern";
+import { Context } from "./Context";
 import { Cursor } from "./Cursor";
 import { Pattern } from "./Pattern";
 import { findPattern } from "./findPattern";
-import { ParseResult } from "./ParseResult";
-import { Context } from "./Context";
-import { testPattern } from "./testPattern";
-import { execPattern } from "./execPattern";
 
-let idIndex = 0;
-
-export class Reference implements Pattern {
-  private _id: string;
-  private _type: string;
-  private _name: string;
+export class Reference extends BasePattern {
   private _referencePatternName: string;
-  private _parent: Pattern | null;
   private _cachedPattern: Pattern | null;
   private _pattern: Pattern | null;
-  private _children: Pattern[];
-  private _firstIndex: number;
   private _cachedAncestors: boolean;
   private _recursiveAncestors: Reference[];
 
-  get id(): string {
-    return this._id;
-  }
-
-  get type(): string {
-    return this._type;
-  }
-
-  get name(): string {
-    return this._name;
-  }
-
-  get parent(): Pattern | null {
-    return this._parent;
-  }
-
-  set parent(pattern: Pattern | null) {
-    this._parent = pattern;
-  }
-
-  get children(): Pattern[] {
-    return this._children;
-  }
-
-  get startedOnIndex() {
-    return this._firstIndex;
-  }
-
   constructor(name: string, referencePatternName?: string) {
-    this._id = `reference-${idIndex++}`;
-    this._type = "reference";
-    this._name = name;
+    super("reference", name);
+
     this._referencePatternName = referencePatternName || name;
-    this._parent = null;
     this._pattern = null;
     this._cachedPattern = null;
-    this._children = [];
-    this._firstIndex = 0;
     this._cachedAncestors = false;
     this._recursiveAncestors = [];
-  }
-
-  test(text: string, record = false): boolean {
-    return testPattern(this, text, record);
-  }
-
-  exec(text: string, record = false): ParseResult {
-    return execPattern(this, text, record);
   }
 
   parse(cursor: Cursor): Node | null {
@@ -202,19 +152,7 @@ export class Reference implements Pattern {
   }
 
   getTokensAfter(_lastMatched: Pattern): string[] {
-    if (this._parent == null) {
-      return [];
-    }
-
-    return this._parent.getTokensAfter(this);
-  }
-
-  getNextTokens(): string[] {
-    if (this.parent == null) {
-      return [];
-    }
-
-    return this.parent.getTokensAfter(this);
+    return this.getNextTokens();
   }
 
   getPatterns(): Pattern[] {
@@ -222,19 +160,7 @@ export class Reference implements Pattern {
   }
 
   getPatternsAfter(_childReference: Pattern): Pattern[] {
-    if (this._parent == null) {
-      return [];
-    }
-
-    return this._parent.getPatternsAfter(this);
-  }
-
-  getNextPatterns(): Pattern[] {
-    if (this.parent == null) {
-      return [];
-    }
-
-    return this.parent.getPatternsAfter(this);
+    return this.getNextPatterns();
   }
 
   find(_predicate: (p: Pattern) => boolean): Pattern | null {
@@ -243,7 +169,7 @@ export class Reference implements Pattern {
 
   clone(name = this._name): Pattern {
     const clone = new Reference(name, this._referencePatternName);
-    clone._id = this._id;
+    clone._cloneIdFrom(this);
 
     // Optimize future clones, by caching the pattern we already found.
     if (this._pattern != null) {

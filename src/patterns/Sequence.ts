@@ -1,90 +1,32 @@
+import { Node } from "../ast/Node";
+import { BasePattern } from "./BasePattern";
 import { Cursor } from "./Cursor";
 import { Pattern } from "./Pattern";
-import { Node } from "../ast/Node";
 import { clonePatterns } from "./clonePatterns";
 import { filterOutNull } from "./filterOutNull";
-import { findPattern } from "./findPattern";
 import { isRecursivePattern } from "./isRecursivePattern";
-import { testPattern } from "./testPattern";
-import { execPattern } from "./execPattern";
-import { ParseResult } from "./ParseResult";
 
-let idIndex = 0;
-
-export class Sequence implements Pattern {
-  private _id: string;
-  private _type: string;
-  private _name: string;
-  private _parent: Pattern | null;
-  private _children: Pattern[];
+export class Sequence extends BasePattern {
   private _nodes: (Node | null)[];
-  private _firstIndex: number;
-
-  get id(): string {
-    return this._id;
-  }
-
-  get type(): string {
-    return this._type;
-  }
-
-  get name(): string {
-    return this._name;
-  }
-
-  get parent(): Pattern | null {
-    return this._parent;
-  }
-
-  set parent(pattern: Pattern | null) {
-    this._parent = pattern;
-  }
-
-  get children(): Pattern[] {
-    return this._children;
-  }
-
-  get startedOnIndex() {
-    return this._firstIndex;
-  }
 
   constructor(name: string, sequence: Pattern[]) {
     if (sequence.length === 0) {
       throw new Error("Need at least one pattern with a 'sequence' pattern.");
     }
 
-    const children = clonePatterns(sequence);
-    this._assignChildrenToParent(children);
+    super("sequence", name, clonePatterns(sequence));
+    this._assignChildrenToParent(this._children);
 
-    this._id = `sequence-${idIndex++}`;
-    this._type = "sequence";
-    this._name = name;
-    this._parent = null;
-    this._children = children;
     this._firstIndex = -1;
     this._nodes = [];
-  }
-
-  private _assignChildrenToParent(children: Pattern[]): void {
-    for (const child of children) {
-      child.parent = this;
-    }
-  }
-
-  test(text: string, record = false): boolean {
-    return testPattern(this, text, record);
-  }
-
-  exec(text: string, record = false): ParseResult {
-    return execPattern(this, text, record);
   }
 
   parse(cursor: Cursor): Node | null {
     this._firstIndex = cursor.index;
     this._nodes = [];
-    const passed = this.tryToParse(cursor);
+    const passed = this._tryToParse(cursor);
     if (passed) {
-      const node = this.createNode(cursor);
+      const node = this._createNode(cursor);
 
       if (node !== null) {
         cursor.recordMatch(this, node);
@@ -96,7 +38,7 @@ export class Sequence implements Pattern {
     return null;
   }
 
-  private tryToParse(cursor: Cursor): boolean {
+  private _tryToParse(cursor: Cursor): boolean {
     let passed = false;
 
     for (let i = 0; i < this._children.length; i++) {
@@ -135,7 +77,7 @@ export class Sequence implements Pattern {
           }
         } else {
           // If we don't have any results from what we parsed then record error.
-          const lastNode = this.getLastValidNode();
+          const lastNode = this._getLastValidNode();
           if (lastNode === null && !this._areAllPatternsOptional()) {
             cursor.recordErrorAt(this._firstIndex, cursor.index, this);
             break;
@@ -155,7 +97,7 @@ export class Sequence implements Pattern {
     return passed;
   }
 
-  private getLastValidNode(): Node | null {
+  private _getLastValidNode(): Node | null {
     const nodes = filterOutNull(this._nodes);
 
     if (nodes.length === 0) {
@@ -183,7 +125,7 @@ export class Sequence implements Pattern {
     return true;
   }
 
-  private createNode(cursor: Cursor): Node | null {
+  private _createNode(cursor: Cursor): Node | null {
     const children = filterOutNull(this._nodes);
 
     if (children.length === 0) {
@@ -216,20 +158,7 @@ export class Sequence implements Pattern {
   }
 
   getTokensAfter(childReference: Pattern): string[] {
-    const patterns = this.getPatternsAfter(childReference);
-    const tokens: string[] = [];
-
-    patterns.forEach(p => tokens.push(...p.getTokens()));
-
-    return tokens;
-  }
-
-  getNextTokens(): string[] {
-    if (this.parent == null) {
-      return [];
-    }
-
-    return this.parent.getTokensAfter(this);
+    return this.getPatternsAfter(childReference).flatMap(p => p.getTokens());
   }
 
   getPatterns(): Pattern[] {
@@ -291,30 +220,10 @@ export class Sequence implements Pattern {
     return patterns;
   }
 
-  getNextPatterns(): Pattern[] {
-    if (this.parent == null) {
-      return [];
-    }
-
-    return this.parent.getPatternsAfter(this);
-  }
-
-  find(predicate: (p: Pattern) => boolean): Pattern | null {
-    return findPattern(this, predicate);
-  }
-
   clone(name = this._name): Pattern {
     const clone = new Sequence(name, this._children);
-    clone._id = this._id;
+    clone._cloneIdFrom(this);
 
     return clone;
-  }
-
-  isEqual(pattern: Sequence): boolean {
-    return (
-      pattern.type === this.type &&
-      this.children.length === pattern.children.length &&
-      this.children.every((c, index) => c.isEqual(pattern.children[index]))
-    );
   }
 }

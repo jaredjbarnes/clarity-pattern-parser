@@ -1,46 +1,29 @@
 import { Node } from "../ast/Node";
+import { BasePattern } from "./BasePattern";
 import { Cursor } from "./Cursor";
 import { ParseResult } from "./ParseResult";
 import { Pattern } from "./Pattern";
 
-let contextId = 0;
-
-export class Context implements Pattern {
-  private _id: string;
-  private _type: string;
-  private _name: string;
+export class Context extends BasePattern {
   private _referencePatternName: string;
-  private _parent: Pattern | null;
-  private _children: Pattern[];
-  private _pattern: Pattern;
   private _patterns: Record<string, Pattern>;
 
-  get id(): string {
-    return this._id;
-  }
-
-  get type(): string {
-    return this._type;
-  }
-
-  get name(): string {
-    return this._name;
-  }
-
-  get parent(): Pattern | null {
-    return this._parent;
-  }
-
-  set parent(pattern: Pattern | null) {
-    this._parent = pattern;
-  }
-
-  get children(): Pattern[] {
-    return this._children;
-  }
-
   get startedOnIndex() {
-    return this.children[0].startedOnIndex;
+    return this._children[0].startedOnIndex;
+  }
+
+  private get _pattern(): Pattern {
+    return this._children[0];
+  }
+
+  constructor(name: string, pattern: Pattern, context: Pattern[] = []) {
+    super("context", name, [pattern.clone()]);
+
+    this._referencePatternName = name;
+    this._patterns = {};
+    context.forEach(p => (this._patterns[p.name] = p));
+
+    this._assignChildrenToParent(this._children);
   }
 
   getPatternWithinContext(name: string): Pattern | null {
@@ -53,22 +36,6 @@ export class Context implements Pattern {
 
   getPatternsWithinContext() {
     return { ...this._patterns };
-  }
-
-  constructor(name: string, pattern: Pattern, context: Pattern[] = []) {
-    this._id = `context-${contextId++}`;
-    this._type = "context";
-    this._name = name;
-    this._parent = null;
-    this._patterns = {};
-    this._referencePatternName = name;
-
-    const clonedPattern = pattern.clone();
-    context.forEach(p => (this._patterns[p.name] = p));
-    clonedPattern.parent = this;
-
-    this._pattern = clonedPattern;
-    this._children = [clonedPattern];
   }
 
   parse(cursor: Cursor): Node | null {
@@ -90,7 +57,7 @@ export class Context implements Pattern {
       Object.values(this._patterns)
     );
     clone._referencePatternName = this._referencePatternName;
-    clone._id = this._id;
+    clone._cloneIdFrom(this);
     return clone;
   }
 
@@ -99,18 +66,7 @@ export class Context implements Pattern {
   }
 
   getTokensAfter(_childReference: Pattern): string[] {
-    if (this._parent == null) {
-      return [];
-    }
-    return this._parent.getTokensAfter(this);
-  }
-
-  getNextTokens(): string[] {
-    if (this._parent == null) {
-      return [];
-    }
-
-    return this._parent.getTokensAfter(this);
+    return this.getNextTokens();
   }
 
   getPatterns(): Pattern[] {
@@ -118,30 +74,10 @@ export class Context implements Pattern {
   }
 
   getPatternsAfter(_childReference: Pattern): Pattern[] {
-    if (this._parent == null) {
-      return [];
-    }
-
-    return this._parent.getPatternsAfter(this);
-  }
-
-  getNextPatterns(): Pattern[] {
-    if (this._parent == null) {
-      return [];
-    }
-
-    return this._parent.getPatternsAfter(this);
+    return this.getNextPatterns();
   }
 
   find(predicate: (pattern: Pattern) => boolean): Pattern | null {
     return this._pattern.find(predicate);
-  }
-
-  isEqual(pattern: Pattern): boolean {
-    return (
-      pattern.type === this.type &&
-      this.children.length === pattern.children.length &&
-      this.children.every((c, index) => c.isEqual(pattern.children[index]))
-    );
   }
 }

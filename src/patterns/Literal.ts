@@ -1,51 +1,14 @@
 import { Node } from "../ast/Node";
+import { BasePattern } from "./BasePattern";
 import { Cursor } from "./Cursor";
-import { ParseResult } from "./ParseResult";
 import { Pattern } from "./Pattern";
-import { execPattern } from "./execPattern";
-import { testPattern } from "./testPattern";
 
-let idIndex = 0;
-
-export class Literal implements Pattern {
-  private _id: string;
-  private _type: string;
-  private _name: string;
-  private _parent: Pattern | null;
+export class Literal extends BasePattern {
   private _token: string;
-  private _firstIndex: number;
   private _lastIndex: number;
-
-  get id(): string {
-    return this._id;
-  }
-
-  get type(): string {
-    return this._type;
-  }
-
-  get name(): string {
-    return this._name;
-  }
 
   get token(): string {
     return this._token;
-  }
-
-  get parent(): Pattern | null {
-    return this._parent;
-  }
-
-  set parent(pattern: Pattern | null) {
-    this._parent = pattern;
-  }
-
-  get children(): Pattern[] {
-    return [];
-  }
-
-  get startedOnIndex() {
-    return this._firstIndex;
   }
 
   constructor(name: string, value: string) {
@@ -53,21 +16,10 @@ export class Literal implements Pattern {
       throw new Error("Value Cannot be empty.");
     }
 
-    this._id = `literal-${idIndex++}`;
-    this._type = "literal";
-    this._name = name;
+    super("literal", name);
+
     this._token = value;
-    this._parent = null;
-    this._firstIndex = 0;
     this._lastIndex = 0;
-  }
-
-  test(text: string, record = false): boolean {
-    return testPattern(this, text, record);
-  }
-
-  exec(text: string, record = false): ParseResult {
-    return execPattern(this, text, record);
   }
 
   parse(cursor: Cursor): Node | null {
@@ -127,7 +79,7 @@ export class Literal implements Pattern {
 
   clone(name = this._name): Pattern {
     const clone = new Literal(name, this._token);
-    clone._id = this._id;
+    clone._cloneIdFrom(this);
     return clone;
   }
 
@@ -139,14 +91,6 @@ export class Literal implements Pattern {
     return [];
   }
 
-  getNextTokens(): string[] {
-    if (this.parent == null) {
-      return [];
-    }
-
-    return this.parent.getTokensAfter(this);
-  }
-
   getPatterns(): Pattern[] {
     return [this];
   }
@@ -155,19 +99,11 @@ export class Literal implements Pattern {
     return [];
   }
 
-  getNextPatterns(): Pattern[] {
-    if (this.parent == null) {
-      return [];
-    }
-
-    return this.parent.getPatternsAfter(this);
-  }
-
   find(_predicate: (p: Pattern) => boolean): Pattern | null {
     return null;
   }
 
-  isEqual(pattern: Literal) {
+  isEqual(pattern: Literal): boolean {
     return pattern.type === this.type && pattern._token === this._token;
   }
 }

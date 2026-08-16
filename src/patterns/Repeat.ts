@@ -1,11 +1,10 @@
 import { Node } from "../ast/Node";
+import { BasePattern } from "./BasePattern";
 import { Cursor } from "./Cursor";
 import { FiniteRepeat } from "./FiniteRepeat";
 import { InfiniteRepeat } from "./InfiniteRepeat";
 import { ParseResult } from "./ParseResult";
 import { Pattern } from "./Pattern";
-
-let idIndex = 0;
 
 export interface RepeatOptions {
   min?: number;
@@ -20,37 +19,15 @@ interface InternalRepeatOptions {
   divider?: Pattern;
 }
 
-export class Repeat implements Pattern {
-  private _id: string;
+/**
+ * Facade that picks the bounded or unbounded implementation. It reports the
+ * chosen implementation's `type`, so its id keeps the "repeat-" prefix while
+ * `type` is "finite-repeat" or "infinite-repeat".
+ */
+export class Repeat extends BasePattern {
   private _repeatPattern: InfiniteRepeat | FiniteRepeat;
-  private _parent: Pattern | null;
   private _pattern: Pattern;
   private _options: InternalRepeatOptions;
-  private _children: Pattern[];
-
-  get id() {
-    return this._id;
-  }
-
-  get type() {
-    return this._repeatPattern.type;
-  }
-
-  get name() {
-    return this._repeatPattern.name;
-  }
-
-  get parent() {
-    return this._parent;
-  }
-
-  set parent(value: Pattern | null) {
-    this._parent = value;
-  }
-
-  get children() {
-    return this._children;
-  }
 
   get min() {
     return this._options.min;
@@ -73,9 +50,9 @@ export class Repeat implements Pattern {
   }
 
   constructor(name: string, pattern: Pattern, options: RepeatOptions = {}) {
-    this._id = `repeat-${idIndex++}`;
+    super("repeat", name);
+
     this._pattern = pattern;
-    this._parent = null;
     this._options = {
       ...options,
       min: options.min == null ? 1 : options.min,
@@ -88,6 +65,7 @@ export class Repeat implements Pattern {
       this._repeatPattern = new InfiniteRepeat(name, pattern, this._options);
     }
 
+    this._type = this._repeatPattern.type;
     this._children = [this._repeatPattern];
     this._repeatPattern.parent = this;
   }
@@ -105,10 +83,9 @@ export class Repeat implements Pattern {
   }
 
   clone(name = this.name) {
-    const min = this._options.min;
-    const clone = new Repeat(name, this._pattern, { ...this._options, min });
+    const clone = new Repeat(name, this._pattern, { ...this._options });
 
-    clone._id = this._id;
+    clone._cloneIdFrom(this);
     return clone;
   }
 
@@ -117,19 +94,7 @@ export class Repeat implements Pattern {
   }
 
   getTokensAfter(_childReference: Pattern): string[] {
-    if (this._parent == null) {
-      return [];
-    }
-
-    return this._parent.getTokensAfter(this);
-  }
-
-  getNextTokens(): string[] {
-    if (this._parent == null) {
-      return [];
-    }
-
-    return this._parent.getTokensAfter(this);
+    return this.getNextTokens();
   }
 
   getPatterns(): Pattern[] {
@@ -137,30 +102,10 @@ export class Repeat implements Pattern {
   }
 
   getPatternsAfter(_childReference: Pattern): Pattern[] {
-    if (this._parent == null) {
-      return [];
-    }
-
-    return this._parent.getPatternsAfter(this);
-  }
-
-  getNextPatterns(): Pattern[] {
-    if (this._parent == null) {
-      return [];
-    }
-
-    return this._parent.getPatternsAfter(this);
+    return this.getNextPatterns();
   }
 
   find(predicate: (p: Pattern) => boolean): Pattern | null {
     return this._repeatPattern.find(predicate);
-  }
-
-  isEqual(pattern: Repeat): boolean {
-    return (
-      pattern.type === this.type &&
-      this.children.length === pattern.children.length &&
-      this.children.every((c, index) => c.isEqual(pattern.children[index]))
-    );
   }
 }

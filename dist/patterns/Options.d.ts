@@ -1,35 +1,15 @@
-import { Node } from "../ast/Node";
-import { Cursor } from "./Cursor";
-import { Pattern } from "./Pattern";
-import { ParseResult } from "./ParseResult";
-export declare class Options implements Pattern {
-    private _id;
-    private _type;
-    private _name;
-    private _parent;
-    private _children;
+import type { Node } from "../ast/Node";
+import { BasePattern } from "./BasePattern";
+import type { Cursor } from "./Cursor";
+import type { Pattern } from "./Pattern";
+export declare class Options extends BasePattern {
     private _isGreedy;
-    private _firstIndex;
-    get id(): string;
-    get type(): string;
-    get name(): string;
-    get parent(): Pattern | null;
-    set parent(pattern: Pattern | null);
-    get children(): Pattern[];
-    get startedOnIndex(): number;
     constructor(name: string, options: Pattern[], isGreedy?: boolean);
-    private _assignChildrenToParent;
-    test(text: string, record?: boolean): boolean;
-    exec(text: string, record?: boolean): ParseResult;
     parse(cursor: Cursor): Node | null;
     private _tryToParse;
     getTokens(): string[];
     getTokensAfter(_childReference: Pattern): string[];
-    getNextTokens(): string[];
     getPatterns(): Pattern[];
     getPatternsAfter(_childReference: Pattern): Pattern[];
-    getNextPatterns(): Pattern[];
-    find(predicate: (p: Pattern) => boolean): Pattern | null;
     clone(name?: string): Pattern;
-    isEqual(pattern: Options): boolean;
 }

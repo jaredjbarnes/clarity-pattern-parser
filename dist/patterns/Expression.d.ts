@@ -1,17 +1,11 @@
-import { Node } from "../ast/Node";
-import { Cursor } from "./Cursor";
-import { ParseResult } from "./ParseResult";
-import { Pattern } from "./Pattern";
-export declare class Expression implements Pattern {
-    private _id;
-    private _type;
-    private _name;
+import type { Node } from "../ast/Node";
+import { BasePattern } from "./BasePattern";
+import type { Cursor } from "./Cursor";
+import type { Pattern } from "./Pattern";
+export declare class Expression extends BasePattern {
     private _originalName;
-    private _parent;
     private _cachedParent;
-    private _firstIndex;
     private _originalPatterns;
-    private _patterns;
     private _atomPatterns;
     private _prefixPatterns;
     private _prefixNames;
@@ -25,33 +19,15 @@ export declare class Expression implements Pattern {
     private _precedenceTree;
     private _hasOrganized;
     private _atomsIdToAncestorsMap;
-    get id(): string;
-    get type(): string;
-    get name(): string;
-    get parent(): Pattern | null;
-    set parent(pattern: Pattern | null);
-    get children(): Pattern[];
     get prefixPatterns(): readonly Pattern[];
     get atomPatterns(): readonly Pattern[];
     get postfixPatterns(): readonly Pattern[];
     get infixPatterns(): readonly Pattern[];
     get binaryPatterns(): readonly Pattern[];
     get originalPatterns(): readonly Pattern[];
-    get startedOnIndex(): number;
     constructor(name: string, patterns: Pattern[]);
     private _organizePatterns;
     private _cacheAncestors;
-    private _extractName;
-    private _isPrefix;
-    private _extractPrefix;
-    private _isAtom;
-    private _isPostfix;
-    private _extractPostfix;
-    private _isBinary;
-    private _extractInfix;
-    private _unwrapAssociationIfNecessary;
-    private _referenceCount;
-    private _isRecursiveReference;
     build(): void;
     parse(cursor: Cursor): Node | null;
     private _tryToParse;
@@ -60,15 +36,16 @@ export declare class Expression implements Pattern {
     private _isBeyondRecursiveAllowance;
     private _tryToMatchPostfix;
     private _tryToMatchBinary;
-    test(text: string, record?: boolean): boolean;
-    exec(text: string, record?: boolean): ParseResult;
     getTokens(): string[];
     getTokensAfter(childReference: Pattern): string[];
-    getNextTokens(): string[];
     getPatterns(): Pattern[];
     getPatternsAfter(childReference: Pattern): Pattern[];
-    getNextPatterns(): Pattern[];
-    find(predicate: (p: Pattern) => boolean): Pattern | null;
+    /** What may start an expression: a prefix operator, or an atom. */
+    private _selectLeading;
+    /**
+     * `getTokensAfter` and `getPatternsAfter` ask the same question and differ
+     * only in what they project out of the answer, so they share this.
+     */
+    private _selectAfter;
     clone(name?: string): Pattern;
-    isEqual(pattern: Expression): boolean;
 }

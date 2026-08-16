@@ -1,6 +1,6 @@
-import { Cursor } from "./Cursor";
-import { Node } from "../ast/Node";
-import { ParseResult } from "./ParseResult";
+import type { Cursor } from "./Cursor";
+import type { Node } from "../ast/Node";
+import type { ParseResult } from "./ParseResult";
 export interface Pattern {
     id: string;
     type: string;

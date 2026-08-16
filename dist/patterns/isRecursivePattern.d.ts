@@ -1,2 +1,2 @@
-import { Pattern } from "./Pattern";
+import type { Pattern } from "./Pattern";
 export declare function isRecursivePattern(pattern: Pattern): boolean;

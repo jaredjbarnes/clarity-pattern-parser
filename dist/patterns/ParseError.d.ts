@@ -1,4 +1,4 @@
-import { Pattern } from "./Pattern";
+import type { Pattern } from "./Pattern";
 export declare class ParseError {
     readonly firstIndex: number;
     readonly startIndex: number;

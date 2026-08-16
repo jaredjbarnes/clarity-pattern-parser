@@ -2,7 +2,7 @@ export interface GrammarFile {
     resource: string;
     expression: string;
 }
-import { Pattern } from "../patterns/Pattern";
+import type { Pattern } from "../patterns/Pattern";
 export type Decorator = (pattern: Pattern, arg?: string | boolean | number | null | Record<string, any> | any[]) => void;
 export interface GrammarOptions {
     resolveImport?: (resource: string, originResource: string | null) => Promise<GrammarFile>;
@@ -12,7 +12,6 @@ export interface GrammarOptions {
     decorators?: Record<string, Decorator>;
 }
 export declare class Grammar {
-    private _options;
     private _parseContext;
     private _params;
     private _originResource?;

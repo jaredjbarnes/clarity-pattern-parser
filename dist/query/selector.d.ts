@@ -1,4 +1,4 @@
-import { Node } from "../ast/Node";
+import type { Node } from "../ast/Node";
 export declare class Selector {
     private _selectedNodes;
     private _selectorAst;

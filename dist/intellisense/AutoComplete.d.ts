@@ -1,6 +1,6 @@
 import { Cursor } from "../patterns/Cursor";
-import { Pattern } from "../patterns/Pattern";
-import { Suggestion } from "./Suggestion";
+import type { Pattern } from "../patterns/Pattern";
+import type { Suggestion } from "./Suggestion";
 export interface AutoCompleteOptions {
     /**
      * Allows for certain patterns to combine their tokens with the next tokens.
@@ -39,10 +39,10 @@ export declare class AutoComplete {
      */
     private _trimSuggestionsByExistingText;
     /** Removed segments already accounted for in the existing text.
-   * ie. sequence pattern segments ≈ [{look}, {an example}, {phrase}]
-   * fullText = "look an"
-   * remove {look} segment as its already been completed by the existing text.
-  */
+     * ie. sequence pattern segments ≈ [{look}, {an example}, {phrase}]
+     * fullText = "look an"
+     * remove {look} segment as its already been completed by the existing text.
+     */
     private _filterCompletedSubSegments;
     private _getCompositeSuggestionsForPattern;
     private _getCustomTokens;

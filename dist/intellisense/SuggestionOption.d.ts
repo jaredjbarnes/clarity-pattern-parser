@@ -1,4 +1,4 @@
-import { Pattern } from "../patterns/Pattern";
+import type { Pattern } from "../patterns/Pattern";
 /**
  * A CompositeSuggestion associated with a index to start at when inserting into existing text.
  */

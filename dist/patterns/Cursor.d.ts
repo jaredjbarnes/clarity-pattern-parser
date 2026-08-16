@@ -1,7 +1,7 @@
-import { Node } from "../ast/Node";
-import { Match } from "./CursorHistory";
-import { ParseError } from "./ParseError";
-import { Pattern } from "./Pattern";
+import type { Node } from "../ast/Node";
+import { type Match } from "./CursorHistory";
+import type { ParseError } from "./ParseError";
+import type { Pattern } from "./Pattern";
 export declare class Cursor {
     private _text;
     private _charSize;

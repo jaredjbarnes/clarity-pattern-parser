@@ -1,7 +1,7 @@
-import { Node } from "../ast/Node";
+import type { Node } from "../ast/Node";
 import { ParseError } from "./ParseError";
-import { Pattern } from "./Pattern";
-import { HistoryRecord } from "./HistoryRecord";
+import type { Pattern } from "./Pattern";
+import type { HistoryRecord } from "./HistoryRecord";
 export interface Match {
     pattern: Pattern | null;
     node: Node | null;

@@ -1,7 +1,8 @@
-import { Node } from "../ast/Node";
-import { Cursor } from "./Cursor";
-import { ParseResult } from "./ParseResult";
-import { Pattern } from "./Pattern";
+import type { Node } from "../ast/Node";
+import { BasePattern } from "./BasePattern";
+import type { Cursor } from "./Cursor";
+import type { ParseResult } from "./ParseResult";
+import type { Pattern } from "./Pattern";
 export interface RepeatOptions {
     min?: number;
     max?: number;
@@ -13,19 +14,15 @@ interface InternalRepeatOptions {
     max: number;
     divider?: Pattern;
 }
-export declare class Repeat implements Pattern {
-    private _id;
+/**
+ * Facade that picks the bounded or unbounded implementation. It reports the
+ * chosen implementation's `type`, so its id keeps the "repeat-" prefix while
+ * `type` is "finite-repeat" or "infinite-repeat".
+ */
+export declare class Repeat extends BasePattern {
     private _repeatPattern;
-    private _parent;
     private _pattern;
     private _options;
-    private _children;
-    get id(): string;
-    get type(): string;
-    get name(): string;
-    get parent(): Pattern | null;
-    set parent(value: Pattern | null);
-    get children(): Pattern[];
     get min(): number;
     get max(): number;
     get startedOnIndex(): number;
@@ -38,11 +35,8 @@ export declare class Repeat implements Pattern {
     clone(name?: string): Repeat;
     getTokens(): string[];
     getTokensAfter(_childReference: Pattern): string[];
-    getNextTokens(): string[];
     getPatterns(): Pattern[];
     getPatternsAfter(_childReference: Pattern): Pattern[];
-    getNextPatterns(): Pattern[];
     find(predicate: (p: Pattern) => boolean): Pattern | null;
-    isEqual(pattern: Repeat): boolean;
 }
 export {};

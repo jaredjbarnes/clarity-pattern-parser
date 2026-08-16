@@ -1,19 +1,9 @@
-import { Node } from "../ast/Node";
-import { Cursor } from "./Cursor";
-import { ParseResult } from "./ParseResult";
-import { Pattern } from "./Pattern";
-export declare class RightAssociated implements Pattern {
-    private _id;
-    private _type;
-    private _name;
-    private _parent;
-    private _children;
-    get id(): string;
-    get type(): string;
-    get name(): string;
-    get parent(): Pattern | null;
-    set parent(pattern: Pattern | null);
-    get children(): Pattern[];
+import type { Node } from "../ast/Node";
+import { BasePattern } from "./BasePattern";
+import type { Cursor } from "./Cursor";
+import type { ParseResult } from "./ParseResult";
+import type { Pattern } from "./Pattern";
+export declare class RightAssociated extends BasePattern {
     get startedOnIndex(): number;
     constructor(pattern: Pattern);
     parse(cursor: Cursor): Node | null;
@@ -22,10 +12,7 @@ export declare class RightAssociated implements Pattern {
     clone(_name?: string | undefined): Pattern;
     getTokens(): string[];
     getTokensAfter(_childReference: Pattern): string[];
-    getNextTokens(): string[];
     getPatterns(): Pattern[];
     getPatternsAfter(_childReference: Pattern): Pattern[];
-    getNextPatterns(): Pattern[];
     find(predicate: (pattern: Pattern) => boolean): Pattern | null;
-    isEqual(pattern: Pattern): boolean;
 }

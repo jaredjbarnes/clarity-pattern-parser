@@ -1,40 +1,21 @@
-import { Cursor } from "./Cursor";
-import { Pattern } from "./Pattern";
-import { Literal } from "./Literal";
 import { Node } from "../ast/Node";
-import { ParseResult } from "./ParseResult";
-export declare class Block implements Pattern {
-    private _id;
-    private _type;
-    private _name;
-    private _parent;
-    private _children;
+import { BasePattern } from "./BasePattern";
+import type { Cursor } from "./Cursor";
+import type { Literal } from "./Literal";
+import type { Pattern } from "./Pattern";
+export declare class Block extends BasePattern {
     private _openPattern;
     private _contentPattern;
     private _closePattern;
-    private _firstIndex;
     private _literalOpen;
     private _literalClose;
-    get id(): string;
-    get type(): string;
-    get name(): string;
-    get parent(): Pattern | null;
-    set parent(pattern: Pattern | null);
-    get children(): Pattern[];
-    get startedOnIndex(): number;
     constructor(name: string, openPattern: Literal, contentPattern: Pattern | null, closePattern: Literal);
-    test(text: string, record?: boolean): boolean;
-    exec(text: string, record?: boolean): ParseResult;
     parse(cursor: Cursor): Node | null;
     private _scanForMatchingClose;
     private _parseContent;
     getTokens(): string[];
     getTokensAfter(childReference: Pattern): string[];
-    getNextTokens(): string[];
     getPatterns(): Pattern[];
     getPatternsAfter(childReference: Pattern): Pattern[];
-    getNextPatterns(): Pattern[];
-    find(predicate: (p: Pattern) => boolean): Pattern | null;
     clone(name?: string): Pattern;
-    isEqual(pattern: Block): boolean;
 }

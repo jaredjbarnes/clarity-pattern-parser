@@ -1,29 +1,14 @@
-import { Node } from "../ast/Node";
-import { Cursor } from "./Cursor";
-import { Pattern } from "./Pattern";
-import { ParseResult } from "./ParseResult";
-export declare class Reference implements Pattern {
-    private _id;
-    private _type;
-    private _name;
+import type { Node } from "../ast/Node";
+import { BasePattern } from "./BasePattern";
+import type { Cursor } from "./Cursor";
+import type { Pattern } from "./Pattern";
+export declare class Reference extends BasePattern {
     private _referencePatternName;
-    private _parent;
     private _cachedPattern;
     private _pattern;
-    private _children;
-    private _firstIndex;
     private _cachedAncestors;
     private _recursiveAncestors;
-    get id(): string;
-    get type(): string;
-    get name(): string;
-    get parent(): Pattern | null;
-    set parent(pattern: Pattern | null);
-    get children(): Pattern[];
-    get startedOnIndex(): number;
     constructor(name: string, referencePatternName?: string);
-    test(text: string, record?: boolean): boolean;
-    exec(text: string, record?: boolean): ParseResult;
     parse(cursor: Cursor): Node | null;
     private _cacheAncestors;
     private _isBeyondRecursiveAllowance;
@@ -33,10 +18,8 @@ export declare class Reference implements Pattern {
     private _getRoot;
     getTokens(): string[];
     getTokensAfter(_lastMatched: Pattern): string[];
-    getNextTokens(): string[];
     getPatterns(): Pattern[];
     getPatternsAfter(_childReference: Pattern): Pattern[];
-    getNextPatterns(): Pattern[];
     find(_predicate: (p: Pattern) => boolean): Pattern | null;
     clone(name?: string): Pattern;
     isEqual(pattern: Reference): boolean;

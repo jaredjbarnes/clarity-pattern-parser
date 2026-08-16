@@ -1,36 +1,20 @@
 import { Node } from "../ast/Node";
-import { Cursor } from "./Cursor";
-import { ParseResult } from "./ParseResult";
-import { Pattern } from "./Pattern";
-export declare class Literal implements Pattern {
-    private _id;
-    private _type;
-    private _name;
-    private _parent;
+import { BasePattern } from "./BasePattern";
+import type { Cursor } from "./Cursor";
+import type { Pattern } from "./Pattern";
+export declare class Literal extends BasePattern {
     private _token;
-    private _firstIndex;
     private _lastIndex;
-    get id(): string;
-    get type(): string;
-    get name(): string;
     get token(): string;
-    get parent(): Pattern | null;
-    set parent(pattern: Pattern | null);
-    get children(): Pattern[];
-    get startedOnIndex(): number;
     constructor(name: string, value: string);
-    test(text: string, record?: boolean): boolean;
-    exec(text: string, record?: boolean): ParseResult;
     parse(cursor: Cursor): Node | null;
     private _tryToParse;
     private _createNode;
     clone(name?: string): Pattern;
     getTokens(): string[];
     getTokensAfter(_lastMatched: Pattern): string[];
-    getNextTokens(): string[];
     getPatterns(): Pattern[];
     getPatternsAfter(): Pattern[];
-    getNextPatterns(): Pattern[];
     find(_predicate: (p: Pattern) => boolean): Pattern | null;
     isEqual(pattern: Literal): boolean;
 }

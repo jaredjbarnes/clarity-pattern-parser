@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 function defaultVisitor(node) {
     return node;
 }
-let idIndex$c = 0;
+let idIndex$1 = 0;
 class Node {
     get id() {
         return this._id;
@@ -44,7 +44,7 @@ class Node {
         return !this.hasChildren;
     }
     constructor(type, name, firstIndex, lastIndex, children = [], value = "") {
-        this._id = String(idIndex$c++);
+        this._id = String(idIndex$1++);
         this._type = type;
         this._name = name;
         this._firstIndex = firstIndex;
@@ -52,7 +52,7 @@ class Node {
         this._parent = null;
         this._children = children;
         this._value = value;
-        this._children.forEach(c => c._parent = this);
+        this._children.forEach(c => (c._parent = this));
     }
     removeChild(node) {
         const index = this._children.indexOf(node);
@@ -66,8 +66,8 @@ class Node {
     }
     spliceChildren(index, deleteCount, ...items) {
         const removedItems = this._children.splice(index, deleteCount, ...items);
-        removedItems.forEach(i => i._parent = null);
-        items.forEach(i => i._parent = this);
+        removedItems.forEach(i => (i._parent = null));
+        items.forEach(i => (i._parent = this));
         return removedItems;
     }
     removeAllChildren() {
@@ -235,7 +235,7 @@ class Node {
         }
     }
     clone() {
-        const node = new Node(this._type, this._name, this._firstIndex, this._lastIndex, this._children.map((c) => c.clone()), this._value);
+        const node = new Node(this._type, this._name, this._firstIndex, this._lastIndex, this._children.map(c => c.clone()), this._value);
         return node;
     }
     normalize(startIndex = this._firstIndex) {
@@ -277,7 +277,7 @@ class Node {
         return JSON.stringify(this.toCycleFreeObject(), null, space);
     }
     isEqual(node) {
-        return node._type === this._type &&
+        return (node._type === this._type &&
             node._name === this._name &&
             node._firstIndex === this._firstIndex &&
             node._lastIndex === this._lastIndex &&
@@ -290,7 +290,7 @@ class Node {
             // children check below, so this can never mask a real difference.
             node.value === this.value &&
             this._children.length === node._children.length &&
-            this._children.every((child, index) => child.isEqual(node._children[index]));
+            this._children.every((child, index) => child.isEqual(node._children[index])));
     }
     static createValueNode(type, name, value = "") {
         return new Node(type, name, 0, 0, [], value);
@@ -349,22 +349,29 @@ typeof SuppressedError === "function" ? SuppressedError : function (error, suppr
     return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
 };
 
+function isTokenizablePattern(pattern) {
+    return typeof pattern.setTokens === "function";
+}
+
+/**
+ * `@tokens([...])` supplies the tokens a pattern offers to autocomplete.
+ *
+ * The target is detected structurally rather than by `type`, so this works for
+ * any pattern that can accept tokens — `Regex`, `TakeUntil`, or a custom one —
+ * instead of only the built-in regex.
+ */
 const tokens = (pattern, arg) => {
-    if (pattern.type === "regex" && Array.isArray(arg)) {
-        const regex = pattern;
-        const tokens = [];
-        arg.forEach(token => {
-            if (typeof token === "string") {
-                tokens.push(token);
-            }
-        });
-        regex.setTokens(tokens);
+    if (!Array.isArray(arg) || !isTokenizablePattern(pattern)) {
+        return;
     }
+    pattern.setTokens(arg.filter((token) => typeof token === "string"));
 };
 
 function generateErrorMessage(pattern, cursor) {
     const furthestMatch = cursor.leafMatch;
-    if (furthestMatch == null || furthestMatch.node == null || furthestMatch.pattern == null) {
+    if (furthestMatch == null ||
+        furthestMatch.node == null ||
+        furthestMatch.pattern == null) {
         const suggestions = cleanSuggestions(pattern.getTokens()).join(", ");
         return `Error at line 1, column 1. Hint: ${suggestions}`;
     }
@@ -384,155 +391,6 @@ function generateErrorMessage(pattern, cursor) {
 }
 function cleanSuggestions(suggestions) {
     return suggestions.map(s => s.trim()).filter(s => s.length > 0);
-}
-
-let contextId = 0;
-class Context {
-    get id() {
-        return this._id;
-    }
-    get type() {
-        return this._type;
-    }
-    get name() {
-        return this._name;
-    }
-    get parent() {
-        return this._parent;
-    }
-    set parent(pattern) {
-        this._parent = pattern;
-    }
-    get children() {
-        return this._children;
-    }
-    get startedOnIndex() {
-        return this.children[0].startedOnIndex;
-    }
-    getPatternWithinContext(name) {
-        if (this._name === name || this._referencePatternName === name) {
-            return this;
-        }
-        return this._patterns[name] || null;
-    }
-    getPatternsWithinContext() {
-        return Object.assign({}, this._patterns);
-    }
-    constructor(name, pattern, context = []) {
-        this._id = `context-${contextId++}`;
-        this._type = "context";
-        this._name = name;
-        this._parent = null;
-        this._patterns = {};
-        this._referencePatternName = name;
-        const clonedPattern = pattern.clone();
-        context.forEach(p => this._patterns[p.name] = p);
-        clonedPattern.parent = this;
-        this._pattern = clonedPattern;
-        this._children = [clonedPattern];
-    }
-    parse(cursor) {
-        return this._pattern.parse(cursor);
-    }
-    exec(text, record) {
-        return this._pattern.exec(text, record);
-    }
-    test(text, record) {
-        return this._pattern.test(text, record);
-    }
-    clone(name = this._name) {
-        const clone = new Context(name, this._pattern.clone(name), Object.values(this._patterns));
-        clone._referencePatternName = this._referencePatternName;
-        clone._id = this._id;
-        return clone;
-    }
-    getTokens() {
-        return this._pattern.getTokens();
-    }
-    getTokensAfter(_childReference) {
-        if (this._parent == null) {
-            return [];
-        }
-        return this._parent.getTokensAfter(this);
-    }
-    getNextTokens() {
-        if (this._parent == null) {
-            return [];
-        }
-        return this._parent.getTokensAfter(this);
-    }
-    getPatterns() {
-        return this._pattern.getPatterns();
-    }
-    getPatternsAfter(_childReference) {
-        if (this._parent == null) {
-            return [];
-        }
-        return this._parent.getPatternsAfter(this);
-    }
-    getNextPatterns() {
-        if (this._parent == null) {
-            return [];
-        }
-        return this._parent.getPatternsAfter(this);
-    }
-    find(predicate) {
-        return this._pattern.find(predicate);
-    }
-    isEqual(pattern) {
-        return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
-    }
-}
-
-function findPattern(pattern, predicate) {
-    let children = [];
-    if (pattern.type === "reference") {
-        children = [];
-    }
-    else {
-        children = pattern.children;
-    }
-    for (const child of children) {
-        const result = findPattern(child, predicate);
-        if (result !== null) {
-            return result;
-        }
-    }
-    if (predicate(pattern)) {
-        return pattern;
-    }
-    else {
-        return null;
-    }
-}
-
-function clonePatterns(patterns) {
-    return patterns.map(p => p.clone());
-}
-
-function filterOutNull(nodes) {
-    const filteredNodes = [];
-    for (const node of nodes) {
-        if (node !== null) {
-            filteredNodes.push(node);
-        }
-    }
-    return filteredNodes;
-}
-
-function isRecursivePattern(pattern) {
-    let onPattern = pattern.parent;
-    let depth = 0;
-    while (onPattern != null) {
-        if (onPattern.id === pattern.id) {
-            depth++;
-        }
-        onPattern = onPattern.parent;
-        if (depth > 1) {
-            return true;
-        }
-    }
-    return false;
 }
 
 class ParseError {
@@ -591,7 +449,7 @@ class CursorHistory {
         const record = {
             pattern,
             ast: node,
-            error: null
+            error: null,
         };
         if (this._isRecording) {
             this._patterns.push(pattern);
@@ -612,7 +470,7 @@ class CursorHistory {
             this._leafMatches.push(match);
         }
         else if (isSameIndexMatch) {
-            const isAncestor = this._leafMatches.some((m) => {
+            const isAncestor = this._leafMatches.some(m => {
                 var _a;
                 let parent = (_a = m.pattern) === null || _a === void 0 ? void 0 : _a.parent;
                 while (parent != null) {
@@ -633,7 +491,7 @@ class CursorHistory {
         const record = {
             pattern,
             ast: null,
-            error
+            error,
         };
         this._currentError = error;
         if (this._furthestError === null || lastIndex > this._furthestError.lastIndex) {
@@ -789,7 +647,7 @@ class Cursor {
     }
     getCharEndIndex(index) {
         var _a;
-        let startIndex = this.getCharStartIndex(index);
+        const startIndex = this.getCharStartIndex(index);
         return (_a = startIndex + this._charSize[startIndex]) !== null && _a !== void 0 ? _a : 1;
     }
     getCharLastIndex(index) {
@@ -818,8 +676,30 @@ function execPattern(pattern, text, record = false) {
     }
     return {
         ast: ast,
-        cursor
+        cursor,
     };
+}
+
+function findPattern(pattern, predicate) {
+    let children = [];
+    if (pattern.type === "reference") {
+        children = [];
+    }
+    else {
+        children = pattern.children;
+    }
+    for (const child of children) {
+        const result = findPattern(child, predicate);
+        if (result !== null) {
+            return result;
+        }
+    }
+    if (predicate(pattern)) {
+        return pattern;
+    }
+    else {
+        return null;
+    }
 }
 
 function testPattern(pattern, text, record = false) {
@@ -827,8 +707,27 @@ function testPattern(pattern, text, record = false) {
     return !result.cursor.hasError;
 }
 
-let idIndex$b = 0;
-class Sequence {
+let idIndex = 0;
+/**
+ * Shared implementation for the built-in patterns.
+ *
+ * `Pattern` remains the contract: it is a structural interface, so a custom
+ * pattern only has to match its shape and never has to extend anything. This
+ * class exists purely to spare the built-ins from restating the parts that are
+ * identical everywhere — identity, parent/child wiring, the `exec`/`test`
+ * conveniences, and the parent-forwarding half of the introspection API.
+ *
+ * Two invariants live here and are easy to break by accident:
+ *
+ * 1. `clone()` must copy `_id` from the source. Recursion detection compares
+ *    ids across clones (see `isRecursivePattern`, `Reference`, `Expression`),
+ *    so a clone that mints a fresh id silently disables it.
+ * 2. Patterns keep per-parse state on the instance (`_firstIndex` and friends),
+ *    which makes them non-reentrant. That is why every composite clones its
+ *    children instead of sharing them — it is a correctness requirement, not a
+ *    stylistic one.
+ */
+class BasePattern {
     get id() {
         return this._id;
     }
@@ -850,24 +749,18 @@ class Sequence {
     get startedOnIndex() {
         return this._firstIndex;
     }
-    constructor(name, sequence) {
-        if (sequence.length === 0) {
-            throw new Error("Need at least one pattern with a 'sequence' pattern.");
-        }
-        const children = clonePatterns(sequence);
-        this._assignChildrenToParent(children);
-        this._id = `sequence-${idIndex$b++}`;
-        this._type = "sequence";
+    /**
+     * `type` doubles as the id prefix. A pattern whose reported `type` differs
+     * from its id prefix (Repeat, which reports its inner repeat's type) should
+     * pass the prefix here and reassign `_type` afterwards.
+     */
+    constructor(type, name, children = []) {
+        this._id = `${type}-${idIndex++}`;
+        this._type = type;
         this._name = name;
         this._parent = null;
         this._children = children;
-        this._firstIndex = -1;
-        this._nodes = [];
-    }
-    _assignChildrenToParent(children) {
-        for (const child of children) {
-            child.parent = this;
-        }
+        this._firstIndex = 0;
     }
     test(text, record = false) {
         return testPattern(this, text, record);
@@ -875,194 +768,89 @@ class Sequence {
     exec(text, record = false) {
         return execPattern(this, text, record);
     }
-    parse(cursor) {
-        this._firstIndex = cursor.index;
-        this._nodes = [];
-        const passed = this.tryToParse(cursor);
-        if (passed) {
-            const node = this.createNode(cursor);
-            if (node !== null) {
-                cursor.recordMatch(this, node);
-            }
-            return node;
-        }
-        return null;
-    }
-    tryToParse(cursor) {
-        let passed = false;
-        for (let i = 0; i < this._children.length; i++) {
-            const runningCursorIndex = cursor.index;
-            const nextPatternIndex = i + 1;
-            const hasMorePatterns = nextPatternIndex < this._children.length;
-            const node = this._children[i].parse(cursor);
-            const hasNoError = !cursor.hasError;
-            const hadMatch = node !== null;
-            if (hasNoError) {
-                this._nodes.push(node);
-                if (hasMorePatterns) {
-                    if (hadMatch) {
-                        if (cursor.hasNext()) {
-                            // We had a match. Increment the cursor and use the next pattern.
-                            cursor.next();
-                            continue;
-                        }
-                        else {
-                            // We are at the end of the text, it may still be valid, if all the
-                            // following patterns are optional.
-                            if (this._areRemainingPatternsOptional(i)) {
-                                passed = true;
-                                break;
-                            }
-                            // We didn't finish the parsing sequence.
-                            cursor.recordErrorAt(this._firstIndex, cursor.index + 1, this);
-                            break;
-                        }
-                    }
-                    else {
-                        // An optional pattern did not matched, try from the same spot on the next
-                        // pattern.
-                        cursor.moveTo(runningCursorIndex);
-                        continue;
-                    }
-                }
-                else {
-                    // If we don't have any results from what we parsed then record error.
-                    const lastNode = this.getLastValidNode();
-                    if (lastNode === null && !this._areAllPatternsOptional()) {
-                        cursor.recordErrorAt(this._firstIndex, cursor.index, this);
-                        break;
-                    }
-                    // The sequence was parsed fully.
-                    passed = true;
-                    break;
-                }
-            }
-            else {
-                // The pattern failed.
-                cursor.moveTo(this._firstIndex);
-                break;
-            }
-        }
-        return passed;
-    }
-    getLastValidNode() {
-        const nodes = filterOutNull(this._nodes);
-        if (nodes.length === 0) {
-            return null;
-        }
-        return nodes[nodes.length - 1];
-    }
-    _areAllPatternsOptional() {
-        return this._areRemainingPatternsOptional(-1);
-    }
-    _areRemainingPatternsOptional(fromIndex) {
-        const startOnIndex = fromIndex + 1;
-        const length = this._children.length;
-        for (let i = startOnIndex; i < length; i++) {
-            const pattern = this._children[i];
-            if (pattern.type !== "optional") {
-                return false;
-            }
-        }
-        return true;
-    }
-    createNode(cursor) {
-        const children = filterOutNull(this._nodes);
-        if (children.length === 0) {
-            cursor.moveTo(this._firstIndex);
-            return null;
-        }
-        const lastIndex = children[children.length - 1].lastIndex;
-        cursor.moveTo(lastIndex);
-        return new Node("sequence", this._name, this._firstIndex, lastIndex, children);
-    }
-    getTokens() {
-        const tokens = [];
-        for (const pattern of this._children) {
-            if (isRecursivePattern(pattern) && pattern === this._children[0]) {
-                return tokens;
-            }
-            tokens.push(...pattern.getTokens());
-            if (pattern.type !== "optional" && pattern.type !== "not") {
-                break;
-            }
-        }
-        return tokens;
-    }
-    getTokensAfter(childReference) {
-        const patterns = this.getPatternsAfter(childReference);
-        const tokens = [];
-        patterns.forEach(p => tokens.push(...p.getTokens()));
-        return tokens;
-    }
     getNextTokens() {
-        if (this.parent == null) {
+        if (this._parent == null) {
             return [];
         }
-        return this.parent.getTokensAfter(this);
-    }
-    getPatterns() {
-        const patterns = [];
-        for (const pattern of this._children) {
-            if (isRecursivePattern(pattern) && pattern === this._children[0]) {
-                return patterns;
-            }
-            patterns.push(...pattern.getPatterns());
-            if (pattern.type !== "optional" && pattern.type !== "not") {
-                break;
-            }
-        }
-        return patterns;
-    }
-    getPatternsAfter(childReference) {
-        const patterns = [];
-        let nextSiblingIndex = -1;
-        let index = -1;
-        for (let i = 0; i < this._children.length; i++) {
-            if (this._children[i] === childReference) {
-                nextSiblingIndex = i + 1;
-                index = i;
-                break;
-            }
-        }
-        // The child reference isn't one of the child patterns.
-        if (index === -1) {
-            return [];
-        }
-        // The reference pattern is the last child. So ask the parent for the next pattern.
-        if (nextSiblingIndex === this._children.length && this._parent !== null) {
-            return this._parent.getPatternsAfter(this);
-        }
-        // Send back as many optional patterns as possible.
-        for (let i = nextSiblingIndex; i < this._children.length; i++) {
-            const child = this._children[i];
-            patterns.push(child);
-            if (child.type !== "optional") {
-                break;
-            }
-            // If we are on the last child and its options then ask for the next pattern from the parent.
-            if (i === this._children.length - 1 && this._parent !== null) {
-                patterns.push(...this._parent.getPatternsAfter(this));
-            }
-        }
-        return patterns;
+        return this._parent.getTokensAfter(this);
     }
     getNextPatterns() {
-        if (this.parent == null) {
+        if (this._parent == null) {
             return [];
         }
-        return this.parent.getPatternsAfter(this);
+        return this._parent.getPatternsAfter(this);
     }
     find(predicate) {
         return findPattern(this, predicate);
     }
+    isEqual(pattern) {
+        return (pattern.type === this.type &&
+            this.children.length === pattern.children.length &&
+            this.children.every((child, index) => child.isEqual(pattern.children[index])));
+    }
+    /** Copies the source's id onto a fresh clone. See invariant 1 above. */
+    _cloneIdFrom(source) {
+        this._id = source._id;
+    }
+    _assignChildrenToParent(children) {
+        for (const child of children) {
+            child.parent = this;
+        }
+    }
+}
+
+class Context extends BasePattern {
+    get startedOnIndex() {
+        return this._children[0].startedOnIndex;
+    }
+    get _pattern() {
+        return this._children[0];
+    }
+    constructor(name, pattern, context = []) {
+        super("context", name, [pattern.clone()]);
+        this._referencePatternName = name;
+        this._patterns = {};
+        context.forEach(p => (this._patterns[p.name] = p));
+        this._assignChildrenToParent(this._children);
+    }
+    getPatternWithinContext(name) {
+        if (this._name === name || this._referencePatternName === name) {
+            return this;
+        }
+        return this._patterns[name] || null;
+    }
+    getPatternsWithinContext() {
+        return Object.assign({}, this._patterns);
+    }
+    parse(cursor) {
+        return this._pattern.parse(cursor);
+    }
+    exec(text, record) {
+        return this._pattern.exec(text, record);
+    }
+    test(text, record) {
+        return this._pattern.test(text, record);
+    }
     clone(name = this._name) {
-        const clone = new Sequence(name, this._children);
-        clone._id = this._id;
+        const clone = new Context(name, this._pattern.clone(name), Object.values(this._patterns));
+        clone._referencePatternName = this._referencePatternName;
+        clone._cloneIdFrom(this);
         return clone;
     }
-    isEqual(pattern) {
-        return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
+    getTokens() {
+        return this._pattern.getTokens();
+    }
+    getTokensAfter(_childReference) {
+        return this.getNextTokens();
+    }
+    getPatterns() {
+        return this._pattern.getPatterns();
+    }
+    getPatternsAfter(_childReference) {
+        return this.getNextPatterns();
+    }
+    find(predicate) {
+        return this._pattern.find(predicate);
     }
 }
 
@@ -1100,7 +888,10 @@ class PrecedenceTree {
     addPostfix(name, ...postfix) {
         const lastPostfixNode = this._postfixNode;
         if (lastPostfixNode == null) {
-            const node = Node.createNode("expression", name, [this._postfixPlaceholder, ...postfix]);
+            const node = Node.createNode("expression", name, [
+                this._postfixPlaceholder,
+                ...postfix,
+            ]);
             this._postfixNode = node;
             return;
         }
@@ -1118,7 +909,11 @@ class PrecedenceTree {
         }
         this._binaryPlaceholder.remove();
         if (lastBinaryNode == null) {
-            const node = Node.createNode("expression", name, [lastAtomNode, ...delimiterNode, this._binaryPlaceholder]);
+            const node = Node.createNode("expression", name, [
+                lastAtomNode,
+                ...delimiterNode,
+                this._binaryPlaceholder,
+            ]);
             this._binaryNode = node;
             this._revertBinary = () => {
                 lastAtomNode.remove();
@@ -1127,7 +922,11 @@ class PrecedenceTree {
             return;
         }
         if (precedence === lastPrecendece && association === Association.right) {
-            const node = Node.createNode("expression", name, [lastAtomNode, ...delimiterNode, this._binaryPlaceholder]);
+            const node = Node.createNode("expression", name, [
+                lastAtomNode,
+                ...delimiterNode,
+                this._binaryPlaceholder,
+            ]);
             lastBinaryNode.appendChild(node);
             this._revertBinary = () => {
                 node.replaceWith(lastAtomNode);
@@ -1181,7 +980,11 @@ class PrecedenceTree {
             this._binaryNode = node;
         }
         else {
-            const node = Node.createNode("expression", name, [lastAtomNode, ...delimiterNode, this._binaryPlaceholder]);
+            const node = Node.createNode("expression", name, [
+                lastAtomNode,
+                ...delimiterNode,
+                this._binaryPlaceholder,
+            ]);
             lastBinaryNode.appendChild(node);
             this._revertBinary = () => {
                 lastAtomNode.remove();
@@ -1257,7 +1060,7 @@ class PrecedenceTree {
         const atomNode = this._compileAtomNode();
         if (atomNode == null) {
             this._revertBinary();
-            let root = this._binaryNode.findRoot();
+            const root = this._binaryNode.findRoot();
             this.reset();
             return root;
         }
@@ -1276,26 +1079,305 @@ class PrecedenceTree {
     }
 }
 
-let indexId$1 = 0;
-class Expression {
-    get id() {
-        return this._id;
+function clonePatterns(patterns) {
+    return patterns.map(p => p.clone());
+}
+
+function filterOutNull(nodes) {
+    const filteredNodes = [];
+    for (const node of nodes) {
+        if (node !== null) {
+            filteredNodes.push(node);
+        }
     }
-    get type() {
-        return this._type;
+    return filteredNodes;
+}
+
+function isRecursivePattern(pattern) {
+    let onPattern = pattern.parent;
+    let depth = 0;
+    while (onPattern != null) {
+        if (onPattern.id === pattern.id) {
+            depth++;
+        }
+        onPattern = onPattern.parent;
+        if (depth > 1) {
+            return true;
+        }
     }
-    get name() {
-        return this._name;
+    return false;
+}
+
+class Sequence extends BasePattern {
+    constructor(name, sequence) {
+        if (sequence.length === 0) {
+            throw new Error("Need at least one pattern with a 'sequence' pattern.");
+        }
+        super("sequence", name, clonePatterns(sequence));
+        this._assignChildrenToParent(this._children);
+        this._firstIndex = -1;
+        this._nodes = [];
     }
-    get parent() {
-        return this._parent;
+    parse(cursor) {
+        this._firstIndex = cursor.index;
+        this._nodes = [];
+        const passed = this._tryToParse(cursor);
+        if (passed) {
+            const node = this._createNode(cursor);
+            if (node !== null) {
+                cursor.recordMatch(this, node);
+            }
+            return node;
+        }
+        return null;
     }
-    set parent(pattern) {
-        this._parent = pattern;
+    _tryToParse(cursor) {
+        let passed = false;
+        for (let i = 0; i < this._children.length; i++) {
+            const runningCursorIndex = cursor.index;
+            const nextPatternIndex = i + 1;
+            const hasMorePatterns = nextPatternIndex < this._children.length;
+            const node = this._children[i].parse(cursor);
+            const hasNoError = !cursor.hasError;
+            const hadMatch = node !== null;
+            if (hasNoError) {
+                this._nodes.push(node);
+                if (hasMorePatterns) {
+                    if (hadMatch) {
+                        if (cursor.hasNext()) {
+                            // We had a match. Increment the cursor and use the next pattern.
+                            cursor.next();
+                        }
+                        else {
+                            // We are at the end of the text, it may still be valid, if all the
+                            // following patterns are optional.
+                            if (this._areRemainingPatternsOptional(i)) {
+                                passed = true;
+                                break;
+                            }
+                            // We didn't finish the parsing sequence.
+                            cursor.recordErrorAt(this._firstIndex, cursor.index + 1, this);
+                            break;
+                        }
+                    }
+                    else {
+                        // An optional pattern did not matched, try from the same spot on the next
+                        // pattern.
+                        cursor.moveTo(runningCursorIndex);
+                    }
+                }
+                else {
+                    // If we don't have any results from what we parsed then record error.
+                    const lastNode = this._getLastValidNode();
+                    if (lastNode === null && !this._areAllPatternsOptional()) {
+                        cursor.recordErrorAt(this._firstIndex, cursor.index, this);
+                        break;
+                    }
+                    // The sequence was parsed fully.
+                    passed = true;
+                    break;
+                }
+            }
+            else {
+                // The pattern failed.
+                cursor.moveTo(this._firstIndex);
+                break;
+            }
+        }
+        return passed;
     }
-    get children() {
-        return this._patterns;
+    _getLastValidNode() {
+        const nodes = filterOutNull(this._nodes);
+        if (nodes.length === 0) {
+            return null;
+        }
+        return nodes[nodes.length - 1];
     }
+    _areAllPatternsOptional() {
+        return this._areRemainingPatternsOptional(-1);
+    }
+    _areRemainingPatternsOptional(fromIndex) {
+        const startOnIndex = fromIndex + 1;
+        const length = this._children.length;
+        for (let i = startOnIndex; i < length; i++) {
+            const pattern = this._children[i];
+            if (pattern.type !== "optional") {
+                return false;
+            }
+        }
+        return true;
+    }
+    _createNode(cursor) {
+        const children = filterOutNull(this._nodes);
+        if (children.length === 0) {
+            cursor.moveTo(this._firstIndex);
+            return null;
+        }
+        const lastIndex = children[children.length - 1].lastIndex;
+        cursor.moveTo(lastIndex);
+        return new Node("sequence", this._name, this._firstIndex, lastIndex, children);
+    }
+    getTokens() {
+        const tokens = [];
+        for (const pattern of this._children) {
+            if (isRecursivePattern(pattern) && pattern === this._children[0]) {
+                return tokens;
+            }
+            tokens.push(...pattern.getTokens());
+            if (pattern.type !== "optional" && pattern.type !== "not") {
+                break;
+            }
+        }
+        return tokens;
+    }
+    getTokensAfter(childReference) {
+        return this.getPatternsAfter(childReference).flatMap(p => p.getTokens());
+    }
+    getPatterns() {
+        const patterns = [];
+        for (const pattern of this._children) {
+            if (isRecursivePattern(pattern) && pattern === this._children[0]) {
+                return patterns;
+            }
+            patterns.push(...pattern.getPatterns());
+            if (pattern.type !== "optional" && pattern.type !== "not") {
+                break;
+            }
+        }
+        return patterns;
+    }
+    getPatternsAfter(childReference) {
+        const patterns = [];
+        let nextSiblingIndex = -1;
+        let index = -1;
+        for (let i = 0; i < this._children.length; i++) {
+            if (this._children[i] === childReference) {
+                nextSiblingIndex = i + 1;
+                index = i;
+                break;
+            }
+        }
+        // The child reference isn't one of the child patterns.
+        if (index === -1) {
+            return [];
+        }
+        // The reference pattern is the last child. So ask the parent for the next pattern.
+        if (nextSiblingIndex === this._children.length && this._parent !== null) {
+            return this._parent.getPatternsAfter(this);
+        }
+        // Send back as many optional patterns as possible.
+        for (let i = nextSiblingIndex; i < this._children.length; i++) {
+            const child = this._children[i];
+            patterns.push(child);
+            if (child.type !== "optional") {
+                break;
+            }
+            // If we are on the last child and its options then ask for the next pattern from the parent.
+            if (i === this._children.length - 1 && this._parent !== null) {
+                patterns.push(...this._parent.getPatternsAfter(this));
+            }
+        }
+        return patterns;
+    }
+    clone(name = this._name) {
+        const clone = new Sequence(name, this._children);
+        clone._cloneIdFrom(this);
+        return clone;
+    }
+}
+
+/**
+ * @param patterns    the expression's original alternatives
+ * @param expressionName  name a child must have to count as a self-reference
+ * @param owner       the Expression that will own the extracted patterns
+ */
+function classifyExpressionPatterns(patterns, expressionName, owner) {
+    const result = {
+        patterns: [],
+        atomPatterns: [],
+        prefixPatterns: [],
+        prefixNames: [],
+        postfixPatterns: [],
+        postfixNames: [],
+        infixPatterns: [],
+        infixNames: [],
+        precedenceMap: {},
+        associationMap: {},
+    };
+    const isSelfReference = (pattern) => pattern != null && pattern.name === expressionName;
+    const unwrap = (pattern) => unwrapAssociation(pattern, owner);
+    patterns.forEach((pattern, index) => {
+        const unwrapped = unwrap(pattern);
+        const firstChild = unwrapped.children[0];
+        const lastChild = unwrapped.children[unwrapped.children.length - 1];
+        const startsWithSelf = isSelfReference(firstChild);
+        const endsWithSelf = isSelfReference(lastChild);
+        const selfReferenceCount = unwrapped.children.filter(isSelfReference).length;
+        if (!startsWithSelf && !endsWithSelf) {
+            const atom = pattern.clone();
+            atom.parent = owner;
+            result.atomPatterns.push(atom);
+            result.patterns.push(atom);
+            return;
+        }
+        const name = extractName(pattern);
+        if (endsWithSelf && selfReferenceCount === 1) {
+            const prefix = new Sequence(`${unwrapped.name}-prefix`, unwrapped.children.slice(0, -1));
+            prefix.parent = owner;
+            result.precedenceMap[name] = index;
+            result.prefixPatterns.push(prefix);
+            result.prefixNames.push(name);
+            result.patterns.push(prefix);
+            return;
+        }
+        if (startsWithSelf && selfReferenceCount === 1) {
+            const postfix = new Sequence(`${unwrapped.name}-postfix`, unwrapped.children.slice(1));
+            postfix.parent = owner;
+            result.precedenceMap[name] = index;
+            result.postfixPatterns.push(postfix);
+            result.postfixNames.push(name);
+            result.patterns.push(postfix);
+            return;
+        }
+        if (startsWithSelf && endsWithSelf && unwrapped.children.length > 2) {
+            const infix = new Sequence(`${unwrapped.name}-delimiter`, unwrapped.children.slice(1, -1));
+            infix.parent = owner;
+            result.precedenceMap[name] = index;
+            result.infixPatterns.push(infix);
+            result.infixNames.push(name);
+            result.associationMap[name] =
+                pattern.type === "right-associated" ? Association.right : Association.left;
+            result.patterns.push(infix);
+        }
+    });
+    return result;
+}
+function extractName(pattern) {
+    if (pattern.type === "right-associated") {
+        return pattern.children[0].name;
+    }
+    return pattern.name;
+}
+/**
+ * Sees through the two wrappers an alternative may arrive in: the
+ * `RightAssociated` marker, and a `Reference` that has to be resolved before its
+ * children can be inspected. Resolving a reference needs a parent to search up
+ * from, hence `owner`; the temporary link is removed again afterwards.
+ */
+function unwrapAssociation(pattern, owner) {
+    let unwrapped = pattern;
+    if (unwrapped.type === "right-associated") {
+        unwrapped = unwrapped.children[0];
+    }
+    if (unwrapped.type === "reference") {
+        unwrapped.parent = owner;
+        unwrapped = unwrapped.getReferencePatternSafely();
+        unwrapped.parent = null;
+    }
+    return unwrapped;
+}
+
+class Expression extends BasePattern {
     get prefixPatterns() {
         return this._prefixPatterns;
     }
@@ -1315,20 +1397,13 @@ class Expression {
     get originalPatterns() {
         return this._originalPatterns;
     }
-    get startedOnIndex() {
-        return this._firstIndex;
-    }
     constructor(name, patterns) {
         if (patterns.length === 0) {
             throw new Error("Need at least one pattern with an 'expression' pattern.");
         }
-        this._id = `expression-${indexId$1++}`;
-        this._type = "expression";
-        this._name = name;
+        super("expression", name);
         this._originalName = name;
-        this._parent = null;
         this._cachedParent = null;
-        this._firstIndex = 0;
         this._atomPatterns = [];
         this._prefixPatterns = [];
         this._prefixNames = [];
@@ -1341,61 +1416,29 @@ class Expression {
         this._originalPatterns = patterns;
         this._shouldStopParsing = false;
         this._hasOrganized = false;
-        this._patterns = [];
+        this._children = [];
         this._precedenceTree = new PrecedenceTree({}, {});
         this._atomsIdToAncestorsMap = {};
     }
     _organizePatterns(patterns) {
-        const finalPatterns = [];
-        patterns.forEach((pattern, index) => {
-            if (this._isAtom(pattern)) {
-                const atom = pattern.clone();
-                atom.parent = this;
-                this._atomPatterns.push(atom);
-                finalPatterns.push(atom);
-            }
-            else if (this._isPrefix(pattern)) {
-                const name = this._extractName(pattern);
-                const prefix = this._extractPrefix(pattern);
-                prefix.parent = this;
-                this._precedenceMap[name] = index;
-                this._prefixPatterns.push(prefix);
-                this._prefixNames.push(name);
-                finalPatterns.push(prefix);
-            }
-            else if (this._isPostfix(pattern)) {
-                const name = this._extractName(pattern);
-                const postfix = this._extractPostfix(pattern);
-                postfix.parent = this;
-                this._precedenceMap[name] = index;
-                this._postfixPatterns.push(postfix);
-                this._postfixNames.push(name);
-                finalPatterns.push(postfix);
-            }
-            else if (this._isBinary(pattern)) {
-                const name = this._extractName(pattern);
-                const infix = this._extractInfix(pattern);
-                infix.parent = this;
-                this._precedenceMap[name] = index;
-                this._infixPatterns.push(infix);
-                this._infixNames.push(name);
-                if (pattern.type === "right-associated") {
-                    this._associationMap[name] = Association.right;
-                }
-                else {
-                    this._associationMap[name] = Association.left;
-                }
-                finalPatterns.push(infix);
-            }
-        });
-        this._patterns = finalPatterns;
+        const classified = classifyExpressionPatterns(patterns, this._originalName, this);
+        this._atomPatterns = classified.atomPatterns;
+        this._prefixPatterns = classified.prefixPatterns;
+        this._prefixNames = classified.prefixNames;
+        this._postfixPatterns = classified.postfixPatterns;
+        this._postfixNames = classified.postfixNames;
+        this._infixPatterns = classified.infixPatterns;
+        this._infixNames = classified.infixNames;
+        this._precedenceMap = classified.precedenceMap;
+        this._associationMap = classified.associationMap;
+        this._children = classified.patterns;
         this._precedenceTree = new PrecedenceTree(this._precedenceMap, this._associationMap);
-        return finalPatterns;
+        return classified.patterns;
     }
     _cacheAncestors() {
-        for (let atom of this._atomPatterns) {
+        for (const atom of this._atomPatterns) {
             const id = atom.id;
-            const ancestors = this._atomsIdToAncestorsMap[id] = [];
+            const ancestors = (this._atomsIdToAncestorsMap[id] = []);
             let pattern = this.parent;
             while (pattern != null) {
                 if (pattern.id === id) {
@@ -1404,78 +1447,6 @@ class Expression {
                 pattern = pattern.parent;
             }
         }
-    }
-    _extractName(pattern) {
-        if (pattern.type === "right-associated") {
-            return pattern.children[0].name;
-        }
-        return pattern.name;
-    }
-    _isPrefix(pattern) {
-        pattern = this._unwrapAssociationIfNecessary(pattern);
-        const lastChild = pattern.children[pattern.children.length - 1];
-        const referenceCount = this._referenceCount(pattern);
-        const lastChildIsReference = this._isRecursiveReference(lastChild);
-        return lastChildIsReference &&
-            referenceCount === 1;
-    }
-    _extractPrefix(pattern) {
-        pattern = this._unwrapAssociationIfNecessary(pattern);
-        return new Sequence(`${pattern.name}-prefix`, pattern.children.slice(0, -1));
-    }
-    _isAtom(pattern) {
-        pattern = this._unwrapAssociationIfNecessary(pattern);
-        const firstChild = pattern.children[0];
-        const lastChild = pattern.children[pattern.children.length - 1];
-        const firstChildIsReference = this._isRecursiveReference(firstChild);
-        const lastChildIsReference = this._isRecursiveReference(lastChild);
-        return !firstChildIsReference && !lastChildIsReference;
-    }
-    _isPostfix(pattern) {
-        pattern = this._unwrapAssociationIfNecessary(pattern);
-        const firstChild = pattern.children[0];
-        const referenceCount = this._referenceCount(pattern);
-        const firstChildIsReference = this._isRecursiveReference(firstChild);
-        return firstChildIsReference &&
-            referenceCount === 1;
-    }
-    _extractPostfix(pattern) {
-        pattern = this._unwrapAssociationIfNecessary(pattern);
-        return new Sequence(`${pattern.name}-postfix`, pattern.children.slice(1));
-    }
-    _isBinary(pattern) {
-        pattern = this._unwrapAssociationIfNecessary(pattern);
-        const firstChild = pattern.children[0];
-        const lastChild = pattern.children[pattern.children.length - 1];
-        const firstChildIsReference = this._isRecursiveReference(firstChild);
-        const lastChildIsReference = this._isRecursiveReference(lastChild);
-        return firstChildIsReference && lastChildIsReference && pattern.children.length > 2;
-    }
-    _extractInfix(pattern) {
-        pattern = this._unwrapAssociationIfNecessary(pattern);
-        const children = pattern.children.slice(1, -1);
-        const infixSequence = new Sequence(`${pattern.name}-delimiter`, children);
-        return infixSequence;
-    }
-    _unwrapAssociationIfNecessary(pattern) {
-        if (pattern.type === "right-associated") {
-            pattern = pattern.children[0];
-        }
-        if (pattern.type === "reference") {
-            pattern.parent = this;
-            pattern = pattern.getReferencePatternSafely();
-            pattern.parent = null;
-        }
-        return pattern;
-    }
-    _referenceCount(pattern) {
-        return pattern.children.filter(p => this._isRecursiveReference(p)).length;
-    }
-    _isRecursiveReference(pattern) {
-        if (pattern == null) {
-            return false;
-        }
-        return pattern.name === this._originalName;
     }
     build() {
         if (!this._hasOrganized || this._cachedParent !== this.parent) {
@@ -1545,7 +1516,6 @@ class Expression {
                     cursor.next();
                     onIndex = cursor.index;
                     i = -1;
-                    continue;
                 }
                 else {
                     this._shouldStopParsing = true;
@@ -1559,7 +1529,7 @@ class Expression {
         }
     }
     _tryToMatchAtom(cursor) {
-        let onIndex = cursor.index;
+        const onIndex = cursor.index;
         for (let i = 0; i < this._atomPatterns.length; i++) {
             cursor.moveTo(onIndex);
             const pattern = this._atomPatterns[i];
@@ -1599,7 +1569,6 @@ class Expression {
                     cursor.next();
                     onIndex = cursor.index;
                     i = -1;
-                    continue;
                 }
                 else {
                     this._shouldStopParsing = true;
@@ -1613,7 +1582,7 @@ class Expression {
         }
     }
     _tryToMatchBinary(cursor) {
-        let onIndex = cursor.index;
+        const onIndex = cursor.index;
         let foundMatch = false;
         if (this.infixPatterns.length === 0) {
             this._shouldStopParsing = true;
@@ -1643,151 +1612,69 @@ class Expression {
             this._shouldStopParsing = true;
         }
     }
-    test(text, record = false) {
-        return testPattern(this, text, record);
-    }
-    exec(text, record = false) {
-        return execPattern(this, text, record);
-    }
     getTokens() {
-        this.build();
-        const atomTokens = this._atomPatterns.map(p => p.getTokens()).flat();
-        const prefixTokens = this.prefixPatterns.map(p => p.getTokens()).flat();
-        return [...prefixTokens, ...atomTokens];
+        return this._selectLeading(p => p.getTokens());
     }
     getTokensAfter(childReference) {
-        this.build();
-        if (this._prefixPatterns.includes(childReference) || this._infixPatterns.includes(childReference)) {
-            const atomTokens = this._atomPatterns.map(p => p.getTokens()).flat();
-            const prefixTokens = this.prefixPatterns.map(p => p.getTokens()).flat();
-            return [...prefixTokens, ...atomTokens];
-        }
-        if (this._atomPatterns.includes(childReference)) {
-            const postfixTokens = this.postfixPatterns.map(p => p.getTokens()).flat();
-            const infixTokens = this._infixPatterns.map(p => p.getTokens()).flat();
-            if (this._parent != null) {
-                return [...postfixTokens, ...infixTokens, ...this._parent.getNextTokens()];
-            }
-            return [...postfixTokens, ...infixTokens];
-        }
-        if (this._infixPatterns.includes(childReference)) {
-            const atomTokens = this._atomPatterns.map(p => p.getTokens()).flat();
-            return atomTokens;
-        }
-        if (this._postfixPatterns.includes(childReference)) {
-            const postfixTokens = this.postfixPatterns.map(p => p.getTokens()).flat();
-            const infixTokens = this._infixPatterns.map(p => p.getTokens()).flat();
-            if (this._parent != null) {
-                return [...postfixTokens, ...infixTokens, ...this._parent.getNextTokens()];
-            }
-            return [...postfixTokens, ...infixTokens];
-        }
-        return [];
-    }
-    getNextTokens() {
-        if (this._parent == null) {
-            return [];
-        }
-        return this._parent.getTokensAfter(this);
+        return this._selectAfter(childReference, p => p.getTokens(), parent => parent.getNextTokens());
     }
     getPatterns() {
-        this.build();
-        const atomPatterns = this._atomPatterns.map(p => p.getPatterns()).flat();
-        const prefixPatterns = this.prefixPatterns.map(p => p.getPatterns()).flat();
-        return [...prefixPatterns, ...atomPatterns];
+        return this._selectLeading(p => p.getPatterns());
     }
     getPatternsAfter(childReference) {
+        return this._selectAfter(childReference, p => p.getPatterns(), parent => parent.getNextPatterns());
+    }
+    /** What may start an expression: a prefix operator, or an atom. */
+    _selectLeading(select) {
         this.build();
-        if (this._prefixPatterns.includes(childReference) || this._infixPatterns.includes(childReference)) {
-            const atomPatterns = this._atomPatterns.map(p => p.getPatterns()).flat();
-            const prefixPatterns = this.prefixPatterns.map(p => p.getPatterns()).flat();
-            return [...prefixPatterns, ...atomPatterns];
+        return [
+            ...this._prefixPatterns.flatMap(select),
+            ...this._atomPatterns.flatMap(select),
+        ];
+    }
+    /**
+     * `getTokensAfter` and `getPatternsAfter` ask the same question and differ
+     * only in what they project out of the answer, so they share this.
+     */
+    _selectAfter(childReference, select, fromParent) {
+        this.build();
+        // An operator still owed a right operand: an operand may start here.
+        if (this._prefixPatterns.includes(childReference) ||
+            this._infixPatterns.includes(childReference)) {
+            return this._selectLeading(select);
         }
-        if (this._atomPatterns.includes(childReference)) {
-            const postfixPatterns = this.postfixPatterns.map(p => p.getPatterns()).flat();
-            const infixPatterns = this._infixPatterns.map(p => p.getPatterns()).flat();
-            if (this._parent != null) {
-                return [...postfixPatterns, ...infixPatterns, ...this._parent.getNextPatterns()];
-            }
-            return [...postfixPatterns, ...infixPatterns];
-        }
-        if (this._infixPatterns.includes(childReference)) {
-            const atomPatterns = this._atomPatterns.map(p => p.getPatterns()).flat();
-            return atomPatterns;
-        }
-        if (this._postfixPatterns.includes(childReference)) {
-            const postfixPatterns = this.postfixPatterns.map(p => p.getPatterns()).flat();
-            const infixPatterns = this._infixPatterns.map(p => p.getPatterns()).flat();
-            if (this._parent != null) {
-                return [...postfixPatterns, ...infixPatterns, ...this._parent.getNextPatterns()];
-            }
-            return [...postfixPatterns, ...infixPatterns];
+        // A completed operand: the expression may continue with a postfix or infix
+        // operator, or end here — in which case whatever follows the expression.
+        if (this._atomPatterns.includes(childReference) ||
+            this._postfixPatterns.includes(childReference)) {
+            const continuation = [
+                ...this._postfixPatterns.flatMap(select),
+                ...this._infixPatterns.flatMap(select),
+            ];
+            const parent = this._parent;
+            return parent != null ? [...continuation, ...fromParent(parent)] : continuation;
         }
         return [];
-    }
-    getNextPatterns() {
-        if (this._parent == null) {
-            return [];
-        }
-        return this._parent.getPatternsAfter(this);
-    }
-    find(predicate) {
-        return findPattern(this, predicate);
     }
     clone(name = this._name) {
         const clone = new Expression(name, this._originalPatterns);
         clone._originalName = this._originalName;
-        clone._id = this._id;
+        clone._cloneIdFrom(this);
         return clone;
-    }
-    isEqual(pattern) {
-        return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
     }
 }
 
-let idIndex$a = 0;
-class Literal {
-    get id() {
-        return this._id;
-    }
-    get type() {
-        return this._type;
-    }
-    get name() {
-        return this._name;
-    }
+class Literal extends BasePattern {
     get token() {
         return this._token;
-    }
-    get parent() {
-        return this._parent;
-    }
-    set parent(pattern) {
-        this._parent = pattern;
-    }
-    get children() {
-        return [];
-    }
-    get startedOnIndex() {
-        return this._firstIndex;
     }
     constructor(name, value) {
         if (value.length === 0) {
             throw new Error("Value Cannot be empty.");
         }
-        this._id = `literal-${idIndex$a++}`;
-        this._type = "literal";
-        this._name = name;
+        super("literal", name);
         this._token = value;
-        this._parent = null;
-        this._firstIndex = 0;
         this._lastIndex = 0;
-    }
-    test(text, record = false) {
-        return testPattern(this, text, record);
-    }
-    exec(text, record = false) {
-        return execPattern(this, text, record);
     }
     parse(cursor) {
         this._firstIndex = cursor.index;
@@ -1813,7 +1700,7 @@ class Literal {
                 return false;
             }
         }
-        if (token != compareToToken) {
+        if (token !== compareToToken) {
             this._lastIndex = this._firstIndex + compareToToken.length - 1;
             cursor.moveTo(this._lastIndex);
             return false;
@@ -1827,7 +1714,7 @@ class Literal {
     }
     clone(name = this._name) {
         const clone = new Literal(name, this._token);
-        clone._id = this._id;
+        clone._cloneIdFrom(this);
         return clone;
     }
     getTokens() {
@@ -1836,23 +1723,11 @@ class Literal {
     getTokensAfter(_lastMatched) {
         return [];
     }
-    getNextTokens() {
-        if (this.parent == null) {
-            return [];
-        }
-        return this.parent.getTokensAfter(this);
-    }
     getPatterns() {
         return [this];
     }
     getPatternsAfter() {
         return [];
-    }
-    getNextPatterns() {
-        if (this.parent == null) {
-            return [];
-        }
-        return this.parent.getPatternsAfter(this);
     }
     find(_predicate) {
         return null;
@@ -1862,42 +1737,13 @@ class Literal {
     }
 }
 
-let idIndex$9 = 0;
-class Not {
-    get id() {
-        return this._id;
-    }
-    get type() {
-        return this._type;
-    }
-    get name() {
-        return this._name;
-    }
-    get parent() {
-        return this._parent;
-    }
-    set parent(pattern) {
-        this._parent = pattern;
-    }
-    get children() {
-        return this._children;
-    }
+class Not extends BasePattern {
     get startedOnIndex() {
-        return this.children[0].startedOnIndex;
+        return this._children[0].startedOnIndex;
     }
     constructor(name, pattern) {
-        this._id = `not-${idIndex$9++}`;
-        this._type = "not";
-        this._name = name;
-        this._parent = null;
-        this._children = [pattern.clone()];
-        this._children[0].parent = this;
-    }
-    test(text, record = false) {
-        return testPattern(this, text, record);
-    }
-    exec(text, record = false) {
-        return execPattern(this, text, record);
+        super("not", name, [pattern.clone()]);
+        this._assignChildrenToParent(this._children);
     }
     parse(cursor) {
         const firstIndex = cursor.index;
@@ -1915,89 +1761,34 @@ class Not {
     }
     clone(name = this._name) {
         const not = new Not(name, this._children[0]);
-        not._id = this._id;
+        not._cloneIdFrom(this);
         return not;
     }
+    /**
+     * A negative lookahead consumes nothing, so what it "expects" is whatever
+     * comes after it — never its own child, which by definition must not match.
+     */
     getTokens() {
-        const parent = this._parent;
-        if (parent != null) {
-            return parent.getTokensAfter(this);
-        }
-        return [];
+        return this.getNextTokens();
     }
     getTokensAfter(_childReference) {
-        const parent = this._parent;
-        if (parent != null) {
-            return parent.getTokensAfter(this);
-        }
-        return [];
-    }
-    getNextTokens() {
-        if (this.parent == null) {
-            return [];
-        }
-        return this.parent.getTokensAfter(this);
+        return this.getNextTokens();
     }
     getPatterns() {
-        return [...this.getNextPatterns().map(p => p.getPatterns()).flat()];
+        return this.getNextPatterns().flatMap(p => p.getPatterns());
     }
     getPatternsAfter(_childReference) {
-        const parent = this._parent;
-        if (parent != null) {
-            return parent.getPatternsAfter(this);
-        }
-        return [];
-    }
-    getNextPatterns() {
-        if (this.parent == null) {
-            return [];
-        }
-        return this.parent.getPatternsAfter(this);
-    }
-    find(predicate) {
-        return predicate(this._children[0]) ? this._children[0] : null;
-    }
-    isEqual(pattern) {
-        return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
+        return this.getNextPatterns();
     }
 }
 
-let idIndex$8 = 0;
-class Optional {
-    get id() {
-        return this._id;
-    }
-    get type() {
-        return this._type;
-    }
-    get name() {
-        return this._name;
-    }
-    get parent() {
-        return this._parent;
-    }
-    set parent(pattern) {
-        this._parent = pattern;
-    }
-    get children() {
-        return this._children;
-    }
+class Optional extends BasePattern {
     get startedOnIndex() {
         return this._children[0].startedOnIndex;
     }
     constructor(name, pattern) {
-        this._id = `optional-${idIndex$8++}`;
-        this._type = "optional";
-        this._name = name;
-        this._parent = null;
-        this._children = [pattern.clone()];
-        this._children[0].parent = this;
-    }
-    test(text, record = false) {
-        return testPattern(this, text, record);
-    }
-    exec(text, record = false) {
-        return execPattern(this, text, record);
+        super("optional", name, [pattern.clone()]);
+        this._assignChildrenToParent(this._children);
     }
     parse(cursor) {
         const firstIndex = cursor.index;
@@ -2013,96 +1804,31 @@ class Optional {
     }
     clone(name = this._name) {
         const clone = new Optional(name, this._children[0]);
-        clone._id = this._id;
+        clone._cloneIdFrom(this);
         return clone;
     }
     getTokens() {
         return this._children[0].getTokens();
     }
     getTokensAfter(_childReference) {
-        const parent = this._parent;
-        if (parent != null) {
-            return parent.getTokensAfter(this);
-        }
-        return [];
-    }
-    getNextTokens() {
-        if (this.parent == null) {
-            return [];
-        }
-        return this.parent.getTokensAfter(this);
+        return this.getNextTokens();
     }
     getPatterns() {
         return this._children[0].getPatterns();
     }
     getPatternsAfter(_childReference) {
-        const parent = this._parent;
-        if (parent != null) {
-            return parent.getPatternsAfter(this);
-        }
-        return [];
-    }
-    getNextPatterns() {
-        if (this.parent == null) {
-            return [];
-        }
-        return this.parent.getPatternsAfter(this);
-    }
-    find(predicate) {
-        return predicate(this._children[0]) ? this._children[0] : null;
-    }
-    isEqual(pattern) {
-        return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
+        return this.getNextPatterns();
     }
 }
 
-let idIndex$7 = 0;
-class Options {
-    get id() {
-        return this._id;
-    }
-    get type() {
-        return this._type;
-    }
-    get name() {
-        return this._name;
-    }
-    get parent() {
-        return this._parent;
-    }
-    set parent(pattern) {
-        this._parent = pattern;
-    }
-    get children() {
-        return this._children;
-    }
-    get startedOnIndex() {
-        return this._firstIndex;
-    }
+class Options extends BasePattern {
     constructor(name, options, isGreedy = false) {
         if (options.length === 0) {
             throw new Error("Need at least one pattern with an 'options' pattern.");
         }
-        const children = clonePatterns(options);
-        this._assignChildrenToParent(children);
-        this._id = `options-${idIndex$7++}`;
-        this._type = "options";
-        this._name = name;
-        this._parent = null;
-        this._children = children;
-        this._firstIndex = 0;
+        super("options", name, clonePatterns(options));
+        this._assignChildrenToParent(this._children);
         this._isGreedy = isGreedy;
-    }
-    _assignChildrenToParent(children) {
-        for (const child of children) {
-            child.parent = this;
-        }
-    }
-    test(text, record = false) {
-        return testPattern(this, text, record);
-    }
-    exec(text, record = false) {
-        return execPattern(this, text, record);
     }
     parse(cursor) {
         this._firstIndex = cursor.index;
@@ -2144,16 +1870,7 @@ class Options {
         return tokens;
     }
     getTokensAfter(_childReference) {
-        if (this._parent === null) {
-            return [];
-        }
-        return this._parent.getTokensAfter(this);
-    }
-    getNextTokens() {
-        if (this._parent == null) {
-            return [];
-        }
-        return this._parent.getTokensAfter(this);
+        return this.getNextTokens();
     }
     getPatterns() {
         const patterns = [];
@@ -2166,71 +1883,23 @@ class Options {
         return patterns;
     }
     getPatternsAfter(_childReference) {
-        if (this._parent === null) {
-            return [];
-        }
-        return this._parent.getPatternsAfter(this);
-    }
-    getNextPatterns() {
-        if (this.parent == null) {
-            return [];
-        }
-        return this.parent.getPatternsAfter(this);
-    }
-    find(predicate) {
-        return findPattern(this, predicate);
+        return this.getNextPatterns();
     }
     clone(name = this._name) {
         const clone = new Options(name, this._children, this._isGreedy);
-        clone._id = this._id;
+        clone._cloneIdFrom(this);
         return clone;
-    }
-    isEqual(pattern) {
-        return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
     }
 }
 
-let idIndex$6 = 0;
-class Reference {
-    get id() {
-        return this._id;
-    }
-    get type() {
-        return this._type;
-    }
-    get name() {
-        return this._name;
-    }
-    get parent() {
-        return this._parent;
-    }
-    set parent(pattern) {
-        this._parent = pattern;
-    }
-    get children() {
-        return this._children;
-    }
-    get startedOnIndex() {
-        return this._firstIndex;
-    }
+class Reference extends BasePattern {
     constructor(name, referencePatternName) {
-        this._id = `reference-${idIndex$6++}`;
-        this._type = "reference";
-        this._name = name;
+        super("reference", name);
         this._referencePatternName = referencePatternName || name;
-        this._parent = null;
         this._pattern = null;
         this._cachedPattern = null;
-        this._children = [];
-        this._firstIndex = 0;
         this._cachedAncestors = false;
         this._recursiveAncestors = [];
-    }
-    test(text, record = false) {
-        return testPattern(this, text, record);
-    }
-    exec(text, record = false) {
-        return execPattern(this, text, record);
     }
     parse(cursor) {
         this._firstIndex = cursor.index;
@@ -2256,7 +1925,7 @@ class Reference {
     }
     _isBeyondRecursiveAllowance() {
         let depth = 0;
-        for (let pattern of this._recursiveAncestors) {
+        for (const pattern of this._recursiveAncestors) {
             if (pattern.startedOnIndex === this.startedOnIndex) {
                 depth++;
                 if (depth > 1) {
@@ -2329,38 +1998,20 @@ class Reference {
         return this.getReferencePatternSafely().getTokens();
     }
     getTokensAfter(_lastMatched) {
-        if (this._parent == null) {
-            return [];
-        }
-        return this._parent.getTokensAfter(this);
-    }
-    getNextTokens() {
-        if (this.parent == null) {
-            return [];
-        }
-        return this.parent.getTokensAfter(this);
+        return this.getNextTokens();
     }
     getPatterns() {
         return this.getReferencePatternSafely().getPatterns();
     }
     getPatternsAfter(_childReference) {
-        if (this._parent == null) {
-            return [];
-        }
-        return this._parent.getPatternsAfter(this);
-    }
-    getNextPatterns() {
-        if (this.parent == null) {
-            return [];
-        }
-        return this.parent.getPatternsAfter(this);
+        return this.getNextPatterns();
     }
     find(_predicate) {
         return null;
     }
     clone(name = this._name) {
         const clone = new Reference(name, this._referencePatternName);
-        clone._id = this._id;
+        clone._cloneIdFrom(this);
         // Optimize future clones, by caching the pattern we already found.
         if (this._pattern != null) {
             clone._cachedPattern = this._pattern;
@@ -2372,47 +2023,20 @@ class Reference {
     }
 }
 
-let idIndex$5 = 0;
-class Regex {
-    get id() {
-        return this._id;
-    }
-    get type() {
-        return this._type;
-    }
-    get name() {
-        return this._name;
-    }
+class Regex extends BasePattern {
     get regex() {
         return this._originalRegexString;
     }
-    get parent() {
-        return this._parent;
-    }
-    set parent(pattern) {
-        this._parent = pattern;
-    }
-    get children() {
-        return [];
-    }
-    get startedOnIndex() {
-        return this._firstIndex;
-    }
     constructor(name, regex) {
+        super("regex", name);
         this._node = null;
-        this._cursor = null;
-        this._firstIndex = 0;
         this._substring = "";
         this._tokens = [];
-        this._id = `regex-${idIndex$5++}`;
-        this._type = "regex";
-        this._name = name;
-        this._parent = null;
         this._originalRegexString = regex;
         this._regex = new RegExp(`^${regex}`, "gu");
-        this.assertArguments();
+        this._assertArguments();
     }
-    assertArguments() {
+    _assertArguments() {
         if (this._originalRegexString.length < 1) {
             throw new Error("Invalid Arguments: The regex string argument needs to be at least one character long.");
         }
@@ -2423,34 +2047,27 @@ class Regex {
             throw new Error("Invalid Arguments: The regex string cannot end with a '$' because it is expected to be in the middle of a string.");
         }
     }
-    test(text, record = false) {
-        return testPattern(this, text, record);
-    }
-    exec(text, record = false) {
-        return execPattern(this, text, record);
-    }
     parse(cursor) {
         this._firstIndex = cursor.index;
-        this.resetState(cursor);
-        this.tryToParse(cursor);
+        this._resetState(cursor);
+        this._tryToParse(cursor);
         return this._node;
     }
-    resetState(cursor) {
-        this._cursor = cursor;
+    _resetState(cursor) {
         this._regex.lastIndex = 0;
-        this._substring = this._cursor.text.slice(this._cursor.index);
+        this._substring = cursor.text.slice(cursor.index);
         this._node = null;
     }
-    tryToParse(cursor) {
+    _tryToParse(cursor) {
         const result = this._regex.exec(this._substring);
         if (result != null && result[0].length > 0 && result.index === 0) {
-            this.processResult(cursor, result);
+            this._processResult(cursor, result);
         }
         else {
-            this.processError(cursor);
+            this._processError(cursor);
         }
     }
-    processResult(cursor, result) {
+    _processResult(cursor, result) {
         const currentIndex = cursor.index;
         const match = result[0];
         const lastIndex = cursor.getCharLastIndex(currentIndex + match.length - 1);
@@ -2458,14 +2075,14 @@ class Regex {
         cursor.moveTo(lastIndex);
         cursor.recordMatch(this, this._node);
     }
-    processError(cursor) {
+    _processError(cursor) {
         cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
         this._node = null;
     }
     clone(name = this._name) {
         const clone = new Regex(name, this._originalRegexString);
         clone._tokens = this._tokens.slice();
-        clone._id = this._id;
+        clone._cloneIdFrom(this);
         return clone;
     }
     getTokens() {
@@ -2474,23 +2091,11 @@ class Regex {
     getTokensAfter(_childReference) {
         return [];
     }
-    getNextTokens() {
-        if (this.parent == null) {
-            return [];
-        }
-        return this.parent.getTokensAfter(this);
-    }
     getPatterns() {
         return [this];
     }
     getPatternsAfter(_childReference) {
         return [];
-    }
-    getNextPatterns() {
-        if (this.parent == null) {
-            return [];
-        }
-        return this.parent.getPatternsAfter(this);
     }
     find(_predicate) {
         return null;
@@ -2499,50 +2104,24 @@ class Regex {
         this._tokens = tokens;
     }
     isEqual(pattern) {
-        return pattern.type === this.type && pattern._originalRegexString === this._originalRegexString;
+        return (pattern.type === this.type &&
+            pattern._originalRegexString === this._originalRegexString);
     }
 }
 
-let idIndex$4 = 0;
-class FiniteRepeat {
-    get id() {
-        return this._id;
-    }
-    get type() {
-        return this._type;
-    }
-    get name() {
-        return this._name;
-    }
-    get parent() {
-        return this._parent;
-    }
-    set parent(value) {
-        this._parent = value;
-    }
-    get children() {
-        return this._children;
-    }
+class FiniteRepeat extends BasePattern {
     get min() {
         return this._min;
     }
     get max() {
         return this._max;
     }
-    get startedOnIndex() {
-        return this._firstIndex;
-    }
     constructor(name, pattern, options = {}) {
-        this._id = `finite-repeat-${idIndex$4++}`;
-        this._type = "finite-repeat";
-        this._name = name;
-        this._parent = null;
-        this._children = [];
+        super("finite-repeat", name);
         this._hasDivider = options.divider != null;
         this._min = options.min != null ? Math.max(options.min, 1) : 1;
         this._max = Math.max(this.min, options.max || this.min);
         this._trimDivider = options.trimDivider == null ? false : options.trimDivider;
-        this._firstIndex = 0;
         for (let i = 0; i < this._max; i++) {
             const child = pattern.clone();
             child.parent = this;
@@ -2604,38 +2183,23 @@ class FiniteRepeat {
         const node = new Node(this._type, this.name, firstIndex, lastIndex, nodes);
         return node;
     }
-    test(text, record = false) {
-        return testPattern(this, text, record);
-    }
-    exec(text, record = false) {
-        return execPattern(this, text, record);
-    }
     clone(name = this._name) {
-        let min = this._min;
-        let max = this._max;
+        const min = this._min;
+        const max = this._max;
         const clone = new FiniteRepeat(name, this._children[0], {
             divider: this._hasDivider ? this._children[1] : undefined,
             min,
             max,
-            trimDivider: this._trimDivider
+            trimDivider: this._trimDivider,
         });
-        clone._id = this._id;
+        clone._cloneIdFrom(this);
         return clone;
     }
     getTokens() {
         return this._children[0].getTokens();
     }
     getTokensAfter(childReference) {
-        const patterns = this.getPatternsAfter(childReference);
-        const tokens = [];
-        patterns.forEach(p => tokens.push(...p.getTokens()));
-        return tokens;
-    }
-    getNextTokens() {
-        if (this._parent == null) {
-            return [];
-        }
-        return this._parent.getTokensAfter(this);
+        return this.getPatternsAfter(childReference).flatMap(p => p.getTokens());
     }
     getPatterns() {
         return this._children[0].getPatterns();
@@ -2646,7 +2210,7 @@ class FiniteRepeat {
         if (childIndex === -1) {
             return [];
         }
-        // If Reference Pattern is the last pattern. Ask for the parents next patterns 
+        // If Reference Pattern is the last pattern. Ask for the parents next patterns
         if (childIndex === this._children.length - 1) {
             if (this._parent == null) {
                 return [];
@@ -2659,80 +2223,22 @@ class FiniteRepeat {
         const nextChild = this._children[childIndex + 1];
         return nextChild.getPatterns();
     }
-    getNextPatterns() {
-        if (this._parent == null) {
-            return [];
-        }
-        return this._parent.getPatternsAfter(this);
-    }
-    find(predicate) {
-        return findPattern(this, predicate);
-    }
-    isEqual(pattern) {
-        return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
-    }
 }
 
-let idIndex$3 = 0;
-class InfiniteRepeat {
-    get id() {
-        return this._id;
-    }
-    get type() {
-        return this._type;
-    }
-    get name() {
-        return this._name;
-    }
-    get parent() {
-        return this._parent;
-    }
-    set parent(pattern) {
-        this._parent = pattern;
-    }
-    get children() {
-        return this._children;
-    }
+class InfiniteRepeat extends BasePattern {
     get min() {
         return this._min;
     }
-    get startedOnIndex() {
-        return this._firstIndex;
-    }
     constructor(name, pattern, options = {}) {
-        const min = options.min != null ? Math.max(options.min, 1) : 1;
         const divider = options.divider;
-        let children;
-        if (divider != null) {
-            children = [pattern.clone(), divider.clone()];
-        }
-        else {
-            children = [pattern.clone()];
-        }
-        this._assignChildrenToParent(children);
-        this._id = `infinite-repeat-${idIndex$3++}`;
-        this._type = "infinite-repeat";
-        this._name = name;
-        this._min = min;
-        this._parent = null;
-        this._children = children;
-        this._pattern = children[0];
-        this._divider = children[1];
-        this._firstIndex = 0;
+        super("infinite-repeat", name, divider != null ? [pattern.clone(), divider.clone()] : [pattern.clone()]);
+        this._assignChildrenToParent(this._children);
+        this._min = options.min != null ? Math.max(options.min, 1) : 1;
+        this._pattern = this._children[0];
+        this._divider = this._children[1];
         this._nodes = [];
         this._trimDivider = options.trimDivider == null ? false : options.trimDivider;
         this._patterns = [];
-    }
-    _assignChildrenToParent(children) {
-        for (const child of children) {
-            child.parent = this;
-        }
-    }
-    test(text, record = false) {
-        return testPattern(this, text, record);
-    }
-    exec(text, record = false) {
-        return execPattern(this, text, record);
     }
     parse(cursor) {
         this._firstIndex = cursor.index;
@@ -2807,7 +2313,7 @@ class InfiniteRepeat {
                         if (dividerNode == null) {
                             cursor.moveTo(dividerStartIndex);
                             if (repeatNode == null) {
-                                // If neither the repeat pattern or divider pattern matched get out. 
+                                // If neither the repeat pattern or divider pattern matched get out.
                                 passed = true;
                                 break;
                             }
@@ -2839,9 +2345,7 @@ class InfiniteRepeat {
     _createNode(cursor) {
         const hasDivider = this._divider != null;
         const lastPattern = this._patterns[this._patterns.length - 1];
-        if (hasDivider &&
-            this._trimDivider &&
-            lastPattern === this._divider) {
+        if (hasDivider && this._trimDivider && lastPattern === this._divider) {
             const dividerNode = this._nodes.pop();
             cursor.moveTo(dividerNode.firstIndex);
         }
@@ -2854,7 +2358,7 @@ class InfiniteRepeat {
         return new Node(this._type, this._name, this._firstIndex, lastIndex, this._nodes);
     }
     _getLastValidNode() {
-        const nodes = this._nodes.filter((node) => node !== null);
+        const nodes = this._nodes.filter(node => node !== null);
         if (nodes.length === 0) {
             return null;
         }
@@ -2864,16 +2368,7 @@ class InfiniteRepeat {
         return this._pattern.getTokens();
     }
     getTokensAfter(childReference) {
-        const patterns = this.getPatternsAfter(childReference);
-        const tokens = [];
-        patterns.forEach(p => tokens.push(...p.getTokens()));
-        return tokens;
-    }
-    getNextTokens() {
-        if (this._parent == null) {
-            return [];
-        }
-        return this._parent.getTokensAfter(this);
+        return this.getPatternsAfter(childReference).flatMap(p => p.getTokens());
     }
     getPatterns() {
         return this._pattern.getPatterns();
@@ -2908,50 +2403,24 @@ class InfiniteRepeat {
         }
         return patterns;
     }
-    getNextPatterns() {
-        if (this._parent == null) {
-            return [];
-        }
-        return this._parent.getPatternsAfter(this);
-    }
-    find(predicate) {
-        return findPattern(this, predicate);
-    }
     clone(name = this._name) {
-        let min = this._min;
+        const min = this._min;
         const clone = new InfiniteRepeat(name, this._pattern, {
             divider: this._divider == null ? undefined : this._divider,
-            min: min,
-            trimDivider: this._trimDivider
+            min,
+            trimDivider: this._trimDivider,
         });
-        clone._id = this._id;
+        clone._cloneIdFrom(this);
         return clone;
-    }
-    isEqual(pattern) {
-        return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
     }
 }
 
-let idIndex$2 = 0;
-class Repeat {
-    get id() {
-        return this._id;
-    }
-    get type() {
-        return this._repeatPattern.type;
-    }
-    get name() {
-        return this._repeatPattern.name;
-    }
-    get parent() {
-        return this._parent;
-    }
-    set parent(value) {
-        this._parent = value;
-    }
-    get children() {
-        return this._children;
-    }
+/**
+ * Facade that picks the bounded or unbounded implementation. It reports the
+ * chosen implementation's `type`, so its id keeps the "repeat-" prefix while
+ * `type` is "finite-repeat" or "infinite-repeat".
+ */
+class Repeat extends BasePattern {
     get min() {
         return this._options.min;
     }
@@ -2968,9 +2437,8 @@ class Repeat {
         return this._options;
     }
     constructor(name, pattern, options = {}) {
-        this._id = `repeat-${idIndex$2++}`;
+        super("repeat", name);
         this._pattern = pattern;
-        this._parent = null;
         this._options = Object.assign(Object.assign({}, options), { min: options.min == null ? 1 : options.min, max: options.max == null ? Infinity : options.max });
         if (this._options.max !== Infinity) {
             this._repeatPattern = new FiniteRepeat(name, pattern, this._options);
@@ -2978,6 +2446,7 @@ class Repeat {
         else {
             this._repeatPattern = new InfiniteRepeat(name, pattern, this._options);
         }
+        this._type = this._repeatPattern.type;
         this._children = [this._repeatPattern];
         this._repeatPattern.parent = this;
     }
@@ -2991,180 +2460,82 @@ class Repeat {
         return this._repeatPattern.test(text, record);
     }
     clone(name = this.name) {
-        let min = this._options.min;
-        const clone = new Repeat(name, this._pattern, Object.assign(Object.assign({}, this._options), { min }));
-        clone._id = this._id;
+        const clone = new Repeat(name, this._pattern, Object.assign({}, this._options));
+        clone._cloneIdFrom(this);
         return clone;
     }
     getTokens() {
         return this._repeatPattern.getTokens();
     }
     getTokensAfter(_childReference) {
-        if (this._parent == null) {
-            return [];
-        }
-        return this._parent.getTokensAfter(this);
-    }
-    getNextTokens() {
-        if (this._parent == null) {
-            return [];
-        }
-        return this._parent.getTokensAfter(this);
+        return this.getNextTokens();
     }
     getPatterns() {
         return this._repeatPattern.getPatterns();
     }
     getPatternsAfter(_childReference) {
-        if (this._parent == null) {
-            return [];
-        }
-        return this._parent.getPatternsAfter(this);
-    }
-    getNextPatterns() {
-        if (this._parent == null) {
-            return [];
-        }
-        return this._parent.getPatternsAfter(this);
+        return this.getNextPatterns();
     }
     find(predicate) {
         return this._repeatPattern.find(predicate);
     }
-    isEqual(pattern) {
-        return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
-    }
 }
 
-let indexId = 0;
-class RightAssociated {
-    get id() {
-        return this._id;
-    }
-    get type() {
-        return this._type;
-    }
-    get name() {
-        return this._name;
-    }
-    get parent() {
-        return this._parent;
-    }
-    set parent(pattern) {
-        this._parent = pattern;
-    }
-    get children() {
-        return this._children;
-    }
+class RightAssociated extends BasePattern {
     get startedOnIndex() {
         return this._children[0].startedOnIndex;
     }
     constructor(pattern) {
-        this._id = `right-associated-${indexId++}`;
-        this._type = "right-associated";
-        this._name = "";
-        this._parent = null;
-        this._children = [pattern.clone()];
+        // Deliberately does not reparent its child: this wrapper is a marker read
+        // by Expression during classification, not a link in the pattern tree.
+        super("right-associated", "", [pattern.clone()]);
     }
     parse(cursor) {
-        return this.children[0].parse(cursor);
+        return this._children[0].parse(cursor);
     }
     exec(text, record) {
-        return this.children[0].exec(text, record);
+        return this._children[0].exec(text, record);
     }
     test(text, record) {
-        return this.children[0].test(text, record);
+        return this._children[0].test(text, record);
     }
     clone(_name) {
-        const clone = new RightAssociated(this.children[0]);
-        clone._id = this._id;
+        const clone = new RightAssociated(this._children[0]);
+        clone._cloneIdFrom(this);
         return clone;
     }
     getTokens() {
-        return this.children[0].getTokens();
+        return this._children[0].getTokens();
     }
     getTokensAfter(_childReference) {
-        if (this._parent == null) {
-            return [];
-        }
-        return this._parent.getTokensAfter(this);
-    }
-    getNextTokens() {
-        if (this._parent == null) {
-            return [];
-        }
-        return this._parent.getTokensAfter(this);
+        return this.getNextTokens();
     }
     getPatterns() {
-        return this.children[0].getPatterns();
+        return this._children[0].getPatterns();
     }
     getPatternsAfter(_childReference) {
-        if (this._parent == null) {
-            return [];
-        }
-        return this._parent.getPatternsAfter(this);
-    }
-    getNextPatterns() {
-        if (this._parent == null) {
-            return [];
-        }
-        return this._parent.getPatternsAfter(this);
+        return this.getNextPatterns();
     }
     find(predicate) {
-        return this.children[0].find(predicate);
-    }
-    isEqual(pattern) {
-        return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
+        return this._children[0].find(predicate);
     }
 }
 
-let idIndex$1 = 0;
-class Block {
-    get id() {
-        return this._id;
-    }
-    get type() {
-        return this._type;
-    }
-    get name() {
-        return this._name;
-    }
-    get parent() {
-        return this._parent;
-    }
-    set parent(pattern) {
-        this._parent = pattern;
-    }
-    get children() {
-        return this._children;
-    }
-    get startedOnIndex() {
-        return this._firstIndex;
-    }
+class Block extends BasePattern {
     constructor(name, openPattern, contentPattern, closePattern) {
         const clonedOpen = openPattern.clone();
         const clonedContent = contentPattern != null ? contentPattern.clone() : null;
         const clonedClose = closePattern.clone();
-        this._id = `block-${idIndex$1++}`;
-        this._type = "block";
-        this._name = name;
-        this._parent = null;
+        super("block", name, clonedContent != null
+            ? [clonedOpen, clonedContent, clonedClose]
+            : [clonedOpen, clonedClose]);
         this._openPattern = clonedOpen;
         this._contentPattern = clonedContent;
         this._closePattern = clonedClose;
-        this._children = clonedContent != null
-            ? [clonedOpen, clonedContent, clonedClose]
-            : [clonedOpen, clonedClose];
         this._firstIndex = -1;
         this._literalOpen = clonedOpen.token;
         this._literalClose = clonedClose.token;
-        for (const child of this._children) {
-            child.parent = this;
-        }
-    }
-    test(text, record = false) {
-        return testPattern(this, text, record);
-    }
-    exec(text, record = false) {
-        return execPattern(this, text, record);
+        this._assignChildrenToParent(this._children);
     }
     parse(cursor) {
         this._firstIndex = cursor.index;
@@ -3292,16 +2663,7 @@ class Block {
         return this._openPattern.getTokens();
     }
     getTokensAfter(childReference) {
-        const patterns = this.getPatternsAfter(childReference);
-        const tokens = [];
-        patterns.forEach((p) => tokens.push(...p.getTokens()));
-        return tokens;
-    }
-    getNextTokens() {
-        if (this.parent == null) {
-            return [];
-        }
-        return this.parent.getTokensAfter(this);
+        return this.getPatternsAfter(childReference).flatMap(p => p.getTokens());
     }
     getPatterns() {
         return this._openPattern.getPatterns();
@@ -3327,63 +2689,25 @@ class Block {
         }
         return patterns;
     }
-    getNextPatterns() {
-        if (this.parent == null) {
-            return [];
-        }
-        return this.parent.getPatternsAfter(this);
-    }
-    find(predicate) {
-        return findPattern(this, predicate);
-    }
     clone(name = this._name) {
         const clone = new Block(name, this._openPattern, this._contentPattern, this._closePattern);
-        clone._id = this._id;
+        clone._cloneIdFrom(this);
         return clone;
-    }
-    isEqual(pattern) {
-        return (pattern.type === this.type &&
-            this.children.every((c, index) => c.isEqual(pattern.children[index])));
     }
 }
 
-let idIndex = 0;
-class TakeUntil {
-    get id() {
-        return this._id;
-    }
-    get type() {
-        return this._type;
-    }
-    get name() {
-        return this._name;
-    }
-    get children() {
-        return this._children;
-    }
-    get parent() {
-        return this._parent;
-    }
-    set parent(pattern) {
-        this._parent = pattern;
-    }
-    get startedOnIndex() {
-        return this._startedOnIndex;
+class TakeUntil extends BasePattern {
+    get _terminatingPattern() {
+        return this._children[0];
     }
     constructor(name, terminatingPattern) {
-        this._id = String(idIndex++);
-        this._type = "take-until";
-        this._name = name;
-        this._parent = null;
-        this._terminatingPattern = terminatingPattern;
-        this._children = [this._terminatingPattern];
+        super("take-until", name, [terminatingPattern]);
         this._tokens = [];
-        this._startedOnIndex = 0;
     }
     parse(cursor) {
         let cursorIndex = cursor.index;
         let foundMatch = false;
-        this._startedOnIndex = cursor.index;
+        this._firstIndex = cursor.index;
         let terminatingResult = this._terminatingPattern.parse(cursor);
         cursor.resolveError();
         if (terminatingResult == null) {
@@ -3418,19 +2742,14 @@ class TakeUntil {
         }
         else {
             cursor.moveTo(this.startedOnIndex);
-            cursor.recordErrorAt(this._startedOnIndex, this._startedOnIndex, this);
+            cursor.recordErrorAt(this._firstIndex, this._firstIndex, this);
             return null;
         }
     }
-    exec(text, record) {
-        return execPattern(this, text, record);
-    }
-    test(text, record) {
-        return testPattern(this, text, record);
-    }
     clone(name = this.name) {
         const clone = new TakeUntil(name, this._terminatingPattern);
-        clone._id = this._id;
+        clone._tokens = this._tokens.slice();
+        clone._cloneIdFrom(this);
         return clone;
     }
     getTokens() {
@@ -3439,32 +2758,17 @@ class TakeUntil {
     getTokensAfter(_childReference) {
         return [];
     }
-    getNextTokens() {
-        if (this.parent == null) {
-            return [];
-        }
-        return this.parent.getTokensAfter(this);
-    }
     getPatterns() {
         return [this];
     }
     getPatternsAfter(_childReference) {
         return [];
     }
-    getNextPatterns() {
-        if (this.parent == null) {
-            return [];
-        }
-        return this.parent.getPatternsAfter(this);
-    }
     find(_predicate) {
         return null;
     }
     setTokens(tokens) {
         this._tokens = tokens;
-    }
-    isEqual(pattern) {
-        return pattern.type === this.type && this.children.every((c, index) => c.isEqual(pattern.children[index]));
     }
 }
 
@@ -3514,57 +2818,287 @@ const trueLiteral = new Literal("trueLiteral", "true");
 const falseLiteral = new Literal("falseLiteral", "false");
 const jsonBoolean = new Options("jsonBoolean", [trueLiteral, falseLiteral]);
 const jsonNull = new Literal("jsonNull", "null");
-const jsonArrayItems = new Repeat("jsonArrayItems", new Reference("jsonValue"), { divider: comma, trimDivider: true });
-const jsonArray = new Sequence("jsonArray", [openSquareBracket, optionalWS, jsonArrayItems, optionalWS, closeSquareBracket]);
+const jsonArrayItems = new Repeat("jsonArrayItems", new Reference("jsonValue"), {
+    divider: comma,
+    trimDivider: true,
+});
+const jsonArray = new Sequence("jsonArray", [
+    openSquareBracket,
+    optionalWS,
+    jsonArrayItems,
+    optionalWS,
+    closeSquareBracket,
+]);
 const jsonObjectPropertyName = literal.clone("jsonObjectPropertyName");
-const jsonObjectProperty = new Sequence("jsonObjectProperty", [jsonObjectPropertyName, optionalWS, colon, optionalWS, new Reference("jsonValue")]);
+const jsonObjectProperty = new Sequence("jsonObjectProperty", [
+    jsonObjectPropertyName,
+    optionalWS,
+    colon,
+    optionalWS,
+    new Reference("jsonValue"),
+]);
 const jsonObjectProperties = new Repeat("jsonObjectProperties", jsonObjectProperty, { divider: comma, trimDivider: true });
-const jsonObject = new Sequence("jsonObject", [openBracket, optionalWS, new Optional("optionalJsonObjectProperties", jsonObjectProperties), optionalWS, closeBracket]);
-const jsonValue = new Options("jsonValue", [jsonString, jsonNumber, jsonBoolean, jsonNull, jsonArray, jsonObject]);
-const syntaxStatement = new Sequence("syntaxStatement", [syntax, optionalWS, syntaxVersion]);
+const jsonObject = new Sequence("jsonObject", [
+    openBracket,
+    optionalWS,
+    new Optional("optionalJsonObjectProperties", jsonObjectProperties),
+    optionalWS,
+    closeBracket,
+]);
+const jsonValue = new Options("jsonValue", [
+    jsonString,
+    jsonNumber,
+    jsonBoolean,
+    jsonNull,
+    jsonArray,
+    jsonObject,
+]);
+const syntaxStatement = new Sequence("syntaxStatement", [
+    syntax,
+    optionalWS,
+    syntaxVersion,
+]);
 const decorationName = name.clone("decorationName");
-const methodDecorationStatement = new Sequence("methodDecorationStatement", [at, optionalWS, decorationName, optionalWS, openParen, optionalWS, new Optional("optionalJsonValue", jsonValue), optionalWS, closeParen]);
-const nameDecorationStatement = new Sequence("nameDecorationStatement", [at, optionalWS, decorationName]);
-const decorationStatement = new Options("decorationStatement", [methodDecorationStatement, nameDecorationStatement]);
+const methodDecorationStatement = new Sequence("methodDecorationStatement", [
+    at,
+    optionalWS,
+    decorationName,
+    optionalWS,
+    openParen,
+    optionalWS,
+    new Optional("optionalJsonValue", jsonValue),
+    optionalWS,
+    closeParen,
+]);
+const nameDecorationStatement = new Sequence("nameDecorationStatement", [
+    at,
+    optionalWS,
+    decorationName,
+]);
+const decorationStatement = new Options("decorationStatement", [
+    methodDecorationStatement,
+    nameDecorationStatement,
+]);
 const defaultParamName = name.clone("defaultParamName");
-const paramDefault = new Sequence("paramDefault", [optionalLS, assign, optionalLS, defaultParamName]);
-const paramNameWithDefault = new Sequence("paramNameWithDefault", [patternName, new Optional("optionalParamDefault", paramDefault)]);
-const useParamPatterns = new Repeat("useParamPatterns", paramNameWithDefault, { divider: comma, trimDivider: true });
-const useParamsStatement = new Sequence("useParamsStatement", [useParams, optionalLS, openBracket, optionalWS, useParamPatterns, optionalWS, closeBracket]);
+const paramDefault = new Sequence("paramDefault", [
+    optionalLS,
+    assign,
+    optionalLS,
+    defaultParamName,
+]);
+const paramNameWithDefault = new Sequence("paramNameWithDefault", [
+    patternName,
+    new Optional("optionalParamDefault", paramDefault),
+]);
+const useParamPatterns = new Repeat("useParamPatterns", paramNameWithDefault, {
+    divider: comma,
+    trimDivider: true,
+});
+const useParamsStatement = new Sequence("useParamsStatement", [
+    useParams,
+    optionalLS,
+    openBracket,
+    optionalWS,
+    useParamPatterns,
+    optionalWS,
+    closeBracket,
+]);
 const withParamExportPattern = patternName.clone("withParamExportPattern");
-const withParamStatement = new Options("withParamStatement", [new Reference("patternAssignment"), withParamExportPattern]);
-const withParamStatements = new Repeat("withParamStatements", withParamStatement, { divider: newLine, trimDivider: true });
-const withParamsExpr = new Sequence("withParamsExpr", [withParams, optionalLS, openBracket, optionalWS, withParamStatements, optionalWS, closeBracket]);
+const withParamStatement = new Options("withParamStatement", [
+    new Reference("patternAssignment"),
+    withParamExportPattern,
+]);
+const withParamStatements = new Repeat("withParamStatements", withParamStatement, {
+    divider: newLine,
+    trimDivider: true,
+});
+const withParamsExpr = new Sequence("withParamsExpr", [
+    withParams,
+    optionalLS,
+    openBracket,
+    optionalWS,
+    withParamStatements,
+    optionalWS,
+    closeBracket,
+]);
 const importNameAlias = name.clone("importNameAlias");
-const importAlias = new Sequence("importAlias", [patternName, ls, asKeyword, ls, importNameAlias]);
-const importNameOrAlias = new Options("importNameOrAlias", [importAlias, patternName]);
-const patternNames = new Repeat("patternNames", importNameOrAlias, { divider: comma, trimDivider: true });
-const importedPatterns = new Sequence("importedPatterns", [openBracket, optionalWS, patternNames, optionalWS, closeBracket]);
-const importStatement = new Sequence("importStatement", [imprt, optionalLS, importedPatterns, optionalLS, from, optionalLS, resource, optionalLS, new Optional("optionalWithParamsExpr", withParamsExpr)]);
-const repeatBounds = new Sequence("repeatBounds", [openBracket, optionalWS, new Optional("optionalInteger", integer), optionalWS, new Optional("optionalComma", comma), optionalWS, new Optional("optionalInteger", integer), optionalWS, closeBracket]);
+const importAlias = new Sequence("importAlias", [
+    patternName,
+    ls,
+    asKeyword,
+    ls,
+    importNameAlias,
+]);
+const importNameOrAlias = new Options("importNameOrAlias", [
+    importAlias,
+    patternName,
+]);
+const patternNames = new Repeat("patternNames", importNameOrAlias, {
+    divider: comma,
+    trimDivider: true,
+});
+const importedPatterns = new Sequence("importedPatterns", [
+    openBracket,
+    optionalWS,
+    patternNames,
+    optionalWS,
+    closeBracket,
+]);
+const importStatement = new Sequence("importStatement", [
+    imprt,
+    optionalLS,
+    importedPatterns,
+    optionalLS,
+    from,
+    optionalLS,
+    resource,
+    optionalLS,
+    new Optional("optionalWithParamsExpr", withParamsExpr),
+]);
+const repeatBounds = new Sequence("repeatBounds", [
+    openBracket,
+    optionalWS,
+    new Optional("optionalInteger", integer),
+    optionalWS,
+    new Optional("optionalComma", comma),
+    optionalWS,
+    new Optional("optionalInteger", integer),
+    optionalWS,
+    closeBracket,
+]);
 const oneOrMore = new Literal("oneOrMore", "+");
 const zeroOrMore = new Literal("zeroOrMore", "*");
-const repeatOptions = new Options("repeatOptions", [oneOrMore, zeroOrMore, repeatBounds]);
-const delimiter = new Sequence("delimiter", [comma, new Reference("patternExpr"), optionalWS, new Optional("optionalTrim", trim)]);
-const repeatExpr = new Sequence("repeatExpr", [openParen, optionalWS, new Reference("patternExpr"), optionalWS, new Optional("optionalDelimiter", delimiter), optionalWS, closeParen, repeatOptions]);
-const blockDelimiter = new Sequence("blockDelimiter", [openSquareBracket, optionalWS, literal, optionalWS, closeSquareBracket]);
+const repeatOptions = new Options("repeatOptions", [
+    oneOrMore,
+    zeroOrMore,
+    repeatBounds,
+]);
+const delimiter = new Sequence("delimiter", [
+    comma,
+    new Reference("patternExpr"),
+    optionalWS,
+    new Optional("optionalTrim", trim),
+]);
+const repeatExpr = new Sequence("repeatExpr", [
+    openParen,
+    optionalWS,
+    new Reference("patternExpr"),
+    optionalWS,
+    new Optional("optionalDelimiter", delimiter),
+    optionalWS,
+    closeParen,
+    repeatOptions,
+]);
+const blockDelimiter = new Sequence("blockDelimiter", [
+    openSquareBracket,
+    optionalWS,
+    literal,
+    optionalWS,
+    closeSquareBracket,
+]);
 const wildcard = new Literal("wildcard", "...");
-const blockContent = new Options("blockContent", [wildcard, new Reference("patternExpr")]);
-const blockExpr = new Sequence("blockExpr", [blockDelimiter, optionalWS, blockContent, optionalWS, blockDelimiter]);
-const takeUntilExpr = new Sequence("takeUntilExpr", [anyChar, optionalLS, upTo, optionalLS, wall, optionalLS, new Reference("patternExpr")]);
-const sequenceExpr = new Sequence("sequenceExpr", [new Reference("patternExpr"), optionalWS, concat, optionalWS, new Reference("patternExpr")]);
-const optionsExpr = new Sequence("optionsExpr", [new Reference("patternExpr"), optionalWS, bar, optionalWS, new Reference("patternExpr")]);
-const greedyOptionsExpr = new Sequence("greedyOptionsExpr", [new Reference("patternExpr"), optionalWS, greedyBar, optionalWS, new Reference("patternExpr")]);
-const patternGroupExpr = new Sequence("patternGroupExpr", [openParen, optionalWS, new Reference("patternExpr"), optionalWS, closeParen]);
-const notExpr = new Sequence("notExpr", [not, optionalLS, new Reference("patternExpr")]);
-const optionalExpr = new Sequence("optionalExpr", [new Reference("patternExpr"), optionalLS, optional]);
-const rightAssociationExpr = new Sequence("rightAssociationExpr", [new Reference("patternExpr"), optionalLS, right]);
+const blockContent = new Options("blockContent", [
+    wildcard,
+    new Reference("patternExpr"),
+]);
+const blockExpr = new Sequence("blockExpr", [
+    blockDelimiter,
+    optionalWS,
+    blockContent,
+    optionalWS,
+    blockDelimiter,
+]);
+const takeUntilExpr = new Sequence("takeUntilExpr", [
+    anyChar,
+    optionalLS,
+    upTo,
+    optionalLS,
+    wall,
+    optionalLS,
+    new Reference("patternExpr"),
+]);
+const sequenceExpr = new Sequence("sequenceExpr", [
+    new Reference("patternExpr"),
+    optionalWS,
+    concat,
+    optionalWS,
+    new Reference("patternExpr"),
+]);
+const optionsExpr = new Sequence("optionsExpr", [
+    new Reference("patternExpr"),
+    optionalWS,
+    bar,
+    optionalWS,
+    new Reference("patternExpr"),
+]);
+const greedyOptionsExpr = new Sequence("greedyOptionsExpr", [
+    new Reference("patternExpr"),
+    optionalWS,
+    greedyBar,
+    optionalWS,
+    new Reference("patternExpr"),
+]);
+const patternGroupExpr = new Sequence("patternGroupExpr", [
+    openParen,
+    optionalWS,
+    new Reference("patternExpr"),
+    optionalWS,
+    closeParen,
+]);
+const notExpr = new Sequence("notExpr", [
+    not,
+    optionalLS,
+    new Reference("patternExpr"),
+]);
+const optionalExpr = new Sequence("optionalExpr", [
+    new Reference("patternExpr"),
+    optionalLS,
+    optional,
+]);
+const rightAssociationExpr = new Sequence("rightAssociationExpr", [
+    new Reference("patternExpr"),
+    optionalLS,
+    right,
+]);
 const exportPattern = patternName.clone("exportPattern");
-const patternExpr = new Expression("patternExpr", [notExpr, optionalExpr, rightAssociationExpr, sequenceExpr, optionsExpr, greedyOptionsExpr, repeatExpr, patternGroupExpr, takeUntilExpr, blockExpr, literal, regex, patternIdentifier]);
-const patternAssignment = new Sequence("patternAssignment", [patternName, optionalWS, assign, optionalWS, patternExpr]);
-const statement = new Options("statement", [useParamsStatement, importStatement, patternAssignment, decorationStatement, exportPattern, comment]);
+const patternExpr = new Expression("patternExpr", [
+    notExpr,
+    optionalExpr,
+    rightAssociationExpr,
+    sequenceExpr,
+    optionsExpr,
+    greedyOptionsExpr,
+    repeatExpr,
+    patternGroupExpr,
+    takeUntilExpr,
+    blockExpr,
+    literal,
+    regex,
+    patternIdentifier,
+]);
+const patternAssignment = new Sequence("patternAssignment", [
+    patternName,
+    optionalWS,
+    assign,
+    optionalWS,
+    patternExpr,
+]);
+const statement = new Options("statement", [
+    useParamsStatement,
+    importStatement,
+    patternAssignment,
+    decorationStatement,
+    exportPattern,
+    comment,
+]);
 const statements = new Repeat("statements", statement, { divider: newLine });
-const cpat = new Sequence("cpat", [optionalWS, new Optional("optionalSyntaxStatement", syntaxStatement), optionalWS, new Optional("optionalStatements", statements), optionalWS]);
+const cpat = new Sequence("cpat", [
+    optionalWS,
+    new Optional("optionalSyntaxStatement", syntaxStatement),
+    optionalWS,
+    new Optional("optionalStatements", statements),
+    optionalWS,
+]);
 const grammar = cpat;
 
 let anonymousIndexId = 0;
@@ -3575,17 +3109,17 @@ function defaultImportResolverSync(_path, _basePath) {
     throw new Error("No import resolver supplied.");
 }
 const defaultDecorators = {
-    tokens: tokens
+    tokens: tokens,
 };
 // Node names that are operators/whitespace and should be filtered during building
 const skipNodes = {
     "+": true,
     "|": true,
     "<|>": true,
-    "optionalWS": true,
-    "optionalLS": true,
-    "ws": true,
-    "ls": true,
+    optionalWS: true,
+    optionalLS: true,
+    ws: true,
+    ls: true,
 };
 class ParseContext {
     constructor(params, decorators = {}) {
@@ -3604,12 +3138,15 @@ class ParseContext {
 }
 class Grammar {
     constructor(options = {}) {
-        this._options = options;
         this._params = options.params || [];
         this._originResource = options.originResource || null;
         this._parseContext = new ParseContext(this._params, options.decorators || {});
-        this._resolveImport = options.resolveImport == null ? defaultImportResolver : options.resolveImport;
-        this._resolveImportSync = options.resolveImportSync == null ? defaultImportResolverSync : options.resolveImportSync;
+        this._resolveImport =
+            options.resolveImport == null ? defaultImportResolver : options.resolveImport;
+        this._resolveImportSync =
+            options.resolveImportSync == null
+                ? defaultImportResolverSync
+                : options.resolveImportSync;
     }
     import(path) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -3618,7 +3155,7 @@ class Grammar {
                 resolveImport: this._resolveImport,
                 originResource: grammarFile.resource,
                 params: this._params,
-                decorators: this._parseContext.decorators
+                decorators: this._parseContext.decorators,
             });
             return grammar.parse(grammarFile.expression);
         });
@@ -3732,12 +3269,16 @@ class Grammar {
         switch (node.name) {
             case "literal": {
                 // Use the literal's content as the name when in anonymous position
-                const litName = name.startsWith("anonymous-pattern-") ? this._resolveStringValue(node.value) : name;
+                const litName = name.startsWith("anonymous-pattern-")
+                    ? this._resolveStringValue(node.value)
+                    : name;
                 return this._buildLiteral(litName, node);
             }
             case "regex": {
                 // Use the regex's content as the name when in anonymous position
-                const regName = name.startsWith("anonymous-pattern-") ? node.value.slice(1, -1) : name;
+                const regName = name.startsWith("anonymous-pattern-")
+                    ? node.value.slice(1, -1)
+                    : name;
                 return this._buildRegex(regName, node);
             }
             case "sequenceExpr":
@@ -3825,22 +3366,30 @@ class Grammar {
     _buildRepeat(name, node) {
         let isOptional = false;
         // Find the main pattern (first non-structural child inside parens)
-        const patternNode = node.children.find(n => !skipNodes[n.name] && n.name !== "(" && n.name !== ")" &&
-            n.name !== "repeatOptions" && n.name !== "optionalDelimiter" &&
-            n.name !== "delimiter" && n.name !== "oneOrMore" &&
-            n.name !== "zeroOrMore" && n.name !== "repeatBounds");
+        const patternNode = node.children.find(n => !skipNodes[n.name] &&
+            n.name !== "(" &&
+            n.name !== ")" &&
+            n.name !== "repeatOptions" &&
+            n.name !== "optionalDelimiter" &&
+            n.name !== "delimiter" &&
+            n.name !== "oneOrMore" &&
+            n.name !== "zeroOrMore" &&
+            n.name !== "repeatBounds");
         if (patternNode == null) {
             throw new Error(`Repeat pattern missing inner pattern.`);
         }
         const pattern = this._buildPattern(`anonymous-pattern-${anonymousIndexId++}`, patternNode);
         const options = {
             min: 1,
-            max: Infinity
+            max: Infinity,
         };
         // Handle delimiter
         const delimiterNode = node.find(n => n.name === "delimiter");
         if (delimiterNode != null) {
-            const delimPatternNode = delimiterNode.children.find(n => !skipNodes[n.name] && n.name !== "," && n.name !== "optionalTrim" && n.name !== "trim");
+            const delimPatternNode = delimiterNode.children.find(n => !skipNodes[n.name] &&
+                n.name !== "," &&
+                n.name !== "optionalTrim" &&
+                n.name !== "trim");
             if (delimPatternNode != null) {
                 options.divider = this._buildPattern(`anonymous-pattern-${anonymousIndexId++}`, delimPatternNode);
             }
@@ -3929,7 +3478,10 @@ class Grammar {
     }
     _buildTakeUntil(name, node) {
         // The last meaningful child is the until pattern
-        const patternChildren = node.children.filter(n => !skipNodes[n.name] && n.name !== "anyChar" && n.name !== "upTo" && n.name !== "wall");
+        const patternChildren = node.children.filter(n => !skipNodes[n.name] &&
+            n.name !== "anyChar" &&
+            n.name !== "upTo" &&
+            n.name !== "wall");
         const untilPatternNode = patternChildren[patternChildren.length - 1];
         if (untilPatternNode == null) {
             throw new Error("TakeUntil pattern missing terminator pattern.");
@@ -3939,16 +3491,18 @@ class Grammar {
     }
     // --- Helpers ---
     _resolveStringValue(value) {
-        return value.replace(/\\n/g, '\n')
-            .replace(/\\r/g, '\r')
-            .replace(/\\t/g, '\t')
-            .replace(/\\b/g, '\b')
-            .replace(/\\f/g, '\f')
-            .replace(/\\v/g, '\v')
-            .replace(/\\0/g, '\0')
+        return value
+            .replace(/\\n/g, "\n")
+            .replace(/\\r/g, "\r")
+            .replace(/\\t/g, "\t")
+            .replace(/\\b/g, "\b")
+            .replace(/\\f/g, "\f")
+            .replace(/\\v/g, "\v")
+            .replace(/\\0/g, "\0")
             .replace(/\\x([0-9A-Fa-f]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
             .replace(/\\u([0-9A-Fa-f]{4})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
-            .replace(/\\(.)/g, '$1').slice(1, -1);
+            .replace(/\\(.)/g, "$1")
+            .slice(1, -1);
     }
     _getPattern(name) {
         let pattern = this._parseContext.patternsByName.get(name);
@@ -3979,24 +3533,24 @@ class Grammar {
         const firstChild = pattern.children[0];
         const lastChild = pattern.children[pattern.children.length - 1];
         const isLongEnough = pattern.children.length >= 2;
-        return pattern.type === "sequence" && isLongEnough &&
-            (firstChild.name === name || lastChild.name === name);
+        return (pattern.type === "sequence" &&
+            isLongEnough &&
+            (firstChild.name === name || lastChild.name === name));
     }
     // --- Decorators ---
     _applyDecorators(statementIndex, allStatements, pattern) {
         const decorators = this._parseContext.decorators;
-        let decoratorNodes = [];
+        const decoratorNodes = [];
         // Walk backwards from the statement to find preceding decorator statements
         // Note: statements Repeat includes newLine divider nodes between statements
         for (let i = statementIndex - 1; i >= 0; i--) {
             const prev = allStatements[i];
-            if (prev.name === "decorationStatement" || prev.name === "methodDecorationStatement" || prev.name === "nameDecorationStatement") {
+            if (prev.name === "decorationStatement" ||
+                prev.name === "methodDecorationStatement" ||
+                prev.name === "nameDecorationStatement") {
                 decoratorNodes.push(prev);
             }
-            else if (prev.name === "comment" || prev.name === "newLine") {
-                // Comments and newline dividers can appear between decorators and the statement
-                continue;
-            }
+            else if (prev.name === "comment" || prev.name === "newLine") ;
             else {
                 break;
             }
@@ -4011,7 +3565,12 @@ class Grammar {
                 decorators[nameNode.value](pattern);
             }
             else if (actualDecorator.name === "methodDecorationStatement") {
-                const jsonValueNode = actualDecorator.find(n => n.name === "jsonArray" || n.name === "jsonObject" || n.name === "jsonString" || n.name === "jsonNumber" || n.name === "jsonBoolean" || n.name === "jsonNull");
+                const jsonValueNode = actualDecorator.find(n => n.name === "jsonArray" ||
+                    n.name === "jsonObject" ||
+                    n.name === "jsonString" ||
+                    n.name === "jsonNumber" ||
+                    n.name === "jsonBoolean" ||
+                    n.name === "jsonNull");
                 if (jsonValueNode == null) {
                     decorators[nameNode.value](pattern);
                 }
@@ -4064,7 +3623,7 @@ class Grammar {
             resolveImportSync: this._resolveImportSync,
             originResource: grammarFile.resource,
             params,
-            decorators: this._parseContext.decorators
+            decorators: this._parseContext.decorators,
         });
         try {
             const patterns = g.parseString(grammarFile.expression);
@@ -4088,7 +3647,7 @@ class Grammar {
                 resolveImport: this._resolveImport,
                 originResource: grammarFile.resource,
                 params,
-                decorators: this._parseContext.decorators
+                decorators: this._parseContext.decorators,
             });
             try {
                 const patterns = yield g.parse(grammarFile.expression);
@@ -4149,7 +3708,7 @@ class Grammar {
                     originResource: this._originResource,
                     resolveImport: this._resolveImport,
                     resolveImportSync: this._resolveImportSync,
-                    decorators: this._parseContext.decorators
+                    decorators: this._parseContext.decorators,
                 });
                 const patterns = g.parseString(expression);
                 params = Array.from(Object.values(patterns));
@@ -4209,7 +3768,7 @@ class AutoComplete {
                 error: new ParseError(0, 0, this._pattern),
                 errorAtIndex: 0,
                 cursor,
-                ast: null
+                ast: null,
             };
             return suggestion;
         }
@@ -4232,7 +3791,9 @@ class AutoComplete {
             error = new ParseError(startIndex, lastIndex, this._pattern);
             errorAtIndex = startIndex;
         }
-        else if (!isComplete && this._cursor.hasError && this._cursor.furthestError != null) {
+        else if (!isComplete &&
+            this._cursor.hasError &&
+            this._cursor.furthestError != null) {
             errorAtIndex = this.getFurthestPosition(cursor);
             error = new ParseError(errorAtIndex, errorAtIndex, this._pattern);
         }
@@ -4266,7 +3827,7 @@ class AutoComplete {
     }
     _getAllSuggestionsOptions() {
         const errorMatchOptions = this._createSuggestionOptionsFromErrors();
-        const leafMatchOptions = this._cursor.leafMatches.map((m) => this._createSuggestionOptionsFromMatch(m)).flat();
+        const leafMatchOptions = this._cursor.leafMatches.flatMap(m => this._createSuggestionOptionsFromMatch(m));
         const finalResults = [];
         [...leafMatchOptions, ...errorMatchOptions].forEach(m => {
             const index = finalResults.findIndex(f => m.text === f.text);
@@ -4279,12 +3840,12 @@ class AutoComplete {
     _createSuggestionOptionsFromErrors() {
         // These errored because the length of the string.
         const errors = this._cursor.errors.filter(e => e.lastIndex === this._cursor.length - 1);
-        const errorSuggestionOptions = errors.map(parseError => {
+        const errorSuggestionOptions = errors.flatMap(parseError => {
             const currentText = this._cursor.substring(parseError.startIndex, parseError.lastIndex);
             const compositeSuggestions = this._getCompositeSuggestionsForPattern(parseError.pattern);
             const trimmedErrorCompositeSuggestions = this._trimSuggestionsByExistingText(currentText, compositeSuggestions);
             return this._createSuggestions(parseError.lastIndex, trimmedErrorCompositeSuggestions);
-        }).flat();
+        });
         const dedupedErrorSuggestionOptions = this._deDupeCompositeSuggestions(errorSuggestionOptions);
         return dedupedErrorSuggestionOptions;
     }
@@ -4297,12 +3858,15 @@ class AutoComplete {
             const currentText = this._text.slice(match.node.startIndex, match.node.endIndex);
             /**Captures suggestions for a "completed" match pattern that still has existing possible suggestions.
              * particularly relevant when working with set/custom tokens.
-            */
+             */
             const matchCompositeSuggestions = this._getCompositeSuggestionsForPattern(match.pattern);
             const trimmedMatchCompositeSuggestions = this._trimSuggestionsByExistingText(currentText, matchCompositeSuggestions);
             const leafPatterns = match.pattern.getNextPatterns();
             const leafCompositeSuggestions = leafPatterns.flatMap(leafPattern => this._getCompositeSuggestionsForPattern(leafPattern));
-            const allCompositeSuggestions = [...leafCompositeSuggestions, ...trimmedMatchCompositeSuggestions,];
+            const allCompositeSuggestions = [
+                ...leafCompositeSuggestions,
+                ...trimmedMatchCompositeSuggestions,
+            ];
             const dedupedCompositeSuggestions = this._deDupeCompositeSuggestions(allCompositeSuggestions);
             return this._createSuggestions(match.node.lastIndex, dedupedCompositeSuggestions);
         }
@@ -4320,7 +3884,7 @@ class AutoComplete {
             if (compositeSuggestion.text.startsWith(currentText)) {
                 const filteredSegments = this._filterCompletedSubSegments(currentText, compositeSuggestion);
                 const slicedSuggestionText = compositeSuggestion.text.slice(currentText.length);
-                if (slicedSuggestionText !== '') {
+                if (slicedSuggestionText !== "") {
                     const refinedCompositeSuggestion = {
                         text: slicedSuggestionText,
                         suggestionSequence: filteredSegments,
@@ -4333,12 +3897,12 @@ class AutoComplete {
         return trimmedSuggestions;
     }
     /** Removed segments already accounted for in the existing text.
-   * ie. sequence pattern segments ≈ [{look}, {an example}, {phrase}]
-   * fullText = "look an"
-   * remove {look} segment as its already been completed by the existing text.
-  */
+     * ie. sequence pattern segments ≈ [{look}, {an example}, {phrase}]
+     * fullText = "look an"
+     * remove {look} segment as its already been completed by the existing text.
+     */
     _filterCompletedSubSegments(currentText, compositeSuggestion) {
-        let elementsToRemove = [];
+        const elementsToRemove = [];
         let workingText = currentText;
         compositeSuggestion.suggestionSequence.forEach(segment => {
             /**sub segment has been completed, remove it from the sequence */
@@ -4384,10 +3948,11 @@ class AutoComplete {
                 };
                 return patternSuggestion;
             });
-            const leafCompositeSuggestions = leafPatterns.map(lp => this._getCompositeSuggestionsForPattern(lp)).flat();
+            const leafCompositeSuggestions = leafPatterns.flatMap(lp => this._getCompositeSuggestionsForPattern(lp));
             suggestionsToReturn.push(...patternsSuggestionList, ...leafCompositeSuggestions);
         }
-        if (this._options.greedyPatternNames != null && this._options.greedyPatternNames.includes(pattern.name)) {
+        if (this._options.greedyPatternNames != null &&
+            this._options.greedyPatternNames.includes(pattern.name)) {
             const nextPatterns = pattern.getNextPatterns();
             const nextPatternedTokensList = nextPatterns.reduce((acc, pattern) => {
                 const patternedTokensList = this._getCompositeSuggestionsForPattern(pattern);
@@ -4399,7 +3964,10 @@ class AutoComplete {
                 for (const nextSuggestionWithSubElements of nextPatternedTokensList) {
                     const augmentedTokenWithPattern = {
                         text: currentSuggestion.text + nextSuggestionWithSubElements.text,
-                        suggestionSequence: [...currentSuggestion.suggestionSequence, ...nextSuggestionWithSubElements.suggestionSequence],
+                        suggestionSequence: [
+                            ...currentSuggestion.suggestionSequence,
+                            ...nextSuggestionWithSubElements.suggestionSequence,
+                        ],
                     };
                     compositeSuggestionList.push(augmentedTokenWithPattern);
                 }
@@ -4429,7 +3997,7 @@ class AutoComplete {
             const subElementsKey = suggestion.suggestionSequence
                 .map(sub => ` ${sub.pattern.name} - ${sub.text}  `)
                 .sort()
-                .join('|');
+                .join("|");
             const key = `${suggestion.text}|${subElementsKey}`;
             if (!seen.has(key)) {
                 seen.add(key);
@@ -4439,15 +4007,13 @@ class AutoComplete {
         return unique;
     }
     _createSuggestions(lastIndex, compositeSuggestionList) {
-        let textToIndex = lastIndex === -1 ? "" : this._cursor.substring(0, lastIndex);
+        const textToIndex = lastIndex === -1 ? "" : this._cursor.substring(0, lastIndex);
         const options = [];
         for (const compositeSuggestion of compositeSuggestionList) {
             // concatenated for start index identification inside createSuggestion
             const existingTextWithSuggestion = textToIndex + compositeSuggestion.text;
-            existingTextWithSuggestion === this._text;
             const suggestionOption = this._createSuggestionOption(this._cursor.text, existingTextWithSuggestion, compositeSuggestion.suggestionSequence);
             options.push(suggestionOption);
-            // }
         }
         const reducedOptions = getFurthestOptions(options);
         reducedOptions.sort((a, b) => a.text.localeCompare(b.text));
@@ -4506,7 +4072,7 @@ function kebabToCamelCase(str) {
     return str.replace(kebabRegex, (_, char) => char.toUpperCase());
 }
 function patterns(strings, ...values) {
-    const combinedString = strings.reduce((result, str, i) => result + str + (values[i] || ''), '');
+    const combinedString = strings.reduce((result, str, i) => result + str + (values[i] || ""), "");
     const result = {};
     const patterns = Grammar.parseString(combinedString);
     Object.keys(patterns).forEach(k => {
@@ -4563,21 +4129,21 @@ expression = selector-expression | or-selector | node-selector
 const selectorParser = expression;
 
 const combinatorMap = {
-    "adjacent": true,
-    "after": true,
-    "descendant": true,
-    "direct-child": true
+    adjacent: true,
+    after: true,
+    descendant: true,
+    "direct-child": true,
 };
 const operatorMap = {
-    "equal": true,
+    equal: true,
     "not-equal": true,
     "starts-with": true,
     "ends-with": true,
-    "contains": true,
+    contains: true,
     "greater-than-or-equal": true,
     "less-than-or-equal": true,
     "greater-than": true,
-    "less-than": true
+    "less-than": true,
 };
 class Selector {
     constructor(selector) {
@@ -4593,7 +4159,7 @@ class Selector {
     find(nodes) {
         this._selectedNodes = nodes;
         const ast = this._selectorAst;
-        ast.walkUp((node) => {
+        ast.walkUp(node => {
             this._process(node);
         });
         return this._selectedNodes;
@@ -4606,7 +4172,7 @@ class Selector {
         nodes.forEach(n => nodeMap.set(n, n));
         this._selectedNodes = [nodes[0].findRoot()];
         const ast = this._selectorAst;
-        ast.walkUp((node) => {
+        ast.walkUp(node => {
             this._process(node);
         });
         return this._selectedNodes.filter(n => nodeMap.has(n));
@@ -4617,7 +4183,7 @@ class Selector {
         }
         this._selectedNodes = [nodes[0].findRoot()];
         const ast = this._selectorAst;
-        ast.walkUp((node) => {
+        ast.walkUp(node => {
             this._process(node);
         });
         const selectedNodeMap = new Map();
@@ -4630,7 +4196,7 @@ class Selector {
         }
         this._selectedNodes = [nodes[0].findRoot()];
         const ast = this._selectorAst;
-        ast.walkUp((node) => {
+        ast.walkUp(node => {
             this._process(node);
         });
         const result = new Set();
@@ -4652,10 +4218,13 @@ class Selector {
         else if (nodeName === "or-selector") {
             this._selectedNodes = this._processOrSelector(ast);
         }
-        else if (nodeName === "name-selector" || (nodeName === "name" && (ast.parent == null || ast.parent.name === "selector-expression"))) {
+        else if (nodeName === "name-selector" ||
+            (nodeName === "name" &&
+                (ast.parent == null || ast.parent.name === "selector-expression"))) {
             this._selectedNodes = this._processNameSelector(ast);
         }
-        else if (nodeName === "attribute-selector" && (ast.parent == null || ast.parent.name === "selector-expression")) {
+        else if (nodeName === "attribute-selector" &&
+            (ast.parent == null || ast.parent.name === "selector-expression")) {
             this._selectedNodes = this._processAttributeSelector(ast);
         }
         else if (combinatorMap[nodeName]) {
@@ -4666,42 +4235,44 @@ class Selector {
         }
     }
     _processWildCard() {
-        return this._selectedNodes.map(n => {
+        return this._selectedNodes.flatMap(n => {
             return this._selectWithCombinator(n, () => true);
-        }).flat();
+        });
     }
     _processOrSelector(ast) {
         const selectorNodes = ast.children.filter(n => n.name !== "comma");
         const set = new Set();
         const selectors = selectorNodes.map(n => new Selector(n.toString()));
-        selectors.map(s => {
+        selectors
+            .flatMap(s => {
             return s.find(this._selectedNodes.slice());
-        }).flat().forEach((node) => {
+        })
+            .forEach(node => {
             set.add(node);
         });
         return Array.from(set);
     }
     _processNameSelector(ast) {
         if (ast.children.length > 1) {
-            return this._selectedNodes.map(n => {
+            return this._selectedNodes.flatMap(n => {
                 const name = ast.children[0].value;
                 return this._selectWithCombinator(n, (node) => {
                     return node.name === name && this._isAttributeMatch(node, ast);
                 });
-            }).flat();
+            });
         }
         else {
-            return this._selectedNodes.map(n => {
+            return this._selectedNodes.flatMap(n => {
                 return this._selectWithCombinator(n, (node) => node.name === ast.value);
-            }).flat();
+            });
         }
     }
     _processAttributeSelector(ast) {
-        return this._selectedNodes.map(n => {
+        return this._selectedNodes.flatMap(n => {
             return this._selectWithCombinator(n, (node) => {
                 return this._isAttributeMatch(node, ast);
             });
-        }).flat();
+        });
     }
     _selectWithCombinator(node, predicate) {
         if (this._combinator === "adjacent") {
@@ -4865,7 +4436,7 @@ class Query {
         return this;
     }
     setValue(value) {
-        this.replaceWith((n) => {
+        this.replaceWith(n => {
             return Node.createValueNode(n.type, n.name, value);
         });
         return this;
@@ -4907,7 +4478,7 @@ class Query {
     parent() {
         const parents = this._context.map(n => n.parent);
         const result = new Set();
-        parents.forEach((n) => {
+        parents.forEach(n => {
             if (n != null) {
                 result.add(n);
             }
@@ -4919,7 +4490,7 @@ class Query {
         const selector = new Selector(selectorString);
         const newContext = selector.parents(this._context);
         const result = new Set();
-        newContext.forEach((n) => {
+        newContext.forEach(n => {
             if (n != null) {
                 result.add(n);
             }
@@ -4945,6 +4516,7 @@ class Query {
 }
 
 exports.AutoComplete = AutoComplete;
+exports.BasePattern = BasePattern;
 exports.Block = Block;
 exports.Context = Context;
 exports.Cursor = Cursor;
@@ -4967,6 +4539,7 @@ exports.Sequence = Sequence;
 exports.compact = compact;
 exports.generateErrorMessage = generateErrorMessage;
 exports.grammar = grammar;
+exports.isTokenizablePattern = isTokenizablePattern;
 exports.patterns = patterns;
 exports.remove = remove;
 //# sourceMappingURL=index.js.map

@@ -89,7 +89,9 @@ export class Node {
     this._children = children;
     this._value = value;
 
-    this._children.forEach(c => (c._parent = this));
+    this._children.forEach(c => {
+      c._parent = this;
+    });
   }
 
   removeChild(node: Node) {
@@ -108,8 +110,12 @@ export class Node {
   spliceChildren(index: number, deleteCount: number, ...items: Node[]) {
     const removedItems = this._children.splice(index, deleteCount, ...items);
 
-    removedItems.forEach(i => (i._parent = null));
-    items.forEach(i => (i._parent = this));
+    removedItems.forEach(i => {
+      i._parent = null;
+    });
+    items.forEach(i => {
+      i._parent = this;
+    });
 
     return removedItems;
   }

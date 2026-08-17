@@ -59,7 +59,7 @@ function optionsMatchExpected(
   });
 }
 
-export function generateExpression(flagNames: string[]): Repeat {
+function generateExpression(flagNames: string[]): Repeat {
   if (flagNames.length === 0) {
     // regex is purposefully impossible to satisfy
     const noValidOptionsRegex = new Regex("[No Valid Options Exist]", "(?=a)^(?!a)");

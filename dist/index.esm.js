@@ -48,7 +48,9 @@ class Node {
         this._parent = null;
         this._children = children;
         this._value = value;
-        this._children.forEach(c => (c._parent = this));
+        this._children.forEach(c => {
+            c._parent = this;
+        });
     }
     removeChild(node) {
         const index = this._children.indexOf(node);
@@ -62,8 +64,12 @@ class Node {
     }
     spliceChildren(index, deleteCount, ...items) {
         const removedItems = this._children.splice(index, deleteCount, ...items);
-        removedItems.forEach(i => (i._parent = null));
-        items.forEach(i => (i._parent = this));
+        removedItems.forEach(i => {
+            i._parent = null;
+        });
+        items.forEach(i => {
+            i._parent = this;
+        });
         return removedItems;
     }
     removeAllChildren() {
@@ -806,7 +812,9 @@ class Context extends BasePattern {
         super("context", name, [pattern.clone()]);
         this._referencePatternName = name;
         this._patterns = {};
-        context.forEach(p => (this._patterns[p.name] = p));
+        context.forEach(p => {
+            this._patterns[p.name] = p;
+        });
         this._assignChildrenToParent(this._children);
     }
     getPatternWithinContext(name) {
@@ -1434,7 +1442,8 @@ class Expression extends BasePattern {
     _cacheAncestors() {
         for (const atom of this._atomPatterns) {
             const id = atom.id;
-            const ancestors = (this._atomsIdToAncestorsMap[id] = []);
+            const ancestors = [];
+            this._atomsIdToAncestorsMap[id] = ancestors;
             let pattern = this.parent;
             while (pattern != null) {
                 if (pattern.id === id) {
@@ -3122,7 +3131,9 @@ class ParseContext {
         this.patternsByName = new Map();
         this.importedPatternsByName = new Map();
         this.paramsByName = new Map();
-        params.forEach(p => this.paramsByName.set(p.name, p));
+        params.forEach(p => {
+            this.paramsByName.set(p.name, p);
+        });
         this.decorators = Object.assign(Object.assign({}, decorators), defaultDecorators);
     }
     getImportedPatterns() {
@@ -4165,7 +4176,9 @@ class Selector {
             return [];
         }
         const nodeMap = new Map();
-        nodes.forEach(n => nodeMap.set(n, n));
+        nodes.forEach(n => {
+            nodeMap.set(n, n);
+        });
         this._selectedNodes = [nodes[0].findRoot()];
         const ast = this._selectorAst;
         ast.walkUp(node => {
@@ -4183,7 +4196,9 @@ class Selector {
             this._process(node);
         });
         const selectedNodeMap = new Map();
-        this._selectedNodes.forEach(n => selectedNodeMap.set(n, n));
+        this._selectedNodes.forEach(n => {
+            selectedNodeMap.set(n, n);
+        });
         return nodes.filter(n => !selectedNodeMap.has(n));
     }
     parents(nodes) {
@@ -4197,7 +4212,9 @@ class Selector {
         });
         const result = new Set();
         const ancestorMap = new Map();
-        this._selectedNodes.forEach(n => ancestorMap.set(n, true));
+        this._selectedNodes.forEach(n => {
+            ancestorMap.set(n, true);
+        });
         nodes.forEach(n => {
             const ancestor = n.findAncestor(a => ancestorMap.has(a));
             if (ancestor != null) {

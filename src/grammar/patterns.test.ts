@@ -36,7 +36,11 @@ describe("Patterns String Template Literal", () => {
     );
     result &&
       result.ast &&
-      result.ast.findAll(n => n.name.includes("space")).forEach(n => n.remove());
+      result.ast
+        .findAll(n => n.name.includes("space"))
+        .forEach(n => {
+          n.remove();
+        });
     expect(result?.ast?.value).toBe("<div><div></div><div></div></div>");
   });
 

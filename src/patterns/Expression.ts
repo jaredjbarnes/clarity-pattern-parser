@@ -96,7 +96,8 @@ export class Expression extends BasePattern {
   private _cacheAncestors() {
     for (const atom of this._atomPatterns) {
       const id = atom.id;
-      const ancestors: Pattern[] = (this._atomsIdToAncestorsMap[id] = []);
+      const ancestors: Pattern[] = [];
+      this._atomsIdToAncestorsMap[id] = ancestors;
 
       let pattern: Pattern | null = this.parent;
       while (pattern != null) {

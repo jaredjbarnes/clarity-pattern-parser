@@ -73,7 +73,9 @@ class ParseContext {
   decorators: Record<string, Decorator>;
 
   constructor(params: Pattern[], decorators: Record<string, Decorator> = {}) {
-    params.forEach(p => this.paramsByName.set(p.name, p));
+    params.forEach(p => {
+      this.paramsByName.set(p.name, p);
+    });
     this.decorators = { ...decorators, ...defaultDecorators };
   }
 

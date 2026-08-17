@@ -21,7 +21,9 @@ export class Context extends BasePattern {
 
     this._referencePatternName = name;
     this._patterns = {};
-    context.forEach(p => (this._patterns[p.name] = p));
+    context.forEach(p => {
+      this._patterns[p.name] = p;
+    });
 
     this._assignChildrenToParent(this._children);
   }

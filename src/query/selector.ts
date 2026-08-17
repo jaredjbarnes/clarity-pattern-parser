@@ -57,7 +57,9 @@ export class Selector {
     }
 
     const nodeMap = new Map();
-    nodes.forEach(n => nodeMap.set(n, n));
+    nodes.forEach(n => {
+      nodeMap.set(n, n);
+    });
 
     this._selectedNodes = [nodes[0].findRoot()];
 
@@ -82,7 +84,9 @@ export class Selector {
     });
 
     const selectedNodeMap = new Map();
-    this._selectedNodes.forEach(n => selectedNodeMap.set(n, n));
+    this._selectedNodes.forEach(n => {
+      selectedNodeMap.set(n, n);
+    });
 
     return nodes.filter(n => !selectedNodeMap.has(n));
   }
@@ -101,7 +105,9 @@ export class Selector {
 
     const result = new Set<Node>();
     const ancestorMap = new Map<Node, boolean>();
-    this._selectedNodes.forEach(n => ancestorMap.set(n, true));
+    this._selectedNodes.forEach(n => {
+      ancestorMap.set(n, true);
+    });
 
     nodes.forEach(n => {
       const ancestor = n.findAncestor(a => ancestorMap.has(a));

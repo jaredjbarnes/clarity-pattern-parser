@@ -898,7 +898,7 @@ describe("Grammar", () => {
   });
 
   test("Import Sync", () => {
-    function resolveImportSync(path: string, importer: string | null) {
+    function resolveImportSync(path: string, _importer: string | null) {
       return {
         expression: pathMap[path],
         resource: path,

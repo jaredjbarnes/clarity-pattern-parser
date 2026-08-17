@@ -35,10 +35,16 @@ function defaultImportResolverSync(_path: string, _basePath: string | null): Gra
   throw new Error("No import resolver supplied.");
 }
 
-export type Decorator = (
-  pattern: Pattern,
-  arg?: string | boolean | number | null | Record<string, any> | any[]
-) => void;
+/** Any value a decorator argument can parse to, since arguments are JSON. */
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonValue[]
+  | { [key: string]: JsonValue };
+
+export type Decorator = (pattern: Pattern, arg?: JsonValue) => void;
 
 const defaultDecorators: Record<string, Decorator> = {
   tokens: tokens,
@@ -749,9 +755,10 @@ export class Grammar {
     try {
       const patterns = g.parseString(grammarFile.expression);
       this._processImportNames(importStatement, patterns, parseContext, resource);
-    } catch (e: any) {
+    } catch (e) {
+      const details = e instanceof Error ? e.message : String(e);
       throw new Error(
-        `Failed loading expression from: "${resource}". Error details: "${e.message}"`
+        `Failed loading expression from: "${resource}". Error details: "${details}"`
       );
     }
   }
@@ -777,9 +784,10 @@ export class Grammar {
     try {
       const patterns = await g.parse(grammarFile.expression);
       this._processImportNames(importStatement, patterns, parseContext, resource);
-    } catch (e: any) {
+    } catch (e) {
+      const details = e instanceof Error ? e.message : String(e);
       throw new Error(
-        `Failed loading expression from: "${resource}". Error details: "${e.message}"`
+        `Failed loading expression from: "${resource}". Error details: "${details}"`
       );
     }
   }

@@ -6,7 +6,7 @@ import type { Pattern } from "../patterns/Pattern";
 import { Reference } from "../patterns/Reference";
 import { Regex } from "../patterns/Regex";
 import { Repeat } from "../patterns/Repeat";
-import { Grammar } from "./Grammar";
+import { Grammar, type JsonValue } from "./Grammar";
 import { Optional } from "../patterns/Optional";
 import { Context } from "../patterns/Context";
 import { createPatternsTemplate, patterns } from "./patterns";
@@ -1123,7 +1123,7 @@ describe("Grammar", () => {
   // --- Decorator JSON Arg Types ---
 
   test("decorator receives number argument", () => {
-    let received: any;
+    let received: JsonValue | undefined;
     const cp = createPatternsTemplate({
       decorators: {
         config: (_p, arg) => {
@@ -1136,7 +1136,7 @@ describe("Grammar", () => {
   });
 
   test("decorator receives nested array argument", () => {
-    let received: any;
+    let received: JsonValue | undefined;
     const cp = createPatternsTemplate({
       decorators: {
         config: (_p, arg) => {
@@ -1149,7 +1149,7 @@ describe("Grammar", () => {
   });
 
   test("decorator receives null argument", () => {
-    let received: any = "not-null";
+    let received: JsonValue | undefined = "not-null";
     const cp = createPatternsTemplate({
       decorators: {
         config: (_p, arg) => {
@@ -1162,7 +1162,7 @@ describe("Grammar", () => {
   });
 
   test("decorator receives string argument", () => {
-    let received: any;
+    let received: JsonValue | undefined;
     const cp = createPatternsTemplate({
       decorators: {
         config: (_p, arg) => {

@@ -226,6 +226,10 @@ export class Selector {
     const name = this._getAttributeName(ast);
     const operator = this._getAttributeOperator(ast);
     const value = this._getAttributeValue(ast);
+    // Attribute selectors name a Node property at runtime ("[value='4']") and
+    // compare it with relational operators. Any narrower type forces a cast at
+    // every comparison without making the lookup safer, so `any` is honest here.
+    // biome-ignore lint/suspicious/noExplicitAny: dynamic property lookup by selector
     const anyNode = node as any;
 
     if (anyNode[name] == null) {

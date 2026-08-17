@@ -7,9 +7,9 @@ function kebabToCamelCase(str: string) {
   return str.replace(kebabRegex, (_, char) => char.toUpperCase());
 }
 
-export function patterns(strings: TemplateStringsArray, ...values: any) {
+export function patterns(strings: TemplateStringsArray, ...values: unknown[]) {
   const combinedString = strings.reduce(
-    (result, str, i) => result + str + (values[i] || ""),
+    (result, str, i) => result + str + (values[i] ? String(values[i]) : ""),
     ""
   );
 
@@ -24,9 +24,9 @@ export function patterns(strings: TemplateStringsArray, ...values: any) {
 }
 
 export function createPatternsTemplate(options: GrammarOptions) {
-  return function patterns(strings: TemplateStringsArray, ...values: any) {
+  return function patterns(strings: TemplateStringsArray, ...values: unknown[]) {
     const combinedString = strings.reduce(
-      (result, str, i) => result + str + (values[i] || ""),
+      (result, str, i) => result + str + (values[i] ? String(values[i]) : ""),
       ""
     );
 

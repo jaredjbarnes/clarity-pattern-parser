@@ -3643,7 +3643,8 @@
                 this._processImportNames(importStatement, patterns, parseContext, resource);
             }
             catch (e) {
-                throw new Error(`Failed loading expression from: "${resource}". Error details: "${e.message}"`);
+                const details = e instanceof Error ? e.message : String(e);
+                throw new Error(`Failed loading expression from: "${resource}". Error details: "${details}"`);
             }
         }
         _processImport(importStatement) {
@@ -3667,7 +3668,8 @@
                     this._processImportNames(importStatement, patterns, parseContext, resource);
                 }
                 catch (e) {
-                    throw new Error(`Failed loading expression from: "${resource}". Error details: "${e.message}"`);
+                    const details = e instanceof Error ? e.message : String(e);
+                    throw new Error(`Failed loading expression from: "${resource}". Error details: "${details}"`);
                 }
             });
         }
@@ -4085,7 +4087,7 @@
         return str.replace(kebabRegex, (_, char) => char.toUpperCase());
     }
     function patterns(strings, ...values) {
-        const combinedString = strings.reduce((result, str, i) => result + str + (values[i] || ""), "");
+        const combinedString = strings.reduce((result, str, i) => result + str + (values[i] ? String(values[i]) : ""), "");
         const result = {};
         const patterns = Grammar.parseString(combinedString);
         Object.keys(patterns).forEach(k => {
@@ -4329,6 +4331,10 @@ expression = selector-expression | or-selector | node-selector
             const name = this._getAttributeName(ast);
             const operator = this._getAttributeOperator(ast);
             const value = this._getAttributeValue(ast);
+            // Attribute selectors name a Node property at runtime ("[value='4']") and
+            // compare it with relational operators. Any narrower type forces a cast at
+            // every comparison without making the lookup safer, so `any` is honest here.
+            // biome-ignore lint/suspicious/noExplicitAny: dynamic property lookup by selector
             const anyNode = node;
             if (anyNode[name] == null) {
                 return false;

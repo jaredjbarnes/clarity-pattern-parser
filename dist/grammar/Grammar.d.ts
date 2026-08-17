@@ -3,7 +3,11 @@ export interface GrammarFile {
     expression: string;
 }
 import type { Pattern } from "../patterns/Pattern";
-export type Decorator = (pattern: Pattern, arg?: string | boolean | number | null | Record<string, any> | any[]) => void;
+/** Any value a decorator argument can parse to, since arguments are JSON. */
+export type JsonValue = string | number | boolean | null | JsonValue[] | {
+    [key: string]: JsonValue;
+};
+export type Decorator = (pattern: Pattern, arg?: JsonValue) => void;
 export interface GrammarOptions {
     resolveImport?: (resource: string, originResource: string | null) => Promise<GrammarFile>;
     resolveImportSync?: (resource: string, originResource: string | null) => GrammarFile;

@@ -390,7 +390,7 @@ describe("Expression Pattern", () => {
 
     // The prefix pattern is the extracted prefix (minus only), get the actual child
     const prefixChild = expression.prefixPatterns[0];
-    const tokens = expression.getTokensAfter(prefixChild as any);
+    const tokens = expression.getTokensAfter(prefixChild);
 
     // After a prefix, expect atom tokens (and prefix tokens for nested prefixes)
     expect(tokens).toContain("-");
@@ -413,7 +413,7 @@ describe("Expression Pattern", () => {
     expression.build();
 
     const atomChild = expression.atomPatterns[0];
-    const tokens = expression.getTokensAfter(atomChild as any);
+    const tokens = expression.getTokensAfter(atomChild);
 
     expect(tokens).toContain("!");
     expect(tokens).toContain("+");
@@ -435,7 +435,7 @@ describe("Expression Pattern", () => {
     expression.build();
 
     const postfixChild = expression.postfixPatterns[0];
-    const tokens = expression.getTokensAfter(postfixChild as any);
+    const tokens = expression.getTokensAfter(postfixChild);
 
     expect(tokens).toContain("!");
     expect(tokens).toContain("+");
@@ -501,7 +501,7 @@ describe("Expression Pattern", () => {
     wiredExpression.build();
 
     const atomChild = wiredExpression.atomPatterns[0];
-    const tokens = wiredExpression.getTokensAfter(atomChild as any);
+    const tokens = wiredExpression.getTokensAfter(atomChild);
 
     // The expression's parent is the wrapper Sequence.
     // getTokensAfter for an atom calls this._parent.getNextTokens()
@@ -535,7 +535,7 @@ describe("Expression Pattern", () => {
     expression.build();
 
     const prefixChild = expression.prefixPatterns[0];
-    const patterns = expression.getPatternsAfter(prefixChild as any);
+    const patterns = expression.getPatternsAfter(prefixChild);
 
     expect(patterns.length).toBeGreaterThan(0);
   });
@@ -552,7 +552,7 @@ describe("Expression Pattern", () => {
     expression.build();
 
     const atomChild = expression.atomPatterns[0];
-    const patterns = expression.getPatternsAfter(atomChild as any);
+    const patterns = expression.getPatternsAfter(atomChild);
 
     // Should include the infix delimiter pattern
     expect(patterns.length).toBeGreaterThan(0);
@@ -568,7 +568,7 @@ describe("Expression Pattern", () => {
     wiredExpression.build();
 
     const atomChild = wiredExpression.atomPatterns[0];
-    const patterns = wiredExpression.getPatternsAfter(atomChild as any);
+    const patterns = wiredExpression.getPatternsAfter(atomChild);
 
     // The branch this._parent != null is taken. getNextPatterns on the
     // wrapper returns [] since the wrapper has no grandparent, but the
@@ -592,7 +592,7 @@ describe("Expression Pattern", () => {
     expression.build();
 
     const postfixChild = expression.postfixPatterns[0];
-    const patterns = expression.getPatternsAfter(postfixChild as any);
+    const patterns = expression.getPatternsAfter(postfixChild);
 
     expect(patterns.length).toBeGreaterThan(0);
   });
@@ -611,7 +611,7 @@ describe("Expression Pattern", () => {
     wiredExpression.build();
 
     const postfixChild = wiredExpression.postfixPatterns[0];
-    const patterns = wiredExpression.getPatternsAfter(postfixChild as any);
+    const patterns = wiredExpression.getPatternsAfter(postfixChild);
 
     // The branch this._parent != null is taken, exercising lines 593-594.
     expect(Array.isArray(patterns)).toBe(true);
@@ -712,7 +712,7 @@ describe("Expression Pattern", () => {
     wiredExpression.build();
 
     const postfixChild = wiredExpression.postfixPatterns[0];
-    const tokens = wiredExpression.getTokensAfter(postfixChild as any);
+    const tokens = wiredExpression.getTokensAfter(postfixChild);
 
     // Exercises the postfix branch with parent (line 538-539)
     expect(Array.isArray(tokens)).toBe(true);

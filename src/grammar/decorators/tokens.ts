@@ -9,7 +9,7 @@ import type { Decorator } from "../Grammar";
  * any pattern that can accept tokens — `Regex`, `TakeUntil`, or a custom one —
  * instead of only the built-in regex.
  */
-export const tokens: Decorator = (pattern: Pattern, arg: any) => {
+export const tokens: Decorator = (pattern, arg) => {
   if (!Array.isArray(arg) || !isTokenizablePattern(pattern)) {
     return;
   }
